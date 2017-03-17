@@ -1,0 +1,113 @@
+name	Shape	ShapeColor	Fill		FillNegative	FillColor	Text	TextColor
+%
+2dPen	-	0,0,0		empty		no		255,255,255	-	0,0,0
+4dPen	-	0,0,0		empty		no		255,255,255	-	0,0,0
+dRib	-	0,0,0		empty		no		255,255,255	-	0,0,0
+4dPenN	-	0,0,0		empty		no		255,255,255	-	0,0,0
+%
+Pen	-	0,0,0		empty		no		255,255,255	-	0,0,0
+Ara	-	0,0,0		empty		no		255,255,255	-	0,0,0
+Rib	-	0,0,0		empty		no		255,255,255	-	0,0,0
+Xyl	-	0,0,0		empty		no		255,255,255	-	0,0,0
+Api	-	0,0,0		empty		no		255,255,255	-	0,0,0
+Lyx	-	0,0,0		empty		no		255,255,255	-	0,0,0
+%
+ddHex	-	0,0,0		empty		no		255,255,255	-	0,0,0
+dHex	-	0,0,0		empty		no		255,255,255	-	0,0,0
+Fuc	-	0,0,0		empty		no		255,255,255	-	0,0,0
+Qui	-	0,0,0		empty		no		255,255,255	-	0,0,0
+Rha	-	0,0,0		empty		no		255,255,255	-	0,0,0
+dTal	-	0,0,0		empty		no		255,255,255	-	0,0,0
+%
+HexN	-	0,0,0		empty		no		255,255,255	-	0,0,0
+GalN	-	0,0,0		empty		no		255,255,255	-	0,0,0
+GlcN	-	0,0,0		empty		no		255,255,255	-	0,0,0
+ManN	-	0,0,0		empty		no		255,255,255	-	0,0,0
+TalN	-	0,0,0		empty		no		255,255,255	-	0,0,0
+IdoN	-	0,0,0		empty		no		255,255,255	-	0,0,0
+AllN	-	0,0,0		empty		no		255,255,255	-	0,0,0
+AltN	-	0,0,0		empty		no		255,255,255	-	0,0,0
+GulN	-	0,0,0		empty		no		255,255,255	-	0,0,0
+RhaN	-	0,0,0		empty		no		255,255,255	-	0,0,0
+QuiN	-	0,0,0		empty		no		255,255,255	-	0,0,0
+FucN	-	0,0,0		empty		no		255,255,255	-	0,0,0
+Bac	-	0,0,0			empty		no		255,255,255	-	0,0,0
+%
+Hex	-	0,0,0		empty		no		255,255,255	-	0,0,0
+Gal	-	0,0,0		empty		no		255,255,255	-	0,0,0
+Glc	-	0,0,0		empty		no		255,255,255	-	0,0,0
+Man	-	0,0,0		empty		no		255,255,255	-	0,0,0
+Tal	-	0,0,0		empty		no		255,255,255	-	0,0,0
+All	-	0,0,0		empty		no		255,255,255	-	0,0,0
+Alt	-	0,0,0		empty		no		255,255,255	-	0,0,0
+Gul	-	0,0,0		empty		no		255,255,255	-	0,0,0
+Ido	-	0,0,0		empty		no		255,255,255	-	0,0,0
+%
+Fru	-	0,0,0		empty		no		255,255,255	-	0,0,0
+Sor	-	0,0,0		empty		no		255,255,255	-	0,0,0
+Tag	-	0,0,0		empty		no		255,255,255	-	0,0,0
+MeH	-	0,0,0		empty		no		255,255,255	-	0,0,0
+%
+dHexA	-	0,0,0		empty		no		255,255,255	-	0,0,0
+HexA	-	0,0,0		empty		no		255,255,255	-	0,0,0
+GalA	-	0,0,0		empty		no		255,255,255	-	0,0,0
+GlcA	-	0,0,0		empty		no		255,255,255	-	0,0,0
+IdoA	-	0,0,0		empty		no		255,255,255	-	0,0,0
+ManA	-	0,0,0		empty		no		255,255,255	-	0,0,0
+TalA	-	0,0,0		empty		no		255,255,255	-	0,0,0
+AltA	-	0,0,0		empty		no		255,255,255	-	0,0,0
+AllA	-	0,0,0		empty		no		255,255,255	-	0,0,0
+GulA	-	0,0,0		empty		no		255,255,255	-	0,0,0
+%
+Hept	-	0,0,0		empty		no		255,255,255	-	0,0,0
+%
+HexNAc	-	0,0,0		empty		no		255,255,255	-	0,0,0
+GalNAc	-	0,0,0		empty		no		255,255,255	-	0,0,0
+GlcNAc	-	0,0,0		empty		no		255,255,255	-	0,0,0
+ManNAc	-	0,0,0		empty		no		255,255,255	-	0,0,0
+TalNAc	-	0,0,0		empty		no		255,255,255	-	0,0,0
+IdoNAc	-	0,0,0		empty		no		255,255,255	-	0,0,0
+AllNAc	-	0,0,0		empty		no		255,255,255	-	0,0,0
+AltNAc	-	0,0,0		empty		no		255,255,255	-	0,0,0
+GulNAc	-	0,0,0		empty		no		255,153,255	-	0,0,0
+RhaNAc	-	0,0,0		empty		no		255,255,255	-	0,0,0
+QuiNAc	-	0,0,0		empty		no		255,255,255	-	0,0,0
+FucNAc	-	0,0,0		empty		no		255,255,255	-	0,0,0
+MurNAc	-	0,0,0		empty		no		255,255,255	-	0,0,0
+BacNAc	-	0,0,0		empty		no		255,255,255	-	0,0,0
+%
+Kdo	-	0,0,0		empty		no		255,255,255	-	0,0,0
+Ko	-	0,0,0		empty		no		255,255,255	-	0,0,0
+Kdn	-	0,0,0		empty		no		255,255,255	-	0,0,0
+%
+Mur	-	0,0,0		empty		no		255,255,255	-	0,0,0
+%
+Neu	-	0,0,0		empty		no		255,255,255	-	0,0,0
+NeuAc	-	0,0,0		empty		no		255,255,255	-	0,0,0
+NeuGc	-	0,0,0		empty		no		255,255,255	-	0,0,0
+NeuAcLac	-	0,0,0		empty		no		255,255,255	-	0,0,0
+NeuGcLac	-	0,0,0		empty		no		255,255,255	-	0,0,0
+%
+freeEnd	end	0,0,0		empty		no		255,255,255	-	0,0,0
+redEnd	end	0,0,0		empty		no		255,255,255	O	0,0,0
+%redEnd	-	0,0,0		empty		no		255,255,255	ol	0,0,0
+2AP	-	0,0,0		empty		no		255,255,255	-	0,0,0
+2AB	-	0,0,0		empty		no		255,255,255	-	0,0,0
+AA	-	0,0,0		empty		no		255,255,255	-	0,0,0
+%
+Me	-	0,0,0		empty		no		255,255,255	-	0,0,0
+Ac	-	0,0,0		empty		no		255,255,255	-	0,0,0
+NAc	-	0,0,0		empty		no		255,255,255	-	0,0,0
+Pv	-	0,0,0		empty		no		255,255,255	-	0,0,0
+P	-	0,0,0		empty		no		255,255,255	-	0,0,0
+S	-	0,0,0		empty		no		255,255,255	-	0,0,0
+Pyr	-	0,0,0		empty		no		255,255,255	-	0,0,0
+PC	-	0,0,0		empty		no		255,255,255	-	0,0,0
+Ino	-	0,0,0		empty		no		255,255,255	-	0,0,0
+PPEtn	-		0,0,0		empty		no		255,255,255	PPEtn	0,0,0
+PEtn	-		0,0,0		empty		no		255,255,255	PEtn	0,0,0
+N	-		0,0,0		empty		no		255,255,255	N	0,0,0
+%
+deoxy	-		0,0,0		empty		no		255,255,255	d	0,0,0
+un	-		0,0,0		empty		no		255,255,255	un	0,0,0
+aldi	-		0,0,0		empty		no		255,255,255	aldi	0,0,0

@@ -1,0 +1,17 @@
+%Name	SuperClass	Class	Composition	Synonim	IUPAC	AnomC	Chir	Ring	IsSacc	IsCleav	Labile	BarOrdr	NoMe	DropMe	NoAc	DropAc	noLinks	LinkPos	ChargesPos	Alditol RedEnd 	Parent	Description
+N		Bridge	N		N1H3		-	N		1	?	?	yes	yes	no	0	3	no	1	no	1	1	1	no	no	yes	Amine
+NS		Bridge	NS		HSO4N1		-	NS		1	?	?	yes	yes	no	0	3	no	1	no	1	1	1	no	no	yes	N-sulfate
+P		Bridge	P		H3P1O4		-	P		1	?	?	yes	yes	no	0	3	no	1	no	1	1	1	no	no	yes	Phosphate
+PEtn	Bridge	PEtn	C2H8NO4P	-	PEtn	1	?	?	yes	yes	no	0	3	no	1	no	1	1	1	no	no	yes	Phospho-ethanolamine
+PPEtn	Bridge	PPEtn	C2H9NO7P2	-	PPEtn	1	?	?	yes	yes	no	0	3	no	1	no	1	1	1	no	no	yes	Di-phospho-ethanolamine
+Py		Bridge	Py		C3H3O3		-	Pyr		2	?	?	yes	yes	no	0	3	no	1	no	1	1	1	no	no	yes	Pyruvate
+PyrP	Bridge	PyrP	H4P2O7		-	PyrP	1	?	?	yes	yes	no	0	1	no	1	no	1	1	1	no	no	yes	Pyrophosphate
+(S)Py	Bridge	(S)Py	C3H3O3		-	xSPyr	2	?	?	yes	yes	no	0	3	no	1	no	1	1	1	no	no	yes	(s)-pyruvate
+(R)Py	Bridge	(R)Py	C3H3O3		-	xRPyr	2	?	?	yes	yes	no	0	3	no	1	no	1	1	1	no	no	yes	(r)-pyruvate
+S		Bridge	S		H2S1O4		-	S		1	?	?	yes	yes	no	0	3	no	1	no	1	1	1	no	no	yes	Sulfate
+Suc		Bridge	Suc		C4H4O4		-	Suc		1	?	?	yes	yes	no	0	3	no	1	no	1	1	1	no	no	yes	Succinate
+Tri-P	Bridge	Tri-P	H9P3O12		-	Tri-P	1	?	?	yes	yes	no	0	3	no	1	no	1	1	1	no	no	yes	Triphosphate
+%ETHANOLAMINE_b
+%IMINO_b
+%PYROPHOSPHATE_b
+%FAZZYP

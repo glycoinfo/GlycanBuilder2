@@ -1,0 +1,5 @@
+%regex		dashed	shape	info [0-never, 1-always, 2-when known, 3-when unknown]
+pa|pb|pp	0	line	223	
+(!ps)&&!(pr)	0	line	020
+!cs		0	line	200
+1		0	line	223

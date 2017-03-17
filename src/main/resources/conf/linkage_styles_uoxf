@@ -1,0 +1,11 @@
+%regex		dashed	shape	info [0-never, 1-always, 2-when known, 3-when unknown]
+!cs			no	line	003
+!ps & !pb & !pa & as=a	yes	line	003
+!ps & !pb & !pa & as=b	no	line	003
+!ps & !pb & !pa		no	line	033
+lp=\d & as=a		yes	line	003
+lp=\d & as=b		no	line	003
+lp=\d			no	line	033
+as=a			yes	curve	003
+as=b			no	curve	003
+1			no	curve	033

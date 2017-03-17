@@ -1,0 +1,3 @@
+%regex		dashed	shape	info [0-never, 1-always, 2-when known, 3-when unknown]
+!cs		0	line	000
+1		0	line	023

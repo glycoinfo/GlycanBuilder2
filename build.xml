@@ -1,0 +1,201 @@
+<project name="eurocarb-glycanbuilder" default="build" >
+  
+    <!--
+    !   this import defines the following:
+    !
+    !   1) 'project.*' properties  
+    !   2) 'project.classpath' path, containing all external and eurocarb-compiled jars.
+    !   3) 'build-XXX' tasks, where 'XXX' is the name of a sub-project                
+    !
+    -->
+    <import file="./unicarb-db/build.common.xml" />
+
+    
+    <!--===================== PROPERTIES =========================-->
+    
+    <property name="java.source.dir" value="${basedir}/src" />
+    <property name="java.build.dir" value="${basedir}/build" />
+    <property name="doc.dir" value="${basedir}/doc"/>  
+    <property name="apidoc.dir" value="${doc.dir}/api" />
+    
+    <property name="java.extlib.dir" value="${project.java.extlib.dir}"/>
+    <property name="java.dist.dir" value="${project.java.lib.dir}" />
+    <property name="applet.dist.dir" value="${project.binary.dir}" />
+    
+    
+    <!--======================== PATHS ===========================-->
+
+    
+    <!--======================= TARGETS  =========================-->
+    <!--            (in alphabetical order please)                -->
+
+
+    <!-- TARGET: build ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+    <target name="build" depends="build-flamingo, build-resourcesdb, build-molframework" description="Compiles GlycanBuilder"> 
+        <mkdir dir="${java.build.dir}" />
+        <javac 
+            srcdir="${java.source.dir}"
+            destdir="${java.build.dir}"
+            target="1.5"
+            debug="on"
+            deprecation="on"
+            >
+            <!-- compilerarg value="-Xlint:unchecked"/ -->
+            <classpath refid="project.classpath"/>
+        </javac>
+    </target>
+
+    
+    <!--~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    TARGET: build-apidocs
+    creates API documentation from sources 
+    -->
+	<target name="build-apidocs" depends="build" 
+            description="Creates javadoc from sources in src/ and the core API" 
+            >
+	    <echo>Building GlycanBuilder API documentation</echo>	    
+        <delete dir="${apidoc.dir}" />
+	    <mkdir dir="${apidoc.dir}" />
+        <javadoc 
+            destdir="${apidoc.dir}"
+            Author="true"
+            Use="true"
+            Version="true"
+            linksource="true"
+            stylesheetfile="${project.coreapi.dir}/doc/eurocarb_apidoc.css"
+            windowtitle="GlycanBuilder API"
+            doctitle="GlycanBuilder API"
+         >  
+            <classpath>
+                <path refid="project.classpath"/>
+            </classpath>
+            
+            <sourcepath>
+                <pathelement path="${java.source.dir}" />
+            </sourcepath>
+            
+            <!-- link to java stdlib API -->
+            <link href="http://java.sun.com/j2se/1.5.0/docs/api/" />
+
+            <!-- link to hibernate API -->
+            <link href="https://www.hibernate.org/hib_docs/v3/api/" />
+
+            <!-- link to webwork API -->
+            <link href="http://www.opensymphony.com/webwork/api/" />
+
+            <!-- link to commons logging -->
+            <link href="http://commons.apache.org/logging/apidocs/" />
+            
+            <!-- link to google collections -->
+            <link href="http://google-collections.googlecode.com/svn/trunk/javadoc/" />
+            
+            <!-- link to ANTLR API, grammar/parser generator -->
+            <link href="http://www.antlr2.org/javadoc/" />
+            
+            <!-- link to TestNG API, unit testing framework -->
+            <link href="http://testng.org/javadocs/" />
+            
+            <!-- link to eurocarb core API -->
+            <link href="../../../../core-api/doc/api/" />
+            
+            <!-- other eurocarb projects -->
+            <link href="../../../ResourcesDB/doc/api/" />
+            <link href="../../../GlycoWorkbench/doc/api/" />
+            <link href="../../../MolecularFramework/doc/api/" />
+                
+            <!-- groups: used to partition package overview into logical groups -->
+            <!--<group title="Core application logic (Actions)" packages="org.eurocarbdb.action*"/>-->
+
+        </javadoc>
+        <echo>See ${apidoc.dir} for generated javadoc</echo>
+
+        <exec executable="open" os="Mac OS X">
+            <arg value="${apidoc.dir}/index.html"/>
+        </exec>
+
+    </target>
+    
+    
+    <!-- TARGET: clean ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+    <target name="clean" depends="" description="Removes locally compiled code">
+        <echo>Cleaning ${ant.project.name}</echo>
+        <delete>
+            <fileset dir="${java.build.dir}" includes="**/*"/>
+        </delete>
+    </target>   
+
+    
+    <!-- TARGET: copy-resources ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+    <target name="copy-resources">
+        <copy todir="${java.build.dir}">
+            <fileset dir="${java.source.dir}">
+                <exclude name="**/*.java"/>
+                <exclude name="*/help_builder/*"/>
+                <exclude name="manifest_convert.mf"/>
+                <exclude name="manifest_applet.mf"/>
+            </fileset>
+        </copy>
+    </target>
+
+    
+    <!-- TARGET: dist ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+    <target name="dist" depends="build,copy-resources,dist-applet" description="Creates GlycanBuilder library jar">
+        <jar 
+            destfile="${java.dist.dir}/${project.glycanbuilder.jar}" 
+            basedir="${java.build.dir}"
+            >
+            <manifest>
+                <attribute name="Main-Class" value="org.eurocarbdb.application.glycanbuilder.GlycanBuilder"/>
+                <!--<attribute name="Class-Path" value="${jar-class-path}"/>-->
+            </manifest>
+        </jar>
+    </target>
+
+
+    <!-- TARGET: dist-applet ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+    <target name="dist-applet" depends="build,copy-resources" description="Creates GlycanBuilder applet">
+        <jar 
+            destfile="${applet.dist.dir}/${project.glycanbuilder.applet.jar}" 
+            manifest="${java.source.dir}/manifest_applet.mf"
+            basedir="${java.build.dir}"
+            >
+            <zipfileset src="${java.extlib.dir}/swing-layout-1.0.jar"/>
+            <zipfileset src="${java.extlib.dir}/log4j-1.2.12.jar"/>
+        	<zipfileset src="${java.extlib.dir}/jdom-1.0.jar"/>
+        	<zipfileset src="${java.dist.dir}/flamingo.jar"/>
+        	<zipfileset src="${java.dist.dir}/flamingo-tst.jar"/>
+        	<zipfileset src="${java.dist.dir}/${project.resourcesdb.jar}"/>
+        	<zipfileset src="${java.dist.dir}/${project.molframework.jar}"/>
+        </jar>
+    </target>
+    
+    
+    <!-- TARGET: dist-zipfile ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+    <target name="dist-zipfile" depends="dist">
+    
+        <copy todir="${java.dist.dir}/Libs">
+            <fileset dir="${java.extlib.dir}">
+                <include name="**/*"/>
+            </fileset>
+        </copy>
+        
+        <zip destfile="${java.dist.dir}/GlycanBuilder.zip">
+            <fileset file="${java.source.dir}/config.xml"/>
+            <fileset file="${java.dist.dir}/GlycanBuilder.jar"/>
+            <fileset dir="${java.dist.dir}">
+            
+                <!-- ATTN!!! have to specify exact libs here... -->
+                <include name="Libs/*"/>
+            </fileset>
+        </zip>
+    </target>
+
+    <!-- TARGET: run ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~-->
+    <target name="run" depends="build,copy-resources">
+        <java classname="org.eurocarbdb.application.glycanbuilder.GlycanBuilder" fork="true" >
+            <classpath refid="project.classpath"/>
+        </java>
+    </target>
+
+
+</project>

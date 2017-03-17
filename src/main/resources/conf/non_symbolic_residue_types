@@ -1,0 +1,110 @@
+%Name	SuperClass      Class	Composition	Synonim	IUPAC	AnomC	Chir	Ring	IsSacc	IsCleav	Labile	BarOrdr	NoMe	DropMe	NoAc	DropAc	noLinks	LinkPos	ChargesPos	Alditol RedEnd 	Parent	Description
+Gro			Assigned	Tri		C3H6O3	-	Gro$	1	?	?	yes	no	no	0	2	no	2	no	2	1,2,3	-	yes	no	yes	Grose
+Ery			Assigned	Tet		C4H8O4	-	Ery$	1	?	?	yes	no	yes	0	3	no	3	no	3	2,3,4	-	yes	no	yes	Erythrose
+Eru			Assigned	Tet		C4H8O4	-	Eru$	1	?	?	yes	no	yes	0	3	no	2	no	3	3,4	-	yes	no	yes	Erythrulose
+Thr			Assigned	Tet		C4H8O4	-	Thr$	1	?	?	yes	no	yes	0	3	no	3	no	3	2,3,4	-	yes	no	yes	Threose
+Rul			Assigned	Pen		C5H10O5	-	Rul$	2	?	f	yes	yes	yes	0	3	no	3	no	3	1,3,4	-	yes	no	yes	Ribulose
+Xul			Assigned	Pen		C5H10O5	-	Xul$	2	?	f	yes	yes	yes	0	3	no	3	no	3	1,3,4	-	yes	no	yes	Xylulose
+Ami			Di-deoxyhexose	Hex		C6H12O3	-	Ami$	1	?	p	yes	yes	yes	0	2	no	2	no	2	1,4	-	yes	no	yes	Amicetose
+Asc			Di-deoxyhexose	Hex		C6H12O4	-	Asc$	1	?	p	yes	yes	yes	0	3	no	3	no	3	1,2,4	-	yes	no	yes	Ascarylose
+Boi			Di-deoxyhexose	Hex		C6H12O4	-	Boi$	1	?	p	yes	yes	yes	0	3	no	3	no	3	1,3,4	-	yes	no	yes	Boivinose
+Rho			Hexose	Hex		C6H12O3	-	Rho$	1	?	p	yes	yes	yes	0	2	no	2	no	2	1,4	-	yes	no	yes	Rhodinose
+Sed			Unknown	Hep		C7H14O7	-	Sed$	2	?	p	yes	yes	yes	0	6	no	6	no	6	1,2,3,4,5,7	-	yes	no	yes	Sedoheptulose
+Cym			Unknown	Hep		C7H14O4	-	Cym$	1	?	p	yes	yes	no	0	2	no	2	no	2	1,4	-	no	no	yes	Cymarose
+The			Unknown	Hep		C7H14O5	-	The$	1	?	p	yes	yes	no	0	3	no	3	no	3	1,2,4	-	no	no	yes	Thevetose
+Ole			Unknown	Hep		C7H14O4	-	Ole$	1	?	p	yes	yes	no	0	2	no	2	no	2	1,4	-	no	no	yes	Oleandrose
+2dPen		Pentose	dPen	C5H10O4	-	2-deoxy-Pen$	1	?	f	yes	yes	no	0	3	no	3	no	3	1,3,4,5	-	no	no	yes	2-Deoxypentose
+4dPen		Pentose	dPen	C5H10O4	dPen	4-deoxy-Pen$	1	?	f	yes	yes	no	0	3	no	3	no	3	1,2,3,5	-	no	no	yes	4-Deoxypentose
+dRib		Pentose	dPen	C5H10O4	-	4-deoxy-Rib$	1	?	f	yes	yes	no	0	3	no	3	no	3	1,3,4,5	-	no	no	yes	Deoxyribose
+MeH			Hexose	MeHex	C7H14O6	MeHex	Hex$3Me	1	?	p	yes	yes	no	0	4	no	4	no	4	1,2,4,5,6	-	no	no	yes	3-Methyl-hexose
+4dPenN		Pentose	dPenN	C5H11N1O3	dPenN	4-deoxy-PenN$	1	?	f	yes	yes	no	0	4	no	3	no	3	1,3,4,5,N	-	no	no	yes	4-Deoxypentosamine
+4uHexA		Hexuronic acid	uHexA	C6H8O6	uHexA	uHex$A	1	?	p	yes	yes	no	0	4	no	3	no	4	1,2,3,6	6	no	no	yes	4-unsaturated Hexuronic Acid
+4uGlcA		Hexuronic acid	uHexA	C6H8O6	-	uGlc$A	1	?	p	yes	yes	no	0	4	no	3	no	4	1,2,3,6	6	no	no	yes	4-unsaturated Glucuronic Acid
+4uGalA		Hexuronic acid	uHexA	C6H8O6	-	uGal$A	1	?	p	yes	yes	no	0	4	no	3	no	4	1,2,3,6	6	no	no	yes	4-unsaturated Galacturonic Acid
+4uIdoA		Hexuronic acid	uHexA	C6H8O6	-	uIdo$A	1	?	p	yes	yes	no	0	4	no	3	no	4	1,2,3,6	6	no	no	yes	4-unsaturated Idruronic Acid
+4uManA		Hexuronic acid	uHexA	C6H8O6	-	uMan$A	1	?	p	yes	yes	no	0	4	no	3	no	4	1,2,3,6	6	no	no	yes	4-unsaturated Mannuronic Acid
+HexNA		Acidic amine sugar	HexNA	C6H11N1O6	-	Hex$2N$A	1	?	p	yes	yes	no	0	6	no	4	no	5	1,3,4,5,6,N	6	no	no	yes	amine-Hexuronic Acid
+GlcNA		Acidic amine sugar	GlcNA	C6H11N1O6	-	Glc$2N$A1	1	?	p	yes	yes	no	0	6	no	4	no	5	1,3,4,5,6,N	6	no	no	yes	amine-Glucuronic Acid
+GalNA		Acidic amine sugar	GalNA	C6H11N1O6	-	Gal$2N$A1	1	?	p	yes	yes	no	0	6	no	4	no	5	1,3,4,5,6,N	6	no	no	yes	amine-Galacturonic Acid
+ManNA		Acidic amine sugar	ManNA	C6H11N1O6	-	Man$2N$A1	1	?	p	yes	yes	no	0	6	no	4	no	5	1,3,4,5,6,N	6	no	no	yes	amine-Mannuronic Acid
+IdoNA		Acidic amine sugar	IdoNA	C6H11N1O6	-	Ido$2N$A1	1	?	p	yes	yes	no	0	6	no	4	no	5	1,3,4,5,6,N	6	no	no	yes	amine-Iduronic Acid
+Ko			Nonulosonate	Non	C8H14O9	-	Ko$	2	?	p	yes	yes	no	0	7	no	6	no	7	1,2,3,4,5,6,7,8	1	no	no	yes	Ketooctonic acid
+Pse			Nonulosonate	Non	C9H20N2O5	-	Pse$	2	?	p	yes	yes	no	0	6	no	6	no	6	1,2,4,5,7,8	-	no	no	yes	Pseudaminic acid
+Leg			Nonulosonate	Non	C9H18N2O6	-	Leg$	2	?	p	yes	yes	no	0	5	no	5	no	5	2,4,5,7,8	-	no	no	yes	Legionaminic acid
+4eLeg		Nonulosonate	Non	C9H18N2O6	-	4eLeg$	2	?	p	yes	yes	no	0	5	no	5	no	5	2,4,5,7,8	-	no	no	yes	4-epi Legionaminic acid
+8eLeg		Nonulosonate	Non	C9H18N2O6	-	8eLeg$	2	?	p	yes	yes	no	0	5	no	5	no	5	2,4,5,7,8	-	no	no	yes	8-epi Legionaminic acid	
+NeuAcLac	Nonulosonate	Non	C11H17N1O8	-	-	2	?	p	yes	yes	no	0	5	no	4	no	6	2,5,7,8,N	1	no	no	yes	Sialic Acid (Lactonised)
+NeuGcLac	Nonulosonate	Non	C11H17N1O9	-	-	2	?	p	yes	yes	no	0	6	no	5	no	7	2,5,7,8,N	1	no	no	yes	N-glycolyl Sialic Acid (Lactonised)
+?-gro-D-manHep	Unknown	Hep	C7H14O7	-	gro-D-manHep$	1	?	p	yes	yes	no	0	5	no	3	no	6	2,3,4,5,6,7	-	no	no	yes	glycero-D-MannoHeptose
+D-gro-L-glcHep	Unknown	Hep	C7H14O7	-	D-gro-L-glcHep$	1	?	p	yes	yes	no	0	5	no	3	no	7	1,2,3,4,5,6,7	-	no	no	yes	D-glycero-L-GlcoHeptose
+L-gro-D-glcHep	Unknown	Hep	C7H14O7	-	L-gro-D-glcHep$	1	?	p	yes	yes	no	0	5	no	3	no	7	1,2,3,4,5,6,7	-	no	no	yes	L-glycero-D-GlcoHeptose
+D-gro-D-glcHep	Unknown	Hep	C7H14O7	-	D-gro-D-glcHep$	1	?	p	yes	yes	no	0	5	no	3	no	7	1,2,3,4,5,6,7	-	no	no	yes	D-glycero-D-GlcoHeptose
+?-gro-D-glcHep	Unknown	Hep	C7H14O7	-	gro-D-glcHep$	1	?	p	yes	yes	no	0	5	no	3	no	7	1,2,3,4,5,6,7	-	no	no	yes	glycero-D-GlcoHeptose
+L-gro-D-idoHep	Unknown	Hep	C7H14O7	-	L-gro-D-idoHep$	1	?	p	yes	yes	no	0	5	no	3	no	7	1,2,3,4,5,6,7	-	no	no	yes	L-glycero-D-IdoHeptose
+D-gro-D-altHep	Unknown	Hep	C7H14O7	-	D-gro-D-altHep$	1	?	p	yes	yes	no	0	5	no	3	no	7	1,2,3,4,5,6,7	-	no	no	yes	D-glycero-D-TaloHeptose
+D-gro-D-galHep	Unknown	Hep	C7H14O7	-	D-gro-D-galHep$	1	?	p	yes	yes	no	0	5	no	3	no	7	1,2,3,4,5,6,7	-	no	no	yes	D-glycero-D-GalactoHeptose
+L-gro-D-galHep	Unknown	Hep	C7H14O7	-	L-gro-D-galHep$	1	?	p	yes	yes	no	0	5	no	3	no	7	1,2,3,4,5,6,7	-	no	no	yes	L-glycero-D-GalactoHeptose
+L-gro-L-manHep	Unknown	Hep	C7H14O7	-	L-gro-L-manHep$	1	?	p	yes	yes	no	0	5	no	3	no	7	1,2,3,4,5,6,7	-	no	no	yes	L-glycero-L-MannoHeptose
+D-gro-L-manHep	Unknown	Hep	C7H14O7	-	D-gro-L-manHep$	1	?	p	yes	yes	no	0	5	no	3	no	7	1,2,3,4,5,6,7	-	no	no	yes	D-glycero-L-MannoHeptose
+D-gro-D-galOct	Assigned	Oct	C8H16O8	-	D-gro-D-galOct$	2	?	p	yes	yes	no	0	5	no	3	no	7	2,3,4,5,6,7,8	-	no	no	yes	D-glycero-L-GalactoOctose
+D-gro-D-talOct	Assigned	Oct	C8H16O8	-	D-gro-D-talOct$	2	?	p	yes	yes	no	0	5	no	3	no	7	2,3,4,5,6,7,8	-	no	no	yes	D-glycero-L-TaloOctose
+L-gro-D-glcOct	Assigned	Oct	C8H16O8	-	D-gro-D-glcOct$	2	/	p	yes	yes	no	0	5	no	3	no	7	2,3,4,5,6,7,8	-	no	no	yes	D-glycero-L-glcoOctose
+%DDGLCOCT(),
+%LDGLCOCT(),
+L-gro-D-talNon	Nonulosonate	Non	C9H18O6N2	-	L-gro-D-talNon$	2	?	p	yes	yes	no	0	5	no	3	no	9	1,2,3,4,5,6,7,8,9	-	no	no	yes	L-glycero-D-TaloNonase
+D-gro-D-talNon	Nonulosonate	Non	C9H18O6N2	-	D-gro-D-talNon$	2	?	p	yes	yes	no	0	5	no	3	no	9	1,2,3,4,5,6,7,8,9	-	no	no	yes	D-glycero-D-TaloNonase
+L-gro-L-glcNon	Nonulosonate	Non	C9H18O6N2	-	L-gro-L-glcNon$	2	?	p	yes	yes	no	0	5	no	3	no	9	1,2,3,4,5,6,7,8,9	-	no	no	yes	L-glycero-L-GlcoNonase
+D-gro-L-galNon	Nonulosonate	Non	C9H18O6N2	-	D-gro-L-galNon$	2	?	p	yes	yes	no	0	5	no	3	no	9	1,2,3,4,5,6,7,8,9	-	no	no	yes	D-glycero-L-GalactoNonase
+L-gro-D-galNon	Nonulosonate	Non	C9H18O6N2	-	L-gro-D-galNon$	2	?	p	yes	yes	no	0	5	no	3	no	9	1,2,3,4,5,6,7,8,9	-	no	no	yes	L-glycero-D-GalactoNonase
+L-gro-L-altNon	Nonulosonate	Non	C9H18O6N2	-	L-gro-L-altNon$	2	?	p	yes	yes	no	0	5	no	3	no	9	1,2,3,4,5,6,7,8,9	-	no	no	yes	L-glycero-L-AltoNonase
+D-gro-L-altNon	Nonulosonate	Non	C9H18O6N2	-	D-gro-L-altNon$	2	?	p	yes	yes	no	0	5	no	3	no	9	1,2,3,4,5,6,7,8,9	-	no	no	yes	D-glycero-L-AltoNonase
+D-gro-D-manNon	Nonulosonate	Non	C9H18O6N2	-	D-gro-D-manNon$	2	?	p	yes	yes	no	0	5	no	3	no	9	1,2,3,4,5,6,7,8,9	-	no	no	yes	D-glycero-D-MannoNonase
+L-gro-L-manNon	Nonulosonate	Non	C9H18O6N2	-	L-gro-L-manNon$	2	?	p	yes	yes	no	0	5	no	3	no	9	1,2,3,4,5,6,7,8,9	-	no	no	yes	L-glycero-L-MannoNonase
+D-gro-L-manNon	Nonulosonate	Non	C9H18O6N2	-	D-gro-L-manNon$	2	?	p	yes	yes	no	0	5	no	3	no	9	1,2,3,4,5,6,7,8,9	-	no	no	yes	D-glycero-L-MannoNonase
+L-gro-D-manNon	Nonulosonate	Non	C9H18O6N2	-	L-gro-D-manNon$	2	?	p	yes	yes	no	0	5	no	3	no	9	1,2,3,4,5,6,7,8,9	-	no	no	yes	L-glycero-D-MannoNonase
+
+%	
+D-ery-L-glcDEC	Assigned	Dec	C10H20O10	-	D-ery-L-glcDec$	2	?	p	yes	yes	no	0	5	no	3	no	10	1,2,3,4,5,6,7,8,9,N	-	no	no	yes	D-erythro-L-GlocoDecase
+D-ery-D-glcDEC	Assigned	Dec	C10H20O10	-	D-ery-D-glcDec$	2	?	p	yes	yes	no	0	5	no	3	no	10	1,2,3,4,5,6,7,8,9,N	-	no	no	yes	D-erythro-D-GlocoDecase	
+%DERYDGALDEC(),
+
+%tetrose
+eryTet	Assigned	Tet	C4H804	-	eryTet$	1	?	p	yes	yes	no	0	3	no	3	no	4	1,2,3,4	-	no	no	yes	ErythroTetrose
+thrTet	Assigned	Tet	C4H804	-	thrTet$	1	?	p	yes	yes	no	0	3	no	3	no	4	1,2,3,4	-	no	no	yes	ThreoTetrose
+	
+%pentose
+groPen	Assigned	Pen	C5H10O5	-	groPen$	1	?	p	yes	yes	no	0	4	no	4	no	5	1,2,3,4,5	-	no	no	yes	GrosePentose
+thrPen	Assigned	Pen	C5H10O5	-	thrPen$	1	?	p	yes	yes	no	0	4	no	4	no	5	1,2,3,4,5	-	no	no	yes	ThreoPentose
+eryPen	Assigned	Pen	C5H10O5	-	eryPen$	1	?	p	yes	yes	no	0	4	no	4	no	5	1,2,3,4,5	-	no	no	yes	ErythroPentose
+lyxPen	Assigned	Pen	C5H10O5	-	lyxPen$	1	?	p	yes	yes	no	0	4	no	4	no	5	1,2,3,4,5	-	no	no	yes	LyxoPentose
+
+%hexose
+araHex	Assigned		Hex		C6H12O6	-	araHex$		1	?	p	yes	yes	no	0	5	no	5	no	6	1,2,3,4,5,6	-	no	no	yes	ArabinoHexose
+eryHex	Assigned		Hex		C6H12O6	-	eryHex$		1	?	p	yes	yes	no	0	5	no	5	no	6	1,2,3,4,5,6	-	no	no	yes	ErythroHexose
+ribHex	Assigned		Hex		C6H12O6	-	ribHex$		1	?	p	yes	yes	no	0	5	no	5	no	6	1,2,3,4,5,6	-	no	no	yes	RiboHexose
+xylHex	Assigned		Hex		C6H12O6	-	xylHex$		1	?	p	yes	yes	no	0	5	no	5	no	6	1,2,3,4,5,6	-	no	no	yes	XyloHexose
+lyxHex	Assigned		Hex		C6H12O6	-	lyxHex$		1	?	p	yes	yes	no	0	5	no	5	no	6	1,2,3,4,5,6	-	no	no	yes	LyxoHexose
+thrHex	Assigned		Hex		C6H12O6	-	thrHex$		1	?	p	yes	yes	no	0	5	no	5	no	6	1,2,3,4,5,6	-	no	no	yes	ThreoHexose
+gulHex	Assigned		Hex		C6H12O6	-	gulHex$		1	?	p	yes	yes	no	0	5	no	5	no	6	1,2,3,4,5,6	-	no	no	yes	GuloHexose
+groHex	Assigned		Hex		C6H12O6	-	groHex$		1	?	p	yes	yes	no	0	5	no	5	no	6	1,2,3,4,5,6	-	no	no	yes	GroHexose
+araHexA	Hexuronic acid	Hex		C6H10O7	-	araHex$A	1	?	p	yes	yes	no	0	4	no	4	no	5	1,2,3,4,5	6	no	no	yes	ArabinoHexanoic acid
+ribHexA	Hexuronic acid	Hex		C6H10O7	-	ribHex$A	1	?	p	yes	yes	no	0	4	no	4	no	5	1,2,3,4,5	6	no	no	yes	RiboHexanoic acid
+thrHexA	Hexuronic acid	Hex		C6H10O7	-	thrHex$A	1	?	p	yes	yes	no	0	4	no	4	no	5	1,2,3,4,5	6	no	no	yes	ThroHexanoic acid
+eryHexA	Hexuronic acid	Hex		C6H10O7	-	eryHex$A	1	?	p	yes	yes	no	0	4	no	4	no	5	1,2,3,4,5	6	no	no	yes	ErythroHexanoic acid
+	
+%heptose
+araHep	Unknown	Hep	C7H14O7	-	araHep$	1	?	p	yes	yes	no	0	6	no	6	no	7	1,2,3,4,5,6,7	-	no	no	yes	ArabinoHeptose
+talHep	Unknown	Hep	C7H14O7	-	talHep$	1	?	p	yes	yes	no	0	6	no	6	no	7	1,2,3,4,5,6,7	-	no	no	yes	TaloHeptose
+gulHep	Unknown	Hep	C7H14O7	-	gulHep$	1	?	p	yes	yes	no	0	6	no	6	no	7	1,2,3,4,5,6,7	-	no	no	yes	GuloHeptose
+manHep	Unknown	Hep	C7H14O7	-	manHep$	1	?	p	yes	yes	no	0	6	no	6	no	7	1,2,3,4,5,6,7	-	no	no	yes	MannoHeptose
+lyxHep	Unknown	Hep	C7H14O7	-	lyxHep$	1	?	p	yes	yes	no	0	6	no	6	no	7	1,2,3,4,5,6,7	-	no	no	yes	LyxoHeptose
+	
+%octose
+araOct	Assigned	Oct	C8H16O8	-	araOct$	-	?	p	yes	yes	no	0	7	no	7	no	8	1,2,3,4,5,6,7,8	-	no	no	yes	ArabinoOctose
+manOct	Assigned	Oct	C8H16O8	-	manOct$	-	?	p	yes	yes	no	0	7	no	7	no	8	1,2,3,4,5,6,7,8	-	no	no	yes	MannoOctose
+	
+%nonase
+galNon	Nonulosonate	Non	C9H18O9	-	galNon$	2	?	p	yes	yes	no	0	5	no	3	no	9	1,2,3,4,5,6,7,8,9	-	no	no	yes	galNon
+	
+%unknown notation
+Sugar	Assigned	Sugar	-	-	Sugar	1	?	?	yes	no	no	0	0	no	0	no	10	1,2,3,4,5,6,7,8,9,N	?	yes	no	yes	Sugar

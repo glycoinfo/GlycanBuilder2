@@ -1,0 +1,63 @@
+% name		superclass		structure													description
+ncore		N-glycans		freeEnd--?b1D-GlcNAc,p--4b1D-GlcNAc,p--4b1D-Man,p(--3a1D-Man,p)--6a1D-Man,p					N-glycan
+ncorefuc	N-glycans		freeEnd--?b1D-GlcNAc,p(--6a1L-Fuc,p)--4b1D-GlcNAc,p--4b1D-Man,p(--3a1D-Man,p)--6a1D-Man,p			N-glycan fucosylated
+ncorebisect	N-glycans		freeEnd--?b1D-GlcNAc,p--4b1D-GlcNAc,p--4b1D-Man,p((--3a1D-Man,p)--4b1D-GlcNAc,p)--6a1D-Man,p			N-glycan bisected
+ncorebisectfuc	N-glycans		freeEnd--?b1D-GlcNAc,p(--6a1L-Fuc,p)--4b1D-GlcNAc,p--4b1D-Man,p((--3a1D-Man,p)--4b1D-GlcNAc,p)--6a1D-Man,p	N-glycan bisected fucosylated
+ncorehyb	N-glycans		freeEnd--?b1D-GlcNAc,p--4b1D-GlcNAc,p--4b1D-Man,p(--3a1D-Man,p)--6a1D-Man,p(--3a1D-Man,p)--6a1D-Man,p		N-glycan hybrid
+ncorehybfuc	N-glycans		freeEnd--?b1D-GlcNAc,p(--4b1D-GlcNAc,p--4b1D-Man,p(--3a1D-Man,p)--6a1D-Man,p(--3a1D-Man,p)--6a1D-Man,p)--6a1L-Fuc,p	 N-glycan hybrid fucosylated
+ncorehybbis	N-glycans		freeEnd--?b1D-GlcNAc,p--4b1D-GlcNAc,p--4b1D-Man,p((--3a1D-Man,p)--4b1D-GlcNAc,p)--6a1D-Man,p(--3a1D-Man,p)--6a1D-Man,p	 N-glycan hybrid bisected
+ncorehybbisfuc	N-glycans		freeEnd--?b1D-GlcNAc,p(--4b1D-GlcNAc,p--4b1D-Man,p((--3a1D-Man,p)--4b1D-GlcNAc,p)--6a1D-Man,p(--3a1D-Man,p)--6a1D-Man,p)--6a1L-Fuc,p	 N-glycan hybrid bisected fucosylated core
+ncoreman	N-glycans		freeEnd--?b1D-GlcNAc,p--4b1D-GlcNAc,p--4b1D-Man,p(--3a1D-Man,p--2a1D-Man,p)--6a1D-Man,p(--3a1D-Man,p)--6a1D-Man,p			 N-glycan high-mannose
+
+%
+ocore1		O-glycans		redEnd--?a1D-GalNAc,p--3b1D-Gal,p										O-glycan core 1
+ocore2		O-glycans		redEnd--?a1D-GalNAc,p(--3b1D-Gal,p)--6b1D-GlcNAc,p								O-glycan core 2
+ocore3		O-glycans		redEnd--?a1D-GalNAc,p--3b1D-GlcNAc,p										O-glycan core 3
+ocore4		O-glycans		redEnd--?a1D-GalNAc,p(--3b1D-GlcNAc,p)--6b1D-GlcNAc,p								O-glycan core 4
+ocore5		O-glycans		redEnd--?a1D-GalNAc,p--3a1D-GalNAc,p										O-glycan core 5
+ocore6		O-glycans		redEnd--?a1D-GalNAc,p--6b1D-GlcNAc,p										O-glycan core 6
+ocore7		O-glycans		redEnd--?a1D-GalNAc,p--6a1D-GalNAc,p										O-glycan core 7
+ocore8		O-glycans		redEnd--?a1D-GalNAc,p--3a1D-Gal,p										O-glycan core 8
+%
+gslarthro	Glycosphingolipids	freeEnd--?b1D-Glc,p--4b1D-Man,p--3b1D-GlcNAc,p--4b1D-GalNAc,p							GSL arthro-type
+gslgala		Glycosphingolipids	freeEnd--?a1D-Gal,p--4a1D-Gal,p											GSL gala-type
+gslganglio	Glycosphingolipids	freeEnd--?b1D-Glc,p--4b1D-Gal,p--4b1D-GalNAc,p--3b1D-Gal,p							GSL ganglio-type
+gslglobo	Glycosphingolipids	freeEnd--?b1D-Glc,p--4b1D-Gal,p--4a1D-Gal,p--3b1D-GalNAc,p							GSL globo-type
+gslisoglobo	Glycosphingolipids	freeEnd--?b1D-Glc,p--4b1D-Gal,p--3a1D-Gal,p--3b1D-GalNAc,p							GSL isoglobo-type
+gsllacto	Glycosphingolipids	freeEnd--?b1D-Glc,p--4b1D-Gal,p--3b1D-GlcNAc,p--3b1D-Gal,p							GSL lacto-type
+gslmollu	Glycosphingolipids	freeEnd--?b1D-Glc,p--4b1D-Man,p--3a1D-Man,p--2b1D-GlcNAc,p							GSL mollu-type
+gslmuco		Glycosphingolipids	freeEnd--?b1D-Glc,p--4b1D-Gal,p--4b1D-Gal,p--3b1D-Gal,p								GSL muco-type
+gslneolacto	Glycosphingolipids	freeEnd--?b1D-Glc,p--4b1D-Gal,p--3b1D-GlcNAc,p--4b1D-Gal,p							GSL neolacto-type
+%
+gaghyaluronic	GAGs	freeEnd--?b1D-GlcNAc,p--3b1D-GlcA,p--4b1D-GlcNAc,p--3b1D-GlcA,p								Hyaluronic Acid
+gagchodroitin4	GAGs	freeEnd--?b1D-GalNAc,p(--4S)--3b1D-GlcA,p--4b1D-GalNAc,p(--4S)--3b1D-GlcA,p					Chodroitin 4-sulfate
+gagchodroitin6	GAGs	freeEnd--?b1D-GalNAc,p(--6S)--3b1D-GlcA,p--4b1D-GalNAc,p(--6S)--3b1D-GlcA,p					Chodroitin 6-sulfate
+gagchodroitin26	GAGs	freeEnd--?b1D-GalNAc,p(--6S)--3b1D-GlcA,p(--2S)--4b1D-GalNAc,p(--6S)--3b1D-GlcA,p--2S		Chodroitin 2,6-sulfate
+gagchodroitin46	GAGs	freeEnd--?b1D-GalNAc,p((--4S)--6S)--3b1D-GlcA,p--4b1D-GalNAc,p((--4S)--6S)--3b1D-GlcA,p		Chodroitin 4,6-sulfate
+gagkeratan		GAGs	freeEnd--?b1D-GlcNAc,p(--6S)--4b1D-Gal,p--3b1D-GlcNAc,p(--6S)--4b1D-Gal,p					Keratan sulfate
+%gagdermatan	GAGs	freeEnd--?b1D-GalNAc,p(--4S)--3b1D-IdoA,p--4b1D-GalNAc,p(--4S)--3b1D-IdoA,p					Dermatan sulfate
+gagdermatan		GAGs	freeEnd--?D-GalNAc--3a1D-IdoA,p--4b1D-GalNAc,p--3a1D-IdoA,p									Dermatan sulfate (None sulfated)
+gagdermatan4	GAGs	freeEnd--?D-GalNAc(--4?1S)--3a1D-IdoA,p--4b1D-GalNAc,p(--4?1S)--3a1D-IdoA,p					Dermatan sulfate (GalNAc C4 sulfated)
+gagdermatan5	GAGs	freeEnd--?D-GalNAc(--3a1D-IdoA,p--4b1D-GalNAc,p(--3a1D-IdoA,p)--5?1S)--5?1S					Dermatan sulfate (GalNAc C5 sulfated)
+gagdermatan45	GAGs	freeEnd--?D-GalNAc((--4?1S)--3a1D-IdoA,p--4b1D-GalNAc,p((--4?1S)--3a1D-IdoA,p)--5?1S)--5?1S	Dermatan sulfate (GalNAc C4,5 sulfated)
+gagdermatan2	GAGs	freeEnd--?D-GalNAc--3a1D-IdoA,p(--4b1D-GalNAc,p--3a1D-IdoA,p--2?1S)--2?1S					Dermatan sulfate (IdoA C2 sulfated)
+gagdermatan25	GAGs	freeEnd--?D-GalNAc(--3a1D-IdoA,p(--4b1D-GalNAc,p(--3a1D-IdoA,p--2?1S)--5?1S)--2?1S)--5?1S	Dermatan sulfate (IdoA C2, GalNAc C5 sulfated)
+gagdermatan24	GAGs	freeEnd--?D-GalNAc(--4?1S)--3a1D-IdoA,p(--4b1D-GalNAc,p(--4?1S)--3a1D-IdoA,p--2?1S)--2?1S	Dermatan sulfate (IdoA C2, GalNAc C4,5 sulfated)
+gagdermatan245	GAGs	freeEnd--?D-GalNAc((--4?1S)--3a1D-IdoA,p(--4b1D-GalNAc,p((--4?1S)--3a1D-IdoA,p--2?1S)--5?1S)--2?1S)--5?1S	Dermatan sulfate (full sulfated)
+%gagheparan		GAGs	freeEnd--?b1D-GlcNAc,p(--6S)--4a1D-IdoA,p(--2S)--4b1D-GlcN,p((--NS)--6S)--4a1D-IdoA,p		Heparan sulfate
+gagheparin		GAGs	freeEnd--??1D-GlcN,p(((--NS)--3S)--6S)--4a1D-IdoA,p(--2S)--4a1D-GlcN,p(((--NS)--3S)--6S)--4a1D-IdoA,p		Heparin
+gagheparan2		GAGs	freeEnd--??1D-GlcN,p--4b1D-GlcA,p(--4a1D-GlcN,p--4b1D-GlcA,p--2?1S)--2?1S					Heparan sulfate (GlcA C2 sulfated)
+gagheparan22	GAGs	freeEnd--??1D-GlcN,p(--4b1D-GlcA,p(--4a1D-GlcN,p(--4b1D-GlcA,p--2?1S)--2?1S)--2?1S)--2?1S	Heparan sulfate (GlcA C2, GlcN C2 sulfated)
+gagheparan24	GAGs	freeEnd--??1D-GlcN,p(--4b1D-GlcA,p(--4a1D-GlcN,p(--4b1D-GlcA,p--2?1S)--4?1S)--2?1S)--4?1S	Heparan sulfate (GlcA C2, GlcN C4 sulfated)
+gagheparan26	GAGs	freeEnd--??1D-GlcN,p(--4b1D-GlcA,p(--4a1D-GlcN,p(--4b1D-GlcA,p--2?1S)--6?1S)--2?1S)--6?1S	Heparan sulfate (GlcA C2, GlcN C6 sulfated)
+gagheparan224	GAGs	freeEnd--??1D-GlcN,p((--4b1D-GlcA,p(--4a1D-GlcN,p((--4b1D-GlcA,p--2?1S)--2?1S)--4?1S)--2?1S)--2?1S)--4?1S	Heparan sulfate (GlcA C2, GlcN C2,4 sulfated)
+gagheparan226	GAGs	freeEnd--??1D-GlcN,p((--4b1D-GlcA,p(--4a1D-GlcN,p((--4b1D-GlcA,p--2?1S)--2?1S)--6?1S)--2?1S)--2?1S)--6?1S	Heparan sulfate (GlcA C2, GlcN C2,6 sulfated)
+gagheparan246	GAGs	freeEnd--??1D-GlcN,p((--4b1D-GlcA,p(--4a1D-GlcN,p((--4b1D-GlcA,p--2?1S)--6?1S)--4?1S)--2?1S)--6?1S)--4?1S	Heparan sulfate (GlcA C2, GlcN C4,6 sulfated)
+gagheparan2246	GAGs	freeEnd--??1D-GlcN,p(((--4b1D-GlcA,p(--4a1D-GlcN,p(((--4b1D-GlcA,p--2?1S)--6?1S)--4?1S)--2?1S)--2?1S)--6?1S)--4?1S)--2?1S	Heparan sulfate (GlcA C2, GlcN C2,4,6 sulfated)
+%
+milklac		Milk sugars		freeEnd--??1D-Glc,p--4b1D-Gal,p						Lactose
+milk3fuclac	Milk sugars		freeEnd--??1D-Glc,p(--4b1D-Gal,p)--3a1L-Fuc,p				3'-Fucosyllactose (3'-FL)
+milk2fuclac	Milk sugars		freeEnd--??1D-Glc,p--4b1D-Gal,p--2a1L-Fuc,p				2'-Fucosyllactose (2'-FL)
+milkdifuc	Milk sugars		freeEnd--??1D-Glc,p(--3a1L-Fuc,p@270s)--4b1D-Gal,p--2a1L-Fuc,p		Difucosyllactose (DFL)
+milktetra	Milk sugars		freeEnd--??1D-Glc,p--4b1D-Gal,p--3b1D-GlcNAc,p--3b1D-Gal,p		Lacto-N-tetraose (LNT)
+milkneotetra	Milk sugars		freeEnd--??1D-Glc,p--4b1D-Gal,p--3b1D-GlcNAc,p--4b1D-Gal,p		Lacto-N-neotetraose (LNnT)

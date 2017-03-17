@@ -1,0 +1,29 @@
+% Name		Superclass	Structure								Description
+bga		Antigen		b1D-Gal,p(--2a1L-Fuc,p)--3a1D-GalNAc,p					Blood group A antigen
+bgb		Antigen		b1D-Gal,p(--2a1L-Fuc,p)--3b1D-Gal,p					Blood group B antigen
+bgh		Antigen		b1D-Gal,p--2a1L-Fuc,p							Blood group H antigen
+cad		Antigen		b1D-GalNAc,p(--6a2D-NeuAc,p)--3b1D-Gal,p(--3a2D-NeuAc,p)--4b1D-GalNAc,p	CAD antigen
+pant		Antigen		b1D-Glc,p--4b1D-Gal,p--4a1D-Gal,p--3b1D-GalNAc,p			P antigen
+pkant		Antigen		b1D-Glc,p--4b1D-Gal,p--4a1D-Gal,p					Pk antigen
+sda		Antigen		b1D-Gal,p--3b1D-GlcNAc,p--4b1D-Gal,p(--3a2D-NeuAc,p)--4b1D-GalNAc,p	Sda antigen
+man		Mannose		a1D-Man,p--2a1D-Man,p							High mannose and hybrid terminals
+uncap		Lactosamine	b1D-GlcNAc,p								Uncapped GlcNAc
+lacdinac	Lactosamine	b1D-GlcNAc,p--4b1D-GalNAc,p						LacDiNAc
+lac		Lactosamine	b1D-GlcNAc,p--4b1D-Gal,p						Lactosamine
+neolac		Lactosamine	b1D-GlcNAc,p--3b1D-Gal,p						Neo-Lactosamine
+polylac		Lactosamine	b1D-GlcNAc,p--4b1D-Gal,p--3b1D-GlcNAc,p--4b1D-Gal,p			Poly-Lactosamine
+slsa		Lactosamine	b1D-GlcNAc,p--3b1D-Gal,p--3a2D-NeuAc,p					Sialyllacto-N- (LS a)
+slsb		Lactosamine	b1D-GlcNAc,p--3b1D-Gal,p--6a2D-NeuAc,p					Sialyllacto-N- (LS b)
+slsc		Lactosamine	b1D-GlcNAc,p(--3b1D-Gal,p)--6a2D-NeuAc,p@450				Sialyllacto-N- (LS c)
+disls		Lactosamine	b1D-GlcNAc,p(--3b1D-Gal,p--3a2D-NeuAc,p)--6a2D-NeuAc,p@450		Disialyllacto-N- (LDS)
+fldn		Lactosamine	b1D-GlcNAc,p(--3a1L-Fuc,p)--4b1D-GalNAc,p				Fucosylated LacDiNAc
+sldn		Lactosamine	b1D-GlcNAc,p--4b1D-GalNAc,p--6a2D-NeuAc,p				Sialylated LacDiNAc
+lea		Lewis motif	b1D-GlcNAc,p(--4a1L-Fuc,p)--3b1D-Gal,p					Lewis A
+leb		Lewis motif	b1D-GlcNAc,p(--4a1L-Fuc,p)--3b1D-Gal,p--2a1L-Fuc,p			Lewis B
+lec		Lewis motif	b1D-GlcNAc,p--3b1D-Gal,p						Lewis C
+led		Lewis motif	b1D-GlcNAc,p--3b1D-Gal,p--2a1L-Fuc,p					Lewis D
+lex		Lewis motif	b1D-GlcNAc,p(--3a1L-Fuc,p)--4b1D-Gal,p					Lewis X
+ley		Lewis motif	b1D-GlcNAc,p(--3a1L-Fuc,p)--4b1D-Gal,p--2a1L-Fuc,p			Lewis Y
+slea		Lewis motif	b1D-GlcNAc,p(--4a1L-Fuc,p)--3b1D-Gal,p--3a2D-NeuAc,p			Sialyl Lewis A
+slex		Lewis motif	b1D-GlcNAc,p(--3a1L-Fuc,p)--4b1D-Gal,p--3a2D-NeuAc,p			Sialyl Lewis X	
+vim2		Lewis motif	b1D-GlcNAc,p--4b1D-Gal,p--3a2D-NeuAc,p					VIM2

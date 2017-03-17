@@ -1,0 +1,40 @@
+%name	Shape		ShapeColor	Fill		FillNegative	FillColor	Text	TextColor	
+%
+Xyl	triangle	139,71,93	full		no		255,255,255	-	0,0,0
+%
+Fuc	rhombus		255,0,0		circle		no		255,0,0		-	0,0,0
+%
+GlcN	square		0,0,0		bottom		no		0,0,0		-	0,0,0
+%
+Hex	hexagon		0,0,0		full		no		255,255,255	-	0,0,0
+Gal	rhombus		255,165,0	full		no		255,255,255	-	0,0,0
+Glc	square		0,0,250		full		no		255,255,255	-	0,0,0
+Man	circle		0,200,50	full		no		255,255,255	-	0,0,0
+%
+GlcA	square		0,0,0		checkered	no		255,255,255	-	0,0,0
+%
+HexNAc	hexagon		0,0,0		full		no		0,0,0		-	0,0,0
+GalNAc	rhombus		255,165,0	full		no		255,165,0		-	0,0,0
+GlcNAc	square		0,0,250		full		no		0,0,250		-	0,0,0
+%
+NeuAc	star		128,0,128	full		no		128,0,128	-	0,0,0
+NeuGc	star		128,0,128	circle		yes		255,255,255	-	0,0,0
+%
+freeEnd	end		0,0,0		empty		no		0,0,0		-	0,0,0
+redEnd	end		0,0,0		empty		no		0,0,0		O	0,0,0
+2AP	-		0,0,0		empty		no		255,255,255	2AP	0,0,0
+2AB	-		0,0,0		empty		no		255,255,255	2AB	0,0,0
+AA	-		0,0,0		empty		no		255,255,255	AA	0,0,0
+%
+Me	-		0,0,0		empty		no		255,255,255	Me	0,0,0
+Ac	-		0,0,0		empty		no		255,255,255	Ac	0,0,0
+Pv	-		0,0,0		empty		no		255,255,255	Pv	0,0,0
+P	-		0,0,0		empty		no		255,255,255	P	0,0,0
+S	-		0,0,0		empty		no		255,255,255	S	0,0,0
+Ino	-		0,0,0		empty		no		255,255,255	Ino	0,0,0
+PPEtn	-		0,0,0		empty		no		255,255,255	PPEtn	0,0,0
+PEtn	-		0,0,0		empty		no		255,255,255	PEtn	0,0,0
+%
+deoxy	-		0,0,0		empty		no		255,255,255	d	0,0,0
+un	-		0,0,0		empty		no		255,255,255	un	0,0,0
+aldi	-		0,0,0		empty		no		255,255,255	aldi	0,0,0

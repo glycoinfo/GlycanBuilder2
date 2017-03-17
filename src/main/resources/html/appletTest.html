@@ -1,0 +1,34 @@
+<html>
+<head>
+<script type="text/javascript">
+function loadFromUrl(url,format){
+        document.GlycanBuilder.setDocumentFromUrl(url,format);
+}
+
+function updateImportList() {
+        var list=document.GlycanBuilder.getImportFormats();
+        var importOptions=document.getElementById('format.field');
+        var i=list.iterator();
+        while(i.hasNext()){
+                importOptions.add(new Option(i.next().toString()));
+        }
+}
+
+function load(){
+        if(document.GlycanBuilder.getImportFormats){
+                updateImportList();
+        }else{
+                setTimeout("load();",500);
+        }
+}
+</script>
+</head>
+<body onLoad='load()'>
+<applet id="GlycanBuilder" name="GlycanBuilder" code="org.eurocarbdb.application.glycanbuilder.GlycanBuilderApplet.class" archive="GlycanBuilderApplet.jar" width="700" height="400">
+</applet>
+<br/>
+Enter URL<input type="text" id="url.field"/>
+Format<select id="format.field"></select>
+<button id="submitButton" onclick="return loadFromUrl(document.getElementById('url.field').value,document.getElementById('format.field').value);">Import</button>
+</body>
+</html>

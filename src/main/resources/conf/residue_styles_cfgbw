@@ -1,0 +1,108 @@
+%name	Shape		ShapeColor	Fill		FillNegative	FillColor	Text	TextColor
+%
+2dPen	pentagon	0,0,0		full		no		255,255,255	2d	0,0,0
+4dPen	pentagon	0,0,0		full		no		255,255,255	4d	0,0,0
+dRib	pentagon	0,0,0		full		no		255,255,255	dRib	0,0,0
+4dPenN	-		0,0,0		full		no		255,255,255	4dPenN	0,0,0
+%
+Pen	pentagon	0,0,0		full		no		255,255,255	-	0,0,0
+Ara	pentagon	0,0,0		full		no		255,255,255	Ara	0,0,0
+Rib	pentagon	0,0,0		full		no		255,255,255	Rib	0,0,0
+Xyl	star		0,0,0		full		no		224,224,224	-	0,0,0
+Api	pentagon	0,0,0		full		no		255,255,255	P	0,0,0
+Lyx	pentagon	0,0,0		full		no		255,255,255	LYX	0,0,0
+%
+ddHex	triangle	0,0,0		full		no		255,255,255	d	0,0,0
+dHex	triangle	0,0,0		full		no		255,255,255	-	0,0,0
+Fuc	triangle	0,0,0		full		no		96,96,96	-	0,0,0
+Qui	triangle	0,0,0		full		no		64,64,64	-	0,0,0
+Rha	triangle	0,0,0		full		no		160,160,160	-	0,0,0
+dTal	hexagon		0,0,0		full		no		255,255,255	dTal	0,0,0
+%
+HexN	square		0,0,0		topright	no		255,255,255	-	0,0,0
+GalN	square		0,0,0		topright	no		240,240,240	-	0,0,0
+GlcN	square		0,0,0		topright	no		64,64,64	-	0,0,0
+ManN	square		0,0,0		topright	no		160,160,160	-	0,0,0
+Bac	hexagon		0,0,0		full		no		255,255,255	Bac	0,0,0
+%
+Hex	circle		0,0,0		full		no		255,255,255	-	0,0,0
+Gal	circle		0,0,0		full		no		240,240,240	-	0,0,0
+Glc	circle		0,0,0		full		no		64,64,64	-	0,0,0
+Man	circle		0,0,0		full		no		160,160,160	-	0,0,0
+Tal	hexagon		0,0,0		full		no		255,255,255	Tal	0,0,0
+All	hexagon		0,0,0		full		no		255,255,255	All	0,0,0
+Alt	hexagon		0,0,0		full		no		255,255,255	J	0,0,0
+Gul	hexagon		0,0,0		full		no		255,255,255	GL	0,0,0
+%
+Fru	pentagon	0,0,0		full		no		255,255,255	Fru	0,0,0
+Sor	pentagon	0,0,0		full		no		255,255,255	SOR	0,0,0
+Tag	pentagon	0,0,0		full		no		255,255,255	TAG	0,0,0
+%
+dHexA	diamond		0,0,0		top		no		255,255,255	d	0,0,0
+HexA	diamond		0,0,0		top		no		255,255,255	-	0,0,0
+GalA	diamond		0,0,0		left		no		240,240,240	-	0,0,0
+GlcA	diamond		0,0,0		top		no		64,64,64	-	0,0,0
+IdoA	diamond		0,0,0		bottom		no		96,96,96	-	0,0,0
+ManA	diamond		0,0,0		right		no		160,160,160	-	0,0,0
+AltA	diamond		0,0,0		full		no		255,255,255	JA	0,0,0
+GulA	diamond		0,0,0		full		no		255,255,255	GLA	0,0,0
+%
+4uHexA	hatdiamond	0,0,0		top		no		255,255,255	-	0,0,0
+4uGalA	hatdiamond	0,0,0		left		no		240,240,240	-	0,0,0
+4uGlcA	hatdiamond	0,0,0		top		no		64,64,64	-	0,0,0
+4uIdoA	hatdiamond	0,0,0		bottom		no		96,96,96	-	0,0,0
+4uManA	hatdiamond	0,0,0		right		no		160,160,160	-	0,0,0
+%
+MeH	hexagon		0,0,0		full		no		255,255,255	MeH	0,0,0
+%
+dHept	heptagon	0,0,0		full		no		255,255,255	d	0,0,0
+Hept	heptagon	0,0,0		full		no		255,255,255	-	0,0,0
+%
+HexNAc	square		0,0,0		full		no		255,255,255	-	0,0,0
+GalNAc	square		0,0,0		full		no		240,240,240	-	0,0,0
+GlcNAc	square		0,0,0		full		no		64,64,64	-	0,0,0
+ManNAc	square		0,0,0		full		no		160,160,160	-	0,0,0
+BacNAc	hexagon		0,0,0		full		no		255,255,255	BNAc	0,0,0
+%
+MurNAc	diamond		0,0,0		full		no		255,255,255	Mur	0,0,0
+Kdo	diamond		0,0,0		full		no		255,255,255	Kdo	0,0,0
+Ko	diamond		0,0,0		full		no		255,255,255	Ko	0,0,0
+Kdn	diamond		0,0,0		full		no		192,192,192	-	0,0,0
+Neu	diamond		0,0,0		full		no		255,255,255	-	0,0,0
+NeuAc	diamond		0,0,0		full		no		128,128,128	-	0,0,0
+NeuGc	diamond		0,0,0		full		no		240,240,240	-	0,0,0
+NeuAcLac	rhatdiamond		0,0,0		full		no		128,128,128	-	0,0,0
+NeuGcLac	rhatdiamond		0,0,0		full		no		240,240,240	-	0,0,0
+%
+freeEnd	end		0,0,0		empty		no		0,0,0		-	0,0,0
+redEnd	end		0,0,0		empty		no		0,0,0		O	0,0,0
+PA	-		0,0,0		empty		no		255,255,255	PA	0,0,0
+2AP	-		0,0,0		empty		no		255,255,255	2AP	0,0,0
+2AB	-		0,0,0		empty		no		255,255,255	2AB	0,0,0
+AA	-		0,0,0		empty		no		255,255,255	AA	0,0,0
+%
+DAP	-		0,0,0		empty		no		255,255,255	DAP	0,0,0
+4AB	-		0,0,0		empty		no		255,255,255	4AB	0,0,0
+DAPMAB	-		0,0,0		empty		no		255,255,255	DAPMAB	0,0,0
+AMC	-		0,0,0		empty		no		255,255,255	AMC	0,0,0
+6AQ	-		0,0,0		empty		no		255,255,255	6AQ	0,0,0
+2AAc	-		0,0,0		empty		no		255,255,255	2AAc	0,0,0
+FMC	-		0,0,0		empty		no		255,255,255	FMC	0,0,0
+DH	-		0,0,0		empty		no		255,255,255	DH	0,0,0
+%
+Me	-		0,0,0		empty		no		255,255,255	Me	0,0,0
+Ac	-		0,0,0		empty		no		255,255,255	Ac	0,0,0
+NAc	-		0,0,0		empty		no		255,255,255	NAc	0,0,0
+Pv	-		0,0,0		empty		no		255,255,255	Pv	0,0,0
+P	-		0,0,0		empty		no		255,255,255	P	0,0,0
+S	-		0,0,0		empty		no		255,255,255	S	0,0,0
+Pyr	-		0,0,0		empty		no		255,255,255	PYR	0,0,0
+PC	-		0,0,0		empty		no		255,255,255	PC	0,0,0
+Ino	-		0,0,0		full		no		255,255,255	Ino	0,0,0
+PPEtn	-		0,0,0		empty		no		255,255,255	PPEtn	0,0,0
+PEtn	-		0,0,0		empty		no		255,255,255	PEtn	0,0,0
+N	-		0,0,0		empty		no		255,255,255	N	0,0,0
+%
+deoxy	-		0,0,0		empty		no		255,255,255	d	0,0,0
+un	-		0,0,0		empty		no		255,255,255	un	0,0,0
+aldi	-		0,0,0		empty		no		255,255,255	aldi	0,0,0
