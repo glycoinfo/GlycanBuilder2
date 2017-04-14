@@ -22,6 +22,9 @@ package org.eurocarbdb.application.glycanbuilder.logutility;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
+
+import javax.swing.JOptionPane;
+
 import java.awt.Frame;
 
 import org.apache.log4j.Logger;
@@ -147,9 +150,10 @@ public class LogUtils {
 
 
     	if(loggerStorageIndex.getLogger().getGraphicalReport()) {
+    		JOptionPane.showMessageDialog(null, e.getMessage(), "Error in GlycanBuilder2", JOptionPane.ERROR_MESSAGE);
     		new ReportDialog(loggerStorageIndex.getLogger().getFrameOwner(),loggerStorageIndex.getLogger().getLastStackError()).setVisible(true);
     	} else {
-    		Logger.getLogger( LogUtils.class ).error("Error in GlycanBuilder",e);
+    		Logger.getLogger( LogUtils.class ).error("Error in GlycanBuilder2",e);
     	}
     }
 }

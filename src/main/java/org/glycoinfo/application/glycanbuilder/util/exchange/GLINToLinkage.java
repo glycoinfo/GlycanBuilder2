@@ -171,6 +171,9 @@ public class GLINToLinkage {
 					this.analyzeCyclicGLINforStart(a_oDGLIN);
 			}else this.analyzeGLINforParent(a_oDGLIN);
 		}
+		
+		/** check dual linkages */
+		if(a_aParentLinkages.size() == 2) checkDualLinkage(getParentLinkage(), a_oGRES);
 	}
 	
 	protected void analyzeGLINforChild(GLIN a_oAGLIN) {	
@@ -196,7 +199,7 @@ public class GLINToLinkage {
 				a_oLIN = new Linkage(a_oSUB, this.a_oParentRES, a_cdPositions);
 				a_oLIN.setAnomericCarbon(a_cdPositions[0]);
 				a_oLIN.setSubstituent(a_oSUB);
-				
+
 				this.a_oBridgeLinkage = a_oLIN;
 
 				a_oLIN = new Linkage(null, a_oSUB, a_caPositions);
@@ -388,6 +391,30 @@ public class GLINToLinkage {
 		if(a_sParent.equals("<Q>") && a_sChild.equals("<Q>")) a_bIsUnknown = true;
 		
 		return a_bIsUnknown;
+	}
+	
+	private void checkDualLinkage(LinkedList<Linkage> _parents, GRES _gres) {
+		LinkedList<GRES> firstParents = _gres.getDonorGLINs().getFirst().getDonor();
+		LinkedList<GRES> secondParents = _gres.getDonorGLINs().getLast().getDonor();
+		
+		if(firstParents.size() != 1 || secondParents.size() != 1) return;
+		if(!firstParents.contains(secondParents.get(0))) return;		
+		if(!_parents.getFirst().getChildResidue().equals(_parents.getLast().getChildResidue())) return;
+		
+		char[] pos = new char[2];
+		for(int i = 0; i < _parents.size(); i++) {
+			pos[i] = _parents.get(i).getParentPositionsSingle();
+		}
+		
+		Linkage second = _parents.getLast();
+		Linkage temp = new Linkage(null, a_oParentRES);
+		temp.setLinkagePositions(new char[] {pos[0]}, new char[] {pos[1]}, second.getChildPositionsSingle());
+		temp.setAnomericCarbon(_parents.getFirst().getAnomericCarbon());
+	
+		a_aParentLinkages.clear();
+		a_aParentLinkages.addLast(temp);
+		
+		return;
 	}
 	
 	private void init() {

@@ -113,8 +113,8 @@ public class LinkageToWURCSEdge {
 		}		
 		
 		/** bridge substituent */
-		ArrayList<Integer> a_aParentPositions = this.charToInteger(a_oLIN.getBonds().get(0).getParentPositions());
-		ArrayList<Integer> a_aChildPositions = this.charToInteger(a_oLIN.getBonds().get(1).getParentPositions());
+		ArrayList<Integer> a_aParentPositions = charToInteger(a_oLIN.getBonds().get(0).getParentPositions());
+		ArrayList<Integer> a_aChildPositions = charToInteger(a_oLIN.getBonds().get(1).getParentPositions());
 		WURCSEdge a_oParentEdge = this.makeWURCSEdge(a_aParentPositions, this.a_iMAPPosForParent);
 		WURCSEdge a_oChildEdge = this.makeWURCSEdge(a_aChildPositions, this.a_iMAPPosForChild);
 		a_aEdges.add(a_oParentEdge);
@@ -185,11 +185,19 @@ public class LinkageToWURCSEdge {
 		return a_aPositions;
 	}
 	
+	private ArrayList<Integer> charToInteger(char _position) {
+		ArrayList<Integer> ret = new ArrayList<Integer>();
+		
+		ret.add(_position == '?' ? -1 : Integer.parseInt(String.valueOf(_position)));
+		
+		return ret;
+	}
+	
 	private ArrayList<Integer> charToInteger(char[] a_acPositions) {
 		ArrayList<Integer> a_aPositions = new ArrayList<Integer>();
 		
 		for(int i = 0; i < a_acPositions.length; i++) {
-			a_aPositions.add(Integer.parseInt(String.valueOf(a_acPositions[i])));
+			a_aPositions.add((String.valueOf(a_acPositions[i]).equals("?")) ? -1 : Integer.parseInt(String.valueOf(a_acPositions[i])));
 		}
 		return a_aPositions;
 	}

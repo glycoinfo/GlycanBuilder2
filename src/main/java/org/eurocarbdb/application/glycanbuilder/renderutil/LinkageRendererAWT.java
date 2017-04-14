@@ -121,7 +121,8 @@ public class LinkageRendererAWT extends AbstractLinkageRenderer {
 		
 		if(!link.getChildResidue().isComposition() && 
 			!link.getParentResidue().isStartRepetition() && 
-			(!link.getParentResidue().isReducingEnd() && !link.getChildResidue().isStartRepetition())) a_bIsShow = true;
+			(!link.getParentResidue().isReducingEnd() && !link.getChildResidue().isStartRepetition()) &&
+			!link.getChildResidue().isStartCyclic()) a_bIsShow = true;
 		if(link.getParentResidue().isSaccharide() && link.getChildResidue().isStartRepetition()) a_bIsShow = true;
 		
 		return a_bIsShow;

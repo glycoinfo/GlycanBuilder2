@@ -30,7 +30,7 @@ public class WURCS2Parser implements GlycanParser{
 	}
 	
 	public Glycan readGlycan(String str, MassOptions mass_opt) throws Exception{
-		if(str.equals("") || str == null || !str.contains("WURCS")) throw new Exception("This string is wrong format");
+		if(str.equals("") || str == null || !str.contains("WURCS")) throw new Exception(str + " is wrong format");
 		mass_opt.setDerivatization("Und");
 		mass_opt.ION_CLOUD.set("Na", 0);
 		

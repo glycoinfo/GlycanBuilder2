@@ -224,7 +224,7 @@ public class ResidueRendererAWT extends AbstractResidueRenderer {
     			font_size = sat(8 * font_size * cur_bbox.width / x_size / 10,font_size);
 
     		Font new_font = null;
-    		if(a_bIsSNFG && node.isAlditol() && text.equals("o")) {
+    		if(a_bIsSNFG && (node.isAlditol() && text.equals("o")) || (node.isAldehyde() && text.equals("a"))) {
     			new_font = new Font(theGraphicOptions.NODE_FONT_FACE, Font.ITALIC, font_size);
     		}else
 	    		new_font = new Font(theGraphicOptions.NODE_FONT_FACE,Font.PLAIN,font_size);

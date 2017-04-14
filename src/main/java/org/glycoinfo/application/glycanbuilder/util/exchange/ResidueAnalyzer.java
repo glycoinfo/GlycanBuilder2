@@ -64,8 +64,8 @@ public class ResidueAnalyzer {
 	public void ResidueToSkeletonCode(Residue a_oRES) throws GlycoconjugateException, WURCSExchangeException, ConverterExchangeException {
 		this.clear();
 
-		this.a_iAnomPos = this.checkAnomerPosition(a_oRES.getAnomericCarbon());
-		this.a_cAnomSymbol = this.checkAnomerSymbol(a_oRES.getAnomericState());
+		this.a_iAnomPos = a_oRES.isAldehyde() ? checkAnomerPosition('?') : checkAnomerPosition(a_oRES.getAnomericCarbon());
+		this.a_cAnomSymbol = a_oRES.isAldehyde() ? checkAnomerSymbol('?') : checkAnomerSymbol(a_oRES.getAnomericState());
 		this.a_cDLconfiguration = a_oRES.getChirality();
 
 		Superclass a_enumClass = Superclass.forName(a_oRES.getType().getCompositionClass().toLowerCase());
@@ -101,7 +101,7 @@ public class ResidueAnalyzer {
 			this.a_iAnomPos = 0;
 			this.a_cAnomSymbol = 'o';
 		}
-	
+		
 		if( this.a_iAnomPos != 0) {
 			int a_iAnomPos = this.a_iAnomPos;
 			char a_cCD = this.a_mPosToChar.get(a_iAnomPos);

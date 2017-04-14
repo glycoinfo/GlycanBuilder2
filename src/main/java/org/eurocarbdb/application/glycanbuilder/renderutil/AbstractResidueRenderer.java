@@ -742,7 +742,7 @@ public abstract class AbstractResidueRenderer implements ResidueRenderer{
     	//--------
     	// add max repetition    
     	if( min>=0 || max>=0 ) {
-    		String text = (max>=0) ?""+max :"+inf";
+    		String text = (max>=0) ?""+max :"n";
     		Dimension tb = textBounds(text,theGraphicOptions.LINKAGE_INFO_FONT_FACE,theGraphicOptions.LINKAGE_INFO_SIZE);
 
     		double dist = (isUp(angle) || isDown(angle)) ?tb.width/2+4 :tb.height/2+4;

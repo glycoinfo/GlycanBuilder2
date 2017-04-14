@@ -186,6 +186,7 @@ public class DropDownList extends JToggleButton implements ActionListener,
 		if (!ignore_list_events) {
 			is_changed = true;
 			updateText();
+			//thePopup.makeInvisible();
 		}
 	}
 

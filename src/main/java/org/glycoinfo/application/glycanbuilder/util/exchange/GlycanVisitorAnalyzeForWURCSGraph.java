@@ -8,6 +8,7 @@ import java.util.HashSet;
 import org.eurocarbdb.application.glycanbuilder.Glycan;
 import org.eurocarbdb.application.glycanbuilder.Residue;
 import org.eurocarbdb.application.glycanbuilder.dataset.ResidueDictionary;
+import org.eurocarbdb.application.glycanbuilder.linkage.Bond;
 import org.eurocarbdb.application.glycanbuilder.linkage.Linkage;
 import org.glycoinfo.WURCSFramework.util.exchange.TrivialNameDescriptor;
 import org.glycoinfo.glycanbuilder.util.visitor.GlycanVisitor;
@@ -137,13 +138,15 @@ public class GlycanVisitorAnalyzeForWURCSGraph implements GlycanVisitor {
 			
 			if(a_oChild.isStartRepetition()) {
 				if(a_oParent.isSaccharide()) {
-					Linkage a_oLIN = new Linkage(a_oParent, a_oChild.getChildAt(0), a_oChild.getParentLinkage().getBonds());
-					this.a_aGlycosidicLinkages.add(a_oLIN);
+					this.a_aGlycosidicLinkages.add(new Linkage(a_oParent, a_oChild.getChildAt(0), a_oChild.getParentLinkage().getBonds()));
 				}
 			}
 			
 			if(a_oChild.isSaccharide() && a_oChild.getParent().isSaccharide() && !isProbability(a_oLinkage)) {
-				this.a_aGlycosidicLinkages.add(a_oLinkage);
+				/** resolve divalent linkages */ 
+				for(Bond bond : a_oLinkage.getBonds()) {
+					this.a_aGlycosidicLinkages.add(new Linkage(a_oParent, a_oChild, bond.getParentPositions()));					
+				}
 			}
 			if(a_oLinkage.getParentResidue().isBracket() && a_oChild.isSaccharide())
 				this.a_aGlycosidicLinkages.add(a_oLinkage);

@@ -1349,7 +1349,7 @@ public class Residue {
 		Linkage link = new Linkage(this,child,bonds);
 		if(child.getParentLinkage() != null) {
 			link.setSubstituent(child.getParentLinkage().getSubstituent());
-			link.setAnomericCarbon(child.getParentLinkage().getChildPositionsSingle());
+			link.setAnomericCarbon(child.getParentLinkage().getAnomericCarbon());
 			link.getBonds().get(0).setProbabilityHigh(bonds.iterator().next().getProbabilityHigh());
 			link.getBonds().get(0).setProbabilityLow(bonds.iterator().next().getProbabilityLow());
 			

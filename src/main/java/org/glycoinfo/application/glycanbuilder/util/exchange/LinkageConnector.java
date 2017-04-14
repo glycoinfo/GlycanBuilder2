@@ -2,6 +2,7 @@ package org.glycoinfo.application.glycanbuilder.util.exchange;
 
 import org.eurocarbdb.application.glycanbuilder.Residue;
 import org.eurocarbdb.application.glycanbuilder.dataset.ResidueDictionary;
+import org.eurocarbdb.application.glycanbuilder.linkage.Linkage;
 
 public class LinkageConnector {
 
@@ -43,7 +44,7 @@ public class LinkageConnector {
 		}else if(a_oG2L.getParentRepeatingLinkage() != null) {
 			a_oRES.setParentLinkage(a_oG2L.getParentRepeatingLinkage());
 		}
-			
+		
 		if(a_oG2L.getDonorGLINs().isEmpty()) return;
 		if(a_oG2L.getParents().size() > 1) return;
 		
@@ -125,7 +126,7 @@ public class LinkageConnector {
 					 *  some monosaccharide have end repeating bracket
 					 *  [-o<->o-
 					 * */
-					a_oParent.addChild(a_oRES, a_oRES.getParentLinkage().getBonds());
+					if(!a_oRES.equals(a_oParent)) a_oParent.addChild(a_oRES, a_oRES.getParentLinkage().getBonds());
 				} else {
 					/**  
 					 * end repeating node make bridge for other monosaccharide in repeating
@@ -171,7 +172,7 @@ public class LinkageConnector {
 		a_oEndRep.setStartResidue(this.a_oStartRES);
 		a_oRES.setEndRepitionResidue(a_oEndRep);
 		
-		/** [<->bridge<->o */
+		/** [<->s<->o */
 		if(a_oG2L.getChildRepeatingLinkage().getSubstituent() != null) {
 			a_oSUB = a_oG2L.getChildRepeatingLinkage().getSubstituent();
 			

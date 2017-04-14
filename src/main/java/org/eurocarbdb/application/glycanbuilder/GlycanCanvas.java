@@ -3954,7 +3954,6 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 	 * @see #getToolBarProperties
 	 */
 	public void onSetProperties() {
-
 		Residue current = getCurrentResidue();
 		if (current != null) {
 			current.setAnomericState(getSelectedValueChar(field_anomeric_state));
@@ -3973,6 +3972,8 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 					parent_linkage.setLinkagePositions(sel_linkage_positions,
 							sel_second_parent_positions,
 							sel_second_child_position);
+					//current.setAldehyde(true);
+					//current.setRingSize('o');
 				} else
 					parent_linkage.setLinkagePositions(sel_linkage_positions);
 				
@@ -3981,9 +3982,10 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 			}
 			
 			if(current.isSaccharide() && !GlycanUtils.isFacingAnom(current)) {
-				if(current.equals(current.getTreeRoot().firstChild()) && getSelectedValueChar(field_ring_size) == 'o') {
+				if(!current.isAlditol() && getSelectedValueChar(field_ring_size) == 'o') {
 					current.setAlditol(true);
-					current.setAnomericCarbon('?');
+					field_anomeric_state.setSelectedItem("" + '?');
+					current.setAnomericState('?');
 				}
 				if(current.isAlditol() && (getSelectedValueChar(field_anomeric_state) != '?' || getSelectedValueChar(field_ring_size) != 'o')) {
 					current.setAlditol(false);
@@ -4031,8 +4033,6 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 				parent_linkage.getBonds().get(0).setProbabilityHigh(a_iProbabilityHigh);
 				parent_linkage.getBonds().get(0).setProbabilityLow(a_iProbabilityLow);
 			}
-
-			System.out.println("=====>");
 			
 			theDoc.fireDocumentChanged();
 			setSelection(current);

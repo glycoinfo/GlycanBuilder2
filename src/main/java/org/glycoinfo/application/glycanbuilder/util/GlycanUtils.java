@@ -53,9 +53,15 @@ public class GlycanUtils {
 		for(Linkage a_oLIN : a_oRES.getChildrenLinkages()) {
 			if(!a_oLIN.getChildResidue().isSaccharide() && 
 					!a_oLIN.getChildResidue().getType().getSuperclass().equals("Bridge")) continue;
-			if(a_oLIN.getChildPositionsSingle() == a_oLIN.getChildResidue().getAnomericCarbon() && 
-					a_oLIN.getParentPositionsSingle() == a_oRES.getAnomericCarbon())
-				ret = true;
+
+			char childPos = a_oLIN.getChildPositionsSingle();
+			char childAnom = a_oLIN.getChildResidue().getAnomericCarbon();
+			char parentPos = a_oLIN.getParentPositionsSingle();
+			char parentAnom = a_oRES.getAnomericCarbon();
+			boolean childSide = ((childPos != '?' && childAnom != '?') && (childPos == childAnom));
+			boolean parentSide = ((parentPos != '?' && parentAnom != '?') && (parentPos == parentAnom));
+			
+			if(childSide && parentSide) ret = true;
 		}
 		
 		return ret;
