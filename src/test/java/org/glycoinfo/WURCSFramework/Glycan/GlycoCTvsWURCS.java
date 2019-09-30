@@ -1,19 +1,18 @@
 package org.glycoinfo.WURCSFramework.Glycan;
 
+import org.eurocarbdb.application.glycanbuilder.BuilderWorkspace;
+import org.eurocarbdb.application.glycanbuilder.renderutil.GlycanRendererAWT;
+import org.glycoinfo.WURCSFramework.util.WURCSFactory;
+import org.glycoinfo.WURCSFramework.util.array.WURCSFormatException;
+import org.glycoinfo.WURCSFramework.util.exchange.Carbbank.ConverterCarbBankException;
+import org.glycoinfo.application.glycanbuilder.util.exchange.GlycanToWURCSGraph;
+import org.glycoinfo.application.glycanbuilder.util.exchange.WURCSSequence2ToGlycan;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.LinkedHashMap;
-
-import org.eurocarbdb.application.glycanbuilder.BuilderWorkspace;
-import org.eurocarbdb.application.glycanbuilder.renderutil.GlycanRendererAWT;
-import org.glycoinfo.WURCSFramework.util.WURCSFactory;
-import org.glycoinfo.WURCSFramework.util.array.WURCSFormatException;
-import org.glycoinfo.WURCSFramework.util.exchange.ConverterExchangeException;
-import org.glycoinfo.WURCSFramework.util.exchange.Carbbank.ConverterCarbBankException;
-import org.glycoinfo.application.glycanbuilder.util.exchange.GlycanToWURCSGraph;
-import org.glycoinfo.application.glycanbuilder.util.exchange.WURCSSequence2ToGlycan;
 
 public class GlycoCTvsWURCS {
 	
@@ -62,7 +61,7 @@ public class GlycoCTvsWURCS {
 	private static GlycanToWURCSGraph a_oG2WG;
 	private static String a_sOutputStatus = "";	
 	
-	public static void main(String[] args) throws WURCSFormatException, ConverterExchangeException, ConverterCarbBankException, Exception {	
+	public static void main(String[] args) throws WURCSFormatException, ConverterCarbBankException, Exception {
 
 		/** init a data set of GlycanBuilder*/
 		BuilderWorkspace a_objBW = new BuilderWorkspace(new GlycanRendererAWT());

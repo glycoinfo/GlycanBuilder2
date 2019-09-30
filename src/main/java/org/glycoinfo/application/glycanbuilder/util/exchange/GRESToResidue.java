@@ -1,9 +1,5 @@
 package org.glycoinfo.application.glycanbuilder.util.exchange;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.LinkedList;
-
 import org.eurocarbdb.application.glycanbuilder.Residue;
 import org.eurocarbdb.application.glycanbuilder.dataset.ResidueDictionary;
 import org.glycoinfo.WURCSFramework.util.exchange.GRESToTrivialName;
@@ -11,6 +7,10 @@ import org.glycoinfo.WURCSFramework.wurcs.sequence2.BRIDGE;
 import org.glycoinfo.WURCSFramework.wurcs.sequence2.GRES;
 import org.glycoinfo.WURCSFramework.wurcs.sequence2.MSCORE;
 import org.glycoinfo.application.glycanbuilder.dataset.NonSymbolicResidueDictionary;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.LinkedList;
 
 public class GRESToResidue {
 

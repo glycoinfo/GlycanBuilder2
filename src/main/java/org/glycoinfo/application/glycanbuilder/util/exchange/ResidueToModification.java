@@ -1,14 +1,14 @@
 package org.glycoinfo.application.glycanbuilder.util.exchange;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Iterator;
-
 import org.eurocarbdb.MolecularFramework.sugar.LinkageType;
 import org.eurocarbdb.application.glycanbuilder.Residue;
 import org.eurocarbdb.application.glycanbuilder.linkage.Linkage;
 import org.glycoinfo.WURCSFramework.util.exchange.SubstituentTemplate;
 import org.glycoinfo.WURCSFramework.util.exchange.SubstituentTypeToMAP;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 
 public class ResidueToModification {
 

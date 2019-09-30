@@ -1,10 +1,5 @@
 package org.glycoinfo.application.glycanbuilder.util.exchange;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-
 import org.eurocarbdb.application.glycanbuilder.Glycan;
 import org.eurocarbdb.application.glycanbuilder.Residue;
 import org.eurocarbdb.application.glycanbuilder.dataset.ResidueDictionary;
@@ -12,6 +7,11 @@ import org.eurocarbdb.application.glycanbuilder.linkage.Bond;
 import org.eurocarbdb.application.glycanbuilder.linkage.Linkage;
 import org.glycoinfo.WURCSFramework.util.exchange.TrivialNameDescriptor;
 import org.glycoinfo.glycanbuilder.util.visitor.GlycanVisitor;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
 
 public class GlycanVisitorAnalyzeForWURCSGraph implements GlycanVisitor {
 

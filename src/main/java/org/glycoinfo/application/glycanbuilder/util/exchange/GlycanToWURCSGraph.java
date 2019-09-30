@@ -1,24 +1,16 @@
 package org.glycoinfo.application.glycanbuilder.util.exchange;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-
 import org.eurocarbdb.application.glycanbuilder.Glycan;
 import org.eurocarbdb.application.glycanbuilder.Residue;
 import org.eurocarbdb.application.glycanbuilder.linkage.Linkage;
 import org.glycoinfo.WURCSFramework.util.WURCSException;
 import org.glycoinfo.WURCSFramework.util.exchange.WURCSExchangeException;
 import org.glycoinfo.WURCSFramework.util.graph.WURCSGraphNormalizer;
-import org.glycoinfo.WURCSFramework.wurcs.graph.Backbone;
-import org.glycoinfo.WURCSFramework.wurcs.graph.BackboneUnknown;
-import org.glycoinfo.WURCSFramework.wurcs.graph.DirectionDescriptor;
-import org.glycoinfo.WURCSFramework.wurcs.graph.LinkagePosition;
-import org.glycoinfo.WURCSFramework.wurcs.graph.Modification;
-import org.glycoinfo.WURCSFramework.wurcs.graph.ModificationAlternative;
-import org.glycoinfo.WURCSFramework.wurcs.graph.ModificationRepeat;
-import org.glycoinfo.WURCSFramework.wurcs.graph.WURCSEdge;
-import org.glycoinfo.WURCSFramework.wurcs.graph.WURCSGraph;
+import org.glycoinfo.WURCSFramework.wurcs.graph.*;
 import org.glycoinfo.application.glycanbuilder.util.GlycanUtils;
+
+import java.util.HashMap;
+import java.util.LinkedList;
 
 public class GlycanToWURCSGraph {
 	
@@ -130,9 +122,9 @@ public class GlycanToWURCSGraph {
 		/***/
 		for(Modification a_oCoreMOD : a_oR2B.getCoreModifications()) {
 			WURCSEdge a_oEdge = new WURCSEdge();
-			a_oEdge.addLinkage(new LinkagePosition(-1, DirectionDescriptor._, 0));
+			a_oEdge.addLinkage(new LinkagePosition(-1, DirectionDescriptor.L, 0));
 			if( a_oCoreMOD.getMAPCode().lastIndexOf("*") > 0)
-				a_oEdge.addLinkage(new LinkagePosition(-1, DirectionDescriptor._, 0));
+				a_oEdge.addLinkage(new LinkagePosition(-1, DirectionDescriptor.L, 0));
 			LinkedList<WURCSEdge> a_aCoreEdges = new LinkedList<WURCSEdge>();
 			a_aCoreEdges.add(a_oEdge);
 			this.makeLinkage(a_oBackbone, a_aCoreEdges, a_oCoreMOD);
@@ -147,8 +139,8 @@ public class GlycanToWURCSGraph {
 		WURCSEdge a_oStartEdge = new WURCSEdge();
 		WURCSEdge a_oEndEdge = new WURCSEdge();
 		if(a_oRES.getAnomericCarbon() != '?') {
-			a_oStartEdge.addLinkage(new LinkagePosition(charToInt(a_oRES.getAnomericCarbon()), DirectionDescriptor._, 0));
-			a_oEndEdge.addLinkage(new LinkagePosition(checkRingPos(a_oRES), DirectionDescriptor._, 0));
+			a_oStartEdge.addLinkage(new LinkagePosition(charToInt(a_oRES.getAnomericCarbon()), DirectionDescriptor.L, 0));
+			a_oEndEdge.addLinkage(new LinkagePosition(checkRingPos(a_oRES), DirectionDescriptor.L, 0));
 		}
 		
 		LinkedList<WURCSEdge> a_aEdges = new LinkedList<WURCSEdge>();

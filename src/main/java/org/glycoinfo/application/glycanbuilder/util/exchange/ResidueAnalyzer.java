@@ -1,20 +1,16 @@
 package org.glycoinfo.application.glycanbuilder.util.exchange;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.TreeMap;
-
 import org.eurocarbdb.MolecularFramework.sugar.BaseType;
 import org.eurocarbdb.MolecularFramework.sugar.GlycoconjugateException;
 import org.eurocarbdb.MolecularFramework.sugar.ModificationType;
 import org.eurocarbdb.MolecularFramework.sugar.Superclass;
 import org.eurocarbdb.application.glycanbuilder.Residue;
 import org.eurocarbdb.application.glycanbuilder.linkage.Linkage;
-import org.glycoinfo.WURCSFramework.util.exchange.BaseTypeForRelativeConfiguration;
-import org.glycoinfo.WURCSFramework.util.exchange.CompositSaccharideAnalyzer;
-import org.glycoinfo.WURCSFramework.util.exchange.ConverterExchangeException;
-import org.glycoinfo.WURCSFramework.util.exchange.TrivialNameDescriptor;
-import org.glycoinfo.WURCSFramework.util.exchange.WURCSExchangeException;
+import org.glycoinfo.WURCSFramework.util.exchange.*;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.TreeMap;
 
 public class ResidueAnalyzer {
 
@@ -268,7 +264,7 @@ public class ResidueAnalyzer {
 		this.a_mPosToChar.put(a_iModPos, a_cCD);
 	}
 	
-	private char convertModificationNameToCarbonDescriptor(String a_sMOD) throws GlycoconjugateException, ConverterExchangeException {				
+	private char convertModificationNameToCarbonDescriptor(String a_sMOD) throws GlycoconjugateException, ConverterExchangeException {
 		try {
 			ModificationType a_enumModType = ModificationType.forName(a_sMOD.equals("ulo") ? "keto" : a_sMOD);		
 			if(a_enumModType == ModificationType.DEOXY) return 'd';

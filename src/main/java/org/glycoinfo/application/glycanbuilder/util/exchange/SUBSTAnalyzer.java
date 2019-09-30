@@ -1,8 +1,5 @@
 package org.glycoinfo.application.glycanbuilder.util.exchange;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-
 import org.eurocarbdb.MolecularFramework.sugar.LinkageType;
 import org.eurocarbdb.application.glycanbuilder.Residue;
 import org.eurocarbdb.application.glycanbuilder.dataset.ResidueDictionary;
@@ -19,6 +16,9 @@ import org.glycoinfo.WURCSFramework.wurcs.sequence2.GLIN;
 import org.glycoinfo.WURCSFramework.wurcs.sequence2.GRES;
 import org.glycoinfo.WURCSFramework.wurcs.sequence2.SUBST;
 import org.glycoinfo.application.glycanbuilder.dataset.CrossLinkedSubstituentDictionary;
+
+import java.util.ArrayList;
+import java.util.LinkedList;
 
 public class SUBSTAnalyzer {
 

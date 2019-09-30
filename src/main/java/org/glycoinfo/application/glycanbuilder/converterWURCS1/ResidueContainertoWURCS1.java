@@ -1,18 +1,12 @@
 package org.glycoinfo.application.glycanbuilder.converterWURCS1;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.LinkedList;
-
 import org.glycoinfo.WURCSFramework.util.exchange.ConverterExchangeException;
 import org.glycoinfo.WURCSFramework.util.exchange.SubstituentTemplate;
-import org.glycoinfo.WURCSFramework.util.residuecontainer.LinkageBlock;
-import org.glycoinfo.WURCSFramework.util.residuecontainer.RepeatingBlock;
-import org.glycoinfo.WURCSFramework.util.residuecontainer.ResidueContainer;
-import org.glycoinfo.WURCSFramework.util.residuecontainer.ResidueContainerUtility;
-import org.glycoinfo.WURCSFramework.util.residuecontainer.RootStatusDescriptor;
-import org.glycoinfo.WURCSFramework.util.residuecontainer.SuperClass;
+import org.glycoinfo.WURCSFramework.util.residuecontainer.*;
 import org.glycoinfo.application.glycanbuilder.convertutil.WURCSconvertUtil_old;
+
+import java.util.HashMap;
+import java.util.LinkedList;
 
 public class ResidueContainertoWURCS1 {
 	private LinkedList<String> lst_linkage = new LinkedList<String>();
@@ -33,7 +27,7 @@ public class ResidueContainertoWURCS1 {
 					for(String s : a_objRC.getLinkage().getParent()) {
 						lst_amb.addLast("(" + this.extractParent(this.getParent(s), a_objRC) + ")");
 					}
-					str_linkage.append(String.join("/", lst_amb));
+//					str_linkage.append(String.join("/", lst_amb));
 				}else {	
 					String parentIndex = a_objRC.getLinkage().getParent().getFirst();
 					str_linkage.append(this.extractParent(this.getParent(parentIndex), a_objRC));
