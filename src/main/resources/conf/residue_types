@@ -2,110 +2,119 @@
 %
 % SACCHARIDES 
 % Pentose	
-Pen	Pentose	Pen	C5H10O5	-	Pen$	1	?	p	yes	yes	no	0	4	no	4	no	4	1,2,3,4,5	-	no	no	yes	Pentose
-Ara	Pentose	Pen	C5H10O5	-	Ara$	1	L	p	yes	yes	no	0	4	no	4	no	4	1,2,3,4,5	-	no	no	yes	Arabinose
-Rib	Pentose	Pen	C5H10O5	-	Rib$	1	D	p	yes	yes	no	0	4	no	4	no	4	1,2,3,4,5	-	no	no	yes	Ribose
-Xyl	Pentose	Pen	C5H10O5	-	Xyl$	1	D	p	yes	yes	no	1	4	no	4	no	4	1,2,3,4,5	-	no	no	yes	Xylose
-Lyx	Pentose	Pen	C5H10O5	-	Lyx$	1	L	p	yes	yes	no	0	4	no	4	no	4	1,2,3,4,5	-	no	no	yes	Lyxose
+Pen	Pentose	Pen	C5H10O5	-	Pen$	1	?	p	yes	yes	no	0	4	no	4	no	4	2,3,4,5	-	no	no	yes	Pentose
+Ara	Pentose	Pen	C5H10O5	-	Ara$	1	L	p	yes	yes	no	0	4	no	4	no	4	2,3,4,5	-	no	no	yes	Arabinose
+Rib	Pentose	Pen	C5H10O5	-	Rib$	1	D	p	yes	yes	no	0	4	no	4	no	4	2,3,4,5	-	no	no	yes	Ribose
+Xyl	Pentose	Pen	C5H10O5	-	Xyl$	1	D	p	yes	yes	no	1	4	no	4	no	4	2,3,4,5	-	no	no	yes	Xylose
+Lyx	Pentose	Pen	C5H10O5	-	Lyx$	1	L	p	yes	yes	no	0	4	no	4	no	4	2,3,4,5	-	no	no	yes	Lyxose
 %
 % 6-Deoxyhexose
-dHex	6-deoxy-Hex	Hex	C6H12O5	-	6-deoxy-Hex$	1	?	p	yes	yes	no	0	4	no	4	no	4	1,2,3,4,5,6	-	no	no	yes	6-Deoxy-hexose
-Fuc		6-deoxy-Hex	Hex	C6H12O5	-	Fuc$			1	L	p	yes	yes	no	2	4	no	4	no	4	1,2,3,4,5,6	-	no	no	yes	Fucose
-Rha		6-deoxy-Hex	Hex	C6H12O5	-	Rha$			1	L	p	yes	yes	no	0	4	no	4	no	4	1,2,3,4,5,6	-	no	no	yes	Rhamnose
-Qui		6-deoxy-Hex	Hex	C6H12O5	-	Qui$			1	D	p	yes	yes	no	0	4	no	4	no	4	1,2,3,4,5,6	-	no	no	yes	Quivonose
-dTal	6-deoxy-Hex	Hex	C6H12O5	-	6-deoxy-Tal$	1	D	p	yes	yes	no	0	4	no	4	no	4	1,2,3,4,5,6	-	no	no	yes	6-Deoxy-talose
-dAlt	6-deoxy-Hex	Hex	C6H12O5	-	6-deoxy-Alt$	1	L	p	yes	yes	no	0	4	no	4	no	4	1,2,3,4,5,6	-	no	no	yes	6-Deoxy-altlose
+dHex	Deoxyhexose	Hex	C6H12O5	-	6-deoxy-Hex$	1	?	p	yes	yes	no	0	4	no	4	no	4	2,3,4,5,6	-	no	no	yes	Deoxy-hexose
+Fuc		Deoxyhexose	Hex	C6H12O5	-	Fuc$			1	L	p	yes	yes	no	2	4	no	4	no	4	2,3,4,5,6	-	no	no	yes	Fucose
+Rha		Deoxyhexose	Hex	C6H12O5	-	Rha$			1	L	p	yes	yes	no	0	4	no	4	no	4	2,3,4,5,6	-	no	no	yes	Rhamnose
+Qui		Deoxyhexose	Hex	C6H12O5	-	Qui$			1	D	p	yes	yes	no	0	4	no	4	no	4	2,3,4,5,6	-	no	no	yes	Quivonose
+6dTal	Deoxyhexose	Hex	C6H12O5	-	6-deoxy-Tal$	1	D	p	yes	yes	no	0	4	no	4	no	4	2,3,4,5,6	-	no	no	yes	6-Deoxy-talose
+6dAlt	Deoxyhexose	Hex	C6H12O5	-	6-deoxy-Alt$	1	L	p	yes	yes	no	0	4	no	4	no	4	2,3,4,5,6	-	no	no	yes	6-Deoxy-altlose
+6dGul	Deoxyhexose	Hex	C6H12O5	-	6-deoxy-Gul$	1	D	p	yes	yes	no	0	4	no	4	no	4	2,3,4,5,6	-	no	no	yes	6-Deoxy-gullose
 %
 %Di-deocyhexose
-ddHex	Di-deoxyhexose	Hex	C6H12O4	-	Dideoxy-Hex$	1	?	p	yes	yes	no	0	3	no	3	no	3	1,2,3,4,5,6	-	no	no	yes	Dideoxy-hexose
-Oli		Di-deoxyhexose	Hex	C6H12O4	-	Oli$			1	D	p	yes	yes	no	0	3	no	3	no	3	1,2,3,4,5,6	-	no	no	yes	Olivose
-Tyv		Di-deoxyhexose	Hex	C6H12O4	-	Tyv$			1	D	p	yes	yes	no	0	3	no	3	no	3	1,2,3,4,5,6	-	no	no	yes	Tyvelose
-Abe		Di-deoxyhexose	Hex	C6H12O4	-	Abe$			1	D	p	yes	yes	no	0	3	no	3	no	3	1,2,3,4,5,6	-	no	no	yes	Abequose
-Par		Di-deoxyhexose	Hex	C6H12O4	-	Par$			1	D	p	yes	yes	no	0	3	no	3	no	3	1,2,3,4,5,6	-	no	no	yes	Paratose
-Dig		Di-deoxyhexose	Hex	C6H12O4	-	Dig$			1	D	p	yes	yes	no	0	3	no	3	no	3	1,2,3,4,5,6	-	no	no	yes	Digitoxose
-Col		Di-deoxyhexose	Hex	C6H12O4	-	Col$			1	L	p	yes	yes	no	0	3	no	3	no	3	1,2,3,4,5,6	-	no	no	yes	Colitose
+ddHex	Di-deoxyhexose	Hex	C6H12O4	-	2,6-dideoxy-Hex$	1	?	p	yes	yes	no	0	3	no	3	no	3	2,3,4,5,6	-	no	no	yes	Dideoxy-hexose
+Oli		Di-deoxyhexose	Hex	C6H12O4	-	Oli$			1	D	p	yes	yes	no	0	3	no	3	no	3	2,3,4,5,6	-	no	no	yes	Olivose
+Tyv		Di-deoxyhexose	Hex	C6H12O4	-	Tyv$			1	D	p	yes	yes	no	0	3	no	3	no	3	2,3,4,5,6	-	no	no	yes	Tyvelose
+Abe		Di-deoxyhexose	Hex	C6H12O4	-	Abe$			1	D	p	yes	yes	no	0	3	no	3	no	3	2,3,4,5,6	-	no	no	yes	Abequose
+Par		Di-deoxyhexose	Hex	C6H12O4	-	Par$			1	D	p	yes	yes	no	0	3	no	3	no	3	2,3,4,5,6	-	no	no	yes	Paratose
+Dig		Di-deoxyhexose	Hex	C6H12O4	-	Dig$			1	D	p	yes	yes	no	0	3	no	3	no	3	2,3,4,5,6	-	no	no	yes	Digitoxose
+Col		Di-deoxyhexose	Hex	C6H12O4	-	Col$			1	L	p	yes	yes	no	0	3	no	3	no	3	2,3,4,5,6	-	no	no	yes	Colitose
 %
 % 2-Hexosamine
-HexN	Hexosamine	Hex	C6H13N1O5	-	Hex$2N	1	?	p	yes	yes	no	0	6	no	5	no	5	1,2,3,4,5,6,N	-	no	no	yes	Hexosamine
-GalN	Hexosamine	Hex	C6H13N1O5	-	Gal$2N	1	D	p	yes	yes	no	0	6	no	5	no	5	1,2,3,4,5,6,N	-	no	no	yes	Galactosamine
-GlcN	Hexosamine	Hex	C6H13N1O5	-	Glc$2N	1	D	p	yes	yes	no	0	6	no	5	no	5	1,2,3,4,5,6,N	-	no	no	yes	Glucosamine
-ManN	Hexosamine	Hex	C6H13N1O5	-	Man$2N	1	D	p	yes	yes	no	0	6	no	5	no	5	1,2,3,4,5,6,N	-	no	no	yes	Mannosamine
-TalN	Hexosamine	Hex	C6H13N1O5	-	Tal$2N	1	D	p	yes	yes	no	0	6	no	5	no	5	1,2,3,4,5,6,N	-	no	no	yes	Talpsamine
-IdoN	Hexosamine	Hex	C6H13N1O5	-	Ido$2N	1	L	p	yes	yes	no	0	6	no	5	no	5	1,2,3,4,5,6,N	-	no	no	yes	Idosamine
-AllN	Hexosamine	Hex	C6H13N1O5	-	All$2N	1	D	p	yes	yes	no	0	6	no	5	no	5	1,2,3,4,5,6,N	-	no	no	yes	Allosamine
-AltN	Hexosamine	Hex	C6H13N1O5	-	Alt$2N	1	L	p	yes	yes	no	0	6	no	5	no	5	1,2,3,4,5,6,N	-	no	no	yes	Altosamine
-GulN	Hexosamine	Hex	C6H13N1O5	-	Gul$2N	1	D	p	yes	yes	no	0	6	no	5	no	5	1,2,3,4,5,6,N	-	no	no	yes	Gulosamine
-RhaN	Hexosamine	Hex	C6H13N1O5	-	Rha$2N	1	L	p	yes	yes	no	0	6	no	5	no	5	1,2,3,4,5,6,N	-	no	no	yes	Rhamnosamine
-QuiN	Hexosamine	Hex	C6H13N1O5	-	Qui$2N	1	D	p	yes	yes	no	0	6	no	5	no	5	1,2,3,4,5,6,N	-	no	no	yes	Quinovosamine
-FucN	Hexosamine	Hex	C6H13N1O5	-	Fuc$2N	1	L	p	yes	yes	no	0	6	no	5	no	5	1,2,3,4,5,6,N	-	no	no	yes	Fucosamine
+HexN	Hexosamine	Hex	C6H13N1O5	-	Hex$2N	1	?	p	yes	yes	no	0	6	no	5	no	5	3,4,5,6,N	-	no	no	yes	Hexosamine
+GalN	Hexosamine	Hex	C6H13N1O5	-	Gal$2N	1	D	p	yes	yes	no	0	6	no	5	no	5	3,4,5,6,N	-	no	no	yes	Galactosamine
+GlcN	Hexosamine	Hex	C6H13N1O5	-	Glc$2N	1	D	p	yes	yes	no	0	6	no	5	no	5	3,4,5,6,N	-	no	no	yes	Glucosamine
+ManN	Hexosamine	Hex	C6H13N1O5	-	Man$2N	1	D	p	yes	yes	no	0	6	no	5	no	5	3,4,5,6,N	-	no	no	yes	Mannosamine
+TalN	Hexosamine	Hex	C6H13N1O5	-	Tal$2N	1	D	p	yes	yes	no	0	6	no	5	no	5	3,4,5,6,N	-	no	no	yes	Talpsamine
+IdoN	Hexosamine	Hex	C6H13N1O5	-	Ido$2N	1	L	p	yes	yes	no	0	6	no	5	no	5	3,4,5,6,N	-	no	no	yes	Idosamine
+AllN	Hexosamine	Hex	C6H13N1O5	-	All$2N	1	D	p	yes	yes	no	0	6	no	5	no	5	3,4,5,6,N	-	no	no	yes	Allosamine
+AltN	Hexosamine	Hex	C6H13N1O5	-	Alt$2N	1	L	p	yes	yes	no	0	6	no	5	no	5	3,4,5,6,N	-	no	no	yes	Altosamine
+GulN	Hexosamine	Hex	C6H13N1O5	-	Gul$2N	1	D	p	yes	yes	no	0	6	no	5	no	5	3,4,5,6,N	-	no	no	yes	Gulosamine
+%RhaN	Hexosamine	Hex	C6H13N1O5	-	Rha$2N	1	L	p	yes	yes	no	0	6	no	5	no	5	3,4,5,6,N	-	no	no	yes	Rhamnosamine
+%QuiN	Hexosamine	Hex	C6H13N1O5	-	Qui$2N	1	D	p	yes	yes	no	0	6	no	5	no	5	3,4,5,6,N	-	no	no	yes	Quinovosamine
+%FucN	Hexosamine	Hex	C6H13N1O5	-	Fuc$2N	1	L	p	yes	yes	no	0	6	no	5	no	5	3,4,5,6,N	-	no	no	yes	Fucosamine
 %
 % Hexose
-Hex	Hexose	Hex	C6H12O6	-	Hex$	1	?	p	yes	yes	no	0	5	no	5	no	5	1,2,3,4,5,6	-	no	no	yes	Hexose
-Gal	Hexose	Hex	C6H12O6	-	Gal$	1	D	p	yes	yes	no	3	5	no	5	no	5	1,2,3,4,5,6	-	no	no	yes	Galactose
-Glc	Hexose	Hex	C6H12O6	-	Glc$	1	D	p	yes	yes	no	4	5	no	5	no	5	1,2,3,4,5,6	-	no	no	yes	Glucose
-Man	Hexose	Hex	C6H12O6	-	Man$	1	D	p	yes	yes	no	5	5	no	5	no	5	1,2,3,4,5,6	-	no	no	yes	Mannose
-Tal	Hexose	Hex	C6H12O6	-	Tal$	1	D	p	yes	yes	no	0	5	no	5	no	5	1,2,3,4,5,6	-	no	no	yes	Talose
-All	Hexose	Hex	C6H12O6	-	All$	1	D	p	yes	yes	no	0	5	no	5	no	5	1,2,3,4,5,6	-	no	no	yes	Allose
-Alt	Hexose	Hex	C6H12O6	-	Alt$	1	L	p	yes	yes	no	0	5	no	5	no	5	1,2,3,4,5,6	-	no	no	yes	Altrose
-Gul	Hexose	Hex	C6H12O6	-	Gul$	1	D	p	yes	yes	no	0	5	no	5	no	5	1,2,3,4,5,6	-	no	no	yes	Gullose
-Ido	Hexose	Hex	C6H12O6	-	Ido$	1	L	p	yes	yes	no	0	5	no	5	no	5	1,2,3,4,5,6	-	no	no	yes	Idoose
+Hex	Hexose	Hex	C6H12O6	-	Hex$	1	?	p	yes	yes	no	0	5	no	5	no	5	2,3,4,5,6	-	no	no	yes	Hexose
+Gal	Hexose	Hex	C6H12O6	-	Gal$	1	D	p	yes	yes	no	3	5	no	5	no	5	2,3,4,5,6	-	no	no	yes	Galactose
+Glc	Hexose	Hex	C6H12O6	-	Glc$	1	D	p	yes	yes	no	4	5	no	5	no	5	2,3,4,5,6	-	no	no	yes	Glucose
+Man	Hexose	Hex	C6H12O6	-	Man$	1	D	p	yes	yes	no	5	5	no	5	no	5	2,3,4,5,6	-	no	no	yes	Mannose
+Tal	Hexose	Hex	C6H12O6	-	Tal$	1	D	p	yes	yes	no	0	5	no	5	no	5	2,3,4,5,6	-	no	no	yes	Talose
+All	Hexose	Hex	C6H12O6	-	All$	1	D	p	yes	yes	no	0	5	no	5	no	5	2,3,4,5,6	-	no	no	yes	Allose
+Alt	Hexose	Hex	C6H12O6	-	Alt$	1	L	p	yes	yes	no	0	5	no	5	no	5	2,3,4,5,6	-	no	no	yes	Altrose
+Gul	Hexose	Hex	C6H12O6	-	Gul$	1	D	p	yes	yes	no	0	5	no	5	no	5	2,3,4,5,6	-	no	no	yes	Gullose
+Ido	Hexose	Hex	C6H12O6	-	Ido$	1	L	p	yes	yes	no	0	5	no	5	no	5	2,3,4,5,6	-	no	no	yes	Idoose
 %
 % Ketoses	
-Ketose	Ketose	Hex	C6H12O6	-	Ketose$	2	?	p	yes	yes	no	0	5	no	5	no	5	1,2,3,4,5,6	-	no	no	yes	Ketose
-Fru		Ketose	Hex	C6H12O6	-	Fru$	2	D	p	yes	yes	no	0	5	no	5	no	5	1,3,4,5,6	-	no	no	yes	Fructose
-Sor		Ketose	Hex	C6H12O6	-	Sor$	2	L	p	yes	yes	no	0	5	no	5	no	5	1,3,4,5,6	-	no	no	yes	Sorbose
-Tag		Ketose	Hex	C6H12O6	-	Tag$	2	D	p	yes	yes	no	0	5	no	5	no	5	1,3,4,5,6	-	no	no	yes	Tagatose
-Api		Ketose	Tet	C5H10O5	-	Api$	1	L	p	yes	yes	no	0	3	no	3	no	3	1,2,3,4		-	no	no	yes	Apiose
-Psi		Ketose	Hex	C6H12O6	-	Fru$	2	D	p	yes	yes	no	0	5	no	5	no	5	1,3,4,5,6	-	no	no	yes	Psicose
+Assigned	Assigned	Sug	H1	-	Assigned	?	?	?	yes	yes	no	0	0	no	0	no	9	1,2,3,4,5,6,7,8,9,N	-	no	no	yes	Assigned
+Fru		Assigned	Hex	C6H12O6	-	Fru$	2	D	p	yes	yes	no	0	5	no	5	no	5	1,3,4,5,6	-	no	no	yes	Fructose
+Sor		Assigned	Hex	C6H12O6	-	Sor$	2	L	p	yes	yes	no	0	5	no	5	no	5	1,3,4,5,6	-	no	no	yes	Sorbose
+Tag		Assigned	Hex	C6H12O6	-	Tag$	2	D	p	yes	yes	no	0	5	no	5	no	5	1,3,4,5,6	-	no	no	yes	Tagatose
+Api		Assigned	Tet	C5H10O5	-	Api$	1	L	p	yes	yes	no	0	3	no	3	no	3	2,4,5,6		-	no	no	yes	Apiose
+Psi		Assigned	Hex	C6H12O6	-	Fru$	2	D	p	yes	yes	no	0	5	no	5	no	5	1,3,4,5,6	-	no	no	yes	Psicose
 %
 % Hexuronic acid
-dHexA	Hexuronic acid	Hex	C6H8O6	-	uHex$A	1	?	p	yes	yes	no	0	4	no	3	no	4	1,2,3,6	6		no	no	yes	Dehydro-hexuronic Acid
-HexA	Hexuronic acid	Hex	C6H10O7	-	Hex$A	1	?	p	yes	yes	no	0	5	no	4	no	5	1,2,3,4,5,6	6	no	no	yes	Hexuronic Acid
-GalA	Hexuronic acid	Hex	C6H10O7	-	Gal$A	1	D	p	yes	yes	no	0	5	no	4	no	5	1,2,3,4,5,6	6	no	no	yes	Galacturonic Acid
-GlcA	Hexuronic acid	Hex	C6H10O7	-	Glc$A	1	D	p	yes	yes	no	0	5	no	4	no	5	1,2,3,4,5,6	6	no	no	yes	Glucuronic Acid
-IdoA	Hexuronic acid	Hex	C6H10O7	-	Ido$A	1	L	p	yes	yes	no	0	5	no	4	no	5	1,2,3,4,5,6	6	no	no	yes	Iduronic Acid
-ManA	Hexuronic acid	Hex	C6H10O7	-	Man$A	1	D	p	yes	yes	no	0	5	no	4	no	5	1,2,3,4,5,6	6	no	no	yes	Mannuronic Acid
-AltA	Hexuronic acid	Hex	C6H10O7	-	Alt$A	1	L	p	yes	yes	no	0	5	no	4	no	5	1,2,3,4,5,6	6	no	no	yes	Altronic Acid
-GulA	Hexuronic acid	Hex	C6H10O7	-	Gul$A	1	D	p	yes	yes	no	0	5	no	4	no	5	1,2,3,4,5,6	6	no	no	yes	Guluronic Acid
-AllA	Hexuronic acid	Hex	C6H10O7	-	All$A	1	D	p	yes	yes	no	0	5	no	4	no	5	1,2,3,4,5,6	6	no	no	yes	Allonic Acid
+dHexA	Hexuronate	Hex	C6H8O6	-	dHex$A	1	?	p	yes	yes	no	0	4	no	3	no	4	2,3,4,5,6	6		no	no	yes	Dehydro-hexuronic Acid
+HexA	Hexuronate	Hex	C6H10O7	-	Hex$A	1	?	p	yes	yes	no	0	5	no	4	no	5	2,3,4,5,6	6	no	no	yes	Hexuronic Acid
+GalA	Hexuronate	Hex	C6H10O7	-	Gal$A	1	D	p	yes	yes	no	0	5	no	4	no	5	2,3,4,5,6	6	no	no	yes	Galacturonic Acid
+GlcA	Hexuronate	Hex	C6H10O7	-	Glc$A	1	D	p	yes	yes	no	0	5	no	4	no	5	2,3,4,5,6	6	no	no	yes	Glucuronic Acid
+IdoA	Hexuronate	Hex	C6H10O7	-	Ido$A	1	L	p	yes	yes	no	0	5	no	4	no	5	2,3,4,5,6	6	no	no	yes	Iduronic Acid
+ManA	Hexuronate	Hex	C6H10O7	-	Man$A	1	D	p	yes	yes	no	0	5	no	4	no	5	2,3,4,5,6	6	no	no	yes	Mannuronic Acid
+AltA	Hexuronate	Hex	C6H10O7	-	Alt$A	1	L	p	yes	yes	no	0	5	no	4	no	5	2,3,4,5,6	6	no	no	yes	Altronic Acid
+GulA	Hexuronate	Hex	C6H10O7	-	Gul$A	1	D	p	yes	yes	no	0	5	no	4	no	5	2,3,4,5,6	6	no	no	yes	Guluronic Acid
+AllA	Hexuronate	Hex	C6H10O7	-	All$A	1	D	p	yes	yes	no	0	5	no	4	no	5	2,3,4,5,6	6	no	no	yes	Allonic Acid
 %
 % 2-N-Acetylhexosamine
-HexNAc	N-Acetylhexosamine	Hex	C8H15N1O6	-	Hex$2NAc		1	?	p	yes	yes	no	0	5	no	4	no	4	1,2,3,4,5,6	-	no	no	yes	N-acetylhexosamine
-GalNAc	N-Acetylhexosamine	Hex	C8H15N1O6	-	Gal$2NAc		1	D	p	yes	yes	no	6	5	no	4	no	4	1,2,3,4,5,6	-	no	no	yes	N-acetylgalactosamine
-GlcNAc	N-Acetylhexosamine	Hex	C8H15N1O6	-	Glc$2NAc		1	D	p	yes	yes	no	7	5	no	4	no	4	1,2,3,4,5,6	-	no	no	yes	N-acetylglucosamine
-ManNAc	N-Acetylhexosamine	Hex	C8H15N1O6	-	Man$2NAc		1	D	p	yes	yes	no	0	5	no	4	no	4	1,2,3,4,5,6	-	no	no	yes	N-acetylmannosamine
-TalNAc	N-Acetylhexosamine	Hex	C8H15N1O6	-	Tal$2NAc		1	D	p	yes	yes	no	0	5	no	4	no	4	1,2,3,4,5,6	-	no	no	yes	N-acetyltalosamine
-IdoNAc	N-Acetylhexosamine	Hex	C8H15N1O6	-	Ido$2NAc		1	L	p	yes	yes	no	0	5	no	4	no	4	1,2,3,4,5,6	-	no	no	yes	N-acetylidurosamine
-AllNAc	N-Acetylhexosamine	Hex	C8H15N1O6	-	All$2NAc		1	D	p	yes	yes	no	0	5	no	4	no	4	1,2,3,4,5,6	-	no	no	yes	N-acetylallosamine
-AltNAc	N-Acetylhexosamine	Hex	C8H15N1O6	-	Alt$2NAc		1	L	p	yes	yes	no	0	5	no	4	no	4	1,2,3,4,5,6	-	no	no	yes	N-acetylaltosamine
-GulNAc	N-Acetylhexosamine	Hex	C8H15N1O6	-	Gul$2NAc		1	D	p	yes	yes	no	0	5	no	4	no	4	1,2,3,4,5,6	-	no	no	yes	N-acetylgulosamine
-BacNAc	N-Acetylhexosamine	Hex	C10H18N2O5	-	Bac$2NAc4NAc	1	D	p	yes	yes	no	0	4	no	2	no	3	1,3,5		-	no	no	yes	N-acetylbacillosamine
+HexNAc	HexNAc	Hex	C8H15N1O6	-	Hex$2NAc		1	?	p	yes	yes	no	0	5	no	4	no	4	3,4,5,6	-	no	no	yes	N-acetylhexosamine
+GalNAc	HexNAc	Hex	C8H15N1O6	-	Gal$2NAc		1	D	p	yes	yes	no	6	5	no	4	no	4	3,4,5,6	-	no	no	yes	N-acetylgalactosamine
+GlcNAc	HexNAc	Hex	C8H15N1O6	-	Glc$2NAc		1	D	p	yes	yes	no	7	5	no	4	no	4	3,4,5,6	-	no	no	yes	N-acetylglucosamine
+ManNAc	HexNAc	Hex	C8H15N1O6	-	Man$2NAc		1	D	p	yes	yes	no	0	5	no	4	no	4	3,4,5,6	-	no	no	yes	N-acetylmannosamine
+TalNAc	HexNAc	Hex	C8H15N1O6	-	Tal$2NAc		1	D	p	yes	yes	no	0	5	no	4	no	4	3,4,5,6	-	no	no	yes	N-acetyltalosamine
+IdoNAc	HexNAc	Hex	C8H15N1O6	-	Ido$2NAc		1	L	p	yes	yes	no	0	5	no	4	no	4	3,4,5,6	-	no	no	yes	N-acetylidurosamine
+AllNAc	HexNAc	Hex	C8H15N1O6	-	All$2NAc		1	D	p	yes	yes	no	0	5	no	4	no	4	3,4,5,6	-	no	no	yes	N-acetylallosamine
+AltNAc	HexNAc	Hex	C8H15N1O6	-	Alt$2NAc		1	L	p	yes	yes	no	0	5	no	4	no	4	3,4,5,6	-	no	no	yes	N-acetylaltosamine
+GulNAc	HexNAc	Hex	C8H15N1O6	-	Gul$2NAc		1	D	p	yes	yes	no	0	5	no	4	no	4	3,4,5,6	-	no	no	yes	N-acetylgulosamine
+%BacNAc	HexNAc	Hex	C10H18N2O5	-	Bac$2NAc4NAc	1	D	p	yes	yes	no	0	4	no	2	no	3	1,3,5		-	no	no	yes	N-acetylbacillosamine
 %
 %DeoxyhexNAc
-dHexNAc	6-deoxy-HexNAc	Hex	C8H15N1O4	-	dHex$2NAc	1	D	p	yes	yes	no	0	5	no	4	no	4	1,2,3,4,5,6	-	no	no	yes	DeoxyhexNAc
-RhaNAc	6-deoxy-HexNAc	Hex	C8H15N1O5	-	Rha$2NAc	1	L	p	yes	yes	no	0	5	no	4	no	4	1,2,3,4,5,6	-	no	no	yes	N-acetylrhamnosamine
-QuiNAc	6-deoxy-HexNAc	Hex	C8H15N1O5	-	Qui$2NAc	1	D	p	yes	yes	no	0	5	no	4	no	4	1,2,3,4,5,6	-	no	no	yes	N-acetylquinovosamine
-FucNAc	6-deoxy-HexNAc	Hex	C8H15N1O5	-	Fuc$2NAc	1	L	p	yes	yes	no	0	5	no	4	no	4	1,2,3,4,5,6	-	no	no	yes	N-acetylfucosamine
+dHexNAc	DeoxyhexNAc	Hex	C8H15N1O4	-	6-deoxy-Hex$2NAc	1	D	p	yes	yes	no	0	5	no	4	no	4	2,3,4,5,6	-	no	no	yes	DeoxyhexNAc
+RhaNAc	DeoxyhexNAc	Hex	C8H15N1O5	-	Rha$2NAc	1	L	p	yes	yes	no	0	5	no	4	no	4	2,3,4,5,6	-	no	no	yes	N-acetylrhamnosamine
+QuiNAc	DeoxyhexNAc	Hex	C8H15N1O5	-	Qui$2NAc	1	D	p	yes	yes	no	0	5	no	4	no	4	2,3,4,5,6	-	no	no	yes	N-acetylquinovosamine
+FucNAc	DeoxyhexNAc	Hex	C8H15N1O5	-	Fuc$2NAc	1	L	p	yes	yes	no	0	5	no	4	no	4	2,3,4,5,6	-	no	no	yes	N-acetylfucosamine
+6dAltNAc	DeoxyhexNAc	Hex	C8H15N1O5	-	6-deoxy-Alt$2NAc	1	L	p	yes	yes	no	0	5	no	4	no	4	2,3,4,5,6	-	no	no	yes	6-deoxy-N-acetylaltosamine
+6dTalNAc	DeoxyhexNAc	Hex	C8H15N1O5	-	6-deoxy-Tal$2NAc	1	D	p	yes	yes	no	0	5	no	4	no	4	2,3,4,5,6	-	no	no	yes	6-deoxy-N-acetyltalosamine
 %
 % Acidic sugars
-Unknown			Unknown	Non	C9H18O9		-	Non$			1	?	?	yes	yes	no	0	5	no	3	no	5	1,2,3,4,5,6,7,8,9	-	no	no	yes	Unknown
-Mur				Unknown	Hex	C11H19N1O8	-	Mur$			1	D	p	yes	yes	no	0	5	no	3	no	5	1,2,3,4,5,6,N		3	no	no	yes	Muramic Acid
-MurNAc			Unknown	Hex	C11H19N1O8	-	Mur$2NAc		1	D	p	yes	yes	no	0	5	no	3	no	5	1,3,4,5,6,N	3		no	no	yes	N-Acetylmuramic acid
-MurNGc			Unknown	Hex	C11H19N1O8	-	Mur$2NGc		1	D	p	yes	yes	no	0	5	no	3	no	5	1,3,4,5,6,N	3		no	no	yes	N-Glycolylmuramic acid
-Kdo				Unknown	Oct	C8H14O8		-	Kdo$			2	D	p	yes	yes	no	0	6	no	5	no	6	1,2,4,5,6,7,8		1	no	no	yes	Ketodeoxyoctonic acid (KDO)
-L-gro-D-manHep	Unknown	Hep	C7H14O7		-	L-gro-D-manHep$	1	L	p	yes	yes	no	0	5	no	3	no	5	1,2,3,4,5,6,7		-	no	no	yes	L-glycero-D-manno-Heptose
-D-gro-D-manHep	Unknown	Hep	C7H14O7		-	D-gro-D-manHep$	1	D	p	yes	yes	no	0	5	no	3	no	5	1,2,3,4,5,6,7		-	no	no	yes	D-glycero-D-manno-Heptose
-Dha				Unknown	Hep	C7H10O8		-	Dha$			1	?	?	yes	yes	no	0	5	no	3	no	5	1,4,5,6,7			-	no	no	yes	3-Deoxy-lyxo-heptulosaric acid
-Bac				Unknown	Hex	C6H14N2O3	-	Bac$			1	D	p	yes	yes	no	0	6	no	4	no	3	1,3,5				-	no	no	yes	Bacillosamine
+Unknown			Unknown	Non	C9H18O9		-	Non$			1	?	?	yes	yes	no	0	5	no	3	no	5	2,3,4,5,6,7,8,9	-	no	no	yes	Unknown
+Mur				Unknown	Hex	C11H19N1O8	-	Mur$			1	D	p	yes	yes	no	0	5	no	3	no	5	2,3,4,5,6,N		3	no	no	yes	Muramic Acid
+MurNAc			Unknown	Hex	C11H19N1O8	-	Mur$2NAc		1	D	p	yes	yes	no	0	5	no	3	no	5	3,4,5,6,N	3		no	no	yes	N-Acetylmuramic acid
+MurNGc			Unknown	Hex	C11H19N1O8	-	Mur$2NGc		1	D	p	yes	yes	no	0	5	no	3	no	5	3,4,5,6,N	3		no	no	yes	N-Glycolylmuramic acid
+Kdo				Unknown	Oct	C8H14O8		-	Kdo$			2	D	p	yes	yes	no	0	6	no	5	no	6	1,4,5,6,7,8		1	no	no	yes	Ketodeoxyoctonic acid (KDO)
+L-gro-D-manHep	Unknown	Hep	C7H14O7		-	L-gro-D-manHep$	1	L	p	yes	yes	no	0	5	no	3	no	5	2,3,4,5,6,7		-	no	no	yes	L-glycero-D-manno-Heptose
+D-gro-D-manHep	Unknown	Hep	C7H14O7		-	D-gro-D-manHep$	1	D	p	yes	yes	no	0	5	no	3	no	5	2,3,4,5,6,7		-	no	no	yes	D-glycero-D-manno-Heptose
+Dha				Unknown	Hep	C7H10O8		-	Dha$			1	?	?	yes	yes	no	0	5	no	3	no	5	4,5,6,7			-	no	no	yes	3-Deoxy-lyxo-heptulosaric acid
+Bac				Unknown	Hex	C6H14N2O3	-	Bac$			1	D	p	yes	yes	no	0	6	no	4	no	3	3,5				-	no	no	yes	Bacillosamine
 %Heptose
-Hep	Heptose	Hep	C7H14O7	-	Hep$	1	?	?	yes	yes	no	0	6	no	5	no	5	1,2,3,4,5,6,7	-	no	no	yes	Heptose
+%Hep	Heptose	Hep	C7H14O7	-	Hep$	1	?	?	yes	yes	no	0	6	no	5	no	5	1,2,3,4,5,6,7	-	no	no	yes	Heptose
 %
 % Nonulosonate
-Non		Nonulosonate	Non	C9H16O9		-	Non$		2	?	p	yes	yes	no	0	7	no	6	no	7	1,2,4,5,6,7,8,9	1	no	no	yes	Nonulosonate
-Kdn		Nonulosonate	Non	C9H16O9		-	Kdn$		2	D	p	yes	yes	no	0	7	no	6	no	7	1,2,4,5,6,7,8,9	1	no	no	yes	Ketodeoxynononic acid (KDN)
-Neu		Nonulosonate	Non	C9H17N1O8	-	Neu$		2	D	p	yes	yes	no	0	8	no	6	no	8	1,2,5,7,8,9,N	1	no	no	yes	Neuraminic acid
-NeuAc	Nonulosonate	Non	C11H19N1O9	-	Neu$5NAc	2	D	p	yes	yes	no	8	7	no	5	no	7	1,2,5,7,8,9,N	1	no	no	yes	N-Acetylneuraminic acid
-NeuGc	Nonulosonate	Non	C11H19N1O10	-	Neu$5NGc	2	D	p	yes	yes	no	9	8	no	6	no	8	1,2,5,7,8,9,N	1	no	no	yes	N-Glycolylneuraminic acid 
+Non		Nonulosonate	Non	C9H16O9		-	3-deoxy-Non$2ulo-onic		2	?	p	yes	yes	no	0	7	no	6	no	7	1,3,4,5,6,7,8,9	1	no	no	yes	Deoxynonulosonate
+Kdn		Nonulosonate	Non	C9H16O9		-	Kdn$		2	D	p	yes	yes	no	0	7	no	6	no	7	1,3,4,5,6,7,8,9	1	no	no	yes	Keto-Deoxy-Nonulonic acid (KDN)
+Neu		Nonulosonate	Non	C9H17N1O8	-	Neu$		2	D	p	yes	yes	no	0	8	no	6	no	8	1,3,4,5,6,7,8,9,N	1	no	no	yes	Neuraminic acid
+NeuAc	Nonulosonate	Non	C11H19N1O9	-	Neu$5NAc	2	D	p	yes	yes	no	8	7	no	5	no	7	1,3,4,6,7,8,9,N	1	no	no	yes	N-Acetyl-Neuraminic Acid
+NeuGc	Nonulosonate	Non	C11H19N1O10	-	Neu$5NGc	2	D	p	yes	yes	no	9	8	no	6	no	8	1,3,4,6,7,8,9,N	1	no	no	yes	N-Glycolyl-Neuraminic acid
+%
+ddNon	Di-deoxynonulosonate	Non	C9H18N2O6	-	3,9-dideoxy-Non$5N7N2ulo-onic	2	?	p	yes	yes	no	0	1	no	1	no	1	1,3,4,6,8,9	1	no	no	yes	Di-deoxynonulosonate
+Pse	Di-deoxynonulosonate	Non	C9H18N2O6	-	Pse$	2	L	p	yes	yes	no	0	1	no	1	no	1	1,3,4,6,8,9	1	no	no	yes	Pseudaminic acid
+Leg	Di-deoxynonulosonate	Non	C9H18N2O6	-	Leg$	2	D	p	yes	yes	no	0	1	no	1	no	1	1,3,4,6,8,9	1	no	no	yes	Legionaminic acid
+4eLeg	Di-deoxynonulosonate	Non	C9H18N2O6	-	4eLeg$	2	D	p	yes	yes	no	0	1	no	1	no	1	1,3,4,6,8,9	1	no	no	yes	4-Epilegionaminic acid
+Aci	Di-deoxynonulosonate	Non	C9H18N2O6	-	Aci$	2	L	p	yes	yes	no	0	1	no	1	no	1	1,3,4,6,8,9	1	no	no	yes	Acinetaminic acid
 %
 % REDUCING ENDS
 freeEnd	Reducing end	freeEnd	H2O			-	-		?	?	?	no	no	no	0	2	no	2	no	1	-	-	no	yes	no	Free reducing end

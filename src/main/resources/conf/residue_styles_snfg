@@ -13,27 +13,29 @@
 	
 %name	Shape	ShapeColor	Fill	FillNegative	FillColor	Text	TextColor
 %Basetypes
-Pentose				star		0,0,0	full		no	255,255,255	-	0,0,0
-Di-deoxyhexose		flatsquare	0,0,0	full		no	255,255,255	-	0,0,0
-Hexosamine			square		0,0,0	topright	no	255,255,255	-	0,0,0
-Hexose				circle		0,0,0	full		no	255,255,255	-	0,0,0
-N-Acetylhexosamine	square		0,0,0	full		no	255,255,255	-	0,0,0
-Hexuronic acid		diamond		0,0,0	top			no	255,255,255	-	0,0,0
-6-deoxy-Hex			triangle	0,0,0	full		no	255,255,255	-	0,0,0
-6-deoxy-HexNAc		triangle	0,0,0	right		no	255,255,255	-	0,0,0
-Nonulosonate		diamond		0,0,0	full		no	255,255,255	-	0,0,0
-Assigned			pentagon	0,0,0	full		no	255,255,255	-	0,0,0
-%Unknown			hexagon		0,0,0	full		no	255,255,255	-	0,0,0
+Hex		circle			0,0,0	full		no	255,255,255	-	0,0,0
+HexNAc	square			0,0,0	full		no	255,255,255	-	0,0,0
+HexN	square			0,0,0	topright	no	255,255,255	-	0,0,0
+HexA	diamond			0,0,0	top			no	255,255,255	-	0,0,0
+dHex	triangle		0,0,0	full		no	255,255,255	-	0,0,0
+dHexNAc	triangle		0,0,0	right		no	255,255,255	-	0,0,0
+ddHex	flatsquare		0,0,0	full		no	255,255,255	-	0,0,0
+Pen		star			0,0,0	full		no	255,255,255	-	0,0,0
+Non		diamond			0,0,0	full		no	255,255,255	-	0,0,0
+ddNon	flatdiamond		0,0,0	full		no	255,255,255	-	0,0,0
+Unknown	hexagon			0,0,0	full		no	255,255,255	-	0,0,0
+Assigned	pentagon	0,0,0	full		no	255,255,255	-	0,0,0
+
+dHexA	diamond	0,0,0	top	no	255,255,255	d	0,0,0
+%Hep			flathexagon	0,0,0	full	    no	255,255,255	-	0,0,0
 
 %pentose(start)
-Pen	star	0,0,0	full	no	255,255,255	-	0,0,0
 Ara	star	0,0,0	full	no	0,166,81	-	0,0,0
 Lyx	star	0,0,0	full	no	255,212,0	-	0,0,0
 Xyl	star	0,0,0	full	no	244,121,32	-	0,0,0
 Rib	star	0,0,0	full	no	246,158,161	-	0,0,0
 
 %mono(di)-deoxy hexose
-ddHex	flatsquare	0,0,0	full	no	255,255,255	-	0,0,0
 Oli	flatsquare	0,0,0	full	no	0,144,188	-	0,0,0
 Tyv	flatsquare	0,0,0	full	no	0,166,81	-	0,0,0
 Abe	flatsquare	0,0,0	full	no	244,121,32	-	0,0,0
@@ -42,9 +44,8 @@ Dig	flatsquare	0,0,0	full	no	165,67,153	-	0,0,0
 Col	flatsquare	0,0,0	full	no	143,204,233	-	0,0,0
 
 %Hexosamine
-HexN	square	0,0,0	topright	no	255,255,255	-	0,0,0
 GlcN	square	0,0,0,	topright	no	0,144,188	-	0,0,0
-%ManN	square	0,0,0,	topright	no	0,255,0	-	0,0,0
+%ManN	square	0,0,0,	topright	no	0,255,0		-	0,0,0
 ManN	square	0,0,0,	topright	no	0,166,81	-	0,0,0
 GalN	square	0,0,0,	topright	no	255,212,0	-	0,0,0
 GulN	square	0,0,0,	topright	no	244,121,32	-	0,0,0
@@ -54,9 +55,7 @@ TalN	square	0,0,0,	topright	no	143,204,233	-	0,0,0
 IdoN	square	0,0,0,	topright	no	161,122,77	-	0,0,0
 
 %hexose
-Hex	circle	0,0,0	full	no	255,255,255	-	0,0,0
 Glc	circle	0,0,0	full	no	0,144,188	-	0,0,0
-%Man	circle	0,0,0	full	no	0,255,0	-	0,0,0
 Man	circle	0,0,0	full	no	0,166,81	-	0,0,0
 Gal	circle	0,0,0	full	no	255,212,0	-	0,0,0
 Gul	circle	0,0,0	full	no	244,121,32	-	0,0,0
@@ -67,9 +66,7 @@ Ido	circle	0,0,0	full	no	161,122,77	-	0,0,0
 Sia diamond	0,0,0	full	no	237,28,36	-	0,0,0
 
 %NAc
-HexNAc	square	0,0,0	full	no	255,255,255	-	0,0,0
 GlcNAc	square	0,0,0	full	no	0,144,188	-	0,0,0
-%ManNAc	square	0,0,0	full	no	0,255,0	-	0,0,0
 ManNAc	square	0,0,0	full	no	0,166,81	-	0,0,0
 GalNAc	square	0,0,0	full	no	255,212,0	-	0,0,0
 GulNAc	square	0,0,0	full	no	244,121,32	-	0,0,0
@@ -79,42 +76,38 @@ TalNAc	square	0,0,0	full	no	143,204,233	-	0,0,0
 IdoNAc	square	0,0,0	full	no	161,122,77	-	0,0,0
 
 %Hexuronate
-dHexA	diamond	0,0,0	top	no	255,255,255	d	0,0,0
-HexA	diamond	0,0,0	top	no	255,255,255	-	0,0,0
-GlcA	diamond	0,0,0	top	no	0,144,188	-	0,0,0
-%ManA	diamond	0,0,0	top	no	0,255,0	-	0,0,0
-ManA	diamond	0,0,0	top	no	0,166,81	-	0,0,0
-GalA	diamond	0,0,0	top	no	255,212,0	-	0,0,0
-GulA	diamond	0,0,0	top	no	244,121,32	-	0,0,0
+GlcA	diamond	0,0,0	top		no	0,144,188	-	0,0,0
+%ManA	diamond	0,0,0	top		no	0,255,0		-	0,0,0
+ManA	diamond	0,0,0	top		no	0,166,81	-	0,0,0
+GalA	diamond	0,0,0	top		no	255,212,0	-	0,0,0
+GulA	diamond	0,0,0	top		no	244,121,32	-	0,0,0
 AltA	diamond	0,0,0	bottom	no	246,158,161	-	0,0,0
-AllA	diamond	0,0,0	top	no	165,67,153	-	0,0,0
-TalA	diamond	0,0,0	top	no	143,204,233	-	0,0,0
+AllA	diamond	0,0,0	top		no	165,67,153	-	0,0,0
+TalA	diamond	0,0,0	top		no	143,204,233	-	0,0,0
 IdoA	diamond	0,0,0	bottom	no	161,122,77	-	0,0,0
 
 %deoxy hexose
-dHex	triangle	0,0,0	full	no	255,255,255	-	0,0,0
 Qui		triangle	0,0,0	full	no	0,144,188	-	0,0,0
 Rha		triangle	0,0,0	full	no	0,166,81	-	0,0,0
-dAlt	triangle	0,0,0	full	no	246,158,161	-	0,0,0	
-dTal	triangle	0,0,0	full	no	143,204,233	-	0,0,0
+6dAlt	triangle	0,0,0	full	no	246,158,161	-	0,0,0
+6dTal	triangle	0,0,0	full	no	143,204,233	-	0,0,0
+6dGul	triangle	0,0,0	full	no	244,121,32	-	0,0,0
 Fuc		triangle	0,0,0	full	no	237,28,36	-	0,0,0
 
 %half triangle
-dHexNAc	triangle	0,0,0	right	no	255,255,255	-	0,0,0
-QuiNAc	triangle	0,0,0	right	no	0,144,188	-	0,0,0
-RhaNAc	triangle	0,0,0	right	no	0,166,81	-	0,0,0
-FucNAc	triangle	0,0,0	right	no	237,28,36	-	0,0,0
+QuiNAc		triangle	0,0,0	right	no	0,144,188	-	0,0,0
+RhaNAc		triangle	0,0,0	right	no	0,166,81	-	0,0,0
+FucNAc		triangle	0,0,0	right	no	237,28,36	-	0,0,0
+6dTalNAc		triangle	0,0,0	right	no	143,204,233	-	0,0,0
+6dAltNAc		triangle	0,0,0	right	no	246,158,161	-	0,0,0
 
 %Nonulosanate
-Non	diamond	0,0,0	full	no	255,255,255	-	0,0,0
-Kdn	diamond	0,0,0	full	no	0,166,81	-	0,0,0
+Kdn		diamond	0,0,0	full	no	0,166,81	-	0,0,0
 NeuAc	diamond	0,0,0	full	no	165,67,153	-	0,0,0
 NeuGc	diamond	0,0,0	full	no	143,204,233	-	0,0,0
-Neu	diamond	0,0,0	full	no	161,122,77	-	0,0,0
+Neu		diamond	0,0,0	full	no	161,122,77	-	0,0,0
 
 %Other
-Hep				flathexagon	0,0,0	full	no	255,255,255	-	0,0,0
-%Hep				flathexagon	0,0,0	full	no	255,153,255	-	0,0,0
 Bac				flathexagon	0,0,0	full	no	0,144,188	-	0,0,0
 L-gro-D-manHep	flathexagon	0,0,0	full	no	0,166,81	-	0,0,0
 Kdo				flathexagon	0,0,0	full	no	255,212,0	-	0,0,0
@@ -125,8 +118,13 @@ MurNGc			flathexagon	0,0,0	full	no	143,204,233	-	0,0,0
 Mur				flathexagon	0,0,0	full	no	161,122,77	-	0,0,0
 Unknown			flathexagon	0,0,0	full	no	255,255,255	-	0,0,0
 
-%ketose
-Ketose	pentagon	0,0,0	full	no	255,255,255	-	0,0,0
+%Di-deoxy-nonulosonate
+Pse		flatdiamond	0,0,0	full	no	0,166,81	-	0,0,0
+Leg		flatdiamond	0,0,0	full	no	255,212,0	-	0,0,0
+Aci		flatdiamond	0,0,0	full	no	246,158,161	-	0,0,0
+4eLeg	flatdiamond	0,0,0	full	no	143,204,233	-	0,0,0
+
+%Assigned
 Api	pentagon	0,0,0	full	no	0,144,188	-	0,0,0
 Fru	pentagon	0,0,0	full	no	0,166,81	-	0,0,0
 Tag	pentagon	0,0,0	full	no	255,172,0	-	0,0,0
