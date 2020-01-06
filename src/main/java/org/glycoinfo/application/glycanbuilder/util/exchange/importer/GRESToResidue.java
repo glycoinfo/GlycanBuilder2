@@ -2,7 +2,7 @@ package org.glycoinfo.application.glycanbuilder.util.exchange.importer;
 
 import org.eurocarbdb.application.glycanbuilder.Residue;
 import org.eurocarbdb.application.glycanbuilder.dataset.ResidueDictionary;
-//import org.glycoinfo.WURCSFramework.util.oldUtil.GRESToTrivialName;
+import org.glycoinfo.WURCSFramework.util.oldUtil.GRESToTrivialName;
 import org.glycoinfo.WURCSFramework.wurcs.sequence2.BRIDGE;
 import org.glycoinfo.WURCSFramework.wurcs.sequence2.GRES;
 import org.glycoinfo.WURCSFramework.wurcs.sequence2.MSCORE;
@@ -51,9 +51,9 @@ public class GRESToResidue {
 		this.anomSymbol = mscore.getAnomericSymbol();
 		this.ringSize = makeRingSize(mscore);
 		
-		//GRESToTrivialName gres2trivialName = new GRESToTrivialName();
-		//gres2trivialName.start(getGRES());
-		//String trivialName = gres2trivialName.getTrivialName().replace("5", "");
+		GRESToTrivialName gres2trivialName = new GRESToTrivialName();
+		gres2trivialName.start(getGRES());
+		String trivialName = gres2trivialName.getTrivialName().replace("5", "");
 
 		//TODO: GRESの変換処理が古すぎるので対策を考える必要がある
 		//TODO: WURCSSequence2ではなくWURCSGraphが望ましい
@@ -62,7 +62,7 @@ public class GRESToResidue {
 		//Trivial nameの生成はIUPAC notationの生成処理に任せたほうが良い
 		Monosaccharide mono = new Monosaccharide();
 
-		String trivialName = "";
+		//String trivialName = "";
 		if ((trivialName.contains("Tal") || trivialName.contains("Alt")) && (mscore.getSkeletonCode().indexOf("m") == 5)) {
 			trivialName = (mscore.getSkeletonCode().indexOf("m") + 1) + "d" + trivialName;
 		}
