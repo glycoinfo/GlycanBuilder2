@@ -4,8 +4,7 @@ import org.eurocarbdb.application.glycanbuilder.BuilderWorkspace;
 import org.eurocarbdb.application.glycanbuilder.renderutil.GlycanRendererAWT;
 import org.glycoinfo.WURCSFramework.util.WURCSFactory;
 import org.glycoinfo.WURCSFramework.util.array.mass.WURCSMassCalculator;
-import org.glycoinfo.application.glycanbuilder.converterWURCS2.WURCS2Parser;
-import org.glycoinfo.application.glycanbuilder.util.exchange.WURCSSequence2ToGlycan;
+import org.glycoinfo.application.glycanbuilder.util.exchange.importer.WURCSSequence2ToGlycan;
 
 public class WURCSSequence2ToGlycanTester {
 
