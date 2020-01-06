@@ -637,22 +637,6 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		}
 	}
 	
-	private void updateResidue() {
-		if(this.getCurrentResidue() == null) return;
-		if(!this.getCurrentResidue().hasParent() || !this.getCurrentResidue().getParent().isBracket()) return;
-		
-		GlycanUtils a_uGlycan = new GlycanUtils();
-		a_uGlycan.getCoreResidue(this.getSelectedStructures());
-
-		for(Residue a_objResidue : a_uGlycan.getCoreResidues()) {
-			if(this.getCurrentResidue().getParentsOfFragment().contains(a_objResidue))
-				a_objResidue.setAntennaID(this.getCurrentResidue().getAntennaID());
-			else a_objResidue.setAntennaID(-1);
-		}
-		
-		return;
-	}
-	
 	protected void setAddStructureStatus(boolean enable){
 		ResidueRenderer rr = getTheGlycanRenderer().getResidueRenderer();
 		for (ResidueType t : ResidueDictionary.allResidues()) {
@@ -2615,7 +2599,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 	 * Return all the residues that are shown at the same position of the
 	 * residue with the focus
 	 */
-	public LinkedList<Residue> getLinkedResidues() {
+	public ArrayList<Residue> getLinkedResidues() {
 		return theBBoxManager.getLinkedResidues(current_residue);
 	}
 
@@ -2922,7 +2906,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 	private Residue getResidueAfter(Residue parent, Residue current,
 			ResAngle cur_pos) {
 
-		LinkedList<Residue> linked = theBBoxManager.getLinkedResidues(current);
+		ArrayList<Residue> linked = theBBoxManager.getLinkedResidues(current);
 		for (int i = parent.indexOf(current) + 1; i < parent.getNoChildren(); i++) {
 			Residue other = parent.getChildAt(i);
 			if (thePosManager.getRelativePosition(other).equals(cur_pos)
@@ -2935,7 +2919,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 	private Residue getResidueBefore(Residue parent, Residue current,
 			ResAngle cur_pos) {
 
-		LinkedList<Residue> linked = theBBoxManager.getLinkedResidues(current);
+		ArrayList<Residue> linked = theBBoxManager.getLinkedResidues(current);
 		for (int i = parent.indexOf(current) - 1; i >= 0; i--) {
 			Residue other = parent.getChildAt(i);
 			if (thePosManager.getRelativePosition(other).equals(cur_pos)
@@ -3300,18 +3284,18 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		
 	public void onAntennaParent() {
 		try {
-			getCurrentResidue().getParentsOfFragment().clear();
-			GlycanUtils a_uGlycan = new GlycanUtils();
-			LinkedList<Linkage> a_aLinkages = 
+			//this.getCurrentResidue().getParentsOfFragment().clear();
+			LinkedList<Linkage> linkages =
 				getSelectedStructures().iterator().next().getBracket().getChildrenLinkages();
-			int int_currentAntenna = -1;
-			a_uGlycan.getCoreResidue(this.getSelectedStructures());
-			Residue a_oRoot = a_uGlycan.getCoreResidues().getFirst();
-			
-			for(Linkage a_oLIN : a_aLinkages) {
-				if(a_oLIN.getChildResidue().equals(getSelectedResiduesList().iterator().next())) {
-					int_currentAntenna = a_aLinkages.indexOf(a_oLIN);
-					getCurrentResidue().setAntennaID(int_currentAntenna + 1);
+
+			GlycanUtils glycanUtil = new GlycanUtils();
+			glycanUtil.getCoreResidue(this.getSelectedStructures());
+			Residue root = glycanUtil.getCoreResidues().getFirst();
+
+			for(Linkage linkage : linkages) {
+				if(linkage.getChildResidue().equals(getSelectedResiduesList().iterator().next())) {
+					int antennaIndex = linkages.indexOf(linkage);
+					getCurrentResidue().setAntennaeID(antennaIndex + 1);
 					break;
 				}
 			}		
@@ -3319,26 +3303,28 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 			ResidueSelectorDialog rsd = new ResidueSelectorDialog(
 					theParent, "Select parent node",
 					"Select parent node of this antenna", 
-					new Glycan(a_oRoot, true, null),
-					a_uGlycan.getCoreResidues(), true, getTheGlycanRenderer());
+					new Glycan(root, true, null),
+					glycanUtil.getCoreResidues(), true, getTheGlycanRenderer());
 			
 			rsd.setVisible(true);
 			if (!rsd.isCanceled()) {
-				current_residue.getParentsOfFragment().clear();
-
-				for(Residue a_oRES : rsd.getSelectedResidues()) {
-					if(!a_oRES.isSaccharide()) continue;
-					current_residue.addParentOfFragment(a_oRES);
+				if (rsd.getSelectedResidues().size() == 1) {
+					throw new Exception("Core node should be selected more than one monosaccharide.");
 				}
-			} else {
 				this.getCurrentResidue().getParentsOfFragment().clear();
-				this.getCurrentResidue().setAntennaID(-1);
-			}
+				for(Residue residue : rsd.getSelectedResidues()) {
+					if(!residue.isSaccharide()) continue;
+					this.getCurrentResidue().addParentOfFragment(residue);
+				}
+			} //else {
+				//this.getCurrentResidue().getParentsOfFragment().clear();
+				//this.getCurrentResidue().setAntennaeID(-1);
+			//}
 		} catch (Exception e) {
 			LogUtils.report(e);
 		}
 		
-		updateResidue();
+		//updateResidue();
 		return;
 	}	
 	/***/
@@ -3684,26 +3670,32 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 	 */
 	public void onAdd(String sacc_name) {
 		try {
-			Residue a_oCurrent = this.getCurrentResidue();
+			Residue currentResidue = this.getCurrentResidue();
 
-			if(a_oCurrent != null) {
-				if(a_oCurrent.getType().getSuperclass().equals("Bridge"))
-					throw new Exception(a_oCurrent.getTypeName() + " is bridge node" );
-				if(a_oCurrent.isEndCyclic() || a_oCurrent.isStartCyclic())
-					throw new Exception(a_oCurrent.getTypeName() + " could not add any residue");
+			if(currentResidue != null) {
+				if(currentResidue.getType().getSuperclass().equals("Bridge"))
+					throw new Exception(currentResidue.getTypeName() + " is bridge node" );
+				if(currentResidue.isEndCyclic() || currentResidue.isStartCyclic())
+					throw new Exception(currentResidue.getTypeName() + " could not add any residue");
 			}
 			
 			Residue toadd = ResidueDictionary.newResidue(sacc_name);
-			if (theDoc.addResidue(getCurrentResidue(), getLinkedResidues(),
-					toadd) != null) {
+			if (theDoc.addResidue(getCurrentResidue(), getLinkedResidues(), toadd) != null) {
 				setSelection(toadd);
 				theWorkspace.getResidueHistory().add(toadd);
 			}
 
+			if (currentResidue != null && currentResidue.isBracket()) {
+				GlycanUtils glycanUtils = new GlycanUtils();
+				glycanUtils.getCoreResidue(this.getSelectedStructures());
+
+				LinkedList<Residue> core = glycanUtils.getCoreResidues();
+				for(Residue coreResidue : core) {
+					this.getCurrentResidue().addParentOfFragment(coreResidue);
+				}
+			}
 		} catch (Exception e) {
-			JOptionPane.showMessageDialog(theParent, e.getMessage(),
-					"Error while add residue",
-					JOptionPane.ERROR_MESSAGE);
+			JOptionPane.showMessageDialog(theParent, e.getMessage(), "Error while add residue", JOptionPane.ERROR_MESSAGE);
 		}
 	}
 
@@ -3737,8 +3729,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		try {
 			ResidueType new_type = ResidueDictionary.getResidueType(sacc_name);
 			Residue current = getCurrentResidue();
-			if (theDoc
-					.changeResidueType(current, getLinkedResidues(), new_type)) {
+			if (theDoc.changeResidueType(current, getLinkedResidues(), new_type)) {
 				setSelection(current);
 				theWorkspace.getResidueHistory().add(current);
 			}
@@ -4224,11 +4215,9 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		// update actions
 		updateActions();
 		updateToolbarProperties(!completeStructure);
-		updateResidue();
-		
+
 		// fire events
-		for (Iterator<SelectionChangeListener> i = listeners.iterator(); i
-				.hasNext();)
+		for (Iterator<SelectionChangeListener> i = listeners.iterator(); i.hasNext();)
 			i.next().selectionChanged(new SelectionChangeEvent(this));
 
 		// update view

@@ -23,13 +23,10 @@ package org.eurocarbdb.application.glycanbuilder;
 import java.util.*;
 import java.awt.*;
 
-import org.eurocarbdb.application.glycanbuilder.dataset.ResidueDictionary;
 import org.eurocarbdb.application.glycanbuilder.linkage.Bond;
 import org.eurocarbdb.application.glycanbuilder.linkage.Linkage;
-import org.eurocarbdb.application.glycanbuilder.renderutil.BBoxManager;
-import org.eurocarbdb.application.glycanbuilder.renderutil.GlycanRendererAWT;
 
-/**
+/*
    Objects of this class constitute the components of glycan
    molecules. Each residue object has a {linkplain ResidueType residue
    type} and hold the non-static information about a saccharide or
@@ -48,7 +45,7 @@ public class Residue {
 		class_id=0;    
 	}
 
-	/** Unique id of this residue object */    
+	// Unique id of this residue object
 	public final int id;
 
 	// properties
@@ -63,7 +60,7 @@ public class Residue {
 	private boolean isComposition;
 	
 	// anotation
-	private int int_AntennaID;
+	private int antennaeID;
 	private int a_iID = 0;
 	private LinkedList<Residue> a_aParentsInFragment;
 	
@@ -81,24 +78,24 @@ public class Residue {
 	private ResiduePlacement preferred_placement = null;
 	private boolean was_sticky;
 	
-	/** repeating util */
+	// repeating util
 	private Residue endRepetitionResidue;
 	private Residue startRepititionResidue;
 
-	/** cyclic */
-	private Residue a_oStartCyclic;
-	private Residue a_oEndCyclic;
-	private Residue a_oStartRES;
+	// cyclic
+	private Residue startCyclic;
+	private Residue endCyclic;
+	private Residue startRES;
 	
-	/** alternative */
-	private Residue a_oStartAlt;
-	private Residue a_oEndAlt;
+	// alternative
+	private Residue altStart;
+	private Residue altEnd;
 	
 	private Rectangle centerPos;
 
 	// ----
 
-	/**
+	/*
        Empty constructor.
 	 */
 
@@ -120,10 +117,10 @@ public class Residue {
 		children_linkages = new LinkedList<Linkage>();
 		this.a_aParentsInFragment = new LinkedList<Residue>();
 		
-		this.int_AntennaID = -1;
+		this.antennaeID = -1;
 	}
 
-	/**
+	/*
        Create a new residue of a specific type.
 	 */
 
@@ -146,10 +143,10 @@ public class Residue {
 		children_linkages = new LinkedList<Linkage>();
 		this.a_aParentsInFragment = new LinkedList<Residue>();
 		
-		this.int_AntennaID = -1;
+		this.antennaeID = -1;
 	}
 
-	/**
+	/*
        Create a new residue of a specific type and set the additional
        information about the saccharide chemistry.
 	 */
@@ -171,14 +168,13 @@ public class Residue {
 		children_linkages = new LinkedList<Linkage>();
 		this.a_aParentsInFragment = new LinkedList<Residue>();
 		
-		this.int_AntennaID = -1;
+		this.antennaeID = -1;
 	}
 
 	// -------------
 	// properties access	
-	/** Original */
-	public void setAntennaID(int _int_AntennaParentID) {
-		this.int_AntennaID = _int_AntennaParentID;
+	public void setAntennaeID(int _antennaeID) {
+		this.antennaeID = _antennaeID;
 	}
 	
 	public void setID (int _a_iID) {
@@ -189,8 +185,8 @@ public class Residue {
 		return this.a_iID;
 	}
 	
-	public int getAntennaID() {
-		return this.int_AntennaID;
+	public int getAntennaeID() {
+		return this.antennaeID;
 	}
 	
 	public void addModification(String a_sMOD) {
@@ -210,18 +206,18 @@ public class Residue {
 	}
 	
 	public void setStartResidue(Residue a_oStartRES) {
-		this.a_oStartRES = a_oStartRES;
+		this.startRES = a_oStartRES;
 	}
 	
 	public Residue getStartResidue() {
-		return this.a_oStartRES;
+		return this.startRES;
 	}
 
 	public Residue getEndResidue() {
-		return this.a_oEndCyclic;
+		return this.endCyclic;
 	}
 	
-	/**
+	/*
        Return the type name.
        @see ResidueType#getName
 	 */
@@ -229,7 +225,7 @@ public class Residue {
 		return type.getName();
 	}
 
-	/**
+	/*
        Return the residue name.
        @see ResidueType#getResidueName
 	 */
@@ -237,51 +233,51 @@ public class Residue {
 		return type.getResidueName();
 	}
 
-	/**
+	/*
        Return the residue type.
 	 */   
 	public ResidueType getType() {
 		return type;
 	}
 
-	/**
+	/*
        Set the residue type.
 	 */
 	public void setType(ResidueType _type) {
 		type = _type;
 	}
 
-	/**
+	/*
 	 * Set parent residue list
 	 */
-	public void setParentListinAntenna(LinkedList<Residue> _a_aParents) {
-		this.a_aParentsInFragment = _a_aParents;
+	public void setParentListinAntenna(LinkedList<Residue> _parents) {
+		this.a_aParentsInFragment = _parents;
 	}
 	
-	/**
+	/*
 	 * Set backbone name in fazzy monosaccharide
 	 */
 	/*public void setMotifName(String _motif) {
 		this.str_baseShape = _motif;
 	}*/
 	
-	/**
+	/*
 	 	Set parent residue in antenna
 	 */
-	public void addParentOfFragment(Residue a_oRES) {
-		if(this.a_aParentsInFragment.contains(a_oRES)) return;
-		if(a_oRES != null)
-			this.a_aParentsInFragment.add(a_oRES);
+	public void addParentOfFragment(Residue _res) {
+		if(this.a_aParentsInFragment.contains(_res)) return;
+		if(_res != null)
+			this.a_aParentsInFragment.add(_res);
 	}
 	
-	/**
+	/*
 	 	Return the parent antenna list
 	 */
 	public LinkedList<Residue> getParentsOfFragment() {
 		return this.a_aParentsInFragment;
 	}
 	
-	/**
+	/*
        Return the cleavage type.
        see ResidueType#getCleavageType()
 	 */ 
@@ -289,14 +285,14 @@ public class Residue {
 		return type.getCleavageType();
 	}
 
-	/**
+	/*
        Return the anomeric state.
 	 */
 	public char getAnomericState() {
 		return anomeric_state;
 	}
 
-	/**
+	/*
        Set the anomeric state as [a - alpha, b - beta, ?  -
        unspecified].
 	 */
@@ -304,21 +300,21 @@ public class Residue {
 		anomeric_state = _anomeric_state;
 	}
 
-	/**
+	/*
        Return <code>true</code> if the anomeric state is specified.
 	 */
 	public boolean hasAnomericState() {
 		return anomeric_state!='?';
 	} 
 
-	/**
+	/*
        Return the anomeric carbon position.
 	 */
 	public char getAnomericCarbon() {
 		return anomeric_carbon;
 	}
 
-	/**
+	/*
        Set the anomeric carbon position. 
 	 */
 	public void setAnomericCarbon(char _anomeric_carbon) {
@@ -327,21 +323,21 @@ public class Residue {
 			parent_linkage.setAnomericCarbon(anomeric_carbon);
 	}
 
-	/**
+	/*
        Return <code>true</code> if the anomeric carbon position is specified.
 	 */
 	public boolean hasAnomericCarbon() {
 		return anomeric_carbon!='?';
 	} 
 
-	/**
+	/*
        Return the chirality configuration.
 	 */
 	public char getChirality() {
 		return chirality;
 	}
 
-	/**
+	/*
        Set the chirality configuration as [D - dextro, L - levo, ? -
        unspecified].
 	 */
@@ -349,21 +345,21 @@ public class Residue {
 		chirality = _chirality;
 	}
 
-	/**
+	/*
        Return <code>true</code> if the chirality configuration is specified.
 	 */
 	public boolean hasChirality() {
 		return chirality!='?';
 	} 
 
-	/**
+	/*
        Return the ring size.
 	 */
 	public char getRingSize() {
 		return ring_size;
 	}
 
-	/**
+	/*
        Set the ring size as [p - pyranose, f - furanose, o - open, ? -
        unspecified]
 	 */
@@ -371,21 +367,21 @@ public class Residue {
 		ring_size = _ring_size;
 	}
 
-	/**
+	/*
        Return <code>true</code> if the ring size is specified.
 	 */
 	public boolean hasRingSize() {
 		return ring_size!='?';
 	} 
 
-	/**
+	/*
        Set to <code>true</code> if this residue is a alditol.
 	 */
 	public void setAlditol(boolean a) {
 		alditol = a;
 	}
 
-	/**
+	/*
        Return <code>true</code> if this residue is a alditol.
 	 */
 	public boolean isAlditol() {
@@ -400,7 +396,7 @@ public class Residue {
 		return this.a_bIsAldehyde;
 	}
 	
-	/**
+	/*
        Return the maxinum number of available linkage position.
        @see ResidueType#getMaxLinkages
 	 */
@@ -408,7 +404,7 @@ public class Residue {
 		return type.getMaxLinkages();
 	}
 
-	/**
+	/*
        Return <code>true</code> if this residue is a saccharide.
        @see ResidueType#isSaccharide
 	 */
@@ -416,7 +412,7 @@ public class Residue {
 		return type.isSaccharide();
 	}
 
-	/**
+	/*
        Return <code>true</code> if this residue is a substituent.
        @see ResidueType#isSubstituent
 	 */
@@ -424,7 +420,7 @@ public class Residue {
 		return type.isSubstituent();
 	}
 
-	/**
+	/*
     Return <code>true</code> if this residue is a modificaiton.
     @see ResidueType#isModification
 	 */
@@ -432,7 +428,7 @@ public class Residue {
 		return type.isModification();
 	}
 	
-	/**
+	/*
        Return <code>true</code> if this residue can be cleaved off the
        structure.
        @see ResidueType#isCleavable
@@ -441,7 +437,7 @@ public class Residue {
 		return type.isCleavable();
 	}
 
-	/**
+	/*
        Return <code>true</code> if this residue is of a specialy type.
        @see ResidueType#isSpecial
 	 */
@@ -449,7 +445,7 @@ public class Residue {
 		return type.isSpecial();
 	}
 
-	/**
+	/*
        Return <code>true</code> if this residue is labile during
        fragmentation.
        @see ResidueType#isLabile
@@ -458,7 +454,7 @@ public class Residue {
 		return (type.isLabile() && !hasChildren());
 	}
 
-	/**
+	/*
        Return <code>true</code> if this residuecan have a parent.
        @see ResidueType#canHaveParent
 	 */
@@ -466,7 +462,7 @@ public class Residue {
 		return type.canHaveParent();
 	}
 
-	/**
+	/*
        Return <code>true</code> if this residue can have children.
        @see ResidueType#canHaveChildren
 	 */
@@ -474,7 +470,7 @@ public class Residue {
 		return type.canHaveChildren();
 	}
 
-	/**
+	/*
        Return <code>true</code> if this residue can be used as a
        reducing end marker.
        @see ResidueType#canBeReducingEnd
@@ -483,7 +479,7 @@ public class Residue {
 		return type.canBeReducingEnd();
 	}
 
-	/**
+	/*
        Return <code>true</code> if this residue represent a free
        reducing end.
        @see ResidueType#isFreeReducingEnd
@@ -492,7 +488,7 @@ public class Residue {
 		return type.isFreeReducingEnd();
 	}
 
-	/**
+	/*
        Return <code>true</code> if this residue represent reducing end
        marker.
 	 */
@@ -500,7 +496,7 @@ public class Residue {
 		return (parent_linkage==null && type.canBeReducingEnd());
 	}
 
-	/**
+	/*
        Return <code>true</code> if this residue represent the beginning
        or the end of a repeat block.
        @see ResidueType#isRepetition
@@ -509,7 +505,7 @@ public class Residue {
 		return type.isRepetition();
 	}
 
-	/**
+	/*
        Return <code>true</code> if this residue represent the
        beginning of a repeat block.
        @see ResidueType#isStartRepetition
@@ -518,7 +514,7 @@ public class Residue {
 		return type.isStartRepetition();
 	}
 
-	/**
+	/*
        Return <code>true</code> if this residue represent the end of a repeat block.
        @see ResidueType#isEndRepetition
 	 */
@@ -534,7 +530,7 @@ public class Residue {
 		return type.isStartCyclic();
 	}
 	
-	/**
+	/*
        Return the lower bound of a repeat block range, applies only to
        end repetition residues.
        @return -1 if the type is not an end repetition.
@@ -544,7 +540,7 @@ public class Residue {
 		return type.getMinRepetitions();
 	}
 
-	/**
+	/*
        Set the lower bound of a repeat block range, applies only to
        end repetition types.
        @see ResidueType#setMinRepetitions
@@ -553,7 +549,7 @@ public class Residue {
 		type.setMinRepetitions(min);
 	}
 
-	/**
+	/*
        Return the upper bound of a repeat block range, applies only to
        end repetition residues.
        @return -1 if the type is not an end repetition.
@@ -563,7 +559,7 @@ public class Residue {
 		return type.getMaxRepetitions();
 	}
 
-	/**
+	/*
        Set the upper bound of a repeat block range, applies only to
        end repetition types.
        @see ResidueType#setMaxRepetitions
@@ -572,7 +568,7 @@ public class Residue {
 		type.setMaxRepetitions(max);
 	}    
 
-	/**
+	/*
        Return <code>true</code> if this residue represent a bracket node.
        @see ResidueType#isBracket
 	 */
@@ -580,7 +576,7 @@ public class Residue {
 		return type.isBracket();
 	}
 
-	/**
+	/*
        Return <code>true</code> if this residue is contained in a
        terminal structure linked to a bracket residue.
 	 */
@@ -592,7 +588,7 @@ public class Residue {
 		return parent_linkage.getParentResidue().isAntenna();
 	}
 
-	/**
+	/*
        Return <code>true</code> if this residue represent an attach point.
        @see ResidueType#isAttachPoint
 	 */
@@ -600,7 +596,7 @@ public class Residue {
 		return type.isAttachPoint();
 	}
 
-	/**
+	/*
        Return <code>true</code> if this residue represent a glycosidic
        cleavage marker.
        @see ResidueType#isGlycosidicCleavage
@@ -609,7 +605,7 @@ public class Residue {
 		return type.isGlycosidicCleavage();
 	}
 
-	/**
+	/*
        Return <code>true</code> if this residue represent a cleavage marker.
        @see ResidueType#isCleavage
 	 */
@@ -617,7 +613,7 @@ public class Residue {
 		return type.isCleavage();
 	}
 
-	/**
+	/*
        Return <code>true</code> if this residue represent a labile
        cleavage marker.
        @see ResidueType#isLCleavage
@@ -626,7 +622,7 @@ public class Residue {
 		return type.isLCleavage();
 	}
 
-	/**
+	/*
        Return <code>true</code> if this residue represent a ring
        fragment type.
        @see ResidueType#isRingFragment
@@ -635,7 +631,7 @@ public class Residue {
 		return type.isRingFragment();
 	}
 
-	/**
+	/*
        Return the residue that was present at this position before
        cleavage.
 	 */       
@@ -643,7 +639,7 @@ public class Residue {
 		return cleaved_residue;
 	}
 
-	/**
+	/*
        Set the residue that was present at this position before
        cleavage.
 	 */ 
@@ -651,7 +647,7 @@ public class Residue {
 		cleaved_residue = _cleaved_residue;
 	}
 
-	/** 
+	/* 
        Return <code>true</code> if any one of the connected residues
        (parent and children) is a glycosidic cleavage.
 	 */
@@ -664,7 +660,7 @@ public class Residue {
 		return (parent!=null && parent.isGlycosidicCleavage());
 	}
 
-	/** 
+	/* 
        Return <code>true</code> if any one of the connected residues
        (parent and children) is a ring fragment
 	 */
@@ -677,7 +673,7 @@ public class Residue {
 		return (parent!=null && parent.isRingFragment());
 	}
 
-	/** 
+	/* 
        Return <code>true</code> if any one of the children is a
        saccharide
 	 */
@@ -689,7 +685,7 @@ public class Residue {
 		return false;
 	}
 
-	/**
+	/*
        Return <code>true</code> if the residue has a preferred
        placement position for displaying.
        @see GlycanRendererAWT
@@ -699,7 +695,7 @@ public class Residue {
 		return (preferred_placement!=null);
 	}
 
-	/**
+	/*
        Clear the preferred placement position for displaying.
        @see GlycanRendererAWT
        @see BBoxManager
@@ -708,7 +704,7 @@ public class Residue {
 		preferred_placement = null;
 	}
 
-	/**
+	/*
        Set the preferred placement position for displaying.
        @see GlycanRendererAWT
        @see BBoxManager
@@ -717,7 +713,7 @@ public class Residue {
 		preferred_placement = new_place;
 	}
 
-	/**
+	/*
        Return the preferred placement position for displaying.
        @see GlycanRendererAWT
        @see BBoxManager
@@ -737,21 +733,21 @@ public class Residue {
 	// -------------
 	// structure access
 
-	/**
+	/*
        Set the {@link Linkage linkage} to the parent.
 	 */
 	public void setParentLinkage(Linkage _parent_linkage) {
 		parent_linkage = _parent_linkage;
 	}
 
-	/**
+	/*
        Return the {@link Linkage linkage} to the parent.
 	 */
 	public Linkage getParentLinkage() {
 		return parent_linkage;
 	}
 
-	/**
+	/*
        Return the parent residue.
 	 */
 	public Residue getParent() {
@@ -760,7 +756,7 @@ public class Residue {
 		return null;
 	}
 	
-	/**
+	/*
 	  Return the saccharide parent residue;
 	 */
 	public Residue getSaccharideParent() {
@@ -776,21 +772,21 @@ public class Residue {
 		return null;
 	}
 
-	/**
+	/*
        Return the children {@link Linkage linkages}.
 	 */
 	public LinkedList<Linkage> getChildrenLinkages() {
 		return children_linkages;
 	}
 
-	/**
+	/*
 	 * Return motif name
 	 */
 	/*public String getMotifName() {
 		return this.str_baseShape;
 	}*/
 	
-	/**
+	/*
 
 	 */
 	public void sortChildLinkage() {
@@ -819,14 +815,14 @@ public class Residue {
 		return;
 	}
 	
-	/**
+	/*
        Return an iterator over the children {@link Linkage linkages}.
 	 */
 	public Iterator<Linkage> iterator() {
 		return children_linkages.iterator();
 	}   
 
-	/**
+	/*
        Return the first children {@link Linkage linkage} or
        <code>null</code> if none are present.
 	 */
@@ -834,7 +830,7 @@ public class Residue {
 		return ( children_linkages.size()>0 ) ?children_linkages.get(0) :null;
 	}
 
-	/**
+	/*
        Return the first children or <code>null</code> if none are
        present.
 	 */
@@ -842,7 +838,7 @@ public class Residue {
 		return ( children_linkages.size()>0 ) ?children_linkages.get(0).getChildResidue() :null;
 	}
 
-	/**
+	/*
        Return the last children or <code>null</code> if none are
        present.
 	 */
@@ -851,7 +847,7 @@ public class Residue {
 	}
 
 
-	/**
+	/*
        Return the first saccharide children or <code>null</code> if
        none are present.
 	 */
@@ -862,7 +858,7 @@ public class Residue {
 				return null;
 	}
 
-	/**
+	/*
        Return the child with index <code>ind</code>.
 	 */
 	public Residue getChildAt(int ind) {
@@ -870,14 +866,14 @@ public class Residue {
 	}
 
 
-	/**
+	/*
        Return the child {@link Linkage linkage} with index <code>ind</code>.
 	 */
 	public Linkage getLinkageAt(int ind) {
 		return children_linkages.get(ind);
 	}
 
-	/**
+	/*
        Return the index of the <code>child</code> residue or -1 if it
        is not in the children collection.
 	 */
@@ -890,7 +886,7 @@ public class Residue {
 		return -1;
 	}                        
 
-	/**
+	/*
        Return <code>true</code> if the residue has a parent.
 	 */
 	public boolean hasParent() {
@@ -902,21 +898,21 @@ public class Residue {
 		else return false;
 	}
 	
-	/**
+	/*
        Return <code>true</code> if the residue has at least one child.
 	 */
 	public boolean hasChildren() {
 		return !children_linkages.isEmpty();
 	}
 
-	/**
+	/*
        Return the number of children.
 	 */
 	public int getNoChildren() {
 		return children_linkages.size();
 	}
 	
-	/**
+	/*
 	 	Return the number of parent for antena root
 	 */
 	public int getNoParent(Glycan a_objGlycan) {
@@ -934,7 +930,7 @@ public class Residue {
 		return count;
 	}
 	
-	/**
+	/*
        Return the number of saccharide children.
 	 */
 	public int getNoSaccharideChildren() {
@@ -946,7 +942,7 @@ public class Residue {
 		return count;
 	}
 
-	/**
+	/*
        Return the number of connected residues, comprising the parent.
 	 */
 	public int getNoLinkages() {
@@ -955,7 +951,7 @@ public class Residue {
 		return (children_linkages.size()+1);
 	}    
 
-	/**
+	/*
        Return the total number of chemical bonds with all the
        connected residues, comprising the parent.
 	 */
@@ -1011,7 +1007,7 @@ public class Residue {
 						parent_linkage.getParentResidue().getTypeName().equals("redEnd")) );
 	}
 
-	/**
+	/*
        Return <code>true</code> if all linkage position are valid and
        defined.
 	 */
@@ -1057,7 +1053,7 @@ public class Residue {
 		return true;
 	}
 
-	/**
+	/*
        Return <code>true</code> if the linkage position are valid and
        defined for all the residues in the subtree.
 	 */
@@ -1076,7 +1072,7 @@ public class Residue {
 		return true;
 	}
 
-	/**
+	/*
        Return <code>true</code> if all linkage position are defined.
 	 */
 
@@ -1095,7 +1091,7 @@ public class Residue {
 		return true;
 	}
 
-	/**
+	/*
        Return <code>true</code> if the linkage position are defined
        for all the residues in the subtree.
 	 */
@@ -1139,7 +1135,7 @@ public class Residue {
 		return match(other,true);
 	}
 
-	/**
+	/*
        Return <code>true</code> if the two residues match, considering
        undefined stereochemistry configurations and residue super
        classes as wildcards.
@@ -1162,7 +1158,7 @@ public class Residue {
 	}
 
 
-	/**
+	/*
        Return <code>true</code> if the subtree rooted at this residue
        contains one residue that matches <code>node</code>
 	 */
@@ -1176,7 +1172,7 @@ public class Residue {
 		return false;
 	}
 
-	/**
+	/*
        Return <code>true</code> if the two residues match exactly.
 	 */
 	public boolean typeEquals(Residue other) {
@@ -1197,7 +1193,7 @@ public class Residue {
 		return true;
 	}
 
-	/**
+	/*
        Return <code>true</code> if the subtree rooted at this residue
        contains one residue that matches <code>node</code> exactly.
 	 */
@@ -1215,7 +1211,7 @@ public class Residue {
 		return true;
 	}
 
-	/**
+	/*
        Return the root of the glycan tree to which this residue belongs.
 	 */
 	public Residue getTreeRoot() {
@@ -1224,7 +1220,7 @@ public class Residue {
 		return parent_linkage.getParentResidue().getTreeRoot();
 	}
 
-	/**
+	/*
        Return <code>true</code> if this residue is part of a repeat
        block.
 	 */
@@ -1232,7 +1228,7 @@ public class Residue {
 		return (findStartRepetition()!=null);
 	}
 
-	/**
+	/*
        Return the start of the repeat block to which this residue
        belong or <code>null</code> otherwise.
 	 */
@@ -1250,7 +1246,7 @@ public class Residue {
 		return this.getParent().findStartRepetition(true);
 	}
 
-	/**
+	/*
        Return the end of the repeat block to which this residue
        belong or <code>null</code> otherwise.
 	 */
@@ -1275,7 +1271,7 @@ public class Residue {
 	// structure modification
 
 
-	/**
+	/*
        Add a child residue.
        @return <code>true</code> if the operation was successful
 	 */
@@ -1283,7 +1279,7 @@ public class Residue {
 		return addChild(child,Bond.single());
 	}
 
-	/**
+	/*
        Return <code>true</code> if <code>child</code> can be added to
        this residue.
 	 */
@@ -1291,7 +1287,7 @@ public class Residue {
 		return canAddChild(child,Bond.single());
 	}
 
-	/**
+	/*
        Add a child residue at a specific linkage position.
        @return <code>true</code> if the operation was successful
 	 */
@@ -1299,7 +1295,7 @@ public class Residue {
 		return addChild(child,Bond.single(parent_link_pos));
 	}
 
-	/**
+	/*
        Return <code>true</code> if <code>child</code> can be added to
        this residue at a specific linkage position.
 	 */
@@ -1307,7 +1303,7 @@ public class Residue {
 		return canAddChild(child,Bond.single(parent_link_pos));
 	}
 
-	/**
+	/*
        Add a child residue with specific bonds.
        @return <code>true</code> if the operation was successful
 	 */
@@ -1367,7 +1363,7 @@ public class Residue {
 		return true;
 	}
 
-	/**
+	/*
        Return <code>true</code> if <code>child</code> can be added to
        this residue with specific bonds.
 	 */
@@ -1402,7 +1398,7 @@ public class Residue {
 	}
 
 
-	/**
+	/*
        Move the <code>child</code> residue before <code>other</code>
        in the children list.
        @return <code>false</code> if the residues are not children of this object
@@ -1418,7 +1414,7 @@ public class Residue {
 		return true;
 	}
 
-	/**
+	/*
        Move the <code>child</code> residue after <code>other</code>
        in the children list.
        @return <code>false</code> if the residues are not children of this object
@@ -1434,7 +1430,7 @@ public class Residue {
 		return true;
 	}
 
-	/**
+	/*
        Insert the <code>child</code> residue at the specified position
        in the children list.
        @return <code>true</code> if the operation was successful       
@@ -1443,7 +1439,7 @@ public class Residue {
 		return insertChildAt(child,Bond.single(),ind);
 	}
 
-	/**
+	/*
        Insert the <code>child</code> residue at the specified position
        in the children list and with specific linkage position.
        @return <code>true</code> if the operation was successful
@@ -1452,7 +1448,7 @@ public class Residue {
 		return insertChildAt(child,Bond.single(parent_link_pos),ind);
 	}
 
-	/**
+	/*
        Insert the <code>child</code> residue at the specified position
        in the children list and with specific bonds.
        @return <code>true</code> if the operation was successful
@@ -1473,7 +1469,7 @@ public class Residue {
 		return true;
 	}
 
-	/**
+	/*
        Remove a child residue.
        @return <code>true</code> if the operation was successful
 	 */
@@ -1558,7 +1554,7 @@ public class Residue {
 		return false;
 	}
 	
-	/**
+	/*
        Insert a residue between this and its parent.
        @return <code>true</code> if the operation was successful.
 	 */
@@ -1566,7 +1562,7 @@ public class Residue {
 		return insertParent(toinsert,Bond.single());
 	}
 
-	/**
+	/*
        Insert a residue with a specific linkage position between this
        and its parent.
        @return <code>true</code> if the operation was successful.
@@ -1575,7 +1571,7 @@ public class Residue {
 		return insertParent(toinsert,Bond.single(parent_link_pos));
 	}
 
-	/**
+	/*
        Insert a residue with specific bonds between this and its
        parent.
        @return <code>true</code> if the operation was successful.
@@ -1606,7 +1602,7 @@ public class Residue {
 		return true;
 	}        
 
-	/**
+	/*
        Swap positions of the two residues in the children list
        @return <code>false</code> if the residues are not children of this object
 	 */
@@ -1626,7 +1622,7 @@ public class Residue {
 		return true;
 	}
 
-	/**
+	/*
        Create a new residue that is a copy of the current one.
 	 */
 	public Residue cloneResidue() {
@@ -1645,7 +1641,7 @@ public class Residue {
 		return ret;
 	}
 
-	/**
+	/*
        Copy the information about the current residue into the other
        residue.
 	 */
@@ -1665,7 +1661,7 @@ public class Residue {
 
 	}
 
-	/**
+	/*
        Create a copy of the subtree rooted at this residue.
 	 */
 	public Residue cloneSubtree() {
@@ -1753,35 +1749,35 @@ public class Residue {
 	}
 
 	public void setStartCyclicResidue(Residue _start) {
-		this.a_oStartCyclic = _start;
+		this.startCyclic = _start;
 	}
 	
 	public Residue getStartCyclicResidue() {
-		return this.a_oStartCyclic;
+		return this.startCyclic;
 	}
 	
 	public void setEndCyclicResidue(Residue _end) {
-		this.a_oEndCyclic = _end;
+		this.endCyclic = _end;
 	}
 	
 	public void setAlternativeStart(Residue _start) {
-		this.a_oStartAlt = _start;
+		this.altStart = _start;
 	}
 	
 	public Residue getAlternativeStart() {
-		return this.a_oStartAlt;
+		return this.altStart;
 	}
 	
 	public void setAlternativeEnd(Residue _end) {
-		this.a_oEndAlt = _end;
+		this.altEnd = _end;
 	}
 	
 	public Residue getAlternativeEnd() {
-		return this.a_oEndAlt;
+		return this.altEnd;
 	}
 	
 	public Residue getEndCyclicResidue() {
-		return this.a_oEndCyclic;
+		return this.endCyclic;
 	}
 	
 	public void setCenterPosition(Rectangle rectangle) {

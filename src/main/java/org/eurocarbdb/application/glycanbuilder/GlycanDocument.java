@@ -24,6 +24,7 @@ import java.io.*;
 import java.net.URL;
 import java.util.*;
 
+import org.eurocarbdb.MolecularFramework.sugar.LinkageType;
 import org.eurocarbdb.application.glycanbuilder.converter.GlycanParser;
 import org.eurocarbdb.application.glycanbuilder.converter.GlycanParserFactory;
 import org.eurocarbdb.application.glycanbuilder.converterGlycoCT.GlycoCTCondensedParser;
@@ -430,8 +431,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	 * @see GlycanRendererAWT
 	 * @see BBoxManager
 	 */
-	public Residue addResidue(Residue current, LinkedList<Residue> linked,
-			Residue toadd) {
+	public Residue addResidue(Residue current, ArrayList<Residue> linked, Residue toadd) {
 		if (toadd == null || isInComposition(current))
 			return null;
 
@@ -450,9 +450,29 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 				r.addChild(toadd.cloneSubtree());
 		}
 
+		if (current.isSaccharide() || current.isBracket()) {
+			if (toadd.isSaccharide()) {
+				toadd = modifyLinkageType(toadd, LinkageType.DEOXY, LinkageType.H_AT_OH);
+			}
+			if (toadd.isSubstituent()) {
+				toadd = modifyLinkageType(toadd, LinkageType.NONMONOSACCHARID, LinkageType.DEOXY);
+			}
+		}
+
 		// update views
 		fireDocumentChanged();
 		return toadd;
+	}
+
+
+	public Residue modifyLinkageType (Residue _toAdd, LinkageType _donorSide, LinkageType _acceptorSide) {
+		try {
+			_toAdd.getParentLinkage().setParentLinkageType(_acceptorSide);
+			_toAdd.getParentLinkage().setChildLinkageType(_donorSide);
+		} catch (Exception e) {
+
+		}
+		return _toAdd;
 	}
 
 	/**
@@ -484,7 +504,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	 * @see GlycanRendererAWT
 	 * @see BBoxManager
 	 */
-	public Residue insertResidueBefore(Residue current, LinkedList<Residue> linked,
+	public Residue insertResidueBefore(Residue current, ArrayList<Residue> linked,
 			Residue toinsert) {
 		if (toinsert == null || current == null || current.getParent() == null
 				|| isInComposition(current))
@@ -550,7 +570,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	 * @see GlycanRendererAWT
 	 * @see BBoxManager
 	 */
-	public boolean changeResidueType(Residue current, LinkedList<Residue> linked,
+	public boolean changeResidueType(Residue current, ArrayList<Residue> linked,
 			ResidueType new_type) {
 		if (current == null
 				|| (current.hasParent() && !new_type.canHaveParent())
@@ -728,7 +748,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	 * @see #addStructures
 	 * @see #extractView
 	 */
-	public void copyResidues(Residue current, LinkedList<Residue> linked,
+	public void copyResidues(Residue current, ArrayList<Residue> linked,
 			HashSet<Residue> tocopy) {
 		// copy structures
 		LinkedList<Glycan> cloned_structures = extractView(tocopy);
@@ -775,7 +795,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	 * @see #addStructures
 	 * @see #extractView
 	 */
-	public void moveResidues(Residue current, LinkedList<Residue> linked,
+	public void moveResidues(Residue current, ArrayList<Residue> linked,
 			HashSet<Residue> tomove) {
 		// copy structures
 		LinkedList<Glycan> cloned_structures = extractView(tomove);

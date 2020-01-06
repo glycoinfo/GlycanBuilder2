@@ -485,14 +485,14 @@ public class Linkage {
 		return sb.toString();
 	}
 	
-	public void setParentLinkageType(LinkageType _a_enumParentType) throws Exception {
-		if(_a_enumParentType == null) throw new Exception("Null is not allowed");
-		else this.a_enumParentType = _a_enumParentType;
+	public void setParentLinkageType(LinkageType acceptorType) throws Exception {
+		if(acceptorType == null) throw new Exception("Null is not allowed");
+		else this.a_enumParentType = acceptorType;
 	}
 	
-	public void setChildLinkageType(LinkageType _a_enumChildType) throws Exception {
-		if(_a_enumChildType == null) throw new Exception("Null is not allowed");
-		else this.a_enumChildType = _a_enumChildType;	
+	public void setChildLinkageType(LinkageType donorType) throws Exception {
+		if(donorType == null) throw new Exception("Null is not allowed");
+		else this.a_enumChildType = donorType;
 	}
 	
 	public LinkageType getParentLinkageType() {

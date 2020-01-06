@@ -9,17 +9,15 @@ import java.util.List;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 
-import org.apache.log4j.Level;
-import org.apache.log4j.Logger;
 import org.pushingpixels.flamingo.api.ribbon.JRibbonBand;
 import org.pushingpixels.flamingo.api.ribbon.resize.CoreRibbonResizePolicies;
 import org.pushingpixels.flamingo.api.ribbon.resize.IconRibbonBandResizePolicy;
 import org.pushingpixels.flamingo.api.ribbon.resize.RibbonBandResizePolicy;
 
 public class ThemeManager {
-	static final Logger log = Logger.getLogger( ThemeManager.class );
+	//static final Logger log = Logger.getLogger( ThemeManager.class );
 	static {
-		log.setLevel(Level.ALL);
+		//log.setLevel(Level.ALL);
 	}
 	
 	public static ThemeManager defaultManager;
@@ -36,7 +34,7 @@ public class ThemeManager {
 	 * @throws MalformedURLException
 	 */
 	public ThemeManager(String _iconPath, Class _defaultClazz) throws MalformedURLException {
-		log.setLevel(Level.ALL);
+		//log.setLevel(Level.ALL);
 		iconPaths=new ArrayList<ICON_PATH>();
 		clazz=_defaultClazz;
 		

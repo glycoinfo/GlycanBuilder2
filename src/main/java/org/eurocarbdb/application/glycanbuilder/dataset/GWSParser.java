@@ -207,12 +207,13 @@ public class GWSParser implements GlycanParser {
 		}
 		else if( r.isEndCyclic()) {
 			str += '<';
-		}else if( r.isCleavage() ) {
+		}
+		else if( r.isCleavage() ) {
 			Residue cleaved_residue = r.getCleavedResidue();
 			str += writeResidueType(cleaved_residue) + "/" + r.getTypeName();    
 		}
 		else {
-			if( r.hasAnomericState() || r.hasAnomericCarbon() ) 
+			if( r.hasAnomericState() || r.hasAnomericCarbon() )
 				str += r.getAnomericState() + "" + r.getAnomericCarbon();        
 			if( r.hasChirality() ) 
 				str += r.getChirality() + "-";        
@@ -251,7 +252,7 @@ public class GWSParser implements GlycanParser {
 		//-----------------
 		// write children
 
-		Vector<String> str_children = new Vector<String>();
+		ArrayList<String> str_children = new ArrayList();
 		for( Linkage l : r.getChildrenLinkages() )
 			str_children.add(writeSubtree(l,ordered, bboxManager));
 

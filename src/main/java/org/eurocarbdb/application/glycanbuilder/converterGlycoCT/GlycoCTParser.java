@@ -194,7 +194,18 @@ public class GlycoCTParser implements GlycanParser {
 
 		// add antennae
 		if (structure.getBracket() != null) {
-			ArrayList<GlycoNode> parents = (ArrayList<GlycoNode>) sugar.getNodes().clone();
+			ArrayList<GlycoNode> parents = new ArrayList<GlycoNode>();
+			for (GlycoNode node : (ArrayList<GlycoNode>) sugar.getNodes().clone()) {
+				String[] items = ((UnvalidatedGlycoNode)node).getName().split("-");
+				// group1: core name
+				// group2: ring size
+				// group3: substituent with position
+				// group4: substituent (notation)
+				// Galp2NAc -> Gal, p, 2NAc, NAc
+				Matcher matCore = Pattern.compile("([A-Z][a-z]{2})([p|f|?])((\\dN[GA]c|A))?$").matcher(items[items.length - 1]);
+				if (!matCore.find()) continue;
+				parents.add(node);
+			}
 			for (Linkage link : structure.getBracket().getChildrenLinkages()) {
 				Residue antenna = link.getChildResidue();
 
@@ -651,6 +662,10 @@ public class GlycoCTParser implements GlycanParser {
 			for (int i = 0; i < p_poss.length; i++)
 				nm_link.addParentLinkage(toIntPosition(p_poss[i]));
 			nm_link.addChildLinkage(toIntPosition(b.getChildPosition()));
+
+			//Append linkage type added by e15d5605 20191223
+			nm_link.setParentLinkageType(link.getParentLinkageType());
+			nm_link.setChildLinkageType(link.getChildLinkageType());
 
 			nm_edge.addGlycosidicLinkage(nm_link);
 		}
