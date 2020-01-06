@@ -1,14 +1,13 @@
 package org.glycoinfo.application.glycanbuilder.converterWURCS2;
 
 import org.eurocarbdb.application.glycanbuilder.Glycan;
-import org.eurocarbdb.application.glycanbuilder.Residue;
 import org.eurocarbdb.application.glycanbuilder.converter.GlycanParser;
 import org.eurocarbdb.application.glycanbuilder.logutility.LogUtils;
 import org.eurocarbdb.application.glycanbuilder.massutil.MassOptions;
 import org.eurocarbdb.application.glycanbuilder.renderutil.BBoxManager;
 import org.glycoinfo.WURCSFramework.util.WURCSFactory;
-import org.glycoinfo.application.glycanbuilder.util.exchange.GlycanToWURCSGraph;
-import org.glycoinfo.application.glycanbuilder.util.exchange.WURCSSequence2ToGlycan;
+import org.glycoinfo.application.glycanbuilder.util.exchange.exporter.GlycanToWURCSGraph;
+import org.glycoinfo.application.glycanbuilder.util.exchange.importer.WURCSSequence2ToGlycan;
 
 public class WURCS2Parser implements GlycanParser{
 	
@@ -18,11 +17,11 @@ public class WURCS2Parser implements GlycanParser{
 		if (structure.isFragment()) return "";
 
 		try{
-			GlycanToWURCSGraph a_oGlycanToWURCSGraph = new GlycanToWURCSGraph();
-			a_oGlycanToWURCSGraph.start(structure);
-			WURCSFactory a_oWF = new WURCSFactory(a_oGlycanToWURCSGraph.getGraph());
+			GlycanToWURCSGraph glycan2graph = new GlycanToWURCSGraph();
+			glycan2graph.start(structure);
+			WURCSFactory wf = new WURCSFactory(glycan2graph.getGraph());
 			
-			return a_oWF.getWURCS();
+			return wf.getWURCS();
 		}catch (Exception e) {
 			LogUtils.report(e);
 			return "";
@@ -37,10 +36,10 @@ public class WURCS2Parser implements GlycanParser{
 		str = str.trim();		
 		if(str.contains("\t")) str = str.substring(str.indexOf("\t") + 1, str.length());
 		
-		WURCSFactory a_oWF = new WURCSFactory(str);
-		WURCSSequence2ToGlycan a_oWS22G = new WURCSSequence2ToGlycan();
-		a_oWS22G.start(a_oWF, mass_opt);
-		return a_oWS22G.getGlycan();
+		WURCSFactory wf = new WURCSFactory(str);
+		WURCSSequence2ToGlycan seq22glycan = new WURCSSequence2ToGlycan();
+		seq22glycan.start(wf, mass_opt);
+		return seq22glycan.getGlycan();
 	}
 
 	@Override

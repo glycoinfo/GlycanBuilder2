@@ -7,7 +7,7 @@ import org.eurocarbdb.application.glycanbuilder.massutil.MassOptions;
 import org.eurocarbdb.application.glycanbuilder.renderutil.BBoxManager;
 import org.glycoinfo.WURCSFramework.util.WURCSFactory;
 import org.glycoinfo.WURCSFramework.util.exchange.SugarToWURCSGraph;
-import org.glycoinfo.application.glycanbuilder.util.exchange.WURCSSequence2ToGlycan;
+import org.glycoinfo.application.glycanbuilder.util.exchange.importer.WURCSSequence2ToGlycan;
 
 public class WURCS2ParserViaCT implements GlycanParser{
 	

@@ -1,7 +1,7 @@
 package org.glycoinfo.application.glycanbuilder.converterWURCS1;
 
-import org.glycoinfo.WURCSFramework.util.exchange.ConverterExchangeException;
-import org.glycoinfo.WURCSFramework.util.exchange.SubstituentTemplate;
+import org.glycoinfo.WURCSFramework.util.oldUtil.ConverterExchangeException;
+import org.glycoinfo.WURCSFramework.util.oldUtil.SubstituentTemplate;
 import org.glycoinfo.WURCSFramework.util.residuecontainer.*;
 import org.glycoinfo.application.glycanbuilder.convertutil.WURCSconvertUtil_old;
 

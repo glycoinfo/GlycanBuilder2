@@ -27,7 +27,7 @@ public class GlycanUtils {
 	}
 	
 	public static boolean isCollisionLinkagePosition (Residue a_oResidue) {
-		if(a_oResidue.getChildrenLinkages().size() < 1) return false;
+		if(a_oResidue.getChildrenLinkages().size() != 1) return false;
 		boolean a_bIsCollision = false;
 		HashMap<String, Integer> a_mapCount = new HashMap<String, Integer>();
 		
@@ -81,12 +81,13 @@ public class GlycanUtils {
 	}
 	
 	/**local utility*/
-	private void getCoreResidue(Residue a_oResidue) {	
-		if(a_oResidue != null) this.a_aResidues.addLast(a_oResidue);
+	private void getCoreResidue(Residue _residue) {
+		if(_residue != null && !_residue.isReducingEnd()) this.a_aResidues.addLast(_residue);
 		
-		for(Linkage a_objLinkage : a_oResidue.getChildrenLinkages()) {
-			if(!a_objLinkage.getChildResidue().isSaccharide()) continue;
-			this.getCoreResidue(a_objLinkage.getChildResidue());
+		for(Linkage linkage : _residue.getChildrenLinkages()) {
+			if(!linkage.getChildResidue().isSaccharide()) continue;
+			//if(_residue.getParent() != null && _residue.getParent().isBracket()) continue;
+			this.getCoreResidue(linkage.getChildResidue());
 		}
 	}
 }
