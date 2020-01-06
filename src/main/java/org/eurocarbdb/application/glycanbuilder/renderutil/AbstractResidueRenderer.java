@@ -567,7 +567,7 @@ public abstract class AbstractResidueRenderer implements ResidueRenderer{
     	
     	Shape s1 = null;
     	
-    	/** R2L 180*/
+    	// R2L 180
     	if(a_oAngle.getIntAngle() == 0) {
     		a_dCtrlX = a_dXpoint + w;
     		a_dCtrlY = (y-h*.5 + y+h*1.5)*.5;
@@ -595,8 +595,23 @@ public abstract class AbstractResidueRenderer implements ResidueRenderer{
     
     	return s1;
     }
-    
-    protected Shape createShape(Residue node, Rectangle par_bbox, Rectangle cur_bbox, Rectangle sup_bbox, ResAngle orientation, ResidueStyle style) {
+
+	static private Polygon createFlatDiamond(double x, double y, double w, double h) {
+		if( (w%2)==1 )
+			w++;
+		if( (h%2)==1 )
+			h++;
+
+		Polygon p = new Polygon();
+		p.addPoint((int)(x+w/2), (int)(y));
+		p.addPoint((int)(x+w),   (int)(y+h/2));
+		p.addPoint((int)(x+w/2), (int)(y+h));
+		p.addPoint((int)(x),     (int)(y+h/2));
+		return p;
+	}
+
+
+	protected Shape createShape(Residue node, Rectangle par_bbox, Rectangle cur_bbox, Rectangle sup_bbox, ResAngle orientation, ResidueStyle style) {
     	String shape = style.getShape();
 
     	if( shape==null || shape.equals("none") || shape.equals("-") )
@@ -634,7 +649,9 @@ public abstract class AbstractResidueRenderer implements ResidueRenderer{
     		return createHeptagon(x,y,w,h);            
     	if( shape.equals("flatsquare"))
     		return new Rectangle2D.Double(x,y+h*.25,w,h*.5);
-    	
+    	if( shape.equals("flatdiamond"))
+    		return createFlatDiamond(x, y+h*.25, w, h*.5);
+
     	Point pp = ( par_bbox!=null ) ?center(par_bbox) :center(cur_bbox);
     	Point pc = center(cur_bbox);
     	Point ps = ( sup_bbox!=null ) ?center(sup_bbox) :center(cur_bbox);
@@ -882,54 +899,54 @@ public abstract class AbstractResidueRenderer implements ResidueRenderer{
     	return null;
     }
     
-    private String createProbability (Linkage a_oLinkage) {
-    	StringBuilder a_sProbability = new StringBuilder("");
-    	int a_iHigh = a_oLinkage.getBonds().get(0).getProbabilityHigh();
-    	int a_iLow = a_oLinkage.getBonds().get(0).getProbabilityLow();
+    private String createProbability (Linkage _linkage) {
+    	StringBuilder probability = new StringBuilder("");
+    	int high = _linkage.getBonds().get(0).getProbabilityHigh();
+    	int low = _linkage.getBonds().get(0).getProbabilityLow();
  
-    	if((a_iHigh != 100 && a_iLow != 100) && (a_iHigh == a_iLow)) {
-    		a_sProbability.append("(" + ((a_iHigh == -100) ? "?" : a_iHigh) + "%" + ")");
-    		return a_sProbability.toString();
+    	if((high != 100 && low != 100) && (high == low)) {
+    		probability.append("(" + ((high == -100) ? "?" : high) + "%" + ")");
+    		return probability.toString();
     	}
     	
-    	if(a_iLow != 100) {
-    		a_sProbability.append("(");
-    		a_sProbability.append((a_iLow == -100) ? "?" : a_iLow);
+    	if(low != 100) {
+    		probability.append("(");
+    		probability.append((low == -100) ? "?" : low);
     	}
-    	if(a_iHigh != 100 || a_iLow < 100) {
-    		if(a_sProbability.length() != 0) {
-    			a_sProbability.append(",");
-    			a_sProbability.append((a_iHigh == -100) ? "?" : a_iHigh);
+    	if(high != 100 || low < 100) {
+    		if(probability.length() != 0) {
+    			probability.append(",");
+    			probability.append((high == -100) ? "?" : high);
     		}else {
-    			a_sProbability.append("(");
-    			a_sProbability.append((a_iHigh == -100) ? "?" : a_iHigh);
+    			probability.append("(");
+    			probability.append((high == -100) ? "?" : high);
     		}
     	}
-    	if(a_sProbability.length() > 0) a_sProbability.append("%)");
+    	if(probability.length() > 0) probability.append("%)");
     	
-    	return a_sProbability.toString();
+    	return probability.toString();
     }
     
-    public ArrayList<String> checkComposiiton (Residue a_oRES) {
-    	ArrayList<String> a_aConfs = new ArrayList<String>();
+    public ArrayList<String> checkComposiiton (Residue residue) {
+    	ArrayList<String> confs = new ArrayList<String>();
     	
-    	if(!theGraphicOptions.NOTATION.equals(GraphicOptions.NOTATION_SNFG)) return a_aConfs;
-    	if(!a_oRES.isSaccharide()) return a_aConfs;
+    	if(!theGraphicOptions.NOTATION.equals(GraphicOptions.NOTATION_SNFG)) return confs;
+    	if(!residue.isSaccharide()) return confs;
  
-    	ResidueType a_oRT = a_oRES.getType();
+    	ResidueType residueType = residue.getType();
 
-    	if(a_oRT.getName().equals(a_oRES.getTypeName())) {
-    		if(a_oRES.getRingSize() != '?' && a_oRT.getRingSize() != '?') {
-    			if(a_oRT.getRingSize() != a_oRES.getRingSize()) a_aConfs.add(String.valueOf(a_oRES.getRingSize()));
+    	if(residueType.getName().equals(residue.getTypeName())) {
+    		if(residue.getRingSize() != '?' && residueType.getRingSize() != '?') {
+    			if(residueType.getRingSize() != residue.getRingSize()) confs.add(String.valueOf(residue.getRingSize()));
     		}
-    		if(a_oRES.getChirality() != '?' && a_oRT.getChirality() != '?') {
-    			if(a_oRT.getChirality() != a_oRES.getChirality()) a_aConfs.add(String.valueOf(a_oRES.getChirality()));
+    		if(residue.getChirality() != '?' && residueType.getChirality() != '?') {
+    			if(residueType.getChirality() != residue.getChirality()) confs.add(String.valueOf(residue.getChirality()));
     		}
-    		if(a_oRT.getRingSize() == '?') {
-    			if(a_oRES.isAlditol()) a_aConfs.add(String.valueOf(a_oRES.getRingSize()));
+    		if(residueType.getRingSize() == '?') {
+    			if(residue.isAlditol()) confs.add(String.valueOf(residue.getRingSize()));
     		}
     	}
     	
-    	return a_aConfs;
+    	return confs;
     }
 }

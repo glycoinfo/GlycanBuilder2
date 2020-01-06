@@ -54,7 +54,7 @@ public class BBoxManager {
 	public HashMap<Residue, Rectangle> complete_bboxes;
 	public HashMap<Residue, Rectangle> support_bboxes;
 
-	public HashMap<Residue, LinkedList<Residue>> linked_residues;
+	public HashMap<Residue, ArrayList<Residue>> linked_residues;
 
 	//
 
@@ -69,7 +69,7 @@ public class BBoxManager {
 		complete_bboxes = new HashMap<Residue, Rectangle>();
 		support_bboxes = new HashMap<Residue, Rectangle>();
 
-		linked_residues = new HashMap<Residue, LinkedList<Residue>>();
+		linked_residues = new HashMap<Residue, ArrayList<Residue>>();
 	}
 
 	/**
@@ -113,9 +113,9 @@ public class BBoxManager {
 	 * Return the set of residues that are shown at the same position. Used to
 	 * represent multiple residues with uncertain connectivity.
 	 */
-	public LinkedList<Residue> getLinkedResidues(Residue node) {
-		LinkedList<Residue> ret = linked_residues.get(node);
-		return ret == null ? new LinkedList<Residue>() : ret;
+	public ArrayList<Residue> getLinkedResidues(Residue node) {
+		ArrayList<Residue> ret = linked_residues.get(node);
+		return ret == null ? new ArrayList<Residue>() : ret;
 	}
 
 	/**
@@ -126,10 +126,10 @@ public class BBoxManager {
 	 */
 	public void linkSubtree(Residue dest, Residue root_other) {
 		if (dest != root_other) {
-			LinkedList<Residue> lst_red = new LinkedList<Residue>();
+			ArrayList<Residue> lst_red = new ArrayList();
 			if (linked_residues.get(dest) == null) {
 				//linked_residues.put(root_dest, new Union<Residue>(root_other));
-				lst_red.addLast(root_other);
+				lst_red.add(root_other);
 				linked_residues.put(dest, lst_red);
 			}else
 				linked_residues.get(dest).add(root_other);
@@ -146,8 +146,7 @@ public class BBoxManager {
 	 * 
 	 * @see #getLinkedResidues
 	 */
-	public void linkSubtrees(Residue root_dest, Residue root_other)
-			throws Exception {
+	public void linkSubtrees(Residue root_dest, Residue root_other) throws Exception {
 		if (root_dest == null)
 			return;
 
@@ -158,9 +157,9 @@ public class BBoxManager {
 	}
 
 	private void linkSubtreesPVT(Residue root_dest, Residue root_other) {
-		LinkedList<Residue> lst_red = new LinkedList<Residue>();
+		ArrayList<Residue> lst_red = new ArrayList();
 		if (linked_residues.get(root_dest) == null) {
-			lst_red.addLast(root_other);
+			lst_red.add(root_other);
 			linked_residues.put(root_dest, lst_red);
 			//linked_residues.put(root_dest, new Union<Residue>(root_other));
 		}else

@@ -52,7 +52,7 @@ import org.glycoinfo.application.glycanbuilder.util.GlycanUtils;
 
 public class ResidueRendererAWT extends AbstractResidueRenderer {
 
-	boolean a_bIsShowAnom = true;
+	boolean showAnom = true;
 	
 	public ResidueRendererAWT() {
 
@@ -67,20 +67,20 @@ public class ResidueRendererAWT extends AbstractResidueRenderer {
     	int orientation = theGraphicOptions.ORIENTATION;
     	theGraphicOptions.ORIENTATION = GraphicOptions.RL;
     
-    	// compute bounding box
+    	//compute bounding box
     	Residue node = new Residue(type);
     	Rectangle bbox = computeBoundingBox(node,false,4,4,new ResAngle(),max_y_size-8,max_y_size-8);
 
-    	// Create an image that supports transparent pixels
+    	//Create an image that supports transparent pixels
     	BufferedImage img = GraphicUtils.createCompatibleImage(bbox.width+8, bbox.height+8, false);
 
-    	// create a graphic context
+    	//create a graphic context
     	Graphics2D g2d = img.createGraphics();
     	g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);    
     	g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);    
     	g2d.setBackground(new Color(255,255,255,0));
 
-    	// paint the residue
+    	//paint the residue
     	paint(new DefaultPaintable(g2d),node,false,false,null,bbox,null,new ResAngle());
 
     	theGraphicOptions.ORIENTATION = orientation;
@@ -91,27 +91,27 @@ public class ResidueRendererAWT extends AbstractResidueRenderer {
     	int orientation = theGraphicOptions.ORIENTATION;
         theGraphicOptions.ORIENTATION = GraphicOptions.RL;
         
-        this.a_bIsShowAnom = a_bIsShowAnom;
+        this.showAnom = a_bIsShowAnom;
         
-        // compute bounding box
+        //compute bounding box
         Residue node = new Residue(type);
         Rectangle bbox = computeBoundingBox(node,false,4,4,new ResAngle(),max_y_size-8,max_y_size-8);
         
-        // Create an image that supports transparent pixels
+        //Create an image that supports transparent pixels
         BufferedImage img = GraphicUtils.createCompatibleImage(bbox.width+8, bbox.height+8, false);
 
-        // create a graphic context
+        //create a graphic context
         Graphics2D g2d = img.createGraphics();
         g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_ON);    
         g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);    
         g2d.setBackground(new Color(255,255,255,0));
 
-        // paint the residue
+        //paint the residue
         paint(new DefaultPaintable(g2d),node,false,false,null,bbox,null,new ResAngle());
 
         theGraphicOptions.ORIENTATION = orientation;        
    
-        this.a_bIsShowAnom = true;
+        this.showAnom = true;
         
         return img;
     }
@@ -128,10 +128,10 @@ public class ResidueRendererAWT extends AbstractResidueRenderer {
     	Graphics2D g2d=paintable.getGraphics2D();
     	ResidueStyle style = theResidueStyleDictionary.getStyle(node);
     	
-    	// check ring size for SNFG
-    	boolean a_bIsSNFG = (!this.checkComposiiton(node).isEmpty());
+    	//check ring size for SNFG
+    	boolean isSNFG = (!this.checkComposiiton(node).isEmpty());
     	
-    	// draw shape
+    	//draw shape
     	Point pp = ( par_bbox!=null ) ?center(par_bbox) :center(cur_bbox);
     	Point ps = ( sup_bbox!=null ) ?center(sup_bbox) :center(cur_bbox);    	
     	Shape shape = createShape(node,par_bbox,cur_bbox,sup_bbox,orientation,style);
@@ -151,8 +151,8 @@ public class ResidueRendererAWT extends AbstractResidueRenderer {
 
     	if( shape!=null && !on_border ) {      
     		if( fill_shape!=null ) {
-    			//Object old_hint = g2d.getRenderingHint(RenderingHints.KEY_ANTIALIASING);    
-    			//g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_OFF);
+    			Object old_hint = g2d.getRenderingHint(RenderingHints.KEY_ANTIALIASING);    
+    			g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_OFF);
 
     			Shape old_clip = g2d.getClip();
     			g2d.clip(shape);
@@ -163,8 +163,8 @@ public class ResidueRendererAWT extends AbstractResidueRenderer {
     			g2d.setColor((style.isFillNegative()) ?Color.white :fill_color);
     			g2d.fill(fill_shape);
 
-    			//if( old_hint!=null )
-    			//g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,old_hint);
+    			if( old_hint!=null )
+    			g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,old_hint);
 
     			g2d.setColor(shape_color);        
     			g2d.draw(fill_shape);
@@ -172,14 +172,14 @@ public class ResidueRendererAWT extends AbstractResidueRenderer {
     			g2d.setClip(old_clip);
     		}
 
-    		// draw contour
+    		//draw contour
     		g2d.setStroke( (selected) ?new BasicStroke(2) :new BasicStroke(1));
     		g2d.setColor(shape_color);
     		g2d.draw(shape);
     		g2d.setStroke(new BasicStroke(1));
     	}
     	else if( selected ) {
-    		// draw selected contour for empty shape
+    		//draw selected contour for empty shape
     		float[] dashes = {5.f,5.f};
     		g2d.setStroke(new BasicStroke(2.f,BasicStroke.CAP_BUTT,BasicStroke.JOIN_ROUND,1.f,dashes,0.f));
     		g2d.setColor(shape_color);        
@@ -187,21 +187,21 @@ public class ResidueRendererAWT extends AbstractResidueRenderer {
     		g2d.setStroke(new BasicStroke(1));
     	}
 
-    	// add text shape
+    	//add text shape
     	if( text_shape!=null ) {
     		g2d.setColor(shape_color);
     		g2d.fill(text_shape);
     	}
 
-    	// draw text    
-    	if( shape==null || on_border || style.getText()!=null || a_bIsSNFG) {
+    	//draw text
+    	if( shape==null || on_border || style.getText()!=null || isSNFG) {
     		if( shape==null || on_border )
     			orientation = theGraphicOptions.getOrientationAngle();
     		else if( style.getText()!=null )
     			orientation = new ResAngle(0);
 
     		String text = getText(node,on_border);
-    		if(a_bIsSNFG) {
+    		if(isSNFG) {
     			ArrayList<String> a_aConfs = this.checkComposiiton(node);
     			if(shape != null) {
     				if(a_aConfs.size() == 1) text = a_aConfs.get(0);
@@ -215,16 +215,16 @@ public class ResidueRendererAWT extends AbstractResidueRenderer {
     			}
     		}
     		
-    		// set font
+    		//set font
     		//int font_size = sat(9*cur_bbox.width/text.length()/10,theGraphicOptions.NODE_FONT_SIZE);
     		
-    		int font_size = (a_bIsSNFG && text.length() < 3) ? 10 : theGraphicOptions.NODE_FONT_SIZE;
+    		int font_size = (isSNFG && text.length() < 3) ? 10 : theGraphicOptions.NODE_FONT_SIZE;
     		int x_size    = textBounds(text,theGraphicOptions.NODE_FONT_FACE,font_size).width;
     		if( shape!=null ) 
     			font_size = sat(8 * font_size * cur_bbox.width / x_size / 10,font_size);
 
     		Font new_font = null;
-    		if(a_bIsSNFG && (node.isAlditol() && text.equals("o")) || (node.isAldehyde() && text.equals("a"))) {
+    		if(isSNFG && (node.isAlditol() && text.equals("o")) || (node.isAldehyde() && text.equals("a"))) {
     			new_font = new Font(theGraphicOptions.NODE_FONT_FACE, Font.ITALIC, font_size);
     		}else
 	    		new_font = new Font(theGraphicOptions.NODE_FONT_FACE,Font.PLAIN,font_size);
@@ -232,11 +232,11 @@ public class ResidueRendererAWT extends AbstractResidueRenderer {
     		Font old_font = g2d.getFont();
     		g2d.setFont(new_font);
 
-    		// compute bounding rect
+    		//compute bounding rect
     		Rectangle2D.Double text_bound = new Rectangle2D.Double();
     		text_bound.setRect(new TextLayout(text,new_font,g2d.getFontRenderContext()).getBounds());
 
-    		// draw text
+    		//draw text
     		g2d.setColor(text_color);    
     		if( orientation.equals(0) || orientation.equals(180) ) {
     			Rectangle2D.Double text_rect = new Rectangle2D.Double(midx(cur_bbox)-text_bound.width/2,midy(cur_bbox)-text_bound.height/2,text_bound.width,text_bound.height);
@@ -245,7 +245,7 @@ public class ResidueRendererAWT extends AbstractResidueRenderer {
     			g2d.drawString(text,(int)text_rect.x,(int)(text_rect.y+text_rect.height));
     		}
     		if(orientation.equals(-90) || orientation.equals(90)) {
-    			if(a_bIsSNFG) {
+    			if(isSNFG) {
     				Rectangle2D.Double text_rect = new Rectangle2D.Double(midx(cur_bbox)-text_bound.width/2,midy(cur_bbox)-text_bound.height/2,text_bound.width,text_bound.height);
         			if( shape==null || fill_shape==null ) 
         				g2d.clearRect((int)text_rect.x,(int)text_rect.y,(int)text_rect.width,(int)text_rect.height);
@@ -270,39 +270,39 @@ public class ResidueRendererAWT extends AbstractResidueRenderer {
     		a_bIsShow = (node.getTreeRoot().firstChild().equals(node) && !node.isAlditol() && !node.getTreeRoot().isBracket());
     	}
     	
-    	/** draw anomeric state */
+    	// draw anomeric state
     	if(shape != null && a_bIsShow == true) 
     		showAnomericState(g2d, node, orientation, cur_bbox);
     	
-    	//g2d.setColor(Color.black);
+    	g2d.setColor(Color.black);
     	//g2d.drawString(""+node.id,left(cur_bbox),bottom(cur_bbox));
     }
     
     private Graphics2D showAnomericState(Graphics2D g2d, Residue node, ResAngle orientation, Rectangle cur_bbox) {
-    	String a_sAnom = TextUtils.toGreek(node.getAnomericState());
-		Font old_font = g2d.getFont();
-		Font new_font = new Font(theGraphicOptions.LINKAGE_INFO_FONT_FACE,Font.PLAIN,theGraphicOptions.LINKAGE_INFO_SIZE);
+    	String anomString = TextUtils.toGreek(node.getAnomericState());
+		Font oldFont = g2d.getFont();
+		Font newFont = new Font(theGraphicOptions.LINKAGE_INFO_FONT_FACE,Font.PLAIN,theGraphicOptions.LINKAGE_INFO_SIZE);
 		Rectangle2D.Double text_bound = new Rectangle2D.Double();
 
-		g2d.setFont(new_font);
-		text_bound.setRect(new TextLayout(TextUtils.toGreek(node.getAnomericState()),new_font,g2d.getFontRenderContext()).getBounds());
+		g2d.setFont(newFont);
+		text_bound.setRect(new TextLayout(TextUtils.toGreek(node.getAnomericState()),newFont,g2d.getFontRenderContext()).getBounds());
 
-		Rectangle2D.Double text_rect = null;
-		int a_iXmargine = 0;
+		Rectangle2D.Double txtRect = null;
+		int margine = 0;
 		if(orientation.equals(0) || orientation.equals(180)) {
-			a_iXmargine = (orientation.equals(0)) ? -15 : 15;
-			text_rect = new Rectangle2D.Double(midx(cur_bbox)-text_bound.width/2,midy(cur_bbox)-text_bound.height/2,text_bound.width,text_bound.height);
-			g2d.drawString(a_sAnom, (int)text_rect.x + a_iXmargine, (int)(text_rect.y + text_rect.height));
+			margine = (orientation.equals(0)) ? -15 : 15;
+			txtRect = new Rectangle2D.Double(midx(cur_bbox)-text_bound.width/2,midy(cur_bbox)-text_bound.height/2,text_bound.width,text_bound.height);
+			g2d.drawString(anomString, (int)txtRect.x + margine, (int)(txtRect.y + txtRect.height));
 		} else {
-			a_iXmargine = (orientation.equals(90)) ? -15 : 15;
-			text_rect = new Rectangle2D.Double(midx(cur_bbox)-text_bound.height/2,midy(cur_bbox)-text_bound.width/2,text_bound.height,text_bound.width);
+			margine = (orientation.equals(90)) ? -15 : 15;
+			txtRect = new Rectangle2D.Double(midx(cur_bbox)-text_bound.height/2,midy(cur_bbox)-text_bound.width/2,text_bound.height,text_bound.width);
 
 			g2d.rotate(-Math.PI/2.0); 
-			g2d.drawString(a_sAnom,-(int)(text_rect.y+text_rect.height + a_iXmargine),(int)(text_rect.x+text_rect.width));
+			g2d.drawString(anomString,-(int)(txtRect.y+txtRect.height + margine),(int)(txtRect.x+txtRect.width));
 			g2d.rotate(+Math.PI/2.0); 
 		}
 		
-		g2d.setFont(old_font);
+		g2d.setFont(oldFont);
 		
 		return g2d;
     }

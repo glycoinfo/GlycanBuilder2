@@ -43,7 +43,7 @@ public class ResiduePropertiesDialog extends EscapeDialog implements java.awt.ev
     
     private Linkage parent_link;
     private Residue current;
-    private LinkedList<Residue> linked;
+    private ArrayList<Residue> linked;
     private GlycanDocument theDoc;
 
     /** 
@@ -86,7 +86,7 @@ public class ResiduePropertiesDialog extends EscapeDialog implements java.awt.ev
     document will be notified of a change in the residue
     properties
     */
-    public ResiduePropertiesDialog(java.awt.Frame parent, Residue _current, LinkedList<Residue> _linked, GlycanDocument _theDoc) {
+    public ResiduePropertiesDialog(java.awt.Frame parent, Residue _current, ArrayList<Residue> _linked, GlycanDocument _theDoc) {
     	this(parent,_current,_theDoc);
     	linked = _linked;
     }

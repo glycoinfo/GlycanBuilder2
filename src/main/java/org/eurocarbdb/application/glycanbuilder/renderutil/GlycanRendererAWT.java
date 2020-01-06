@@ -146,7 +146,7 @@ public class GlycanRendererAWT extends AbstractGlycanRenderer {
 		g2d.setColor(Color.black);
 		g2d.setFont(new Font(theGraphicOptions.MASS_TEXT_FONT_FACE, Font.PLAIN, 10));
 		
-		/** create legend of unsupported monosaccharides */
+		// create legend of unsupported monosaccharides
 		TreeMap<Integer, String> a_mIndex = new TreeMap<Integer, String>();
 		int a_iID = 1;
 		StringBuilder a_sbLegend = new StringBuilder();

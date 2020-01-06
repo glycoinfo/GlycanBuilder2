@@ -1,23 +1,16 @@
 package org.eurocarbdb.application.glycanbuilder.scripts;
 
-import java.awt.Image;
-import java.awt.image.RenderedImage;
 import java.io.File;
 import java.io.IOException;
 
 import javax.imageio.ImageIO;
 
 import org.eurocarbdb.application.glycanbuilder.BuilderWorkspace;
-import org.eurocarbdb.application.glycanbuilder.ICON_SIZE;
 import org.eurocarbdb.application.glycanbuilder.ResidueType;
 import org.eurocarbdb.application.glycanbuilder.dataset.ResidueDictionary;
 import org.eurocarbdb.application.glycanbuilder.renderutil.GlycanRendererAWT;
-import org.eurocarbdb.application.glycanbuilder.renderutil.ResidueRenderer;
 import org.eurocarbdb.application.glycanbuilder.renderutil.ResidueRendererAWT;
 import org.eurocarbdb.application.glycanbuilder.util.GraphicOptions;
-
-import sun.awt.image.ImageRepresentation;
-import sun.awt.image.ToolkitImage;
 
 public class createResiduesImages {
 	public static void main(String args[]){

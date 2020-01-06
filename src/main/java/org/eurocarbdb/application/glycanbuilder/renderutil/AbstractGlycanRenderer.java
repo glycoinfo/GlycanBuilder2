@@ -43,7 +43,7 @@ import org.eurocarbdb.application.glycanbuilder.util.GraphicOptions;
 
 public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 
-	private static final Log logger = LogFactory.getLog(AbstractGlycanRenderer.class);
+	//private static final Log logger = LogFactory.getLog(AbstractGlycanRenderer.class);
 	protected ResidueRenderer theResidueRenderer;
 	protected LinkageRenderer theLinkageRenderer;
 
@@ -246,10 +246,8 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 
 		//this.assignID(structure);
 		
-		selected_residues = (selected_residues != null) ? selected_residues
-				: new HashSet<Residue>();
-		selected_linkages = (selected_linkages != null) ? selected_linkages
-				: new HashSet<Linkage>();
+		selected_residues = (selected_residues != null) ? selected_residues : new HashSet<Residue>();
+		selected_linkages = (selected_linkages != null) ? selected_linkages : new HashSet<Linkage>();
 
 		if (structure.isComposition())
 			paintBracket(paintable, structure, selected_residues,
@@ -294,7 +292,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 	abstract protected void paintComposition(Paintable paintable, Residue root,Residue bracket, HashSet<Residue> selected_residues,
 			PositionManager posManager, BBoxManager bboxManager);
 
-	abstract protected void paintQuantity(Paintable paintable, Residue antenna, int quantity,BBoxManager bboxManager);
+	abstract protected void paintQuantity(Paintable paintable, Residue antennae, int quantity,BBoxManager bboxManager);
 
 	protected void paintResidue(Paintable paintable, Residue node,
 			HashSet<Residue> selected_residues,
@@ -330,8 +328,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 
 		// paint node
 		boolean selected = selected_residues.contains(node);
-		boolean active = (active_residues == null || active_residues
-				.contains(node));
+		boolean active = (active_residues == null || active_residues.contains(node));
 		theResidueRenderer.paint(paintable, node, selected, active,
 				posManager.isOnBorder(node), parent_bbox, node_bbox,
 				support_bbox, posManager.getOrientation(node));
@@ -349,8 +346,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 			Rectangle child_border_bbox = bboxManager.getBorder(child);
 
 			if (child_bbox != null && !posManager.isOnBorder(child))
-				theLinkageRenderer.paintInfo(paintable, link, node_bbox, border_bbox,
-						child_bbox, child_border_bbox);
+				theLinkageRenderer.paintInfo(paintable, link, node_bbox, border_bbox, child_bbox, child_border_bbox);
 		}
 	}
 
@@ -402,8 +398,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		int cur_left=theGraphicOptions.MARGIN_LEFT;
 		for (Iterator<Glycan> i = structures.iterator(); i.hasNext();) {
 			// compute glycan bbox
-			Rectangle glycan_bbox = computeBoundingBoxes(i.next(),
-					cur_left, cur_top, show_masses,
+			Rectangle glycan_bbox = computeBoundingBoxes(i.next(), cur_left, cur_top, show_masses,
 					show_redend, posManager, bboxManager);
 
 			all_bbox = Geometry.union(all_bbox, glycan_bbox);
@@ -460,20 +455,16 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 
 					// compute bounding boxes
 					computeBoundingBoxes(root, posManager, bboxManager);
-					computeBoundingBoxesBracket(bracket, root,
-							theGraphicOptions.COLLAPSE_MULTIPLE_ANTENNAE,
+					computeBoundingBoxesBracket(bracket, root, theGraphicOptions.COLLAPSE_MULTIPLE_ANTENNAE,
 							posManager, bboxManager);
 
 					// add bracket bbox
-					Rectangle bbox = union(bboxManager.getComplete(root),
-							bboxManager.getComplete(bracket));
+					Rectangle bbox = union(bboxManager.getComplete(root), bboxManager.getComplete(bracket));
 					bboxManager.setComplete(root, bbox);
 
 					// translate if necessary
-					bboxManager
-					.translate(cur_left - bbox.x, cur_top - bbox.y, root);
-					bboxManager.translate(cur_left - bbox.x, cur_top - bbox.y,
-							bracket);
+					bboxManager.translate(cur_left - bbox.x, cur_top - bbox.y, root);
+					bboxManager.translate(cur_left - bbox.x, cur_top - bbox.y, bracket);
 					bbox.translate(cur_left - bbox.x, cur_top - bbox.y);
 
 					// add masses
@@ -495,7 +486,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 			LogUtils.report(e);
 		}
 
-		logger.debug("    return new Rectangle(" + cur_left + "," + cur_top + ", 0, 0);");
+		//logger.debug("    return new Rectangle(" + cur_left + "," + cur_top + ", 0, 0);");
 		// instead it defaults to a tiny rectangle.
 
 		return new Rectangle(cur_left, cur_top, 0, 0);
@@ -543,26 +534,23 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 			return;
 
 		// init positions
-		BookingManager bookManager = new BookingManager(
-				posManager.getAvailablePositions(current, orientation));
+		BookingManager bookManager = new BookingManager(posManager.getAvailablePositions(current, orientation));
 
 		// add children to the booking manager
 		for (Iterator<Linkage> i = current.iterator(); i.hasNext();) {
 			Linkage link = i.next();
 			Residue child = link.getChildResidue();
-			Residue matching_child = (child.getCleavedResidue() != null) ? child
-					.getCleavedResidue() : child;
+			Residue matching_child = (child.getCleavedResidue() != null) ? child.getCleavedResidue() : child;
 
-					// get placement
-					ResiduePlacement placement = matching_child.getPreferredPlacement();
-					if (placement == null
-							|| (!current.isSaccharide() && !current.isBracket())
-							|| !bookManager.isAvailable(placement))
-						placement = theResiduePlacementDictionary.getPlacement(current,
-								link, matching_child, sticky);
+			// get placement
+			ResiduePlacement placement = matching_child.getPreferredPlacement();
+			if (placement == null
+					|| (!current.isSaccharide() && !current.isBracket())
+					|| !bookManager.isAvailable(placement))
+				placement = theResiduePlacementDictionary.getPlacement(current, link, matching_child, sticky);
 
-					// set placement
-					bookManager.add(child, placement);
+			// set placement
+			bookManager.add(child, placement);
 		}
 
 		// place children
@@ -574,14 +562,11 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 
 			ResiduePlacement child_placement = bookManager.getPlacement(child);
 			ResAngle child_pos = bookManager.getPosition(child);
-			posManager.add(child, orientation, child_pos,
-					child_placement.isOnBorder(), child_placement.isSticky());
+			posManager.add(child, orientation, child_pos, child_placement.isOnBorder(), child_placement.isSticky());
 
 			ResAngle child_orientation = posManager.getOrientation(child);
-			Residue child_turning_point = (child_orientation
-					.equals(orientation)) ? turning_point : child;
-			assignPosition(child, child_placement.isSticky(),
-					child_orientation, child_turning_point, posManager);
+			Residue child_turning_point = (child_orientation.equals(orientation)) ? turning_point : child;
+			assignPosition(child, child_placement.isSticky(), child_orientation, child_turning_point, posManager);
 		}
 	}
 
@@ -593,9 +578,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 	 */
 	@Override
 	public String makeCompositionText(Glycan g, boolean styled) {
-		return makeCompositionText(g,
-				theGraphicOptions.getOrientationAngle(theGraphicOptions.RL),
-				styled);
+		return makeCompositionText(g, theGraphicOptions.getOrientationAngle(theGraphicOptions.RL), styled);
 	}
 
 	/**
@@ -604,8 +587,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 	static public String makeCompositionTextPlain(Glycan g) {
 		if (!g.isComposition())
 			g = g.getComposition();
-		return makeCompositionText(g.getRoot(), g.getBracket(),
-				new ResAngle(0), false);
+		return makeCompositionText(g.getRoot(), g.getBracket(), new ResAngle(0), false);
 	}
 
 	/**
@@ -617,12 +599,10 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 	 *            <code>true</code> if the returned text is displayed in a
 	 *            {@link StyledTextCellRenderer}
 	 */
-	static public String makeCompositionText(Glycan g, ResAngle orientation,
-			boolean styled) {
+	static public String makeCompositionText(Glycan g, ResAngle orientation, boolean styled) {
 		if (!g.isComposition())
 			g = g.getComposition();
-		return makeCompositionText(g.getRoot(), g.getBracket(), orientation,
-				styled);
+		return makeCompositionText(g.getRoot(), g.getBracket(), orientation, styled);
 	}
 
 	protected static String makeCompositionText(Residue root, Residue bracket,
@@ -703,19 +683,16 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		ResAngle orientation = posManager.getOrientation(root);
 
 		String text = makeCompositionText(root, bracket, orientation, true);
-		Font font = new Font(theGraphicOptions.COMPOSITION_FONT_FACE,
-				Font.PLAIN, theGraphicOptions.COMPOSITION_FONT_SIZE);
+		Font font = new Font(theGraphicOptions.COMPOSITION_FONT_FACE, Font.PLAIN, theGraphicOptions.COMPOSITION_FONT_SIZE);
 
 		StyledTextCellRenderer stcr = new StyledTextCellRenderer(false);
 		stcr.getRendererComponent(font, Color.black, Color.white, text);
 
 		Dimension d = stcr.getPreferredSize();
 		if (orientation.equals(0) || orientation.equals(180))
-			bboxManager.setAllBBoxes(bracket, new Rectangle(0, 0, d.width,
-					d.height));
+			bboxManager.setAllBBoxes(bracket, new Rectangle(0, 0, d.width, d.height));
 		else
-			bboxManager.setAllBBoxes(bracket, new Rectangle(0, 0, d.height,
-					d.width));
+			bboxManager.setAllBBoxes(bracket, new Rectangle(0, 0, d.height, d.width));
 
 		bboxManager.linkSubtree(bracket, root);
 		bboxManager.linkSubtree(bracket, bracket);
@@ -754,25 +731,19 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		// -----------------
 		// place substituents
 
-		LinkedList<Residue> region_m90b = posManager.getChildrenAtPosition(node,
-				new ResAngle(-90), true);
+		LinkedList<Residue> region_m90b = posManager.getChildrenAtPosition(node, new ResAngle(-90), true);
 		for (int i = 0; i < region_m90b.size(); i++) {
-			computeBoundingBoxes(region_m90b.get(i), posManager,
-					bboxManager);
+			computeBoundingBoxes(region_m90b.get(i), posManager, bboxManager);
 			if (i > 0)
-				bboxManager.alignBottomsOnRight(region_m90b.subList(0, i),
-						region_m90b.subList(i, i + 1),
+				bboxManager.alignBottomsOnRight(region_m90b.subList(0, i), region_m90b.subList(i, i + 1),
 						theGraphicOptions.NODE_SUB_SPACE);
 		}
 
-		LinkedList<Residue> region_p90b = posManager.getChildrenAtPosition(node,
-				new ResAngle(90), true);
+		LinkedList<Residue> region_p90b = posManager.getChildrenAtPosition(node, new ResAngle(90), true);
 		for (int i = 0; i < region_p90b.size(); i++) {
-			computeBoundingBoxes(region_p90b.get(i), posManager,
-					bboxManager);
+			computeBoundingBoxes(region_p90b.get(i), posManager, bboxManager);
 			if (i > 0)
-				bboxManager.alignTopsOnLeft(region_p90b.subList(0, i),
-						region_p90b.subList(i, i + 1),
+				bboxManager.alignTopsOnLeft(region_p90b.subList(0, i), region_p90b.subList(i, i + 1),
 						theGraphicOptions.NODE_SUB_SPACE);
 		}
 
@@ -780,92 +751,70 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		// place positions
 
 		// position -90 (top)
-		LinkedList<Residue> region_m90 = posManager.getChildrenAtPosition(node,
-				new ResAngle(-90), false);
+		LinkedList<Residue> region_m90 = posManager.getChildrenAtPosition(node, new ResAngle(-90), false);
 		for (int i = 0; i < region_m90.size(); i++) {
-			computeBoundingBoxes(region_m90.get(i), posManager,
-					bboxManager);
+			computeBoundingBoxes(region_m90.get(i), posManager, bboxManager);
 			if (i > 0)
-				bboxManager.alignBottomsOnRight(region_m90.subList(0, i),
-						region_m90.subList(i, i + 1),
+				bboxManager.alignBottomsOnRight(region_m90.subList(0, i), region_m90.subList(i, i + 1),
 						theGraphicOptions.NODE_SPACE);
 		}
 
 		// position +90 (bottom)
-		LinkedList<Residue> region_p90 = posManager.getChildrenAtPosition(node,
-				new ResAngle(90), false);
+		LinkedList<Residue> region_p90 = posManager.getChildrenAtPosition(node, new ResAngle(90), false);
 		for (int i = 0; i < region_p90.size(); i++) {
-			computeBoundingBoxes(region_p90.get(i), posManager,
-					bboxManager);
+			computeBoundingBoxes(region_p90.get(i), posManager, bboxManager);
 			if (i > 0)
-				bboxManager.alignTopsOnLeft(region_p90.subList(0, i),
-						region_p90.subList(i, i + 1),
+				bboxManager.alignTopsOnLeft(region_p90.subList(0, i), region_p90.subList(i, i + 1),
 						theGraphicOptions.NODE_SPACE);
 		}
 
 		// position 0 (right)
-		LinkedList<Residue> region_0 = posManager.getChildrenAtPosition(node,
-				new ResAngle(0));
+		LinkedList<Residue> region_0 = posManager.getChildrenAtPosition(node, new ResAngle(0));
 		for (int i = 0; i < region_0.size(); i++) {
 			computeBoundingBoxes(region_0.get(i), posManager, bboxManager);
 			if (i > 0)
-				bboxManager.alignLeftsOnBottom(region_0.subList(0, i),
-						region_0.subList(i, i + 1),
+				bboxManager.alignLeftsOnBottom(region_0.subList(0, i), region_0.subList(i, i + 1),
 						theGraphicOptions.NODE_SPACE);
 		}
 
 		// position -45 (top right)
-		LinkedList<Residue> region_m45 = posManager.getChildrenAtPosition(node,
-				new ResAngle(-45));
+		LinkedList<Residue> region_m45 = posManager.getChildrenAtPosition(node, new ResAngle(-45));
 		for (int i = 0; i < region_m45.size(); i++) {
-			computeBoundingBoxes(region_m45.get(i), posManager,
-					bboxManager);
+			computeBoundingBoxes(region_m45.get(i), posManager, bboxManager);
 			if (i > 0)
-				bboxManager.alignLeftsOnBottom(region_m45.subList(0, i),
-						region_m45.subList(i, i + 1),
+				bboxManager.alignLeftsOnBottom(region_m45.subList(0, i), region_m45.subList(i, i + 1),
 						theGraphicOptions.NODE_SPACE);
 		}
 
 		// position 45 (bottom right)
-		LinkedList<Residue> region_p45 = posManager.getChildrenAtPosition(node,
-				new ResAngle(45));
+		LinkedList<Residue> region_p45 = posManager.getChildrenAtPosition(node, new ResAngle(45));
 		for (int i = 0; i < region_p45.size(); i++) {
-			computeBoundingBoxes(region_p45.get(i), posManager,
-					bboxManager);
+			computeBoundingBoxes(region_p45.get(i), posManager, bboxManager);
 			if (i > 0)
-				bboxManager.alignLeftsOnBottom(region_p45.subList(0, i),
-						region_p45.subList(i, i + 1),
+				bboxManager.alignLeftsOnBottom(region_p45.subList(0, i), region_p45.subList(i, i + 1),
 						theGraphicOptions.NODE_SPACE);
 		}
 
 		// ----------------
 		// align substituents with node
-		bboxManager.alignCentersOnTop(node_bbox, region_m90b,
-				theGraphicOptions.NODE_SUB_SPACE);
-		bboxManager.alignCentersOnBottom(node_bbox, region_p90b,
-				theGraphicOptions.NODE_SUB_SPACE);
+		bboxManager.alignCentersOnTop(node_bbox, region_m90b, theGraphicOptions.NODE_SUB_SPACE);
+		bboxManager.alignCentersOnBottom(node_bbox, region_p90b, theGraphicOptions.NODE_SUB_SPACE);
 
-		Union<Residue> border_nodes = new Union<Residue>(region_m90b)
-				.and(region_p90b);
+		Union<Residue> border_nodes = new Union<Residue>(region_m90b).and(region_p90b);
 		Rectangle border_bbox = bboxManager.getComplete(border_nodes.and(node));
 
 		// align position 0,45,-45 with node to not clash with 90b,-90b
 		if (region_0.size() > 0) {
-			bboxManager.alignLeftsOnTop(region_0, region_m45,
+			bboxManager.alignLeftsOnTop(region_0, region_m45, theGraphicOptions.NODE_SPACE);
+			bboxManager.alignLeftsOnBottom(region_0, new Union<Residue>(region_0).and(region_m45), region_p45, region_p45,
 					theGraphicOptions.NODE_SPACE);
-			bboxManager.alignLeftsOnBottom(region_0, new Union<Residue>(
-					region_0).and(region_m45), region_p45, region_p45,
-					theGraphicOptions.NODE_SPACE);
-			bboxManager.alignCentersOnRight(node_bbox, border_nodes, region_0,
-					new Union<Residue>(region_0).and(region_m45)
+			bboxManager.alignCentersOnRight(node_bbox, border_nodes, region_0, new Union<Residue>(region_0).and(region_m45)
 					.and(region_p45), theGraphicOptions.NODE_SPACE);
 		} else if (region_m45.size() == 0)
-			bboxManager.alignCornersOnRightAtBottom(node_bbox, border_nodes,
-					region_p45, theGraphicOptions.NODE_SPACE,
+			bboxManager.alignCornersOnRightAtBottom(node_bbox, border_nodes, region_p45, theGraphicOptions.NODE_SPACE,
 					theGraphicOptions.NODE_SPACE);
 		else if (region_p45.size() == 0)
-			bboxManager.alignCornersOnRightAtTop(node_bbox, border_nodes,
-					region_m45, theGraphicOptions.NODE_SPACE,
+			bboxManager.alignCornersOnRightAtTop(node_bbox, border_nodes, region_m45, theGraphicOptions.NODE_SPACE,
 					theGraphicOptions.NODE_SPACE);
 		else
 			bboxManager.alignSymmetricOnRight(node_bbox, border_nodes,
@@ -874,17 +823,13 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 					+ theGraphicOptions.NODE_SIZE);
 
 		// align positions -90 and 90 with node to not clash with the rest
-		Union<Residue> ex_nodes = new Union<Residue>(region_0).and(region_m45)
-				.and(region_p45).and(border_nodes);
-		bboxManager.alignCentersOnTop(node_bbox, ex_nodes, region_m90,
-				region_m90, theGraphicOptions.NODE_SPACE);
-		bboxManager.alignCentersOnBottom(node_bbox, ex_nodes, region_p90,
-				region_p90, theGraphicOptions.NODE_SPACE);
+		Union<Residue> ex_nodes = new Union<Residue>(region_0).and(region_m45).and(region_p45).and(border_nodes);
+		bboxManager.alignCentersOnTop(node_bbox, ex_nodes, region_m90, region_m90, theGraphicOptions.NODE_SPACE);
+		bboxManager.alignCentersOnBottom(node_bbox, ex_nodes, region_p90, region_p90, theGraphicOptions.NODE_SPACE);
 
 		// ----------------
 		// set rectangles
-		Union<Residue> all_nodes = ex_nodes.and(region_m90).and(region_p90)
-				.and(node);
+		Union<Residue> all_nodes = ex_nodes.and(region_m90).and(region_p90).and(node);
 
 		bboxManager.setCurrent(node, node_bbox);
 		bboxManager.setBorder(node, border_bbox);
@@ -898,40 +843,32 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 	}
 
 	private void computeBoundingBoxesRL(Residue node,
-			PositionManager posManager, BBoxManager bboxManager)
-					throws Exception {
+			PositionManager posManager, BBoxManager bboxManager) throws Exception {
 		if (node == null) return;
 
 		Rectangle node_bbox = theResidueRenderer.computeBoundingBox(node,
 				posManager.isOnBorder(node), 0, 0,
-				posManager.getOrientation(node), theGraphicOptions.NODE_SIZE,
-				Integer.MAX_VALUE);
+				posManager.getOrientation(node), theGraphicOptions.NODE_SIZE, Integer.MAX_VALUE);
 		bboxManager.setAllBBoxes(node, node_bbox);
 
 		// -----------------
 		// place substituents
 
 		// -90 border (bottom)
-		LinkedList<Residue> region_m90b = posManager.getChildrenAtPosition(node,
-				new ResAngle(-90), true);
+		LinkedList<Residue> region_m90b = posManager.getChildrenAtPosition(node, new ResAngle(-90), true);
 		for (int i = 0; i < region_m90b.size(); i++) {
-			computeBoundingBoxes(region_m90b.get(i), posManager,
-					bboxManager);
+			computeBoundingBoxes(region_m90b.get(i), posManager, bboxManager);
 			if (i > 0)
-				bboxManager.alignTopsOnLeft(region_m90b.subList(0, i),
-						region_m90b.subList(i, i + 1),
+				bboxManager.alignTopsOnLeft(region_m90b.subList(0, i), region_m90b.subList(i, i + 1),
 						theGraphicOptions.NODE_SUB_SPACE);
 		}
 
 		// +90 border (top)
-		LinkedList<Residue> region_p90b = posManager.getChildrenAtPosition(node,
-				new ResAngle(90), true);
+		LinkedList<Residue> region_p90b = posManager.getChildrenAtPosition(node, new ResAngle(90), true);
 		for (int i = 0; i < region_p90b.size(); i++) {
-			computeBoundingBoxes(region_p90b.get(i), posManager,
-					bboxManager);
+			computeBoundingBoxes(region_p90b.get(i), posManager, bboxManager);
 			if (i > 0)
-				bboxManager.alignBottomsOnRight(region_p90b.subList(0, i),
-						region_p90b.subList(i, i + 1),
+				bboxManager.alignBottomsOnRight(region_p90b.subList(0, i), region_p90b.subList(i, i + 1),
 						theGraphicOptions.NODE_SUB_SPACE);
 		}
 
@@ -939,73 +876,56 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		// place positions
 
 		// position -90 (bottom)
-		LinkedList<Residue> region_m90 = posManager.getChildrenAtPosition(node,
-				new ResAngle(-90), false);
+		LinkedList<Residue> region_m90 = posManager.getChildrenAtPosition(node, new ResAngle(-90), false);
 		for (int i = 0; i < region_m90.size(); i++) {
-			computeBoundingBoxes(region_m90.get(i), posManager,
-					bboxManager);
+			computeBoundingBoxes(region_m90.get(i), posManager, bboxManager);
 			if (i > 0)
-				bboxManager.alignTopsOnLeft(region_m90.subList(0, i),
-						region_m90.subList(i, i + 1),
+				bboxManager.alignTopsOnLeft(region_m90.subList(0, i), region_m90.subList(i, i + 1),
 						theGraphicOptions.NODE_SPACE);
 		}
 
 		// position +90 (top)
-		LinkedList<Residue> region_p90 = posManager.getChildrenAtPosition(node,
-				new ResAngle(90), false);
+		LinkedList<Residue> region_p90 = posManager.getChildrenAtPosition(node, new ResAngle(90), false);
 		for (int i = 0; i < region_p90.size(); i++) {
-			computeBoundingBoxes(region_p90.get(i), posManager,
-					bboxManager);
+			computeBoundingBoxes(region_p90.get(i), posManager, bboxManager);
 			if (i > 0)
-				bboxManager.alignBottomsOnRight(region_p90.subList(0, i),
-						region_p90.subList(i, i + 1),
+				bboxManager.alignBottomsOnRight(region_p90.subList(0, i), region_p90.subList(i, i + 1),
 						theGraphicOptions.NODE_SPACE);
 		}
 
 		// position 0 (left)
-		LinkedList<Residue> region_0 = posManager.getChildrenAtPosition(node,
-				new ResAngle(0), false);
+		LinkedList<Residue> region_0 = posManager.getChildrenAtPosition(node, new ResAngle(0), false);
 		for (int i = 0; i < region_0.size(); i++) {
 			computeBoundingBoxes(region_0.get(i), posManager, bboxManager);
 			if (i > 0)
-				bboxManager.alignRightsOnTop(region_0.subList(0, i),
-						region_0.subList(i, i + 1),
+				bboxManager.alignRightsOnTop(region_0.subList(0, i), region_0.subList(i, i + 1),
 						theGraphicOptions.NODE_SPACE);
 		}
 
 		// position -45 (bottom left)
-		LinkedList<Residue> region_m45 = posManager.getChildrenAtPosition(node,
-				new ResAngle(-45), false);
+		LinkedList<Residue> region_m45 = posManager.getChildrenAtPosition(node, new ResAngle(-45), false);
 		for (int i = 0; i < region_m45.size(); i++) {
-			computeBoundingBoxes(region_m45.get(i), posManager,
-					bboxManager);
+			computeBoundingBoxes(region_m45.get(i), posManager, bboxManager);
 			if (i > 0)
-				bboxManager.alignRightsOnTop(region_m45.subList(0, i),
-						region_m45.subList(i, i + 1),
+				bboxManager.alignRightsOnTop(region_m45.subList(0, i), region_m45.subList(i, i + 1),
 						theGraphicOptions.NODE_SPACE);
 		}
 
 		// position 45 (top left)
-		LinkedList<Residue> region_p45 = posManager.getChildrenAtPosition(node,
-				new ResAngle(45), false);
+		LinkedList<Residue> region_p45 = posManager.getChildrenAtPosition(node, new ResAngle(45), false);
 		for (int i = 0; i < region_p45.size(); i++) {
-			computeBoundingBoxes(region_p45.get(i), posManager,
-					bboxManager);
+			computeBoundingBoxes(region_p45.get(i), posManager, bboxManager);
 			if (i > 0)
-				bboxManager.alignRightsOnTop(region_p45.subList(0, i),
-						region_p45.subList(i, i + 1),
+				bboxManager.alignRightsOnTop(region_p45.subList(0, i), region_p45.subList(i, i + 1),
 						theGraphicOptions.NODE_SPACE);
 		}
 
 		// ----------------
 		// align substituents with node
-		bboxManager.alignCentersOnBottom(node_bbox, region_m90b,
-				theGraphicOptions.NODE_SUB_SPACE);
-		bboxManager.alignCentersOnTop(node_bbox, region_p90b,
-				theGraphicOptions.NODE_SUB_SPACE);
+		bboxManager.alignCentersOnBottom(node_bbox, region_m90b, theGraphicOptions.NODE_SUB_SPACE);
+		bboxManager.alignCentersOnTop(node_bbox, region_p90b, theGraphicOptions.NODE_SUB_SPACE);
 
-		Union<Residue> border_nodes = new Union<Residue>(region_m90b)
-				.and(region_p90b);
+		Union<Residue> border_nodes = new Union<Residue>(region_m90b).and(region_p90b);
 		Rectangle border_bbox = bboxManager.getComplete(border_nodes.and(node));
 
 		// align position 0,45,-45 with node to not clash with 90b,-90b
@@ -1032,17 +952,13 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 					+ theGraphicOptions.NODE_SIZE);
 
 		// align positions -90 and 90 with node to not clash with the rest
-		Union<Residue> ex_nodes = new Union<Residue>(region_0).and(region_m45)
-				.and(region_p45).and(border_nodes);
-		bboxManager.alignCentersOnBottom(node_bbox, ex_nodes, region_m90,
-				region_m90, theGraphicOptions.NODE_SPACE);
-		bboxManager.alignCentersOnTop(node_bbox, ex_nodes, region_p90,
-				region_p90, theGraphicOptions.NODE_SPACE);
+		Union<Residue> ex_nodes = new Union<Residue>(region_0).and(region_m45).and(region_p45).and(border_nodes);
+		bboxManager.alignCentersOnBottom(node_bbox, ex_nodes, region_m90, region_m90, theGraphicOptions.NODE_SPACE);
+		bboxManager.alignCentersOnTop(node_bbox, ex_nodes, region_p90, region_p90, theGraphicOptions.NODE_SPACE);
 
 		// ----------------
 		// set rectangles
-		Union<Residue> all_nodes = ex_nodes.and(region_m90).and(region_p90)
-				.and(node);
+		Union<Residue> all_nodes = ex_nodes.and(region_m90).and(region_p90).and(node);
 
 		bboxManager.setCurrent(node, node_bbox);
 		bboxManager.setBorder(node, border_bbox);
@@ -1056,38 +972,31 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 	}
 
 	private void computeBoundingBoxesTB(Residue node,
-			PositionManager posManager, BBoxManager bboxManager)
-					throws Exception {
+			PositionManager posManager, BBoxManager bboxManager) throws Exception {
 		if (node == null)
 			return;
 
 		Rectangle node_bbox = theResidueRenderer.computeBoundingBox(node,
 				posManager.isOnBorder(node), 0, 0,
-				posManager.getOrientation(node), theGraphicOptions.NODE_SIZE,
-				Integer.MAX_VALUE);
+				posManager.getOrientation(node), theGraphicOptions.NODE_SIZE, Integer.MAX_VALUE);
 		bboxManager.setAllBBoxes(node, node_bbox);
 
 		// -----------------
 		// place substituents
 
 		// -90 border (right)
-		LinkedList<Residue> region_m90b = posManager.getChildrenAtPosition(node,
-				new ResAngle(-90), true);
+		LinkedList<Residue> region_m90b = posManager.getChildrenAtPosition(node, new ResAngle(-90), true);
 		for (int i = 0; i < region_m90b.size(); i++) {
-			computeBoundingBoxes(region_m90b.get(i), posManager,
-					bboxManager);
+			computeBoundingBoxes(region_m90b.get(i), posManager, bboxManager);
 			if (i > 0)
-				bboxManager.alignLeftsOnBottom(region_m90b.subList(0, i),
-						region_m90b.subList(i, i + 1),
+				bboxManager.alignLeftsOnBottom(region_m90b.subList(0, i), region_m90b.subList(i, i + 1),
 						theGraphicOptions.NODE_SUB_SPACE);
 		}
 
 		// +90 border (left)
-		LinkedList<Residue> region_p90b = posManager.getChildrenAtPosition(node,
-				new ResAngle(90), true);
+		LinkedList<Residue> region_p90b = posManager.getChildrenAtPosition(node, new ResAngle(90), true);
 		for (int i = 0; i < region_p90b.size(); i++) {
-			computeBoundingBoxes(region_p90b.get(i), posManager,
-					bboxManager);
+			computeBoundingBoxes(region_p90b.get(i), posManager, bboxManager);
 			if (i > 0)
 				bboxManager.alignRightsOnTop(region_p90b.subList(0, i),
 						region_p90b.subList(i, i + 1),
@@ -1097,58 +1006,44 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		// place positions
 
 		// position -90 (right)
-		LinkedList<Residue> region_m90 = posManager.getChildrenAtPosition(node,
-				new ResAngle(-90), false);
+		LinkedList<Residue> region_m90 = posManager.getChildrenAtPosition(node, new ResAngle(-90), false);
 		for (int i = 0; i < region_m90.size(); i++) {
-			computeBoundingBoxes(region_m90.get(i), posManager,
-					bboxManager);
+			computeBoundingBoxes(region_m90.get(i), posManager, bboxManager);
 			if (i > 0)
-				bboxManager.alignLeftsOnBottom(region_m90.subList(0, i),
-						region_m90.subList(i, i + 1),
+				bboxManager.alignLeftsOnBottom(region_m90.subList(0, i), region_m90.subList(i, i + 1),
 						theGraphicOptions.NODE_SPACE);
 		}
 
 		// position +90 (left)
-		LinkedList<Residue> region_p90 = posManager.getChildrenAtPosition(node,
-				new ResAngle(90), false);
+		LinkedList<Residue> region_p90 = posManager.getChildrenAtPosition(node, new ResAngle(90), false);
 		for (int i = 0; i < region_p90.size(); i++) {
-			computeBoundingBoxes(region_p90.get(i), posManager,
-					bboxManager);
+			computeBoundingBoxes(region_p90.get(i), posManager, bboxManager);
 			if (i > 0)
-				bboxManager.alignRightsOnTop(region_p90.subList(0, i),
-						region_p90.subList(i, i + 1),
+				bboxManager.alignRightsOnTop(region_p90.subList(0, i), region_p90.subList(i, i + 1),
 						theGraphicOptions.NODE_SPACE);
 		}
 
 		// position 0 (bottom)
-		LinkedList<Residue> region_0 = posManager.getChildrenAtPosition(node,
-				new ResAngle(0));
+		LinkedList<Residue> region_0 = posManager.getChildrenAtPosition(node, new ResAngle(0));
 		for (int i = 0; i < region_0.size(); i++) {
 			computeBoundingBoxes(region_0.get(i), posManager, bboxManager);
 			if (i > 0)
-				bboxManager.alignTopsOnLeft(region_0.subList(0, i),
-						region_0.subList(i, i + 1),
-						theGraphicOptions.NODE_SPACE);
+				bboxManager.alignTopsOnLeft(region_0.subList(0, i), region_0.subList(i, i + 1), theGraphicOptions.NODE_SPACE);
 		}
 
 		// position -45 (bottom right)
-		LinkedList<Residue> region_m45 = posManager.getChildrenAtPosition(node,
-				new ResAngle(-45));
+		LinkedList<Residue> region_m45 = posManager.getChildrenAtPosition(node, new ResAngle(-45));
 		for (int i = 0; i < region_m45.size(); i++) {
-			computeBoundingBoxes(region_m45.get(i), posManager,
-					bboxManager);
+			computeBoundingBoxes(region_m45.get(i), posManager, bboxManager);
 			if (i > 0)
-				bboxManager.alignTopsOnLeft(region_m45.subList(0, i),
-						region_m45.subList(i, i + 1),
+				bboxManager.alignTopsOnLeft(region_m45.subList(0, i), region_m45.subList(i, i + 1),
 						theGraphicOptions.NODE_SPACE);
 		}
 
 		// position 45 (bottom left)
-		LinkedList<Residue> region_p45 = posManager.getChildrenAtPosition(node,
-				new ResAngle(45));
+		LinkedList<Residue> region_p45 = posManager.getChildrenAtPosition(node, new ResAngle(45));
 		for (int i = 0; i < region_p45.size(); i++) {
-			computeBoundingBoxes(region_p45.get(i), posManager,
-					bboxManager);
+			computeBoundingBoxes(region_p45.get(i), posManager, bboxManager);
 			if (i > 0)
 				bboxManager.alignTopsOnLeft(region_p45.subList(i, i + 1),
 						region_p45.subList(0, i), theGraphicOptions.NODE_SPACE);
@@ -1156,25 +1051,20 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 
 		// ----------------
 		// align substituents with node
-		bboxManager.alignCentersOnRight(node_bbox, region_m90b,
-				theGraphicOptions.NODE_SUB_SPACE);
-		bboxManager.alignCentersOnLeft(node_bbox, region_p90b,
-				theGraphicOptions.NODE_SUB_SPACE);
+		bboxManager.alignCentersOnRight(node_bbox, region_m90b, theGraphicOptions.NODE_SUB_SPACE);
+		bboxManager.alignCentersOnLeft(node_bbox, region_p90b, theGraphicOptions.NODE_SUB_SPACE);
 
-		Union<Residue> border_nodes = new Union<Residue>(region_m90b)
-				.and(region_p90b);
+		Union<Residue> border_nodes = new Union<Residue>(region_m90b).and(region_p90b);
 		Rectangle border_bbox = bboxManager.getComplete(border_nodes.and(node));
 
 		// align position 0,45,-45 with node to not clash with 90b,-90b
 		if (region_0.size() > 0) {
-			bboxManager.alignTopsOnRight(region_0, region_m45,
-					theGraphicOptions.NODE_SPACE);
+			bboxManager.alignTopsOnRight(region_0, region_m45, theGraphicOptions.NODE_SPACE);
 			bboxManager.alignTopsOnLeft(region_0,
 					new Union<Residue>(region_0).and(region_m45), region_p45,
 					region_p45, theGraphicOptions.NODE_SPACE);
 			bboxManager.alignCentersOnBottom(node_bbox, border_nodes, region_0,
-					new Union<Residue>(region_0).and(region_m45)
-					.and(region_p45), theGraphicOptions.NODE_SPACE);
+					new Union<Residue>(region_0).and(region_m45).and(region_p45), theGraphicOptions.NODE_SPACE);
 		} else if (region_m45.size() == 0)
 			bboxManager.alignCornersOnBottomAtLeft(node_bbox, border_nodes,
 					region_p45, theGraphicOptions.NODE_SPACE,
@@ -1190,144 +1080,113 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 					+ theGraphicOptions.NODE_SIZE);
 
 		// align positions -90 and 90 with node to not clash with the rest
-		Union<Residue> ex_nodes = new Union<Residue>(region_0).and(region_m45)
-				.and(region_p45).and(border_nodes);
-		bboxManager.alignCentersOnRight(node_bbox, ex_nodes, region_m90,
-				region_m90, theGraphicOptions.NODE_SPACE);
-		bboxManager.alignCentersOnLeft(node_bbox, ex_nodes, region_p90,
-				region_p90, theGraphicOptions.NODE_SPACE);
+		Union<Residue> ex_nodes = new Union<Residue>(region_0).and(region_m45).and(region_p45).and(border_nodes);
+		bboxManager.alignCentersOnRight(node_bbox, ex_nodes, region_m90, region_m90, theGraphicOptions.NODE_SPACE);
+		bboxManager.alignCentersOnLeft(node_bbox, ex_nodes, region_p90, region_p90, theGraphicOptions.NODE_SPACE);
 
 		// ----------------
 		// set rectangles
-		Union<Residue> all_nodes = ex_nodes.and(region_m90).and(region_p90)
-				.and(node);
+		Union<Residue> all_nodes = ex_nodes.and(region_m90).and(region_p90).and(node);
 
 		bboxManager.setCurrent(node, node_bbox);
 		bboxManager.setBorder(node, border_bbox);
 		bboxManager.setComplete(node, bboxManager.getComplete(all_nodes));
 		if (node.hasChildren())
-			bboxManager.setSupport(node, new Rectangle(midx(node_bbox),
-					midy(node_bbox) + theGraphicOptions.NODE_SPACE
+			bboxManager.setSupport(node, new Rectangle(midx(node_bbox), midy(node_bbox) + theGraphicOptions.NODE_SPACE
 					+ theGraphicOptions.NODE_SIZE, 0, 0));
 		for (Iterator<Linkage> i = node.iterator(); i.hasNext();)
 			bboxManager.setParent(i.next().getChildResidue(), node_bbox);
 	}
 
 	private void computeBoundingBoxesBT(Residue node,
-			PositionManager posManager, BBoxManager bboxManager)
-					throws Exception {
+			PositionManager posManager, BBoxManager bboxManager) throws Exception {
 		if (node == null)
 			return;
 
 		Rectangle node_bbox = theResidueRenderer.computeBoundingBox(node,
 				posManager.isOnBorder(node), 0, 0,
-				posManager.getOrientation(node), theGraphicOptions.NODE_SIZE,
-				Integer.MAX_VALUE);
+				posManager.getOrientation(node), theGraphicOptions.NODE_SIZE, Integer.MAX_VALUE);
 		bboxManager.setAllBBoxes(node, node_bbox);
 
 		// -----------------
 		// place substituents
 
 		// -90 border (left)
-		LinkedList<Residue> region_m90b = posManager.getChildrenAtPosition(node,
-				new ResAngle(-90), true);
+		LinkedList<Residue> region_m90b = posManager.getChildrenAtPosition(node, new ResAngle(-90), true);
 		for (int i = 0; i < region_m90b.size(); i++) {
-			computeBoundingBoxes(region_m90b.get(i), posManager,
-					bboxManager);
+			computeBoundingBoxes(region_m90b.get(i), posManager, bboxManager);
 			if (i > 0)
-				bboxManager.alignRightsOnTop(region_m90b.subList(0, i),
-						region_m90b.subList(i, i + 1),
+				bboxManager.alignRightsOnTop(region_m90b.subList(0, i), region_m90b.subList(i, i + 1),
 						theGraphicOptions.NODE_SUB_SPACE);
 		}
 
 		// +90 border (right)
-		LinkedList<Residue> region_p90b = posManager.getChildrenAtPosition(node,
-				new ResAngle(90), true);
+		LinkedList<Residue> region_p90b = posManager.getChildrenAtPosition(node, new ResAngle(90), true);
 		for (int i = 0; i < region_p90b.size(); i++) {
-			computeBoundingBoxes(region_p90b.get(i), posManager,
-					bboxManager);
+			computeBoundingBoxes(region_p90b.get(i), posManager, bboxManager);
 			if (i > 0)
-				bboxManager.alignLeftsOnBottom(region_p90b.subList(0, i),
-						region_p90b.subList(i, i + 1),
+				bboxManager.alignLeftsOnBottom(region_p90b.subList(0, i), region_p90b.subList(i, i + 1),
 						theGraphicOptions.NODE_SUB_SPACE);
 		}
 		// ----------------
 		// place positions
 
 		// position -90 (left)
-		LinkedList<Residue> region_m90 = posManager.getChildrenAtPosition(node,
-				new ResAngle(-90), false);
+		LinkedList<Residue> region_m90 = posManager.getChildrenAtPosition(node, new ResAngle(-90), false);
 		for (int i = 0; i < region_m90.size(); i++) {
-			computeBoundingBoxes(region_m90.get(i), posManager,
-					bboxManager);
+			computeBoundingBoxes(region_m90.get(i), posManager, bboxManager);
 			if (i > 0)
-				bboxManager.alignRightsOnTop(region_m90.subList(0, i),
-						region_m90.subList(i, i + 1),
+				bboxManager.alignRightsOnTop(region_m90.subList(0, i), region_m90.subList(i, i + 1),
 						theGraphicOptions.NODE_SPACE);
 		}
 
 		// position +90 (right)
-		LinkedList<Residue> region_p90 = posManager.getChildrenAtPosition(node,
-				new ResAngle(90), false);
+		LinkedList<Residue> region_p90 = posManager.getChildrenAtPosition(node, new ResAngle(90), false);
 		for (int i = 0; i < region_p90.size(); i++) {
-			computeBoundingBoxes(region_p90.get(i), posManager,
-					bboxManager);
+			computeBoundingBoxes(region_p90.get(i), posManager, bboxManager);
 			if (i > 0)
-				bboxManager.alignLeftsOnBottom(region_p90.subList(0, i),
-						region_p90.subList(i, i + 1),
+				bboxManager.alignLeftsOnBottom(region_p90.subList(0, i), region_p90.subList(i, i + 1),
 						theGraphicOptions.NODE_SPACE);
 		}
 
 		// position 0 (top)
-		LinkedList<Residue> region_0 = posManager.getChildrenAtPosition(node,
-				new ResAngle(0));
+		LinkedList<Residue> region_0 = posManager.getChildrenAtPosition(node, new ResAngle(0));
 		for (int i = 0; i < region_0.size(); i++) {
 			computeBoundingBoxes(region_0.get(i), posManager, bboxManager);
 			if (i > 0)
-				bboxManager.alignBottomsOnRight(region_0.subList(0, i),
-						region_0.subList(i, i + 1),
+				bboxManager.alignBottomsOnRight(region_0.subList(0, i), region_0.subList(i, i + 1),
 						theGraphicOptions.NODE_SPACE);
 		}
 
 		// position -45 (top left)
-		LinkedList<Residue> region_m45 = posManager.getChildrenAtPosition(node,
-				new ResAngle(-45));
+		LinkedList<Residue> region_m45 = posManager.getChildrenAtPosition(node, new ResAngle(-45));
 		for (int i = 0; i < region_m45.size(); i++) {
-			computeBoundingBoxes(region_m45.get(i), posManager,
-					bboxManager);
+			computeBoundingBoxes(region_m45.get(i), posManager, bboxManager);
 			if (i > 0)
-				bboxManager.alignBottomsOnRight(region_m45.subList(0, i),
-						region_m45.subList(i, i + 1),
+				bboxManager.alignBottomsOnRight(region_m45.subList(0, i), region_m45.subList(i, i + 1),
 						theGraphicOptions.NODE_SPACE);
 		}
 
 		// position 45 (top right)
-		LinkedList<Residue> region_p45 = posManager.getChildrenAtPosition(node,
-				new ResAngle(45));
+		LinkedList<Residue> region_p45 = posManager.getChildrenAtPosition(node, new ResAngle(45));
 		for (int i = 0; i < region_p45.size(); i++) {
-			computeBoundingBoxes(region_p45.get(i), posManager,
-					bboxManager);
+			computeBoundingBoxes(region_p45.get(i), posManager, bboxManager);
 			if (i > 0)
-				bboxManager.alignBottomsOnRight(region_p45.subList(0, i),
-						region_p45.subList(i, i + 1),
+				bboxManager.alignBottomsOnRight(region_p45.subList(0, i), region_p45.subList(i, i + 1),
 						theGraphicOptions.NODE_SPACE);
 		}
 
 		// ----------------
 		// align substituents with node
-		bboxManager.alignCentersOnLeft(node_bbox, region_m90b,
-				theGraphicOptions.NODE_SUB_SPACE);
-		bboxManager.alignCentersOnRight(node_bbox, region_p90b,
-				theGraphicOptions.NODE_SUB_SPACE);
+		bboxManager.alignCentersOnLeft(node_bbox, region_m90b, theGraphicOptions.NODE_SUB_SPACE);
+		bboxManager.alignCentersOnRight(node_bbox, region_p90b, theGraphicOptions.NODE_SUB_SPACE);
 
-		Union<Residue> border_nodes = new Union<Residue>(region_m90b)
-				.and(region_p90b);
+		Union<Residue> border_nodes = new Union<Residue>(region_m90b).and(region_p90b);
 		Rectangle border_bbox = bboxManager.getComplete(border_nodes.and(node));
 
 		// align position 0,45,-45 with node to not clash with 90b,-90b
 		if (region_0.size() > 0) {
-			bboxManager.alignBottomsOnLeft(region_0, region_m45,
-					theGraphicOptions.NODE_SPACE);
+			bboxManager.alignBottomsOnLeft(region_0, region_m45, theGraphicOptions.NODE_SPACE);
 			bboxManager.alignBottomsOnRight(region_0, new Union<Residue>(
 					region_0).and(region_m45), region_p45, region_p45,
 					theGraphicOptions.NODE_SPACE);
@@ -1349,17 +1208,13 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 					+ theGraphicOptions.NODE_SIZE);
 
 		// align positions -90 and 90 with node to not clash with the rest
-		Union<Residue> ex_nodes = new Union<Residue>(region_0).and(region_m45)
-				.and(region_p45).and(border_nodes);
-		bboxManager.alignCentersOnLeft(node_bbox, ex_nodes, region_m90,
-				region_m90, theGraphicOptions.NODE_SPACE);
-		bboxManager.alignCentersOnRight(node_bbox, ex_nodes, region_p90,
-				region_p90, theGraphicOptions.NODE_SPACE);
+		Union<Residue> ex_nodes = new Union<Residue>(region_0).and(region_m45).and(region_p45).and(border_nodes);
+		bboxManager.alignCentersOnLeft(node_bbox, ex_nodes, region_m90, region_m90, theGraphicOptions.NODE_SPACE);
+		bboxManager.alignCentersOnRight(node_bbox, ex_nodes, region_p90, region_p90, theGraphicOptions.NODE_SPACE);
 
 		// ----------------
 		// set rectangles
-		Union<Residue> all_nodes = ex_nodes.and(region_m90).and(region_p90)
-				.and(node);
+		Union<Residue> all_nodes = ex_nodes.and(region_m90).and(region_p90).and(node);
 
 		bboxManager.setCurrent(node, node_bbox);
 		bboxManager.setBorder(node, border_bbox);
@@ -1376,7 +1231,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 	// Bounding boxes bracket
 
 	private void computeBoundingBoxesBracket(Residue bracket, Residue root,
-			boolean collapse_multiple_antennae, PositionManager posManager,
+			boolean COLLAPSE_MULTIPLE_ANTENNAE, PositionManager posManager,
 			BBoxManager bboxManager) throws Exception {
 		if (bracket == null || root == null)
 			return;
@@ -1386,22 +1241,22 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 
 		if (orientation.equals(0))
 			computeBoundingBoxesBracketLR(bracket, root,
-					collapse_multiple_antennae, posManager, bboxManager);
+					COLLAPSE_MULTIPLE_ANTENNAE, posManager, bboxManager);
 		else if (orientation.equals(180))
 			computeBoundingBoxesBracketRL(bracket, root,
-					collapse_multiple_antennae, posManager, bboxManager);
+					COLLAPSE_MULTIPLE_ANTENNAE, posManager, bboxManager);
 		else if (orientation.equals(90))
 			computeBoundingBoxesBracketTB(bracket, root,
-					collapse_multiple_antennae, posManager, bboxManager);
+					COLLAPSE_MULTIPLE_ANTENNAE, posManager, bboxManager);
 		else if (orientation.equals(-90))
 			computeBoundingBoxesBracketBT(bracket, root,
-					collapse_multiple_antennae, posManager, bboxManager);
+					COLLAPSE_MULTIPLE_ANTENNAE, posManager, bboxManager);
 		else
 			throw new Exception("Invalid orientation " + orientation);
 	}
 
 	private void computeBoundingBoxesBracketLR(Residue bracket, Residue root,
-			boolean collapse_multiple_antennae, PositionManager posManager,
+			boolean COLLAPSE_MULTIPLE_ANTENNAE, PositionManager posManager,
 			BBoxManager bboxManager) throws Exception {
 		if (bracket == null || root == null)
 			return;
@@ -1411,62 +1266,60 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		// compute children bounding boxes
 		int id = 0;
 		int max_quantity = 1;
-		LinkedList<Residue> antennae = new LinkedList<Residue>();
+		LinkedList<Residue> antennaee = new LinkedList<Residue>();
 		TreeMap<String, Pair<Residue, Integer>> unique_antennae = new TreeMap<String, Pair<Residue, Integer>>();
 		for (int i = 0; i < bracket.getNoChildren(); i++) {
 			Residue child = bracket.getChildAt(i); // avoid concurrent
 			// modification of
 			// iterator!!
-			String child_str = (collapse_multiple_antennae) ? GWSParser
-					.writeSubtree(child, false) : ("" + (id++));
+			String child_str = (COLLAPSE_MULTIPLE_ANTENNAE) ? GWSParser.writeSubtree(child, false) : ("" + (id++));
 
-					Pair<Residue, Integer> value = unique_antennae.get(child_str);
-					if (value == null) {
-						Residue antenna = child;
+			//append by e15d5605, 20191224
+			if (COLLAPSE_MULTIPLE_ANTENNAE) {
+				child_str = child.getParentLinkage().getParentPositionsString() + child_str;
+			}
 
-						// create fake attachment point for non-border residues
-						if (!posManager.isOnBorder(antenna)) {
-							antenna = ResidueDictionary.newResidue("#attach");
-							child.insertParent(antenna);
-							posManager.add(antenna, orientation, new ResAngle(), false,
-									true);
-						}
+			Pair<Residue, Integer> value = unique_antennae.get(child_str);
+			if (value == null) {
+				Residue antennae = child;
 
-						// set child bbox
-						computeBoundingBoxesLR(antenna, posManager, bboxManager);
-						if (antennae.size() > 0)
-							bboxManager.alignLeftsOnBottom(antennae.getLast(),
-									antenna, theGraphicOptions.NODE_SPACE);
+				// create fake attachment point for non-border residues
+				if (!posManager.isOnBorder(antennae)) {
+					antennae = ResidueDictionary.newResidue("#attach");
+					child.insertParent(antennae);
+					posManager.add(antennae, orientation, new ResAngle(), false, true);
+				}
 
-						// add antenna to the list
-						antennae.add(antenna);
-						unique_antennae.put(child_str, new Pair<Residue, Integer>(
-								child, 1));
-					} else {
-						// link to other antenna
-						bboxManager.linkSubtrees(value.getFirst(), child);
+				// set child bbox
+				computeBoundingBoxesLR(antennae, posManager, bboxManager);
+				if (antennaee.size() > 0)
+					bboxManager.alignLeftsOnBottom(antennaee.getLast(), antennae, theGraphicOptions.NODE_SPACE);
 
-						// update quantity for repeated antenna
-						int new_quantity = value.getSecond() + 1;
-						unique_antennae.put(child_str,
-								new Pair<Residue, Integer>(value.getFirst(),
-										new_quantity));
-						max_quantity = Math.max(max_quantity, new_quantity);
-					}
+				// add antennae to the list
+				antennaee.add(antennae);
+				unique_antennae.put(child_str, new Pair<Residue, Integer>(child, 1));
+			} else {
+				// link to other antennae
+				bboxManager.linkSubtrees(value.getFirst(), child);
+
+				// update quantity for repeated antennae
+				int new_quantity = value.getSecond() + 1;
+				unique_antennae.put(child_str, new Pair<Residue, Integer>(value.getFirst(), new_quantity));
+				max_quantity = Math.max(max_quantity, new_quantity);
+			}
 		}
 
 		// compute bracket bbox
 		Rectangle structure_bbox = new Rectangle(bboxManager.getComplete(root));
-		Rectangle bracket_bbox = new Rectangle(right(structure_bbox),
-				top(structure_bbox), theGraphicOptions.NODE_SIZE,
+		Rectangle bracket_bbox = new Rectangle(right(structure_bbox), top(structure_bbox), theGraphicOptions.NODE_SIZE,
 				structure_bbox.height);
 
-		// align antennae
-		if (antennae.size() > 0)
-			bboxManager.alignCentersOnRight(bracket_bbox, antennae, 0);
-		Rectangle antennae_bbox = (antennae.size() > 0) ? new Rectangle(
-				bboxManager.getComplete(antennae)) : null;
-				Rectangle all_bbox = union(bracket_bbox, antennae_bbox);
+		// align antennaee
+		if (antennaee.size() > 0)
+			bboxManager.alignCentersOnRight(bracket_bbox, antennaee, 0);
+		Rectangle antennaee_bbox = (antennaee.size() > 0) ? new Rectangle(
+				bboxManager.getComplete(antennaee)) : null;
+				Rectangle all_bbox = union(bracket_bbox, antennaee_bbox);
 
 				// compute bbox for quantities
 				if (max_quantity > 1) {
@@ -1477,9 +1330,9 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 				}
 
 				// restore linkages
-				for (Residue antenna : antennae) {
-					if (!posManager.isOnBorder(antenna))
-						bracket.removeChild(antenna);
+				for (Residue antennae : antennaee) {
+					if (!posManager.isOnBorder(antennae))
+						bracket.removeChild(antennae);
 				}
 
 				// set bboxes
@@ -1491,7 +1344,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 	}
 
 	private void computeBoundingBoxesBracketRL(Residue bracket, Residue root,
-			boolean collapse_multiple_antennae, PositionManager posManager,
+			boolean COLLAPSE_MULTIPLE_ANTENNAE, PositionManager posManager,
 			BBoxManager bboxManager) throws Exception {
 		if (bracket == null || root == null)
 			return;
@@ -1501,62 +1354,60 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		// compute children bounding boxes
 		int id = 0;
 		int max_quantity = 1;
-		LinkedList<Residue> antennae = new LinkedList<Residue>();
+		LinkedList<Residue> antennaee = new LinkedList<Residue>();
 		TreeMap<String, Pair<Residue, Integer>> unique_antennae = new TreeMap<String, Pair<Residue, Integer>>();
 		for (int i = 0; i < bracket.getNoChildren(); i++) {
 			Residue child = bracket.getChildAt(i); // avoid concurrent
 			// modification of
 			// iterator!!
-			String child_str = (collapse_multiple_antennae) ? GWSParser
-					.writeSubtree(child, false) : ("" + (id++));
+			String child_str = (COLLAPSE_MULTIPLE_ANTENNAE) ? GWSParser.writeSubtree(child, false) : ("" + (id++));
 
-					Pair<Residue, Integer> value = unique_antennae.get(child_str);
-					if (value == null) {
-						Residue antenna = child;
+			//append by e15d5605, 20191224
+			if (COLLAPSE_MULTIPLE_ANTENNAE) {
+				child_str = child.getParentLinkage().getParentPositionsString() + child_str;
+			}
 
-						// create fake attachment point for non-border residues
-						if (!posManager.isOnBorder(antenna)) {
-							antenna = ResidueDictionary.newResidue("#attach");
-							child.insertParent(antenna);
-							posManager.add(antenna, orientation, new ResAngle(), false,
-									true);
-						}
+			Pair<Residue, Integer> value = unique_antennae.get(child_str);
+			if (value == null) {
+				Residue antennae = child;
 
-						// set child bbox
-						computeBoundingBoxesRL(antenna, posManager, bboxManager);
-						if (antennae.size() > 0)
-							bboxManager.alignRightsOnTop(antennae.getLast(),
-									antenna, theGraphicOptions.NODE_SPACE);
+				// create fake attachment point for non-border residues
+				if (!posManager.isOnBorder(antennae)) {
+					antennae = ResidueDictionary.newResidue("#attach");
+					child.insertParent(antennae);
+					posManager.add(antennae, orientation, new ResAngle(), false, true);
+				}
 
-						// add antenna to the list
-						antennae.add(antenna);
-						unique_antennae.put(child_str, new Pair<Residue, Integer>(
-								child, 1));
-					} else {
-						// link to other antenna
-						bboxManager.linkSubtrees(value.getFirst(), child);
+				// set child bbox
+				computeBoundingBoxesRL(antennae, posManager, bboxManager);
+				if (antennaee.size() > 0)
+					bboxManager.alignRightsOnTop(antennaee.getLast(), antennae, theGraphicOptions.NODE_SPACE);
 
-						// update quantity for repeated antenna
-						int new_quantity = value.getSecond() + 1;
-						unique_antennae.put(child_str,
-								new Pair<Residue, Integer>(value.getFirst(),
-										new_quantity));
-						max_quantity = Math.max(max_quantity, new_quantity);
-					}
+				// add antennae to the list
+				antennaee.add(antennae);
+				unique_antennae.put(child_str, new Pair<Residue, Integer>(child, 1));
+			} else {
+				// link to other antennae
+				bboxManager.linkSubtrees(value.getFirst(), child);
+
+				// update quantity for repeated antennae
+				int new_quantity = value.getSecond() + 1;
+				unique_antennae.put(child_str, new Pair<Residue, Integer>(value.getFirst(), new_quantity));
+				max_quantity = Math.max(max_quantity, new_quantity);
+			}
 		}
 
 		// compute bracket bbox
 		Rectangle structure_bbox = new Rectangle(bboxManager.getComplete(root));
-		Rectangle bracket_bbox = new Rectangle(left(structure_bbox)
-				- theGraphicOptions.NODE_SIZE, top(structure_bbox),
+		Rectangle bracket_bbox = new Rectangle(left(structure_bbox) - theGraphicOptions.NODE_SIZE, top(structure_bbox),
 				theGraphicOptions.NODE_SIZE, structure_bbox.height);
 
-		// align antennae
-		if (antennae.size() > 0)
-			bboxManager.alignCentersOnLeft(bracket_bbox, antennae, 0);
-		Rectangle antennae_bbox = (antennae.size() > 0) ? new Rectangle(
-				bboxManager.getComplete(antennae)) : null;
-				Rectangle all_bbox = union(bracket_bbox, antennae_bbox);
+		// align antennaee
+		if (antennaee.size() > 0)
+			bboxManager.alignCentersOnLeft(bracket_bbox, antennaee, 0);
+		Rectangle antennaee_bbox = (antennaee.size() > 0) ? new Rectangle(
+				bboxManager.getComplete(antennaee)) : null;
+				Rectangle all_bbox = union(bracket_bbox, antennaee_bbox);
 
 				// compute bbox for quantities
 				if (max_quantity > 1) {
@@ -1568,9 +1419,9 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 				}
 
 				// restore linkages
-				for (Residue antenna : antennae) {
-					if (!posManager.isOnBorder(antenna))
-						bracket.removeChild(antenna);
+				for (Residue antennae : antennaee) {
+					if (!posManager.isOnBorder(antennae))
+						bracket.removeChild(antennae);
 				}
 
 				// set bboxes
@@ -1582,7 +1433,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 	}
 
 	private void computeBoundingBoxesBracketTB(Residue bracket, Residue root,
-			boolean collapse_multiple_antennae, PositionManager posManager,
+			boolean COLLAPSE_MULTIPLE_ANTENNAE, PositionManager posManager,
 			BBoxManager bboxManager) throws Exception {
 		if (bracket == null || root == null)
 			return;
@@ -1592,48 +1443,47 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		// compute children bounding boxes
 		int id = 0;
 		int max_quantity = 1;
-		LinkedList<Residue> antennae = new LinkedList<Residue>();
+		LinkedList<Residue> antennaee = new LinkedList<Residue>();
 		TreeMap<String, Pair<Residue, Integer>> unique_antennae = new TreeMap<String, Pair<Residue, Integer>>();
 		for (int i = 0; i < bracket.getNoChildren(); i++) {
 			Residue child = bracket.getChildAt(i); // avoid concurrent
 			// modification of
 			// iterator!!
-			String child_str = (collapse_multiple_antennae) ? GWSParser
-					.writeSubtree(child, false) : ("" + (id++));
+			String child_str = (COLLAPSE_MULTIPLE_ANTENNAE) ? GWSParser.writeSubtree(child, false) : ("" + (id++));
 
-					Pair<Residue, Integer> value = unique_antennae.get(child_str);
-					if (value == null) {
-						Residue antenna = child;
+			//append by e15d5605, 20191224
+			if (COLLAPSE_MULTIPLE_ANTENNAE) {
+				child_str = child.getParentLinkage().getParentPositionsString() + child_str;
+			}
 
-						// create fake attachment point for non-border residues
-						if (!posManager.isOnBorder(antenna)) {
-							antenna = ResidueDictionary.newResidue("#attach");
-							child.insertParent(antenna);
-							posManager.add(antenna, orientation, new ResAngle(), false,
-									true);
-						}
+			Pair<Residue, Integer> value = unique_antennae.get(child_str);
+			if (value == null) {
+				Residue antennae = child;
 
-						// set child bbox
-						computeBoundingBoxesTB(antenna, posManager, bboxManager);
-						if (antennae.size() > 0)
-							bboxManager.alignBottomsOnLeft(antennae.getLast(),
-									antenna, theGraphicOptions.NODE_SPACE);
+				// create fake attachment point for non-border residues
+				if (!posManager.isOnBorder(antennae)) {
+					antennae = ResidueDictionary.newResidue("#attach");
+					child.insertParent(antennae);
+					posManager.add(antennae, orientation, new ResAngle(), false, true);
+				}
 
-						// add antenna to the list
-						antennae.add(antenna);
-						unique_antennae.put(child_str, new Pair<Residue, Integer>(
-								child, 1));
-					} else {
-						// link to other antenna
-						bboxManager.linkSubtrees(value.getFirst(), child);
+				// set child bbox
+				computeBoundingBoxesTB(antennae, posManager, bboxManager);
+				if (antennaee.size() > 0)
+					bboxManager.alignBottomsOnLeft(antennaee.getLast(), antennae, theGraphicOptions.NODE_SPACE);
 
-						// update quantity for repeated antenna
-						int new_quantity = value.getSecond() + 1;
-						unique_antennae.put(child_str,
-								new Pair<Residue, Integer>(value.getFirst(),
-										new_quantity));
-						max_quantity = Math.max(max_quantity, new_quantity);
-					}
+				// add antennae to the list
+				antennaee.add(antennae);
+				unique_antennae.put(child_str, new Pair<Residue, Integer>(child, 1));
+			} else {
+				// link to other antennae
+				bboxManager.linkSubtrees(value.getFirst(), child);
+
+				// update quantity for repeated antennae
+				int new_quantity = value.getSecond() + 1;
+				unique_antennae.put(child_str, new Pair<Residue, Integer>(value.getFirst(), new_quantity));
+				max_quantity = Math.max(max_quantity, new_quantity);
+			}
 		}
 
 		// compute bracket bbox
@@ -1642,12 +1492,12 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 				bottom(structure_bbox), width(structure_bbox),
 				theGraphicOptions.NODE_SIZE);
 
-		// align antennae
-		if (antennae.size() > 0)
-			bboxManager.alignCentersOnBottom(bracket_bbox, antennae, 0);
-		Rectangle antennae_bbox = (antennae.size() > 0) ? new Rectangle(
-				bboxManager.getComplete(antennae)) : null;
-				Rectangle all_bbox = union(bracket_bbox, antennae_bbox);
+		// align antennaee
+		if (antennaee.size() > 0)
+			bboxManager.alignCentersOnBottom(bracket_bbox, antennaee, 0);
+		Rectangle antennaee_bbox = (antennaee.size() > 0) ? new Rectangle(
+				bboxManager.getComplete(antennaee)) : null;
+				Rectangle all_bbox = union(bracket_bbox, antennaee_bbox);
 
 				// compute bbox for quantities
 				if (max_quantity > 1) {
@@ -1659,9 +1509,9 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 				}
 
 				// restore linkages
-				for (Residue antenna : antennae) {
-					if (!posManager.isOnBorder(antenna))
-						bracket.removeChild(antenna);
+				for (Residue antennae : antennaee) {
+					if (!posManager.isOnBorder(antennae))
+						bracket.removeChild(antennae);
 				}
 
 				// set bboxes
@@ -1673,7 +1523,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 	}
 
 	private void computeBoundingBoxesBracketBT(Residue bracket, Residue root,
-			boolean collapse_multiple_antennae, PositionManager posManager,
+			boolean COLLAPSE_MULTIPLE_ANTENNAE, PositionManager posManager,
 			BBoxManager bboxManager) throws Exception {
 		if (bracket == null || root == null)
 			return;
@@ -1683,48 +1533,47 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		// compute children bounding boxes
 		int id = 0;
 		int max_quantity = 1;
-		LinkedList<Residue> antennae = new LinkedList<Residue>();
+		LinkedList<Residue> antennaee = new LinkedList<Residue>();
 		TreeMap<String, Pair<Residue, Integer>> unique_antennae = new TreeMap<String, Pair<Residue, Integer>>();
 		for (int i = 0; i < bracket.getNoChildren(); i++) {
 			Residue child = bracket.getChildAt(i); // avoid concurrent
 			// modification of
 			// iterator!!
-			String child_str = (collapse_multiple_antennae) ? GWSParser
-					.writeSubtree(child, false) : ("" + (id++));
+			String child_str = (COLLAPSE_MULTIPLE_ANTENNAE) ? GWSParser.writeSubtree(child, false) : ("" + (id++));
 
-					Pair<Residue, Integer> value = unique_antennae.get(child_str);
-					if (value == null) {
-						Residue antenna = child;
+			//append by e15d5605, 20191224
+			if (COLLAPSE_MULTIPLE_ANTENNAE) {
+				child_str = child.getParentLinkage().getParentPositionsString() + child_str;
+			}
 
-						// create fake attachment point for non-border residues
-						if (!posManager.isOnBorder(antenna)) {
-							antenna = ResidueDictionary.newResidue("#attach");
-							child.insertParent(antenna);
-							posManager.add(antenna, orientation, new ResAngle(), false,
-									true);
-						}
+			Pair<Residue, Integer> value = unique_antennae.get(child_str);
+			if (value == null) {
+				Residue antennae = child;
 
-						// set child bbox
-						computeBoundingBoxesBT(antenna, posManager, bboxManager);
-						if (antennae.size() > 0)
-							bboxManager.alignTopsOnRight(antennae.getLast(),
-									antenna, theGraphicOptions.NODE_SPACE);
+				// create fake attachment point for non-border residues
+				if (!posManager.isOnBorder(antennae)) {
+					antennae = ResidueDictionary.newResidue("#attach");
+					child.insertParent(antennae);
+					posManager.add(antennae, orientation, new ResAngle(), false, true);
+				}
 
-						// add antenna to the list
-						antennae.add(antenna);
-						unique_antennae.put(child_str, new Pair<Residue, Integer>(
-								child, 1));
-					} else {
-						// link to other antenna
-						bboxManager.linkSubtrees(value.getFirst(), child);
+				// set child bbox
+				computeBoundingBoxesBT(antennae, posManager, bboxManager);
+				if (antennaee.size() > 0)
+					bboxManager.alignTopsOnRight(antennaee.getLast(), antennae, theGraphicOptions.NODE_SPACE);
 
-						// update quantity for repeated antenna
-						int new_quantity = value.getSecond() + 1;
-						unique_antennae.put(child_str,
-								new Pair<Residue, Integer>(value.getFirst(),
-										new_quantity));
-						max_quantity = Math.max(max_quantity, new_quantity);
-					}
+				// add antennae to the list
+				antennaee.add(antennae);
+				unique_antennae.put(child_str, new Pair<Residue, Integer>(child, 1));
+			} else {
+				// link to other antennae
+				bboxManager.linkSubtrees(value.getFirst(), child);
+
+				// update quantity for repeated antennae
+				int new_quantity = value.getSecond() + 1;
+				unique_antennae.put(child_str, new Pair<Residue, Integer>(value.getFirst(), new_quantity));
+				max_quantity = Math.max(max_quantity, new_quantity);
+			}
 		}
 
 		// compute bracket bbox
@@ -1732,45 +1581,44 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		Rectangle bracket_bbox = new Rectangle(left(structure_bbox),
 				top(structure_bbox) - theGraphicOptions.NODE_SIZE,
 				width(structure_bbox), theGraphicOptions.NODE_SIZE);
-		// align antennae
-		if (antennae.size() > 0)
-			bboxManager.alignCentersOnTop(bracket_bbox, antennae, 0);
-		Rectangle antennae_bbox = (antennae.size() > 0) ? new Rectangle(
-				bboxManager.getComplete(antennae)) : null;
-				Rectangle all_bbox = union(bracket_bbox, antennae_bbox);
+		// align antennaee
+		if (antennaee.size() > 0)
+			bboxManager.alignCentersOnTop(bracket_bbox, antennaee, 0);
+		Rectangle antennaee_bbox = (antennaee.size() > 0) ? new Rectangle(bboxManager.getComplete(antennaee)) : null;
+		Rectangle all_bbox = union(bracket_bbox, antennaee_bbox);
 
-				// compute bbox for quantities
-				if (max_quantity > 1) {
-					Dimension quantity_text_dim = textBounds(max_quantity + "x",
-							theGraphicOptions.NODE_FONT_FACE,
-							theGraphicOptions.NODE_FONT_SIZE);
-					all_bbox.y -= quantity_text_dim.width + 2; // the string is rotated
-					all_bbox.height += quantity_text_dim.width + 2;
-				}
+		// compute bbox for quantities
+		if (max_quantity > 1) {
+			Dimension quantity_text_dim = textBounds(max_quantity + "x",
+					theGraphicOptions.NODE_FONT_FACE,
+					theGraphicOptions.NODE_FONT_SIZE);
+			all_bbox.y -= quantity_text_dim.width + 2; // the string is rotated
+			all_bbox.height += quantity_text_dim.width + 2;
+		}
 
-				// restore linkages
-				for (Residue antenna : antennae) {
-					if (!posManager.isOnBorder(antenna))
-						bracket.removeChild(antenna);
-				}
+		// restore linkages
+		for (Residue antennae : antennaee) {
+			if (!posManager.isOnBorder(antennae))
+				bracket.removeChild(antennae);
+		}
 
-				// set bboxes
-				bboxManager.setParent(bracket, structure_bbox);
-				bboxManager.setCurrent(bracket, bracket_bbox);
-				bboxManager.setBorder(bracket, bracket_bbox);
-				bboxManager.setComplete(bracket, all_bbox);
-				bboxManager.setSupport(bracket, bracket_bbox);
+		// set bboxes
+		bboxManager.setParent(bracket, structure_bbox);
+		bboxManager.setCurrent(bracket, bracket_bbox);
+		bboxManager.setBorder(bracket, bracket_bbox);
+		bboxManager.setComplete(bracket, all_bbox);
+		bboxManager.setSupport(bracket, bracket_bbox);
 	}
 
-	protected void paintBracket(Paintable paintable, Glycan a_objGlycan,
+	protected void paintBracket(Paintable paintable, Glycan _glycan,
 			HashSet<Residue> selected_residues,
 			HashSet<Linkage> selected_linkages,
 			Collection<Residue> active_residues, PositionManager posManager,
 			BBoxManager bboxManager) {
 
-		if(a_objGlycan == null || a_objGlycan.getBracket() == null) return;
+		if(_glycan == null || _glycan.getBracket() == null) return;
 		
-		Residue bracket = a_objGlycan.getBracket();
+		Residue bracket = _glycan.getBracket();
 
 		Rectangle parent_bbox = bboxManager.getParent(bracket);
 		Rectangle bracket_bbox = bboxManager.getCurrent(bracket);
@@ -1780,13 +1628,12 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		boolean selected = selected_residues.contains(bracket);
 		boolean active = (active_residues == null || active_residues.contains(bracket));
 
-		if(!a_objGlycan.isComposition())	
+		if(!_glycan.isComposition())
 			theResidueRenderer.paint(paintable, bracket, selected, active, false,
 					parent_bbox, bracket_bbox, support_bbox,
 					posManager.getOrientation(bracket));
 
-		
-		// paint antennae
+		// paint antennaee
 		for (Linkage link : bracket.getChildrenLinkages()) {
 			Residue child = link.getChildResidue();
 			int quantity = bboxManager.getLinkedResidues(child).size() + 1;
@@ -1798,27 +1645,19 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 			if (child_bbox != null) {
 				// paint edge
 				if (!posManager.isOnBorder(child)) {
-					selected = (selected_residues.contains(bracket) && selected_residues
-							.contains(child))
-							|| selected_linkages.contains(link);
-					active = (active_residues == null || (active_residues
-							.contains(bracket) && active_residues
-							.contains(child)));
+					selected = (selected_residues.contains(bracket) && selected_residues.contains(child)) || selected_linkages.contains(link);
+					active = (active_residues == null || (active_residues.contains(bracket) && active_residues.contains(child)));
 
-					if(!a_objGlycan.isComposition())
-						theLinkageRenderer
-						.paintEdge(paintable, link, selected, node_bbox,
-								node_bbox, child_bbox, child_border_bbox);
+					if(!_glycan.isComposition())
+						theLinkageRenderer.paintEdge(paintable, link, selected, node_bbox, node_bbox, child_bbox, child_border_bbox);
 				}
 
 				// paint child
-				paintResidue(paintable, child, selected_residues, selected_linkages,
-						active_residues, posManager, bboxManager);
+				paintResidue(paintable, child, selected_residues, selected_linkages, active_residues, posManager, bboxManager);
 
 				// paint info
 				if (!posManager.isOnBorder(child))
-					theLinkageRenderer.paintInfo(paintable, link, node_bbox,
-							node_bbox, child_bbox, child_border_bbox);
+					theLinkageRenderer.paintInfo(paintable, link, node_bbox, node_bbox, child_bbox, child_border_bbox);
 
 				// paint quantity
 				if (quantity > 1)
