@@ -60,11 +60,18 @@ java -XstartOnFirstThread -jar /../../Directory_of_local_repository/GlycanBuilde
 3. Select **WURCS2** in the **String encoded**.
 4. WURCS2 string is output.
 
-## Anything else
+### Export images
 
-### Publications related about GlycanBuilder2
+![Image](https://i.imgur.com/XXmnrdg.png)
+1. Drag and select a glycan image on the canvas.
+2. Click **Export to graphical formats** on the **File** tab and select the image format.
+3. Select a directory to save the image.
+
+## Publications
 * [Shinichiro Tsuchiya, Nobuyuki P. Aoki, Daisuke Shinmachi, Masaaki Matsubara, Issaku Yamada, Kiyoko F. Aoki-Kinoshita, Hisashi Narimatsu,
 Implementation of GlycanBuilder to draw a wide variety of ambiguous glycans, Carbohydrate Research, Volume 445, 2017, Pages 104-116](https://www.sciencedirect.com/science/article/pii/S0008621516305316)
+
+## Downloads
 
 ### Standalone executable GlycanBuilder2
 * [GlycanBuilder2](http://www.rings.t.soka.ac.jp/downloads.html)
