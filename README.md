@@ -48,7 +48,7 @@ java -XstartOnFirstThread -jar /../../Directory_of_local_repository/GlycanBuilde
 ### Import WURCS string
 
 ![Imgur](https://i.imgur.com/6RcNetX.png)
-1. Click **Add structure from string** (Red marked)
+1. Click **Add structure from string** (Red marked).
 2. Paste WURCS string into the text area, and select **WURCS2** in the **input sequence format** (Red marked).
 3. When click **import** button, represent glycan image on the canvas.
 
@@ -66,7 +66,7 @@ java -XstartOnFirstThread -jar /../../Directory_of_local_repository/GlycanBuilde
 * [Shinichiro Tsuchiya, Nobuyuki P. Aoki, Daisuke Shinmachi, Masaaki Matsubara, Issaku Yamada, Kiyoko F. Aoki-Kinoshita, Hisashi Narimatsu,
 Implementation of GlycanBuilder to draw a wide variety of ambiguous glycans, Carbohydrate Research, Volume 445, 2017, Pages 104-116](https://www.sciencedirect.com/science/article/pii/S0008621516305316)
 
-### Standalone executable GlycanBuilder2 is now available
+### Standalone executable GlycanBuilder2
 * [GlycanBuilder2](http://www.rings.t.soka.ac.jp/downloads.html)
 * Supported OS : 
   * Windowds (64bit)
