@@ -16,6 +16,7 @@ import org.glycoinfo.WURCSFramework.wurcs.sequence2.GRES;
 import org.glycoinfo.WURCSFramework.wurcs.sequence2.SUBST;
 import org.glycoinfo.application.glycanbuilder.dataset.CrossLinkedSubstituentDictionary;
 import org.glycoinfo.GlycanFormatconverter.util.TrivialName.TrivialNameDictionary;
+import org.glycoinfo.GlycanFormatconverter.util.TrivialName.ModifiedMonosaccharideDescriptor;
 import org.glycoinfo.application.glycanbuilder.util.exchange.WURCSToGlycanException;
 
 import java.util.ArrayList;
@@ -23,7 +24,6 @@ import java.util.LinkedList;
 
 public class SUBSTAnalyzer {
 
-	private TrivialNameDictionary trivDict;
 	private ArrayList<String> modifications;
 
 	public SUBSTAnalyzer(ArrayList<String> _a_aModifications) {
@@ -35,8 +35,6 @@ public class SUBSTAnalyzer {
 	}
 
 	public void start(GRES _gres, Residue _residue) throws Exception {
-		this.trivDict = TrivialNameDictionary.forThreeLetterCode(_residue.getTypeName());
-
 		MS ms = new WURCSImporter().extractMS(_gres.getMS().getString());
 
 		//TODO: TrivialNameDictionaryとModifiedMonosaccharideDescriptorを見る
@@ -107,8 +105,13 @@ public class SUBSTAnalyzer {
 			throw new Exception(_subst.getMAP() + " can not handled in GlycanBuilder");
 		
 		// check native substituent
+		TrivialNameDictionary trivDict = TrivialNameDictionary.forThreeLetterCode(_residue.getTypeName());
+		ModifiedMonosaccharideDescriptor modDesc = ModifiedMonosaccharideDescriptor.forTrivialName(_residue.getTypeName());
 		if(trivDict != null) {
-			if(this.trivDict.getSubstituentNotation().contains(subNotation)) return;
+			if(trivDict.getSubstituents().contains(subNotation)) return;
+		}
+		if (modDesc != null) {
+			if (modDesc.getSubstituents().contains(subNotation)) return;
 		}
 
 		// change n_sulfate with hexosamine
@@ -164,14 +167,21 @@ public class SUBSTAnalyzer {
 	}
 		
 	private void analyzeModificaitons(Residue _residue) throws Exception {
+		TrivialNameDictionary trivDict = TrivialNameDictionary.forThreeLetterCode(_residue.getTypeName());
+		ModifiedMonosaccharideDescriptor modDesc = ModifiedMonosaccharideDescriptor.forTrivialName(_residue.getTypeName());
+
 		for(String mod : this.modifications) {
 			Linkage linkage = new Linkage();
 			String[] subNotations = mod.split("\\*");
 			SubstituentTemplate subTemp = SubstituentTemplate.forMAP("*" + subNotations[1]);
-			
+
 			if(trivDict != null) {
 				_residue.addModification(mod);
-				if(this.trivDict.getModificationNotation().contains(mod)) continue;
+				if(trivDict.getModifications().contains(mod)) continue;
+			}
+			if (modDesc != null) {
+				_residue.addModification(mod);
+				if(modDesc.getModifications().contains(mod)) continue;
 			}
 			
 			if(subNotations[0].contains(",")) {

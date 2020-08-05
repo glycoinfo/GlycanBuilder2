@@ -204,7 +204,7 @@ public class GlycanVisitorAnalyzeForWURCSGraph implements GlycanVisitor {
 
 		if (_residue.getType().getName().equals("dHexNAc"))
 			modDict = ModifiedMonosaccharideDescriptor.HEXNAC;
-		if (trivDict != null) subNotation = trivDict.getSubstituentNotation();
+		if (trivDict != null) subNotation = trivDict.getSubstituents();
 		if (modDict != null) subNotation = modDict.getSubstituents();
 
 		if (_residue.getType().getName().equals("ddNon")) {

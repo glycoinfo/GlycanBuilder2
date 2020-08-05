@@ -3,7 +3,7 @@ package org.glycoinfo.application.glycanbuilder.util.exchange.exporter;
 import org.eurocarbdb.MolecularFramework.sugar.LinkageType;
 import org.eurocarbdb.application.glycanbuilder.Residue;
 import org.eurocarbdb.application.glycanbuilder.linkage.Linkage;
-import org.glycoinfo.WURCSFramework.util.exchange.SubstituentTypeToMAP;
+import org.glycoinfo.GlycanFormatconverter.util.exchange.SugarToWURCSGraph.SubstituentTypeToMAP;
 import org.glycoinfo.WURCSFramework.util.oldUtil.SubstituentTemplate;
 
 import java.util.ArrayList;

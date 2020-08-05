@@ -131,8 +131,8 @@ public class GlycanToWURCSGraph {
 		}
 	
 		if(backbone.getAnomericPosition() == 0) return;
-		if(backbone instanceof BackboneUnknown) return;
-		
+		if (backbone.hasUnknownLength()) return;
+
 		// make ring position
 		Modification ring = new Modification("");
 		WURCSEdge ringStart = new WURCSEdge();

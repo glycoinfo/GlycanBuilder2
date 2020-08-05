@@ -401,7 +401,8 @@ public class ResidueDictionary {
 		try {
 			return NonSymbolicResidueDictionary.getResidueType(str_type);
 		} catch (Exception e) {
-			LogUtils.report(e);
+			e.getMessage();
+			//LogUtils.report(e);
 		}
 
 		return null;

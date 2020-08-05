@@ -9,9 +9,7 @@ import org.eurocarbdb.application.glycanbuilder.linkage.Linkage;
 import org.glycoinfo.WURCSFramework.wurcs.graph.Backbone;
 import org.glycoinfo.WURCSFramework.util.property.AtomicProperties;
 import org.glycoinfo.WURCSFramework.wurcs.graph.BackboneCarbon;
-import org.glycoinfo.WURCSFramework.wurcs.graph.BackboneUnknown_TBD;
-import org.glycoinfo.WURCSFramework.wurcs.graph.Backbone_TBD;
-import org.glycoinfo.WURCSFramework.wurcs.graph.CarbonDescriptor_TBD;
+import org.glycoinfo.WURCSFramework.wurcs.graph.CarbonDescriptor;
 import org.glycoinfo.WURCSFramework.wurcs.graph.Modification;
 
 public class ResidueToBackbone {
@@ -60,7 +58,8 @@ public class ResidueToBackbone {
 		int carbon = superClass.getCAtomCount();
 		
 		if(carbon == 0) {
-			this.backbone = new BackboneUnknown_TBD(this.anomSymbol);
+			this.backbone = new Backbone();
+			this.backbone.setAnomericSymbol(this.anomSymbol);
 			return;
 		}
 		
@@ -108,12 +107,12 @@ public class ResidueToBackbone {
 		}
 		
 		// make Backbone
-		Backbone_TBD backbone_tbd = new Backbone_TBD();
+		Backbone backbone_tbd = new Backbone();
 		backbone_tbd.setAnomericPosition(this.anomPosition);
 		backbone_tbd.setAnomericSymbol(this.anomSymbol);
 		for(int i = 0; i < carbon; i ++) {
 			char carbonDescriptor = scNotation.charAt(i);
-			CarbonDescriptor_TBD carbonDescriptor_tbd = CarbonDescriptor_TBD.forCharacter(carbonDescriptor, ( i == 0 || i == carbon - 1));
+			CarbonDescriptor carbonDescriptor_tbd = CarbonDescriptor.forCharacter(carbonDescriptor, ( i == 0 || i == carbon - 1));
 			BackboneCarbon _backboneCarbon = new BackboneCarbon(backbone_tbd, carbonDescriptor_tbd);
 			backbone_tbd.addBackboneCarbon(_backboneCarbon);
 		}

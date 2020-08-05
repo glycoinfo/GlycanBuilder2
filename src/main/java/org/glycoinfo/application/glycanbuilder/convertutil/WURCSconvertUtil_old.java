@@ -3,7 +3,7 @@ package org.glycoinfo.application.glycanbuilder.convertutil;
 import java.util.LinkedList;
 
 import org.eurocarbdb.application.glycanbuilder.logutility.LogUtils;
-import org.glycoinfo.WURCSFramework.util.exchange.BaseTypeForRelativeConfiguration;
+import org.glycoinfo.GlycanFormatconverter.util.exchange.SugarToWURCSGraph.BaseTypeForRelativeConfiguration;
 import org.glycoinfo.WURCSFramework.util.residuecontainer.ResidueContainer;
 import org.glycoinfo.WURCSFramework.util.residuecontainer.SuperClass;
 
@@ -20,7 +20,7 @@ public class WURCSconvertUtil_old {
 				SuperClass enum_base = SuperClass.getName(str_unit);//BaseType_old.getName(str_unit);
 				if(enum_base != null) str_SC.append(enum_base.getBasetype());
 				else {
-					BaseTypeForRelativeConfiguration enum_BTFRC = 
+					BaseTypeForRelativeConfiguration enum_BTFRC =
 							BaseTypeForRelativeConfiguration.forName("x" + str_unit);
 					str_SC.append(enum_BTFRC.getName().contains("gro") && str_DLconfigurationTMP.equals("d") ? 4 : 
 						enum_BTFRC.getName().contains("gro") && str_DLconfigurationTMP.equals("l") ? 3 :
