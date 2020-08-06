@@ -458,7 +458,7 @@ public class GWSParser implements GlycanParser {
 		}
 
 		// parse bonds
-		Vector<Bond> ret_bonds = new Vector<Bond>();    
+		ArrayList<Bond> ret_bonds = new ArrayList<>();
 		for( int i=2; i<=m.groupCount(); i++ ) {
 			String str_bond = m.group(i);
 			if( i<m.groupCount() ) {

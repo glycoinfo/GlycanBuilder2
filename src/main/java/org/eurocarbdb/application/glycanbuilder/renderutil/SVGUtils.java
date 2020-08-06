@@ -138,7 +138,6 @@ public class SVGUtils   {
         BBoxManager bboxManager = new BBoxManager();
         Rectangle all_bbox = sgr.computeBoundingBoxes(structures,show_masses,show_redend,posManager,bboxManager);
         Dimension d = sgr.computeSize(all_bbox);
-        g2d.setSVGCanvasSize(d);
 
         // clear background
         g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
@@ -157,7 +156,6 @@ public class SVGUtils   {
 
         // Stream out SVG to a string
         StringWriter out = new StringWriter();
-        //g2d.stream(out, true);
         g2d.stream(root, out, true, false);
 
         return out.toString();
@@ -186,7 +184,6 @@ public class SVGUtils   {
     		BBoxManager bboxManager = new BBoxManager();
     		Rectangle all_bbox = sgr.computeBoundingBoxes(structures,show_masses,show_redend,posManager,bboxManager);
     		Dimension d = sgr.computeSize(all_bbox);
-            g2d.setSVGCanvasSize(d);
 
             // clear background
     		g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
@@ -205,7 +202,6 @@ public class SVGUtils   {
 
             // Stream out SVG to a string
     		StringWriter out = new StringWriter();
-            //g2d.stream(out, true);
             g2d.stream(root, out, true, false);
 
     		return out.toString();
