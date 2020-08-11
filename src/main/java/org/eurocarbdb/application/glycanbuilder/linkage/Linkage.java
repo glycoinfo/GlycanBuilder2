@@ -23,7 +23,7 @@ package org.eurocarbdb.application.glycanbuilder.linkage;
 import org.eurocarbdb.MolecularFramework.sugar.LinkageType;
 import org.eurocarbdb.application.glycanbuilder.PermutationGenerator;
 import org.eurocarbdb.application.glycanbuilder.Residue;
-import org.eurocarbdb.application.glycanbuilder.dataset.GWSParser;
+import org.eurocarbdb.application.glycanbuilder.converterGWS.GWSParser;
 
 import java.util.*;
 
@@ -57,7 +57,7 @@ public class Linkage {
 
 	private Residue      parent;
 	private Residue      child;
-	private Vector<Bond> bonds; // the last bond is the glycosidic bond    
+	private ArrayList<Bond> bonds; // the last bond is the glycosidic bond
 	private Residue		 a_oSubstituent; //Substituent bridge
 	
 	private LinkageType  a_enumParentType = LinkageType.UNVALIDATED;
@@ -182,15 +182,15 @@ public class Linkage {
 	/**
        Return the list of chemical bonds between the two residues.
 	 */
-	public Vector<Bond> getBonds() {
+	public ArrayList<Bond> getBonds() {
 		return bonds;
 	}
 
 	/**
        Return an ordered list of chemical bonds between the two residues.
 	 */
-	public Vector<Bond> getBondsSorted() {
-		Vector<Bond> ret = new Vector<Bond>(bonds);
+	public ArrayList<Bond> getBondsSorted() {
+		ArrayList<Bond> ret = new ArrayList<>(bonds);
 		Collections.sort(ret,new Bond.Comparator());
 		return ret;
 	}
@@ -198,7 +198,7 @@ public class Linkage {
 	/**
        Set the list of chemical bonds between the two residues.
 	 */
-	public void setBonds(Vector<Bond> _bonds) {
+	public void setBonds(ArrayList<Bond> _bonds) {
 		if( _bonds!=null && _bonds.size()>0 ) {
 			bonds = _bonds;
 			setAnomericCarbon(child.getAnomericCarbon());
@@ -242,7 +242,7 @@ public class Linkage {
        Set the parent position for this linkage.
 	 */
 	public void setLinkagePositions(char link_pos) {
-		bonds = new Vector<Bond>(0,1);
+		bonds = new ArrayList<>();//new Vector<Bond>(0,1);
 
 		char c_pos = (child==null) ?'?' :child.getAnomericCarbon();
 		bonds.add(new Bond(link_pos,c_pos));
@@ -252,7 +252,7 @@ public class Linkage {
        Set the parent positions for this linkage.
 	 */
 	public void setLinkagePositions(char[] link_poss) {
-		bonds = new Vector<Bond>(0,1);
+		bonds = new ArrayList<>();//new Vector<Bond>(0,1);
 
 		char c_pos = (child==null) ?'?' :child.getAnomericCarbon();
 		bonds.add(new Bond(link_poss,c_pos));
@@ -265,7 +265,7 @@ public class Linkage {
        @param second_c_pos child position of the second bond       
 	 */
 	public void setLinkagePositions(char[] link_poss, char[] second_p_poss, char second_c_pos) {
-		bonds = new Vector<Bond>(0,1);
+		bonds = new ArrayList<>();//new Vector<Bond>(0,1);
 
 		// add second bond
 		bonds.add(new Bond(second_p_poss,second_c_pos));
@@ -279,7 +279,7 @@ public class Linkage {
        Set the bonds forming this linkage.
 	 */
 	public void setLinkagePositions(Collection<Bond> _bonds) {
-		bonds = new Vector<Bond>(0,1);
+		bonds = new ArrayList<>();//new Vector<Bond>(0,1);
 
 		for( Bond toadd : _bonds ) bonds.add(toadd.clone());
 		if( bonds.size()==0 ) bonds.add(new Bond());
@@ -306,7 +306,7 @@ public class Linkage {
 	 */
 	public Collection<Character> getParentPositions() {
 
-		Vector<Character> ret = new Vector<Character>();
+		ArrayList<Character> ret = new ArrayList<>();
 		for( Bond b: bonds ) {
 			char[] p_poss = b.getParentPositions();
 			for( int i=0; i<p_poss.length; i++ ) 
@@ -321,7 +321,7 @@ public class Linkage {
 	 */
 	public Collection<Character> getChildPositions() {
 
-		Vector<Character> ret = new Vector<Character>();
+		ArrayList<Character> ret = new ArrayList<>();
 		for( int i=0; i<bonds.size(); i++ )
 			ret.add(bonds.get(i).getChildPosition());
 
