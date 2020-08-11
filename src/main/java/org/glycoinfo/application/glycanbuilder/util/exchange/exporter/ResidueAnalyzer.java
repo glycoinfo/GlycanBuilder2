@@ -6,6 +6,7 @@ import org.eurocarbdb.MolecularFramework.sugar.ModificationType;
 import org.eurocarbdb.MolecularFramework.sugar.Superclass;
 import org.eurocarbdb.application.glycanbuilder.Residue;
 import org.eurocarbdb.application.glycanbuilder.linkage.Linkage;
+import org.glycoinfo.GlycanFormatconverter.util.exchange.SugarToWURCSGraph.BaseTypeForRelativeConfiguration;
 import org.glycoinfo.WURCSFramework.util.exchange.*;
 import org.glycoinfo.GlycanFormatconverter.util.TrivialName.TrivialNameDictionary;
 import org.glycoinfo.GlycanFormatconverter.util.TrivialName.ModifiedMonosaccharideDescriptor;
@@ -32,7 +33,6 @@ public class ResidueAnalyzer {
 	private LinkedList<String> unknownMAPs = new LinkedList();
 
 	private TrivialNameDictionary trivDict;
-	//private TrivialNameDescriptor trivDesc;
 
 	public int getAnomericPosition() {
 		return this.anomPos;
@@ -150,7 +150,7 @@ public class ResidueAnalyzer {
 		TrivialNameDictionary trivDict = TrivialNameDictionary.forThreeLetterCode(typeName);
 		if (trivDict != null) {
 			this.trivDict = trivDict;
-			for (String unit : trivDict.getModificationNotation().split("_")) {
+			for (String unit : trivDict.getModifications().split("_")) {
 				modifications.add(unit);
 			}
 		}
@@ -289,11 +289,16 @@ public class ResidueAnalyzer {
 
 	private char convertModificationNameToCarbonDescriptor(String _mod) throws GlycoconjugateException {
 		try {
-			ModificationType a_enumModType = ModificationType.forName(_mod.equals("O") ? "keto" : _mod);
-			if(a_enumModType == ModificationType.DEOXY) return 'd';
-			if(a_enumModType == ModificationType.ALDI) return 'h';
-			if(a_enumModType == ModificationType.KETO) return 'O';
-			if(a_enumModType == ModificationType.ACID) return 'A';
+		    ModificationType modType = null;
+		    if (_mod.equals("O")) modType = ModificationType.KETO;
+		    else if (_mod.equals("h")) modType = ModificationType.ALDI;
+		    else modType = ModificationType.forName(_mod);
+
+			//ModificationType a_enumModType = ModificationType.forName(_mod.equals("O") ? "keto" : _mod);
+			if(modType == ModificationType.DEOXY) return 'd';
+			if(modType == ModificationType.ALDI) return 'h';
+			if(modType == ModificationType.KETO) return 'O';
+			if(modType == ModificationType.ACID) return 'A';
 		}catch (GlycoconjugateException e){
 			if(_mod.equals("m")) return 'd';
 		}

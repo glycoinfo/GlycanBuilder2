@@ -173,7 +173,9 @@ SH		Substituent	Inorganic	H2S1		-	thio			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	
 Py		Substituent	Organic		C3H5O4		-	(x)-pyruvate	2	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	X-pyruvate
 ?		Substituent	Unknown		H2			-	?				?	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Unknown
 Anhydro	Substituent	Unknown		H2O1		-	Anhydro			?	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Anhydro
-%Ino	Substituent	-	Ino	?	?	?	no	yes	no	0	162.0528	162.1424	6	no	6	no	1	-	-	no	yes	Inositol
+Ino		Substituent	Organic		C6H12O6		-	Ino				1	?	?	no	yes	no	0	6	no	6	no	1	-	-	no	no	yes	Inositol
+%Ino		Substituent	Organic		C6H12O6	-	Ino				?	?	?	no	yes	no	0	6	no	6	no	1	-	-	no	no	yes	Inositol
+%162.0528	162.1424
 %
 % MODIFICATIONS
 d		Modification	d		H2		d	d		?	?	?	no	no	no	0	1	no	1	no	1	-	-	no	yes	yes	Deoxygenation

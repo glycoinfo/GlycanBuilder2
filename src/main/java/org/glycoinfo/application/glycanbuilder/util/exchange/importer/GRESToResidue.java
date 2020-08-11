@@ -63,8 +63,13 @@ public class GRESToResidue {
 		Monosaccharide mono = new Monosaccharide();
 
 		//String trivialName = "";
-		if ((trivialName.contains("Tal") || trivialName.contains("Alt")) && (mscore.getSkeletonCode().indexOf("m") == 5)) {
-			trivialName = (mscore.getSkeletonCode().indexOf("m") + 1) + "d" + trivialName;
+		if (mscore.getSkeletonCode().indexOf("m") == 5) {
+			if (trivialName.contains("Tal") || trivialName.contains("Alt") || trivialName.contains("Gul")) {
+				trivialName = (mscore.getSkeletonCode().indexOf("m") + 1) + "d" + trivialName;
+			}
+			if (trivialName.contains("Hex")) {
+				trivialName = "d" + trivialName;
+			}
 		}
 		Residue residue = ResidueDictionary.newResidue(trivialName);
 		
