@@ -183,7 +183,7 @@ public class CrossRingFragmentDictionary {
 	}
 
 
-	static Residue newFragment(String type_name, Residue cleaved) {
+	public static Residue newFragment(String type_name, Residue cleaved) {
 		if( type_name==null || cleaved==null )
 			return null;
 

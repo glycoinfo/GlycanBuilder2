@@ -29,7 +29,7 @@ import org.eurocarbdb.application.glycanbuilder.converter.GlycanParser;
 import org.eurocarbdb.application.glycanbuilder.converter.GlycanParserFactory;
 import org.eurocarbdb.application.glycanbuilder.converterGlycoCT.GlycoCTCondensedParser;
 import org.eurocarbdb.application.glycanbuilder.converterGlycoCT.GlycoCTParser;
-import org.eurocarbdb.application.glycanbuilder.dataset.GWSParser;
+import org.eurocarbdb.application.glycanbuilder.converterGWS.GWSParser;
 import org.eurocarbdb.application.glycanbuilder.dataset.ResidueDictionary;
 import org.eurocarbdb.application.glycanbuilder.fileutil.ExtensionFileFilter;
 import org.eurocarbdb.application.glycanbuilder.linkage.Linkage;
@@ -40,8 +40,6 @@ import org.eurocarbdb.application.glycanbuilder.renderutil.GlycanRendererAWT;
 import org.eurocarbdb.application.glycanbuilder.util.SAXUtils;
 import org.eurocarbdb.application.glycanbuilder.util.TextUtils;
 import org.eurocarbdb.application.glycanbuilder.util.XMLUtils;
-import org.glycoinfo.WURCSFramework.util.residuecontainer.ResidueContainer;
-import org.glycoinfo.application.glycanbuilder.convertutil.GlycanToResidueContainer;
 import org.w3c.dom.*;
 import org.xml.sax.SAXException;
 

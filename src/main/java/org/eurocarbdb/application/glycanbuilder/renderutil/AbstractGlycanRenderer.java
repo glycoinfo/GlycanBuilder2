@@ -23,15 +23,13 @@ import java.util.Map;
 import java.util.TreeMap;
 import java.util.LinkedList;
 
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
 import org.eurocarbdb.application.glycanbuilder.BookingManager;
 import org.eurocarbdb.application.glycanbuilder.Glycan;
 import org.eurocarbdb.application.glycanbuilder.Pair;
 import org.eurocarbdb.application.glycanbuilder.Residue;
 import org.eurocarbdb.application.glycanbuilder.ResiduePlacement;
 import org.eurocarbdb.application.glycanbuilder.ResidueStyleDictionary;
-import org.eurocarbdb.application.glycanbuilder.dataset.GWSParser;
+import org.eurocarbdb.application.glycanbuilder.converterGWS.GWSParser;
 import org.eurocarbdb.application.glycanbuilder.dataset.ResidueDictionary;
 import org.eurocarbdb.application.glycanbuilder.dataset.ResiduePlacementDictionary;
 import org.eurocarbdb.application.glycanbuilder.fileutil.FileConstants;

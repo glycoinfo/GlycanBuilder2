@@ -18,7 +18,7 @@
  *   Last commit: $Rev$ by $Author$ on $Date::             $  
  */
 
-package org.eurocarbdb.application.glycanbuilder.dataset;
+package org.eurocarbdb.application.glycanbuilder.converterGWS;
 
 import java.awt.Rectangle;
 import java.util.*;
@@ -29,6 +29,8 @@ import org.eurocarbdb.application.glycanbuilder.Residue;
 import org.eurocarbdb.application.glycanbuilder.ResidueHolder;
 import org.eurocarbdb.application.glycanbuilder.ResiduePlacement;
 import org.eurocarbdb.application.glycanbuilder.converter.GlycanParser;
+import org.eurocarbdb.application.glycanbuilder.dataset.CrossRingFragmentDictionary;
+import org.eurocarbdb.application.glycanbuilder.dataset.ResidueDictionary;
 import org.eurocarbdb.application.glycanbuilder.linkage.Bond;
 import org.eurocarbdb.application.glycanbuilder.linkage.Linkage;
 import org.eurocarbdb.application.glycanbuilder.massutil.MassOptions;
@@ -49,13 +51,13 @@ public class GWSParser implements GlycanParser {
 	private static Pattern link_pattern;
 
 	static {
-		String link_old_pattern_str = "-([1-9N\\?])"; 
-		String link_pattern_str = "--(?:((?:[1-9N\\?]/)*[1-9N\\?]=[1-9N\\?]),)*((?:[1-9N\\?]/)*[1-9N\\?])";
+		String link_old_pattern_str = "-([1-9N?])";
+		String link_pattern_str = "--(?:((?:[1-9N?]/)*[1-9N?]=[1-9N?]),)*((?:[1-9N?]/)*[1-9N?])";
 		link_pattern = Pattern.compile("(?:" + link_old_pattern_str + ")|(?:" + link_pattern_str + ")");
 
 		String start_repeat_str = "\\[";
-		String end_repeat_str = "\\](?:\\_(-?[0-9]+))?+(?:\\^(-?[0-9]+))?+"; 
-		String residue_str = "([abo\\?][1-9N\\?])?+([DL]-)?+([a-zA-z0-9_#=\\.]+)(?:,([\\?opf]))?+";
+		String end_repeat_str = "](?:_(-?[0-9]+))?+(?:\\^(-?[0-9]+))?+";
+		String residue_str = "([abo?][1-9N?])?+([DL]-)?+([a-zA-z0-9_#=.]+)(?:,([?opf]))?+";
 		String cleaved_str = "/([a-zA-z0-9_#]+)";
 		String place_str = "@(-?[0-9]+s?)";
 		String cord_str="<bounding_box>([0-9]+),([0-9]+),([0-9]+),([0-9]+)</bounding_box>";
@@ -321,9 +323,9 @@ public class GWSParser implements GlycanParser {
 			throw new Exception("Empty node");
 		}
 
-		Residue ret = null;
+		Residue ret;
 		if( str.charAt(0)=='}' ) {
-			ret = ResidueDictionary.createBracket();    
+			ret = ResidueDictionary.createBracket();
 			str = str.substring(1);
 		}
 		else {
@@ -373,9 +375,9 @@ public class GWSParser implements GlycanParser {
 				String cleavage_typename = m.group(7);
 
 				if( cleavage_typename!=null ) {
-					Residue cleavage = null;
+					Residue cleavage;
 					if(  cleavage_typename.indexOf('_')!=-1 ) 
-						cleavage = CrossRingFragmentDictionary.newFragment(cleavage_typename,ret);                
+						cleavage = CrossRingFragmentDictionary.newFragment(cleavage_typename,ret);
 					else                
 						cleavage = ResidueDictionary.newResidue(cleavage_typename);        
 

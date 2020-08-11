@@ -22,7 +22,7 @@ package org.eurocarbdb.application.glycanbuilder;
 
 import java.util.*;
 
-import org.eurocarbdb.application.glycanbuilder.dataset.GWSParser;
+import org.eurocarbdb.application.glycanbuilder.converterGWS.GWSParser;
 import org.eurocarbdb.application.glycanbuilder.util.TextUtils;
 
 /**

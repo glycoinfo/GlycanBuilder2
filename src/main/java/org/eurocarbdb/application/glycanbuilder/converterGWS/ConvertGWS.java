@@ -18,7 +18,7 @@
 *   Last commit: $Rev$ by $Author$ on $Date::             $  
 */
 
-package org.eurocarbdb.application.glycanbuilder.main;
+package org.eurocarbdb.application.glycanbuilder.converterGWS;
 
 import org.eurocarbdb.application.glycanbuilder.BuilderWorkspace;
 import org.eurocarbdb.application.glycanbuilder.GlycanDocument;

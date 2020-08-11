@@ -24,7 +24,7 @@ import org.eurocarbdb.MolecularFramework.sugar.LinkageType;
 import org.eurocarbdb.MolecularFramework.sugar.Sugar;
 import org.eurocarbdb.application.glycanbuilder.converterGlycoCT.GlycoCTCondensedParser;
 import org.eurocarbdb.application.glycanbuilder.converterGlycoCT.GlycoCTParser;
-import org.eurocarbdb.application.glycanbuilder.dataset.GWSParser;
+import org.eurocarbdb.application.glycanbuilder.converterGWS.GWSParser;
 import org.eurocarbdb.application.glycanbuilder.dataset.ResidueDictionary;
 import org.eurocarbdb.application.glycanbuilder.linkage.Bond;
 import org.eurocarbdb.application.glycanbuilder.linkage.Linkage;
