@@ -112,8 +112,7 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
 		LogUtils.setGraphicalReport(true);       
 
 		// create the default workspace
-		theWorkspace = new BuilderWorkspace(
-				new File("config.xml").getAbsolutePath(), true, new GlycanRendererAWT());
+		theWorkspace = new BuilderWorkspace(new File("src/main/resources/config.xml").getAbsolutePath(), true, new GlycanRendererAWT());
 				/*FileUtils.getRootDir(),true,new GlycanRendererAWT());*/
 		
 		theWorkspace.setAutoSave(true);
@@ -194,8 +193,7 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
 	 */   
 	public void exit(int err_level) {    
 		// save configurations
-		//theWorkspace.exit(new File("config.xml").getAbsolutePath());
-				//FileUtils.getRootDir() + "/config.xml");
+		theWorkspace.exit(new File("src/main/resources/config.xml").getAbsolutePath());
 
 		// clear memory
 		theWorkspace.init();
