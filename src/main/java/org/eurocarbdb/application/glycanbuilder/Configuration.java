@@ -20,6 +20,10 @@
 
 package org.eurocarbdb.application.glycanbuilder;
 
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.io.*;
 import java.awt.Color;
@@ -55,20 +59,25 @@ public class Configuration implements SAXUtils.SAXWriter {
     try {
         if( filename==null )
         return false;
-      
-        File file = new File(filename); 
-        if( !file.exists() )
-        return false;
-        
+
+        // open file
+        //File file = new File(String.valueOf(Paths.get(filename)));
+        //if ( !file.exists() ) {
+        //}
+        //return false;
+
         // open document
-        FileInputStream fis = new FileInputStream(file);
+        InputStream fis = getClass().getResourceAsStream(filename);
+        //InputStreamReader fis = new InputStreamReader(file_url.openStream());
+
+        //FileInputStream fis = new FileInputStream(file);
         /*
         Document document = XMLUtils.read(fis);
         if( document==null )
         return false;
         fromXML(XMLUtils.assertChild(document,"Configuration"));
         */
-        SAXUtils.read(fis,new SAXHandler(this));        
+        SAXUtils.read(fis, new SAXHandler(this));
    
         return true;
     }

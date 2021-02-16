@@ -112,9 +112,8 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
 		LogUtils.setGraphicalReport(true);       
 
 		// create the default workspace
-		theWorkspace = new BuilderWorkspace(new File("src/main/resources/config.xml").getAbsolutePath(), true, new GlycanRendererAWT());
-				/*FileUtils.getRootDir(),true,new GlycanRendererAWT());*/
-		
+		String resource = "/config.xml";
+		theWorkspace = new BuilderWorkspace(resource, true, new GlycanRendererAWT());
 		theWorkspace.setAutoSave(true);
 
 		// create singletons 

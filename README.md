@@ -37,10 +37,10 @@ $ mvn clean package
 ```
 
 When compilation in finished, jar file is created in the target folder.
->[INFO] Building jar: /../../Directory_of_local_repository/GlycanBuilder2/target/wurcsextend-1.0.4-SNAPSHOT-jar-with-dependencies.jar
+>[INFO] Building jar: /../../Directory_of_local_repository/GlycanBuilder2/target/wurcsextend-1.0.7-jar-with-dependencies.jar
 
 ```
-java -XstartOnFirstThread -jar /../../Directory_of_local_repository/GlycanBuilder2/target/wurcsextend-1.0.4-SNAPSHOT-jar-with-dependencies.jar
+java -XstartOnFirstThread -jar wurcsextend-1.0.7-jar-with-dependencies.jar
 ```
 
 ## Example
