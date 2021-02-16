@@ -20,15 +20,12 @@
 
 package org.eurocarbdb.application.glycanbuilder;
 
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.io.*;
 import java.awt.Color;
 
 import org.eurocarbdb.application.glycanbuilder.logutility.LogUtils;
+import org.eurocarbdb.application.glycanbuilder.util.OutputStringDialog;
 import org.eurocarbdb.application.glycanbuilder.util.SAXUtils;
 import org.eurocarbdb.application.glycanbuilder.util.TextUtils;
 import org.eurocarbdb.application.glycanbuilder.util.XMLUtils;
@@ -61,16 +58,22 @@ public class Configuration implements SAXUtils.SAXWriter {
         return false;
 
         // open file
-        //File file = new File(String.valueOf(Paths.get(filename)));
-        //if ( !file.exists() ) {
-        //}
+        File file = new File(filename);
+        InputStream fis;
+        if ( !file.exists() ) {
+            fis = getClass().getResourceAsStream(filename);
+        } else {
+            fis = new FileInputStream(file);
+        }
+
+        if (fis == null) {
+            fis = new FileInputStream("src/main/resources/config.xml");
+        }
         //return false;
 
         // open document
-        InputStream fis = getClass().getResourceAsStream(filename);
         //InputStreamReader fis = new InputStreamReader(file_url.openStream());
 
-        //FileInputStream fis = new FileInputStream(file);
         /*
         Document document = XMLUtils.read(fis);
         if( document==null )
@@ -90,12 +93,12 @@ public class Configuration implements SAXUtils.SAXWriter {
     /**
        Save the settings to an XML file.
      */
-    public boolean save(String filename) {    
+    public boolean save(String filename) {
     try {
         if( filename==null )
         return false;
-
-        FileOutputStream fos = new FileOutputStream(filename); 
+        //File -> inner path -> default path
+        OutputStream fos = new FileOutputStream(filename);
 
         Document document = XMLUtils.newDocument();
         document.appendChild(toXML(document));
