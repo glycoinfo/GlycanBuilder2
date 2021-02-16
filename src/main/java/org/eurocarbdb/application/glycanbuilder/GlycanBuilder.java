@@ -192,7 +192,8 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
 	 */   
 	public void exit(int err_level) {    
 		// save configurations
-		theWorkspace.exit(new File("src/main/resources/config.xml").getAbsolutePath());
+		String resource = "./config.xml";
+		//theWorkspace.exit(resource);
 
 		// clear memory
 		theWorkspace.init();
