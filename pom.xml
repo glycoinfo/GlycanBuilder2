@@ -136,6 +136,7 @@
 				<artifactId>maven-assembly-plugin</artifactId>
 				<version>3.0.0</version>
 				<configuration>
+					<finalName>glycanbuilder2</finalName>
 					<descriptorRefs>
 						<descriptorRef>jar-with-dependencies</descriptorRef>
 					</descriptorRefs>
