@@ -254,6 +254,20 @@
 			<groupId>org.eurocarbdb</groupId>
 			<artifactId>resourcesdb</artifactId>
 			<version>0.4</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.eclipse.birt.runtime.3_7_1</groupId>
+					<artifactId>org.apache.batik.svggen</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.eclipse.birt.runtime.3_7_1</groupId>
+					<artifactId>org.apache.batik.transcoder</artifactId>
+				</exclusion>
+				<exclusion>
+				<groupId>batik</groupId>
+					<artifactId>batik-swing</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.glycoinfo.convert</groupId>
