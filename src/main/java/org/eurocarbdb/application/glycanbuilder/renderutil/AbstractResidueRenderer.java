@@ -66,14 +66,14 @@ public abstract class AbstractResidueRenderer implements ResidueRenderer{
 
     @Override
 	public String getText(Residue node) {
-    	if( node==null ) 
+    	if( node==null )
     		return "";
-    	
+
     	ResidueType  type  = node.getType();
-    	ResidueStyle style = 
+    	ResidueStyle style =
     			theResidueStyleDictionary.getStyle(node);
-    	String text = style.getText();    
-    	
+    	String text = style.getText();
+
     	return (text!=null) ?text :type.getResidueName();
     }
 
@@ -105,16 +105,22 @@ public abstract class AbstractResidueRenderer implements ResidueRenderer{
     	// add brackets for cleavages    
     	if( on_border && node.isLCleavage() ) 
     		text = "(" + text + ")";
-	
+
     	return text;
     }
 
     public Rectangle computeBoundingBox(Residue node, boolean on_border, int x, int y, ResAngle orientation, int node_size, int max_y_size) {    
     	// get style
     	ResidueStyle style = theResidueStyleDictionary.getStyle(node);
+
+		// assign blank pentagon for SNFG symbol
+		if (theGraphicOptions.NOTATION.equals(GraphicOptions.NOTATION_SNFG) && style.getShape() == null && node.isSaccharide()) {
+			style = ResidueStyle.assignedSNFG(node);
+		}
+
     	String shape = style.getShape();
 
-    	// compute dimensions
+		// compute dimensions
     	if( max_y_size<node_size )
     		node_size = max_y_size;
     	//if( shape==null )    

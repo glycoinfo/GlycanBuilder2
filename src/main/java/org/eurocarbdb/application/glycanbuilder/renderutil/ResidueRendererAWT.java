@@ -225,7 +225,7 @@ public class ResidueRendererAWT extends AbstractResidueRenderer {
     		
     		int font_size = (isSNFG && text.length() < 3) ? 10 : theGraphicOptions.NODE_FONT_SIZE;
     		int x_size    = textBounds(text,theGraphicOptions.NODE_FONT_FACE,font_size).width;
-    		if( shape!=null ) 
+    		if( shape!=null )
     			font_size = sat(8 * font_size * cur_bbox.width / x_size / 10,font_size);
 
     		Font new_font = null;
