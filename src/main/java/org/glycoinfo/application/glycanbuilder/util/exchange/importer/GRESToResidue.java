@@ -1,6 +1,7 @@
 package org.glycoinfo.application.glycanbuilder.util.exchange.importer;
 
 import org.eurocarbdb.application.glycanbuilder.Residue;
+import org.eurocarbdb.application.glycanbuilder.ResidueType;
 import org.eurocarbdb.application.glycanbuilder.dataset.ResidueDictionary;
 import org.glycoinfo.WURCSFramework.util.oldUtil.GRESToTrivialName;
 import org.glycoinfo.WURCSFramework.wurcs.sequence2.BRIDGE;
@@ -67,11 +68,12 @@ public class GRESToResidue {
 			if (trivialName.contains("Tal") || trivialName.contains("Alt") || trivialName.contains("Gul")) {
 				trivialName = (mscore.getSkeletonCode().indexOf("m") + 1) + "d" + trivialName;
 			}
-			if (trivialName.contains("Hex")) {
-				trivialName = "d" + trivialName;
-			}
+			//if (trivialName.contains("Hex")) {
+			//	trivialName = "d" + trivialName;
+			//}
 		}
-		Residue residue = ResidueDictionary.newResidue(trivialName);
+		ResidueType newType = ResidueDictionary.findResidueType(trivialName);
+		Residue residue = new Residue(newType);
 		
 		if(NonSymbolicResidueDictionary.hasResidueType(trivialName)) {
 			residue.getType().changeDescription(gres2trivialName.getCarbBankNotation());
