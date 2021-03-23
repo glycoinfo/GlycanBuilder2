@@ -135,8 +135,8 @@ public class Residue {
 		chirality = type.getChirality();
 		ring_size = type.getRingSize();
 		alditol = false;
-		this.was_sticky = 
-				_type.getName().contains("Fuc") || _type.getName().contains("Xyl") ? true : false;
+		this.was_sticky =
+				_type.getName().contains("Fuc") || _type.getName().contains("Xyl");
 		this.isComposition = false;
 		
 		parent_linkage = null;
@@ -161,8 +161,8 @@ public class Residue {
 		anomeric_carbon = _anomeric_carbon;
 		chirality = _chirality;
 		ring_size = _ring_size;
-		this.was_sticky = 
-				_type.getName().contains("Fuc") || _type.getName().contains("Xyl") ? true : false;
+		this.was_sticky =
+				_type.getName().contains("Fuc") || _type.getName().contains("Xyl");
 		
 		parent_linkage = null;
 		children_linkages = new LinkedList<Linkage>();

@@ -32,6 +32,7 @@ import java.net.URLConnection;
 
 import org.eurocarbdb.application.glycanbuilder.dataset.ResidueDictionary;
 import org.eurocarbdb.application.glycanbuilder.logutility.LogUtils;
+import org.eurocarbdb.application.glycanbuilder.util.GraphicOptions;
 import org.eurocarbdb.application.glycanbuilder.util.TextUtils;
 
 /**
@@ -50,7 +51,7 @@ import org.eurocarbdb.application.glycanbuilder.util.TextUtils;
 public class ResidueStyleDictionary {
 
 	//private TreeMap<String,ResidueStyle> styles = new TreeMap<String,ResidueStyle>();
-	private TreeMap<String, String> styles = new TreeMap<String, String>();
+	private TreeMap<String, String> styles = new TreeMap<>();
 	
 	//---- init
 
@@ -166,13 +167,13 @@ public class ResidueStyleDictionary {
 		if( type.isCustomType() ) 
 			return ResidueStyle.createText(type.getResidueName());    
 
-		/** set basetype symbol*/
+		/* set basetype symbol*/
 		String a_sStyle = "";
 		if(a_oRS == null) {
 			a_sStyle = this.styles.get(type.getSuperclass());
 		}
 		
-		/** set text notation */
+		/* set text notation */
 		if(a_sStyle == null || a_sStyle.equals("")) {
 			a_sStyle = type_name + 
 									"\t-\t" + 
@@ -192,7 +193,7 @@ public class ResidueStyleDictionary {
 		}
 
 		if(node.getID() != 0) a_oRS.setText(String.valueOf(node.getID()));
-		
+
 		return a_oRS;
 	}
 

@@ -349,6 +349,28 @@ public class ResidueStyle {
 		return ret;
 	}    
 
+	static public ResidueStyle assignedSNFG (Residue _residue) {
+		//1: name -> Assigned
+		//2: Shape -> pentagon
+		//3: ShapeColor -> 0,0,0
+		//4: Fill -> full
+		//5: FillNegative -> no
+		//6: FillColor -> 255,255,255
+		//7: Text -> -
+		//8: TextColor -> 0,0,0
+		ResidueStyle ret = new ResidueStyle();
+		ret.name = "Assigned";
+		ret.shape = "pentagon";
+		ret.shape_color = Color.black;
+		ret.fill_style = "full";
+		ret.fill_negative = false;
+		ret.fill_color = Color.white;
+		ret.text = String.valueOf(_residue.getID());
+		ret.text_color = Color.black;
+
+		return ret;
+	}
+
 	public void setText(String _text) {
 		this.text = _text;
 	}

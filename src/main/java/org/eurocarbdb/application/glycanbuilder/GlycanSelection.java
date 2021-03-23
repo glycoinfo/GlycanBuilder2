@@ -279,7 +279,6 @@ public class GlycanSelection implements Transferable {
 	 * stored in the object
 	 */
 	public String getSVG() {
-		System.out.println("getSVG");
 		return SVGUtils.getVectorGraphics((GlycanRendererAWT) theGlycanRenderer, theStructures,
 				theGlycanRenderer.getGraphicOptions().SHOW_MASSES,
 				theGlycanRenderer.getGraphicOptions().SHOW_MASSES);

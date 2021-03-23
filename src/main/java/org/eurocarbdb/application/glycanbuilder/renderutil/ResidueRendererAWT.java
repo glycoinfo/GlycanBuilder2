@@ -127,7 +127,12 @@ public class ResidueRendererAWT extends AbstractResidueRenderer {
     	
     	Graphics2D g2d=paintable.getGraphics2D();
     	ResidueStyle style = theResidueStyleDictionary.getStyle(node);
-    	
+
+    	// assign blank pentagon for SNFG symbol
+		if (theGraphicOptions.NOTATION.equals(GraphicOptions.NOTATION_SNFG) && style.getShape() == null && node.isSaccharide()) {
+	    	style = ResidueStyle.assignedSNFG(node);
+		}
+
     	//check ring size for SNFG
     	boolean isSNFG = (!this.checkComposiiton(node).isEmpty());
     	

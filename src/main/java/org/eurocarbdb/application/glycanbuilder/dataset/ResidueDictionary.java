@@ -55,13 +55,13 @@ import org.glycoinfo.application.glycanbuilder.dataset.TextSymbolDescriptor;
 public class ResidueDictionary {
 
 	static {
-		dictionary = new HashMap<String,ResidueType>();
+		dictionary = new HashMap<>();
 
-		superclasses = new LinkedList<String>();
-		direct_residues = new TreeMap<Integer,ResidueType>();
-		other_residues = new LinkedList<ResidueType>();
-		all_residues = new LinkedList<ResidueType>();
-		all_residues_map = new HashMap<String,LinkedList<ResidueType> >();
+		superclasses = new LinkedList<>();
+		direct_residues = new TreeMap<>();
+		other_residues = new LinkedList<>();
+		all_residues = new LinkedList<>();
+		all_residues_map = new HashMap<>();
 
 		initDictionary();
 	}

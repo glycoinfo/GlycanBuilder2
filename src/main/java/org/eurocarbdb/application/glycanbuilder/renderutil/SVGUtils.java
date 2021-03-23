@@ -578,7 +578,7 @@ public class SVGUtils   {
     export(os,gr,structures,show_masses,show_redend,1.,format);
     }
     
-    static public void export(OutputStream os, GlycanRendererAWT gr, Collection<Glycan> structures, boolean show_masses, boolean show_redend, double scale, String format) throws Exception {
+    static public void  export(OutputStream os, GlycanRendererAWT gr, Collection<Glycan> structures, boolean show_masses, boolean show_redend, double scale, String format) throws Exception {
     	export(os, gr, structures, show_masses, show_redend, scale, format, new PositionManager(), new BBoxManager());
     }
 
