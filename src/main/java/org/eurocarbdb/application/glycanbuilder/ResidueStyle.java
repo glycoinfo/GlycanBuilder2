@@ -359,13 +359,13 @@ public class ResidueStyle {
 		//7: Text -> -
 		//8: TextColor -> 0,0,0
 		ResidueStyle ret = new ResidueStyle();
-		ret.name = "Assigned";
+		ret.name = _residue.getTypeName();
 		ret.shape = "pentagon";
 		ret.shape_color = Color.black;
 		ret.fill_style = "full";
 		ret.fill_negative = false;
 		ret.fill_color = Color.white;
-		ret.text = String.valueOf(_residue.getID());
+		ret.text = "";
 		ret.text_color = Color.black;
 
 		return ret;

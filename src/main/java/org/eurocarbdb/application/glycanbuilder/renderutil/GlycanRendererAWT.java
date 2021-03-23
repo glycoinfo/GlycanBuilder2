@@ -117,7 +117,7 @@ public class GlycanRendererAWT extends AbstractGlycanRenderer {
 	}
 
 	protected void assignID (Glycan structure) {
-		HashMap<String, Integer> a_mIndex = new HashMap<String, Integer>();
+		HashMap<String, Integer> a_mIndex = new HashMap<>();
 		int a_iID = 1;
 		for(Residue a_oRES : structure.getAllResidues()) {
 			if(!a_oRES.isSaccharide() || a_oRES.getType().getSuperclass().equals("Bridge")) continue;

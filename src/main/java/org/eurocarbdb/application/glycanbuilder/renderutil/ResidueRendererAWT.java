@@ -278,7 +278,7 @@ public class ResidueRendererAWT extends AbstractResidueRenderer {
     	// draw anomeric state
     	if(shape != null && a_bIsShow == true) 
     		showAnomericState(g2d, node, orientation, cur_bbox);
-    	
+
     	g2d.setColor(Color.black);
     	//g2d.drawString(""+node.id,left(cur_bbox),bottom(cur_bbox));
     }
