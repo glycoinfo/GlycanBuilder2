@@ -9,7 +9,6 @@ import org.glycoinfo.WURCSFramework.wurcs.sequence2.GRES;
 import org.glycoinfo.WURCSFramework.wurcs.sequence2.MSCORE;
 import org.glycoinfo.application.glycanbuilder.dataset.NonSymbolicResidueDictionary;
 
-import org.glycoinfo.GlycanFormatconverter.Glycan.Monosaccharide;
 import org.glycoinfo.application.glycanbuilder.util.exchange.WURCSToGlycanException;
 
 import java.util.ArrayList;
@@ -26,7 +25,7 @@ public class GRESToResidue {
 	
 	private GRES gres;
 
-	private ArrayList<String> modifications = new ArrayList<String>();
+	private ArrayList<String> modifications = new ArrayList<>();
 	
 	public GRES getGRES() {
 		return this.gres;
@@ -61,7 +60,7 @@ public class GRESToResidue {
 		//今のままでは新たに追加した単糖を生成することができない, trivial nameを持つ単糖の修飾や置換基を十分にパースできていない
 		//例えばPseのSkeletonCodeをパースした際にコア部分のL-gro-L-manNonを変換できているが細かな修飾までは対応できていない
 		//Trivial nameの生成はIUPAC notationの生成処理に任せたほうが良い
-		Monosaccharide mono = new Monosaccharide();
+		//Monosaccharide mono = new Monosaccharide();
 
 		//String trivialName = "";
 		if (mscore.getSkeletonCode().indexOf("m") == 5) {
@@ -98,10 +97,7 @@ public class GRESToResidue {
 	}
 	
 	private boolean isSticky(String _trivialName) {
-		if(_trivialName.contains("Fuc") || _trivialName.contains("Xyl"))
-			return true;
-		
-		return false;
+		return _trivialName.contains("Fuc") || _trivialName.contains("Xyl");
 	}
 	
 	private char makeRingSize(MSCORE _mscore) {
@@ -149,7 +145,7 @@ public class GRESToResidue {
 
 		if(this.anomSymbol == 'o' && skeletonCode.equals("<Q>"))
 			return true;
-		if(skeletonCode.indexOf("o") == -1 && skeletonCode.indexOf("O") == -1)
+		if(!skeletonCode.contains("o") && !skeletonCode.contains("O"))
 			return false;
 		if(skeletonCode.indexOf("o") == this.anomPosition)
 			return true;
@@ -186,7 +182,7 @@ public class GRESToResidue {
 	private void checkUnsaturation (GRES _gres) {
 		String skeletonCode = _gres.getMS().getCoreStructure().getSkeletonCode();
 		String unsaturation = "";
-		ArrayList<Integer> a_aPoss = new ArrayList<Integer>();
+		ArrayList<Integer> a_aPoss = new ArrayList<>();
 		
 		for(int i = 0; i < skeletonCode.length(); i++) {
 			if(skeletonCode.charAt(i) == 'e' ||

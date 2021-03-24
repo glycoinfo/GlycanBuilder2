@@ -5,117 +5,111 @@ import org.eurocarbdb.application.glycanbuilder.dataset.ResidueDictionary;
 
 public class LinkageConnector {
 
-	Residue a_oCurrentRES;
-	Residue a_oParentRES;
-	Residue a_oStartRES;
+	private final Residue donor;
+	private final Residue acceptor;
+	private final Residue start;
 	
 	/**
 	 * 
-	 * @param _a_oCurrent
-	 * @param _a_oParent
-	 * @param _a_oStart
+	 * @param _donor
+	 * @param _acceptor
+	 * @param _start
 	 */
-	public LinkageConnector(Residue _a_oCurrent, Residue _a_oParent, Residue _a_oStart) {
-		this.a_oCurrentRES = _a_oCurrent;
-		this.a_oParentRES = _a_oParent;
-		this.a_oStartRES = _a_oStart;
+	public LinkageConnector(Residue _donor, Residue _acceptor, Residue _start) {
+		this.donor = _donor;
+		this.acceptor = _acceptor;
+		this.start = _start;
 	}
 	
 	/**
 	 * 
-	 * @param a_oG2L
+	 * @param _glin2linkage
 	 */
-	public void start(GLINToLinkage a_oG2L) {
-		Residue a_oRES = this.a_oCurrentRES;
-		Residue a_oSUB = null;
+	public void start(GLINToLinkage _glin2linkage) {
+		Residue donor = this.donor;
+		Residue substituent = null;
 		
-		/** set parent linkage for current residue*/
-		if(!a_oG2L.getParentLinkage().isEmpty()) {
-			if(a_oG2L.getBridgeLinkage() != null) {
-				a_oRES.setParentLinkage(a_oG2L.getBridgeLinkage());
-				a_oSUB = a_oG2L.getBridgeLinkage().getSubstituent();
-				a_oSUB.setParentLinkage(a_oG2L.getParentLinkage().get(0));
+		// set parent linkage for current residue
+		if(!_glin2linkage.getParentLinkage().isEmpty()) {
+			if(_glin2linkage.getBridgeLinkage() != null) {
+				donor.setParentLinkage(_glin2linkage.getBridgeLinkage());
+				substituent = _glin2linkage.getBridgeLinkage().getSubstituent();
+				substituent.setParentLinkage(_glin2linkage.getParentLinkage().get(0));
 			}else {		
-				a_oRES.setParentLinkage(a_oG2L.getParentLinkage().getLast());
+				donor.setParentLinkage(_glin2linkage.getParentLinkage().getLast());
 			}
-		}else if(a_oG2L.getStartCyclicLinkage() != null) {
-			a_oRES.setParentLinkage(a_oG2L.getStartCyclicLinkage());
-		}else if(a_oG2L.getParentRepeatingLinkage() != null) {
-			a_oRES.setParentLinkage(a_oG2L.getParentRepeatingLinkage());
+		}else if(_glin2linkage.getStartCyclicLinkage() != null) {
+			donor.setParentLinkage(_glin2linkage.getStartCyclicLinkage());
+		}else if(_glin2linkage.getParentRepeatingLinkage() != null) {
+			donor.setParentLinkage(_glin2linkage.getParentRepeatingLinkage());
 		}
 		
-		if(a_oG2L.getDonorGLINs().isEmpty()) return;
-		if(a_oG2L.getParents().size() > 1) return;
+		if(_glin2linkage.getDonorGLINs().isEmpty()) return;
+		if(_glin2linkage.getParents().size() > 1) return;
 		
-		if(a_oG2L.isCyclic() == false && a_oG2L.isRepeating() == false) {
-			/** add child edge between child and parent residues */				
-			Residue a_oParent = this.a_oParentRES;
-			if(this.isOutRepeating(a_oRES, a_oParent)) {
-				/** make glycosidic bond out of repating : o-]<->o*/
-				/*if(a_oSUB != null) {
-					a_oParent.getEndRepitionResidue().addChild(a_oSUB, a_oSUB.getParentLinkage().getBonds());
-					a_oSUB.addChild(a_oRES, a_oRES.getParentLinkage().getBonds());
-				} else*/ 
-					a_oParent.getEndRepitionResidue().addChild(a_oRES, a_oRES.getParentLinkage().getBonds());
+		if(_glin2linkage.isCyclic() == false && _glin2linkage.isRepeating() == false) {
+			// add child edge between child and parent residues				
+			Residue a_oParent = this.acceptor;
+			if(this.isOutRepeating(donor, a_oParent)) {
+				// make glycosidic bond out of repating : o-]<->o
+				a_oParent.getEndRepitionResidue().addChild(donor, donor.getParentLinkage().getBonds());
 			} else {
-				if(a_oSUB != null) {
-					/** make glycosidic bond with substituent : s<->o*/
-					a_oParent.addChild(a_oSUB, a_oSUB.getParentLinkage().getBonds());
+				if(substituent != null) {
+					// make glycosidic bond with substituent : s<->o
+					a_oParent.addChild(substituent, substituent.getParentLinkage().getBonds());
 					
-					/** make glicosidic bond with monosaccharide : o<->s*/
-					a_oSUB.addChild(a_oRES, a_oRES.getParentLinkage().getBonds());	
+					// make glicosidic bond with monosaccharide : o<->s
+					substituent.addChild(donor, donor.getParentLinkage().getBonds());
 				}else {
-					/** make glycosidic bond : o<->o*/
-					a_oParent.addChild(a_oRES, a_oRES.getParentLinkage().getBonds());
+					// make glycosidic bond : o<->o
+					a_oParent.addChild(donor, donor.getParentLinkage().getBonds());
 				}
 			}
 		}else {
-			this.analyzeBracketNotation(a_oRES, a_oSUB, a_oG2L);
+			this.analyzeBracketNotation(donor, substituent, _glin2linkage);
 		}
-		
-		return;
 	}
 	
 	private void analyzeBracketNotation (Residue a_oRES, Residue a_oBridge, GLINToLinkage a_oG2L) {
-		/** define end repeating bracket */
+		// define end repeating bracket
 		if(a_oG2L.getChildRepeatingLinkage() != null) {
 			this.makeEdgeWithEndBracket(a_oG2L, a_oRES);
 		}
 
-		/** define end cyclic bracket */
+		// define end cyclic bracket
 		if(a_oG2L.getEndCyclicLinkage() != null) {
 			this.makeEdgeWithEndCyclic(a_oG2L, a_oRES);
 		}
 
-		/** define start repeating bracket */
+		// define start repeating bracket
 		if(a_oG2L.getParentRepeatingLinkage() != null) {
 			this.makeEdgeWithStartBracket(a_oG2L, a_oRES);
 		}
 		
-		/** define start cyclic bracket */ 
+		// define start cyclic bracket 
 		if(a_oG2L.getStartCyclicLinkage() != null) {
 			this.makeEdgeWithStartCyclic(a_oG2L, a_oRES);
 		}
 		
-		/** define an edge for glycan structure */
+		// define an edge for glycan structure
 		if(a_oRES.getStartRepetitionResidue() != null && a_oRES.getStartCyclicResidue() == null && a_oG2L.getDonorGLINs().size() > 1) {
-			Residue a_oParent = this.a_oParentRES;
+			Residue a_oParent = this.acceptor;
 			Residue a_oStartRep = a_oRES.getStartRepetitionResidue();
 			if(this.isOutRepeating(a_oStartRep, a_oParent)) {
-				/** end repeat to start repeat : o-]<->[-o */
+				// end repeat to start repeat : o-]<->[-o
 				a_oParent.getEndRepitionResidue().addChild(a_oStartRep, a_oStartRep.getParentLinkage().getBonds());
 			} else {
-				/** start repeat to monosaccharide : o-]<->o */
+				// start repeat to monosaccharide : o-]<->o
 				a_oParent.addChild(a_oStartRep, a_oStartRep.getParentLinkage().getBonds());
 			}
 		}else if(a_oRES.getStartCyclicResidue() == null && !a_oG2L.getParents().isEmpty()){
-			Residue a_oParent = this.a_oParentRES;
+			Residue a_oParent = this.acceptor;
 			if(this.isOutRepeating(a_oRES, a_oParent)) {
-				/** end repeating bracket to monosaccharide : o<->[-o */
+				// end repeating bracket to monosaccharide : o<->[-o
 				a_oParent.getEndRepitionResidue().addChild(a_oRES, a_oRES.getParentLinkage().getBonds());
 			} else {
 				if(a_oBridge == null) {
-					/** monosaccharide(in rep) to monosacchadie(in rep) : 
+					/* monosaccharide(in rep) to monosacchadie(in rep) :
 					 * [
 					 *   \
 					 *    >o-
@@ -124,20 +118,18 @@ public class LinkageConnector {
 					 *  
 					 *  some monosaccharide have end repeating bracket
 					 *  [-o<->o-
-					 * */
+					 */
 					if(!a_oRES.equals(a_oParent)) a_oParent.addChild(a_oRES, a_oRES.getParentLinkage().getBonds());
 				} else {
-					/**  
+					/*
 					 * end repeating node make bridge for other monosaccharide in repeating
 					 * [-o<->bridge<->o-
-					 * */
+					 */
 					a_oParent.addChild(a_oBridge, a_oBridge.getParentLinkage().getBonds());
 					a_oBridge.addChild(a_oRES, a_oRES.getParentLinkage().getBonds());
 				}
 			}
-		}	
-		
-		return;
+		}
 	}
 		
 	/**
@@ -149,11 +141,9 @@ public class LinkageConnector {
 		Residue a_oStartRep = ResidueDictionary.createStartRepetition();
 		a_oStartRep.setParentLinkage(a_oG2L.getParentRepeatingLinkage());
 		a_oRES.setStartRepetiionResidue(a_oStartRep);
-		/** start repeating bracket to residue : o<->]*/
+		// start repeating bracket to residue : o<->]*/
 		a_oStartRep.addChild(a_oRES/*, a_oRES.getParentLinkage().getBonds()*/);
 		a_oStartRep.getParentLinkage().setLinkagePositions(a_oStartRep.getParentLinkage().getBonds());
-	
-		return;
 	}
 	
 	/**
@@ -166,27 +156,25 @@ public class LinkageConnector {
 				a_oG2L.getMinRepeatingCount(), a_oG2L.getMaxRepeatingCount());
 		Residue a_oSUB = null;
 		
-		/** set parameter */
+		// set parameter
 		a_oEndRep.setParentLinkage(a_oG2L.getChildRepeatingLinkage());
-		a_oEndRep.setStartResidue(this.a_oStartRES);
+		a_oEndRep.setStartResidue(this.start);
 		a_oRES.setEndRepitionResidue(a_oEndRep);
 		
-		/** [<->s<->o */
+		// [<->s<->o
 		if(a_oG2L.getChildRepeatingLinkage().getSubstituent() != null) {
 			a_oSUB = a_oG2L.getChildRepeatingLinkage().getSubstituent();
 			
-			/** sugar to substituent : s<->o*/
+			// sugar to substituent : s<->o*/
 			a_oSUB.setParentLinkage(a_oG2L.getParentLinkage().get(0));
 			a_oRES.addChild(a_oSUB, a_oSUB.getParentLinkage().getBonds());
 			
-			/** substituent to end repeating : [<->s*/		
+			// substituent to end repeating : [<->s*/		
 			a_oSUB.addChild(a_oEndRep, a_oEndRep.getParentLinkage().getBonds());
 		} else {
-			/** end repeating to residue : [<->o */
+			// end repeating to residue : [<->o
 			a_oRES.addChild(a_oEndRep, a_oEndRep.getParentLinkage().getBonds());
-		}			
-	
-		return;
+		}
 	}
 	
 	/**
@@ -204,9 +192,7 @@ public class LinkageConnector {
 			a_oStartCyclic.addChild(a_oRES.getStartRepetitionResidue(), a_oRES.getStartRepetitionResidue().getParentLinkage().getBonds());
 		}else {
 			a_oStartCyclic.addChild(a_oRES, a_oRES.getParentLinkage().getBonds());
-		}	
-		
-		return;
+		}
 	}
 	
 	/**
@@ -225,9 +211,7 @@ public class LinkageConnector {
 			a_oRES.getEndRepitionResidue().addChild(a_oEndCyclic, a_oEndCyclic.getParentLinkage().getBonds());
 		}else {	
 			a_oRES.addChild(a_oEndCyclic, a_oEndCyclic.getParentLinkage().getBonds());
-		}	
-		
-		return;
+		}
 	}
 	
 	/**
@@ -251,8 +235,6 @@ public class LinkageConnector {
 		int a_iChildDonorPos = a_sChildPos.equals("?") ? -1 : Integer.parseInt(a_sChildPos);
 		int a_iEndRepDonorPos = a_sEndRepPos.equals("?") ? -1 : Integer.parseInt(a_sEndRepPos);
 
-		if(a_iChildDonorPos == a_iEndRepDonorPos) return true;
-		
-		return false;
+		return a_iChildDonorPos == a_iEndRepDonorPos;
 	}
 }

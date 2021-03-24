@@ -18,12 +18,12 @@ import org.glycoinfo.WURCSFramework.wurcs.sequence2.WURCSSequence2;
 public class WURCSSequence2ToGlycan {
 
 	private Glycan glycan;
-	private HashMap<GRES, Residue> gres2residue;
+	private final HashMap<GRES, Residue> gres2residue;
 	
-	private GRESToFragment gres2frag;
+	private final GRESToFragment gres2frag;
 
 	public WURCSSequence2ToGlycan () {
-		this.gres2residue = new HashMap<GRES, Residue>();
+		this.gres2residue = new HashMap<>();
 		this.glycan = null;
 		this.gres2frag = new GRESToFragment();
 	}
@@ -40,11 +40,13 @@ public class WURCSSequence2ToGlycan {
 		for(GRES gres : wSeq2.getGRESs()) {
 			this.analyzeGRES(gres);
 			if(wSeq2.getGRESs().size() > 1)
-				gres2frag.start(gres, this.gres2residue.get(gres));
+				gres2frag.start(gres);
 		}
 
-		for(GRES gres : wSeq2.getGRESs()) {
-			this.analyzeGLIN(gres, wArray.getLINs());
+		if (gres2frag.getRootOfCompositions().isEmpty()) {
+			for (GRES gres : wSeq2.getGRESs()) {
+				this.analyzeGLIN(gres, wArray.getLINs());
+			}
 		}
 		
 		this.glycan = new Glycan(makeRoot(wSeq2.getGRESs()), false, _massOpt);
@@ -71,10 +73,16 @@ public class WURCSSequence2ToGlycan {
 				Residue compoRoot = this.gres2residue.get(gres);
 				compoRoot.isComposition(true);
 				this.glycan.addAntenna(compoRoot);
-			}			
+			}
+			// substituent composition
+			for (GLIN glin : gres2frag.getSubstituentWithFragments()) {
+				Residue fragRoot = gres2frag.getSubStituentFragment(glin);
+				for(GRES gres : gres2frag.getChildren()) {
+					fragRoot.addParentOfFragment(this.gres2residue.get(gres));
+				}
+				this.glycan.addAntenna(fragRoot, fragRoot.getParentLinkage().getBonds());
+			}
 		}
-		
-		return;
 	}
 
 	private void analyzeGRES(GRES _gres) throws Exception {
@@ -87,8 +95,6 @@ public class WURCSSequence2ToGlycan {
 		// add substituent as child residue
 		SUBSTAnalyzer substAnalyzer = new SUBSTAnalyzer(gres2residue.getModifications());
 		substAnalyzer.start(_gres, residue);
-		
-		return;
 	}
 	
 	private void analyzeGLIN(GRES _gres, LinkedList<LIN> _lins) throws Exception {
@@ -101,9 +107,7 @@ public class WURCSSequence2ToGlycan {
 				this.gres2residue.get(glin2linkage.getParents().get(0)) : null;
 		Residue start = this.gres2residue.get(glin2linkage.getStartRepeatingGRES());
 
-		LinkageConnector linkageConnector =
-				new LinkageConnector(donor, acceptor, start);
-		
+		LinkageConnector linkageConnector = new LinkageConnector(donor, acceptor, start);
 		linkageConnector.start(glin2linkage);
 
 		// set parents for fragments
@@ -112,8 +116,6 @@ public class WURCSSequence2ToGlycan {
 				this.gres2residue.get(_gres).addParentOfFragment(this.gres2residue.get(gres));
 			}
 		}
-		
-		return;
 	}
 	
 	private Residue makeRoot(LinkedList<GRES> _gress) throws Exception {
