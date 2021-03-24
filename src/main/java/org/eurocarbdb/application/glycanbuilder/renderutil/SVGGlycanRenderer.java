@@ -36,6 +36,8 @@ import java.awt.image.*;
 
 import javax.swing.*;
 
+import org.eurocarbdb.application.glycanbuilder.util.GraphicOptions;
+import org.glycoinfo.application.glycanbuilder.util.GlycanUtils;
 import org.w3c.dom.*;
 import org.apache.batik.svggen.*;
 import org.apache.batik.ext.awt.g2d.GraphicContext;
@@ -57,20 +59,35 @@ class SVGGlycanRenderer extends GlycanRendererAWT {
     theGraphicOptions = src.theGraphicOptions;
     }
 
-    public void paint(GroupingSVGGraphics2D g2d, Glycan structure, HashSet<Residue> selected_residues, HashSet<Linkage> selected_linkages, boolean show_mass, boolean show_redend, PositionManager posManager, BBoxManager bboxManager) {    
+    public void paint(GroupingSVGGraphics2D g2d, Glycan structure, HashSet<Residue> selected_residues, HashSet<Linkage> selected_linkages, boolean show_mass, boolean show_redend, PositionManager posManager, BBoxManager bboxManager) {
 
-    if( structure==null || structure.getRoot(show_redend)==null )
-        return;
-    
-    selected_residues = (selected_residues!=null) ?selected_residues :new HashSet<Residue>();
-    selected_linkages = (selected_linkages!=null) ?selected_linkages :new HashSet<Linkage>();
+        if (structure == null || structure.getRoot(show_redend) == null)
+            return;
 
-    paintResidue(g2d,structure,structure.getRoot(show_redend),selected_residues,selected_linkages,posManager,bboxManager);
-    paintBracket(g2d,structure,structure.getBracket(),selected_residues,selected_linkages,posManager,bboxManager);
-    if( show_mass ) {
-        g2d.addGroup("m",structure,null);
-        displayMass(new DefaultPaintable(g2d),structure,show_redend,bboxManager);
-    }        
+        boolean isAlditol = show_redend;
+        if(!structure.isComposition())
+            isAlditol = GlycanUtils.isShowRedEnd(structure, theGraphicOptions, show_redend);
+
+        this.assignID(structure);
+
+        selected_residues = (selected_residues != null) ? selected_residues : new HashSet<>();
+        selected_linkages = (selected_linkages != null) ? selected_linkages : new HashSet<>();
+
+        if (structure.isComposition()) {
+            //paintResidue(g2d, structure, structure.getRoot(show_redend), selected_residues, selected_linkages, posManager, bboxManager);
+            paintBracket(g2d, structure, structure.getBracket(), selected_residues, selected_linkages, posManager, bboxManager);
+        } else {
+            paintResidue(g2d, structure, structure.getRoot(isAlditol), selected_residues, selected_linkages, posManager, bboxManager);
+            paintBracket(g2d, structure, structure.getBracket(), selected_residues, selected_linkages, posManager, bboxManager);
+        }
+
+        if(theGraphicOptions.NOTATION.equals(GraphicOptions.NOTATION_SNFG)) {
+            displayLegend(new DefaultPaintable(g2d), structure, show_redend, bboxManager);
+        }
+        if (show_mass) {
+            g2d.addGroup("m", structure, null);
+            displayMass(new DefaultPaintable(g2d), structure, show_redend, bboxManager);
+        }
     }
 
     public void paintResidue(GroupingSVGGraphics2D g2d, Glycan structure,Residue node, HashSet<Residue> selected_residues, HashSet<Linkage> selected_linkages, PositionManager posManager, BBoxManager bboxManager) {    
