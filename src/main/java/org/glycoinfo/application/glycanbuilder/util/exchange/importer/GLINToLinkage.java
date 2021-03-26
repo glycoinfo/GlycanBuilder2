@@ -89,9 +89,7 @@ public class GLINToLinkage {
 		return this.startGRES;
 	}
 	
-	public ArrayList<GRES> getParents() {
-		return this.acceptorGRESs;
-	}
+	public ArrayList<GRES> getParents() { return this.acceptorGRESs; }
 	
 	public LinkedList<GLIN> getDonorGLINs() {
 		return this.donorGLINs;
@@ -308,7 +306,7 @@ public class GLINToLinkage {
 			if(a_aGLINs.getFirst().getDonor().contains(_gres)) {
 				this.acceptorGRESs.addAll(a_aGLINs.getFirst().getDonor());
 			}else {
-				for(GRES a_oDGRES : a_aGLINs.getFirst().getDonor()) { 
+				for(GRES a_oDGRES : a_aGLINs.getFirst().getDonor()) {
 				if(a_oDGRES.getID() - _gres.getID() == 1) continue;
 					this.acceptorGRESs.add(a_oDGRES);
 				}
@@ -316,7 +314,19 @@ public class GLINToLinkage {
 				if(!this.isReverse) this.acceptorGRESs.clear();
 			}
 		}
-		
+		/*
+		for (GLIN acceptorGLIN : _gres.getAcceptorGLINs()) {
+			if (acceptorGLIN.isRepeat()) continue;
+			for(GRES acceptor : acceptorGLIN.getAcceptor()) {
+				if (this.acceptorGRESs.contains(acceptor)) continue;
+				if (_gres.equals(acceptor)) continue;
+				this.acceptorGRESs.add(acceptor);
+
+			}
+		}
+		 */
+
+
 		for(GLIN a_oDGLIN : _gres.getDonorGLINs()) {
 			if(a_oDGLIN.isRepeat()) continue;
 			for(GRES a_oAGRES : a_oDGLIN.getAcceptor()) {

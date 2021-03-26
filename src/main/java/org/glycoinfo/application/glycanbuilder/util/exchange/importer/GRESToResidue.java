@@ -3,7 +3,7 @@ package org.glycoinfo.application.glycanbuilder.util.exchange.importer;
 import org.eurocarbdb.application.glycanbuilder.Residue;
 import org.eurocarbdb.application.glycanbuilder.ResidueType;
 import org.eurocarbdb.application.glycanbuilder.dataset.ResidueDictionary;
-import org.glycoinfo.WURCSFramework.util.oldUtil.GRESToTrivialName;
+import org.glycoinfo.GlycanFormatconverter.Glycan.Monosaccharide;
 import org.glycoinfo.WURCSFramework.wurcs.sequence2.BRIDGE;
 import org.glycoinfo.WURCSFramework.wurcs.sequence2.GRES;
 import org.glycoinfo.WURCSFramework.wurcs.sequence2.MSCORE;
@@ -12,7 +12,6 @@ import org.glycoinfo.application.glycanbuilder.dataset.NonSymbolicResidueDiction
 import org.glycoinfo.application.glycanbuilder.util.exchange.WURCSToGlycanException;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.LinkedList;
 
 public class GRESToResidue {
@@ -50,34 +49,24 @@ public class GRESToResidue {
 		this.anomPosition = mscore.getAnomericPosition();
 		this.anomSymbol = mscore.getAnomericSymbol();
 		this.ringSize = makeRingSize(mscore);
-		
-		GRESToTrivialName gres2trivialName = new GRESToTrivialName();
-		gres2trivialName.start(getGRES());
-		String trivialName = gres2trivialName.getTrivialName().replace("5", "");
 
-		//TODO: GRESの変換処理が古すぎるので対策を考える必要がある
-		//TODO: WURCSSequence2ではなくWURCSGraphが望ましい
-		//今のままでは新たに追加した単糖を生成することができない, trivial nameを持つ単糖の修飾や置換基を十分にパースできていない
-		//例えばPseのSkeletonCodeをパースした際にコア部分のL-gro-L-manNonを変換できているが細かな修飾までは対応できていない
-		//Trivial nameの生成はIUPAC notationの生成処理に任せたほうが良い
-		//Monosaccharide mono = new Monosaccharide();
+		TrivialNameConverter trinConv = new TrivialNameConverter();
+		trinConv.start(_gres);
+		String trivialName = trinConv.getTrivialName().replace("5", "");
 
-		//String trivialName = "";
 		if (mscore.getSkeletonCode().indexOf("m") == 5) {
 			if (trivialName.contains("Tal") || trivialName.contains("Alt") || trivialName.contains("Gul")) {
 				trivialName = (mscore.getSkeletonCode().indexOf("m") + 1) + "d" + trivialName;
 			}
-			//if (trivialName.contains("Hex")) {
-			//	trivialName = "d" + trivialName;
-			//}
 		}
 		ResidueType newType = ResidueDictionary.findResidueType(trivialName);
 		Residue residue = new Residue(newType);
-		
+
+		// generate monosaccharide legend
 		if(NonSymbolicResidueDictionary.hasResidueType(trivialName)) {
-			residue.getType().changeDescription(gres2trivialName.getCarbBankNotation());
+			residue.getType().changeDescription(trinConv.getIUPACNotation());
 		}
-		
+
 		if(!_gres.getMS().getString().contains("<Q>")  && residue.getTypeName().equals("Sugar"))
 			throw new WURCSToGlycanException(_gres.getMS().getString() + " is not handled in GlycanBuilder");
 		
@@ -87,12 +76,11 @@ public class GRESToResidue {
 	
 		residue.setAnomericCarbon(this.checkAnomerPosition());
 		residue.setAnomericState(this.checkAnomerSymbol());
-		residue.setChirality(gres2trivialName.getConfiguration().charAt(0));
+		residue.setChirality(getConfiguration(((Monosaccharide) trinConv.getNode()).getStereos()));
 		residue.setRingSize(residue.isAlditol() ? 'o' : this.ringSize);
 		
 		// add modificaiton
-		this.modifications = gres2trivialName.getModifications();
-		this.checkUnsaturation(_gres);
+		this.modifications = trinConv.getModifications();
 		this.residue = residue;
 	}
 	
@@ -178,29 +166,11 @@ public class GRESToResidue {
 		
 		return String.valueOf(this.anomPosition).charAt(0);
 	}
-	
-	private void checkUnsaturation (GRES _gres) {
-		String skeletonCode = _gres.getMS().getCoreStructure().getSkeletonCode();
-		String unsaturation = "";
-		ArrayList<Integer> a_aPoss = new ArrayList<>();
-		
-		for(int i = 0; i < skeletonCode.length(); i++) {
-			if(skeletonCode.charAt(i) == 'e' ||
-				skeletonCode.charAt(i) == 'E' ||
-				skeletonCode.charAt(i) == 'f' ||
-				skeletonCode.charAt(i) == 'F' ||
-				skeletonCode.charAt(i) == 'z' ||
-				skeletonCode.charAt(i) == 'Z') a_aPoss.add(i + 1);
-		}
-		
-		for(Iterator<Integer> i = a_aPoss.iterator(); i.hasNext();) {
-			unsaturation += i.next();
-			if(i.hasNext()) unsaturation +=",";
-		}
-		
-		if(unsaturation.length() != 0) {
-			unsaturation += "*en";
-			this.modifications.add(unsaturation);
-		}		
+
+	private char getConfiguration (LinkedList<String> _stereos) {
+		if (_stereos.isEmpty()) return '?';
+		String ret = _stereos.getFirst();
+		if (ret.length() == 3) return '?';
+		return ret.substring(0, 1).toUpperCase().charAt(0);
 	}
 }

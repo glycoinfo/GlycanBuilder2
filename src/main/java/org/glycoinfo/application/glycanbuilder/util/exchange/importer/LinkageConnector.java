@@ -47,7 +47,7 @@ public class LinkageConnector {
 		if(_glin2linkage.getDonorGLINs().isEmpty()) return;
 		if(_glin2linkage.getParents().size() > 1) return;
 		
-		if(_glin2linkage.isCyclic() == false && _glin2linkage.isRepeating() == false) {
+		if(!_glin2linkage.isCyclic() && !_glin2linkage.isRepeating()) {
 			// add child edge between child and parent residues				
 			Residue a_oParent = this.acceptor;
 			if(this.isOutRepeating(donor, a_oParent)) {

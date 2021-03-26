@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import org.eurocarbdb.application.glycanbuilder.Glycan;
 import org.eurocarbdb.application.glycanbuilder.Residue;
 import org.eurocarbdb.application.glycanbuilder.dataset.ResidueDictionary;
+import org.eurocarbdb.application.glycanbuilder.linkage.Bond;
 import org.eurocarbdb.application.glycanbuilder.linkage.Linkage;
 import org.eurocarbdb.application.glycanbuilder.massutil.MassOptions;
 import org.glycoinfo.WURCSFramework.util.WURCSFactory;
@@ -47,8 +48,12 @@ public class WURCSSequence2ToGlycan {
 			for (GRES gres : wSeq2.getGRESs()) {
 				this.analyzeGLIN(gres, wArray.getLINs());
 			}
+		} else {
+			for (GRES gres : wSeq2.getGRESs()) {
+				this.analyzeCompositionGLIN(gres);
+			}
 		}
-		
+
 		this.glycan = new Glycan(makeRoot(wSeq2.getGRESs()), false, _massOpt);
 		
 		// append ambiguous root
@@ -96,7 +101,21 @@ public class WURCSSequence2ToGlycan {
 		SUBSTAnalyzer substAnalyzer = new SUBSTAnalyzer(gres2residue.getModifications());
 		substAnalyzer.start(_gres, residue);
 	}
-	
+
+	private void analyzeCompositionGLIN (GRES _gres) {
+		for (GLIN acceptorGLIN : _gres.getAcceptorGLINs()) {
+			for (GRES acceptor : acceptorGLIN.getAcceptor()) {
+				/*
+				Bond bond = new Bond();
+				Residue acceptorRES = this.gres2residue.get(acceptor);
+				Residue donorRES = this.gres2residue.get(_gres);
+				Linkage lin = new Linkage(acceptorRES, donorRES, new char['?']);
+				 */
+				this.gres2residue.get(_gres).addParentOfFragment(this.gres2residue.get(acceptor));
+			}
+		}
+	}
+
 	private void analyzeGLIN(GRES _gres, LinkedList<LIN> _lins) throws Exception {
 		GLINToLinkage glin2linkage = new GLINToLinkage(this.gres2residue.get(_gres), _lins);
 		glin2linkage.start(_gres);
