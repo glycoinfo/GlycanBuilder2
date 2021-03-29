@@ -87,30 +87,28 @@ public class GlycanRendererAWT extends AbstractGlycanRenderer {
 		if (structure == null || structure.isEmpty())
 			return;
 
-		boolean a_bIsAlditol = show_redend;
-		if(!structure.isComposition())
-			a_bIsAlditol = GlycanUtils.isShowRedEnd(structure, theGraphicOptions, show_redend);
+		boolean isAlditol = show_redend;
+		if(!structure.isComposition()) {
+			isAlditol = GlycanUtils.isShowRedEnd(structure, theGraphicOptions, show_redend);
+		}
 		
 		this.assignID(structure);
 			
-		selected_residues = (selected_residues != null) ? selected_residues
-				: new HashSet<Residue>();
-		selected_linkages = (selected_linkages != null) ? selected_linkages
-				: new HashSet<Linkage>();
+		selected_residues = (selected_residues != null) ? selected_residues : new HashSet<>();
+		selected_linkages = (selected_linkages != null) ? selected_linkages : new HashSet<>();
 
-		if (structure.isComposition()) {
-			paintBracket(paintable, structure, selected_residues,
-					selected_linkages, active_residues, posManager, bboxManager);
-			//paintComposition(paintable, structure.getRoot(), structure.getBracket(),
-			//		selected_residues, posManager, bboxManager);
-		}else {
-			paintResidue(paintable, structure.getRoot(a_bIsAlditol),
-					selected_residues, selected_linkages, active_residues,
+		// draw core structures
+		if (!structure.isComposition()) {
+			paintResidue(paintable, structure.getRoot(isAlditol),
+					selected_residues, selected_linkages, null,
 					posManager, bboxManager);
-			paintBracket(paintable, structure, selected_residues,
-					selected_linkages, active_residues, posManager, bboxManager);
 		}
-		if(theGraphicOptions.NOTATION.equals(GraphicOptions.NOTATION_SNFG))
+
+		// draw fragments
+		paintBracket(paintable, structure, selected_residues,
+				selected_linkages, null, posManager, bboxManager);
+
+		if(this.theGraphicOptions.NOTATION.equals(GraphicOptions.NOTATION_SNFG))
 			displayLegend(paintable, structure, show_redend, bboxManager);
 		if (show_mass)
 			displayMass(paintable, structure, show_redend, bboxManager);
@@ -135,8 +133,6 @@ public class GlycanRendererAWT extends AbstractGlycanRenderer {
 				if(a_oRES.getID() != 0) a_oRES.setID(0);
 			}
 		}
-		
-		return;
 	}
 	
 	protected void displayLegend(Paintable paintable, Glycan structure, boolean show_redend, BBoxManager bboxManager) {
@@ -147,14 +143,14 @@ public class GlycanRendererAWT extends AbstractGlycanRenderer {
 		g2d.setFont(new Font(theGraphicOptions.MASS_TEXT_FONT_FACE, Font.PLAIN, 10));
 		
 		// create legend of unsupported monosaccharides
-		TreeMap<Integer, String> a_mIndex = new TreeMap<Integer, String>();
-		int a_iID = 1;
+		TreeMap<Integer, String> a_mIndex = new TreeMap<>();
+		int id = 1;
 		StringBuilder a_sbLegend = new StringBuilder();
 		for(Residue a_oRES : structure.getAllResidues()) {
 			if(!a_oRES.isSaccharide() || a_oRES.getType().getSuperclass().equals("Bridge")) continue;
 			if(!theResidueStyleDictionary.containsResidue(a_oRES) && !a_mIndex.containsValue(a_oRES.getType().getDescription())) {
-				a_mIndex.put(a_iID, a_oRES.getType().getDescription());
-				a_iID++;
+				a_mIndex.put(id, a_oRES.getType().getDescription());
+				id++;
 			}
  		}
 		
