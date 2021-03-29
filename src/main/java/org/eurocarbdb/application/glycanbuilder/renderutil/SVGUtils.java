@@ -123,47 +123,47 @@ public class SVGUtils   {
        should be included in the graphical representation
      */
     static public String getVectorGraphics(GlycanRendererAWT gr, Collection<Glycan> structures, boolean show_masses, boolean show_redend) {
-    if( structures == null )
-        structures = new LinkedList<>();
+        if (structures == null)
+            structures = new LinkedList<>();
 
-    try {
-        // Create an instance of the SVG Generator
-        DOMImplementation domImpl = org.apache.batik.dom.GenericDOMImplementation.getDOMImplementation();
-        Document document = domImpl.createDocument(null, "svg", null);
-        GroupingSVGGraphics2D g2d = new GroupingSVGGraphics2D(document,true);
+        try {
+            // Create an instance of the SVG Generator
+            DOMImplementation domImpl = org.apache.batik.dom.GenericDOMImplementation.getDOMImplementation();
+            Document document = domImpl.createDocument(null, "svg", null);
+            GroupingSVGGraphics2D g2d = new GroupingSVGGraphics2D(document, true);
 
-        // Render into the SVG Graphics2D
-        SVGGlycanRenderer sgr = new SVGGlycanRenderer(gr);
-        PositionManager posManager = new PositionManager();
-        BBoxManager bboxManager = new BBoxManager();
-        Rectangle all_bbox = sgr.computeBoundingBoxes(structures,show_masses,show_redend,posManager,bboxManager);
-        Dimension d = sgr.computeSize(all_bbox);
+            // Render into the SVG Graphics2D
+            SVGGlycanRenderer sgr = new SVGGlycanRenderer(gr);
+            PositionManager posManager = new PositionManager();
+            BBoxManager bboxManager = new BBoxManager();
+            Rectangle all_bbox = sgr.computeBoundingBoxes(structures, show_masses, show_redend, posManager, bboxManager);
+            Dimension d = sgr.computeSize(all_bbox);
 
-        // clear background
-        g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
-        g2d.setBackground(Color.white);
-        g2d.clearRect(0, 0, d.width, d.height);
+            // clear background
+            g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+            g2d.setBackground(Color.white);
+            g2d.clearRect(0, 0, d.width, d.height);
 
-        // paint
-        for( Glycan s : structures )
-            sgr.paint(g2d,s,null,null,show_masses,show_redend,posManager,bboxManager);
+            // paint
+            for (Glycan s : structures)
+                sgr.paint(g2d, s, null, null, show_masses, show_redend, posManager, bboxManager);
 
-        // Set viewBox attribute
-        String viewBox = "0 0 "+d.width+" "+d.height;
-        Element root = document.getDocumentElement();
-        root.setAttribute(SVGGraphics2D.SVG_VIEW_BOX_ATTRIBUTE, viewBox);
-        g2d.getRoot(root);
+            // Set viewBox attribute
+            String viewBox = "0 0 " + d.width + " " + d.height;
+            Element root = document.getDocumentElement();
+            root.setAttribute(SVGGraphics2D.SVG_VIEW_BOX_ATTRIBUTE, viewBox);
+            g2d.getRoot(root);
 
-        // Stream out SVG to a string
-        StringWriter out = new StringWriter();
-        g2d.stream(root, out, true, false);
+            // Stream out SVG to a string
+            StringWriter out = new StringWriter();
+            g2d.stream(root, out, true, false);
 
-        return out.toString();
-    }
-    catch(Exception e) {
-        LogUtils.report(e);
-        return null;
-    }
+            //return out.toString();
+            return out.toString().replaceAll("shape-rendering:crispEdges;\\s?", "");
+        } catch (Exception e) {
+            LogUtils.report(e);
+            return null;
+        }
     }
     
     /**
@@ -204,7 +204,8 @@ public class SVGUtils   {
     		StringWriter out = new StringWriter();
             g2d.stream(root, out, true, false);
 
-    		return out.toString();
+            //return out.toString();
+            return out.toString().replaceAll("shape-rendering:crispEdges;\\s?", "");
     	}catch(Exception e) {
     		LogUtils.report(e);
     		return null;

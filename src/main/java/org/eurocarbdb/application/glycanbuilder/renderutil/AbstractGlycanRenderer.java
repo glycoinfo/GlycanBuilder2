@@ -38,6 +38,7 @@ import org.eurocarbdb.application.glycanbuilder.linkage.LinkageStyleDictionary;
 import org.eurocarbdb.application.glycanbuilder.linkage.Union;
 import org.eurocarbdb.application.glycanbuilder.logutility.LogUtils;
 import org.eurocarbdb.application.glycanbuilder.util.GraphicOptions;
+import org.glycoinfo.application.glycanbuilder.util.GlycanUtils;
 
 public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 
@@ -220,10 +221,10 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 	 */
 	@Override
 	public void paint(Paintable paintable, Glycan structure,
-			HashSet<Residue> selected_residues,
-			HashSet<Linkage> selected_linkages, boolean show_mass,
-			boolean show_redend, PositionManager posManager,
-			BBoxManager bboxManager) {
+					  HashSet<Residue> selected_residues,
+					  HashSet<Linkage> selected_linkages, boolean show_mass,
+					  boolean show_redend, PositionManager posManager,
+					  BBoxManager bboxManager) {
 		paint(paintable, structure, selected_residues, selected_linkages, null,
 				show_mass, show_redend, posManager, bboxManager);
 	}
@@ -233,35 +234,38 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 	 */
 	@Override
 	public void paint(Paintable paintable, Glycan structure,
-			HashSet<Residue> selected_residues,
-			HashSet<Linkage> selected_linkages,
-			Collection<Residue> active_residues, boolean show_mass,
-			boolean show_redend, PositionManager posManager,
-			BBoxManager bboxManager) {
+					  HashSet<Residue> selected_residues,
+					  HashSet<Linkage> selected_linkages,
+					  Collection<Residue> active_residues, boolean show_mass,
+					  boolean show_redend, PositionManager posManager,
+					  BBoxManager bboxManager) {
 
 		if (structure == null || structure.isEmpty())
 			return;
 
-		//this.assignID(structure);
-		
+		boolean isAlditol = show_redend;
+		if(!structure.isComposition()) {
+			isAlditol = GlycanUtils.isShowRedEnd(structure, theGraphicOptions, show_redend);
+		}
+
+		this.assignID(structure);
+
 		selected_residues = (selected_residues != null) ? selected_residues : new HashSet<Residue>();
 		selected_linkages = (selected_linkages != null) ? selected_linkages : new HashSet<Linkage>();
 
-		if (structure.isComposition())
-			paintBracket(paintable, structure, selected_residues,
-					selected_linkages, active_residues, posManager, bboxManager);
-			//paintComposition(paintable, structure.getRoot(), structure.getBracket(),
-			//	selected_residues, posManager, bboxManager);
-		else {
-			paintResidue(paintable, structure.getRoot(show_redend),
+		// draw core structures
+		if (!structure.isComposition()) {
+			paintResidue(paintable, structure.getRoot(isAlditol),
 					selected_residues, selected_linkages, active_residues,
 					posManager, bboxManager);
-			paintBracket(paintable, structure, selected_residues,
-					selected_linkages, active_residues, posManager, bboxManager);
 		}
-		
-		//if(this.theGraphicOptions.NOTATION.equals(GraphicOptions.NOTATION_SNFG))
-		//	displayLegend(paintable, structure, show_redend, bboxManager);
+
+		// draw fragments
+		paintBracket(paintable, structure, selected_residues,
+				selected_linkages, active_residues, posManager, bboxManager);
+
+		if(this.theGraphicOptions.NOTATION.equals(GraphicOptions.NOTATION_SNFG))
+			displayLegend(paintable, structure, show_redend, bboxManager);
 		if (show_mass)
 			displayMass(paintable, structure, show_redend, bboxManager);
 	}
@@ -269,9 +273,9 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 	abstract protected void displayMass(Paintable paintable, Glycan structure,boolean show_redend, BBoxManager bboxManager);
 
 	abstract protected void displayLegend(Paintable paintable, Glycan structure, boolean show_redend, BBoxManager bboxManager);
-	
+
 	abstract protected void assignID (Glycan structure);
-	
+
 	protected String getMassText(Glycan structure) {
 		StringBuilder sb = new StringBuilder();
 		DecimalFormat df = new DecimalFormat("0.0000");
@@ -288,15 +292,15 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 	}
 
 	abstract protected void paintComposition(Paintable paintable, Residue root,Residue bracket, HashSet<Residue> selected_residues,
-			PositionManager posManager, BBoxManager bboxManager);
+											 PositionManager posManager, BBoxManager bboxManager);
 
 	abstract protected void paintQuantity(Paintable paintable, Residue antennae, int quantity,BBoxManager bboxManager);
 
 	protected void paintResidue(Paintable paintable, Residue node,
-			HashSet<Residue> selected_residues,
-			HashSet<Linkage> selected_linkages,
-			Collection<Residue> active_residues, PositionManager posManager,
-			BBoxManager bboxManager) {
+								HashSet<Residue> selected_residues,
+								HashSet<Linkage> selected_linkages,
+								Collection<Residue> active_residues, PositionManager posManager,
+								BBoxManager bboxManager) {
 		if (node == null) return;
 
 		Rectangle parent_bbox = bboxManager.getParent(node);
@@ -370,8 +374,8 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 	 */
 	@Override
 	public Rectangle computeBoundingBoxes(Collection<Glycan> structures,
-			boolean show_masses, boolean show_redend,
-			PositionManager posManager, BBoxManager bboxManager) {
+										  boolean show_masses, boolean show_redend,
+										  PositionManager posManager, BBoxManager bboxManager) {
 		return computeBoundingBoxes(structures, show_masses, show_redend,
 				posManager, bboxManager, true);
 	}
@@ -381,8 +385,8 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 	 */
 	@Override
 	public Rectangle computeBoundingBoxes(Collection<Glycan> structures,
-			boolean show_masses, boolean show_redend,
-			PositionManager posManager, BBoxManager bboxManager, boolean reset) {
+										  boolean show_masses, boolean show_redend,
+										  PositionManager posManager, BBoxManager bboxManager, boolean reset) {
 
 		if (reset) {
 			// init bboxes
@@ -416,8 +420,8 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 	 */
 	@Override
 	public Rectangle computeBoundingBoxes(Glycan structure, int cur_left,
-			int cur_top, boolean show_mass, boolean show_redend,
-			PositionManager posManager, BBoxManager bboxManager) {
+										  int cur_top, boolean show_mass, boolean show_redend,
+										  PositionManager posManager, BBoxManager bboxManager) {
 		if (structure == null)
 			return new Rectangle(cur_left, cur_top, 0, 0);
 
@@ -442,41 +446,41 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 					computeBoundingBoxesComposition(root, bracket, posManager, bboxManager);
 				} else {
 					*/root = structure.getRoot(show_redend);
-					bracket = structure.getBracket();
+				bracket = structure.getBracket();
 
-					// assign positions
-					posManager.add(root, new ResAngle(), orientation, false, true);
-					assignPosition(root, false, orientation, root, posManager);
+				// assign positions
+				posManager.add(root, new ResAngle(), orientation, false, true);
+				assignPosition(root, false, orientation, root, posManager);
 
-					posManager.add(bracket, new ResAngle(), orientation, false, true);
-					assignPosition(bracket, false, orientation, bracket, posManager);
+				posManager.add(bracket, new ResAngle(), orientation, false, true);
+				assignPosition(bracket, false, orientation, bracket, posManager);
 
-					// compute bounding boxes
-					computeBoundingBoxes(root, posManager, bboxManager);
-					computeBoundingBoxesBracket(bracket, root, theGraphicOptions.COLLAPSE_MULTIPLE_ANTENNAE,
-							posManager, bboxManager);
+				// compute bounding boxes
+				computeBoundingBoxes(root, posManager, bboxManager);
+				computeBoundingBoxesBracket(bracket, root, theGraphicOptions.COLLAPSE_MULTIPLE_ANTENNAE,
+						posManager, bboxManager);
 
-					// add bracket bbox
-					Rectangle bbox = union(bboxManager.getComplete(root), bboxManager.getComplete(bracket));
-					bboxManager.setComplete(root, bbox);
+				// add bracket bbox
+				Rectangle bbox = union(bboxManager.getComplete(root), bboxManager.getComplete(bracket));
+				bboxManager.setComplete(root, bbox);
 
-					// translate if necessary
-					bboxManager.translate(cur_left - bbox.x, cur_top - bbox.y, root);
-					bboxManager.translate(cur_left - bbox.x, cur_top - bbox.y, bracket);
-					bbox.translate(cur_left - bbox.x, cur_top - bbox.y);
+				// translate if necessary
+				bboxManager.translate(cur_left - bbox.x, cur_top - bbox.y, root);
+				bboxManager.translate(cur_left - bbox.x, cur_top - bbox.y, bracket);
+				bbox.translate(cur_left - bbox.x, cur_top - bbox.y);
 
-					// add masses
-					if (show_mass) {
-						Dimension d = textBounds(getMassText(structure),
-								theGraphicOptions.MASS_TEXT_FONT_FACE,
-								theGraphicOptions.MASS_TEXT_SIZE);
-						Rectangle text_bbox = new Rectangle(cur_left, bottom(bbox)
-								+ theGraphicOptions.MASS_TEXT_SPACE, d.width,
-								d.height);
-						bbox = union(bbox, text_bbox);
-					}
+				// add masses
+				if (show_mass) {
+					Dimension d = textBounds(getMassText(structure),
+							theGraphicOptions.MASS_TEXT_FONT_FACE,
+							theGraphicOptions.MASS_TEXT_SIZE);
+					Rectangle text_bbox = new Rectangle(cur_left, bottom(bbox)
+							+ theGraphicOptions.MASS_TEXT_SPACE, d.width,
+							d.height);
+					bbox = union(bbox, text_bbox);
+				}
 
-					return bbox;
+				return bbox;
 				//}
 			}
 			// cannot properly handle error cases such as multi-threading problems because of this.
@@ -515,7 +519,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 	}
 
 	private void assignPositionComposition(Residue current,
-			PositionManager posManager) throws Exception {
+										   PositionManager posManager) throws Exception {
 		if (current == null)
 			return;
 
@@ -526,8 +530,8 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 	}
 
 	private void assignPosition(Residue current, boolean sticky,
-			ResAngle orientation, Residue turning_point,
-			PositionManager posManager) throws Exception {
+								ResAngle orientation, Residue turning_point,
+								PositionManager posManager) throws Exception {
 		if (current == null)
 			return;
 
@@ -590,7 +594,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 
 	/**
 	 * Return a string representation of the composition of a glycan structure
-	 * 
+	 *
 	 * @param orientation
 	 *            the orientation at which the text will be displayed
 	 * @param styled
@@ -604,7 +608,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 	}
 
 	protected static String makeCompositionText(Residue root, Residue bracket,
-			ResAngle orientation, boolean styled) {
+												ResAngle orientation, boolean styled) {
 
 		LinkedList<String> cleavages = new LinkedList<String>();
 		TreeMap<String, Integer> residues = new TreeMap<String, Integer>();
@@ -677,7 +681,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 	}
 
 	private void computeBoundingBoxesComposition(Residue root, Residue bracket,
-			PositionManager posManager, BBoxManager bboxManager) {
+												 PositionManager posManager, BBoxManager bboxManager) {
 		ResAngle orientation = posManager.getOrientation(root);
 
 		String text = makeCompositionText(root, bracket, orientation, true);
@@ -697,9 +701,9 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 	}
 
 	private void computeBoundingBoxes(Residue node, PositionManager posManager,
-			BBoxManager bboxManager) throws Exception {
+									  BBoxManager bboxManager) throws Exception {
 		if (node == null) return;
-	
+
 		// compute all bboxes
 		ResAngle orientation = posManager.getOrientation(node);
 		if (orientation.equals(0))
@@ -716,8 +720,8 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 	}
 
 	private void computeBoundingBoxesLR(Residue node,
-			PositionManager posManager, BBoxManager bboxManager)
-					throws Exception {
+										PositionManager posManager, BBoxManager bboxManager)
+			throws Exception {
 		if (node == null) return;
 
 		Rectangle node_bbox = theResidueRenderer.computeBoundingBox(node,
@@ -817,8 +821,8 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		else
 			bboxManager.alignSymmetricOnRight(node_bbox, border_nodes,
 					region_m45, region_p45, theGraphicOptions.NODE_SPACE, 2
-					* theGraphicOptions.NODE_SPACE
-					+ theGraphicOptions.NODE_SIZE);
+							* theGraphicOptions.NODE_SPACE
+							+ theGraphicOptions.NODE_SIZE);
 
 		// align positions -90 and 90 with node to not clash with the rest
 		Union<Residue> ex_nodes = new Union<Residue>(region_0).and(region_m45).and(region_p45).and(border_nodes);
@@ -841,7 +845,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 	}
 
 	private void computeBoundingBoxesRL(Residue node,
-			PositionManager posManager, BBoxManager bboxManager) throws Exception {
+										PositionManager posManager, BBoxManager bboxManager) throws Exception {
 		if (node == null) return;
 
 		Rectangle node_bbox = theResidueRenderer.computeBoundingBox(node,
@@ -934,7 +938,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 					region_p45, theGraphicOptions.NODE_SPACE);
 			bboxManager.alignCentersOnLeft(node_bbox, border_nodes, region_0,
 					new Union<Residue>(region_0).and(region_m45)
-					.and(region_p45), theGraphicOptions.NODE_SPACE);
+							.and(region_p45), theGraphicOptions.NODE_SPACE);
 		} else if (region_m45.size() == 0)
 			bboxManager.alignCornersOnLeftAtTop(node_bbox, border_nodes,
 					region_p45, theGraphicOptions.NODE_SPACE,
@@ -946,8 +950,8 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		else
 			bboxManager.alignSymmetricOnLeft(node_bbox, border_nodes,
 					region_p45, region_m45, theGraphicOptions.NODE_SPACE, 2
-					* theGraphicOptions.NODE_SPACE
-					+ theGraphicOptions.NODE_SIZE);
+							* theGraphicOptions.NODE_SPACE
+							+ theGraphicOptions.NODE_SIZE);
 
 		// align positions -90 and 90 with node to not clash with the rest
 		Union<Residue> ex_nodes = new Union<Residue>(region_0).and(region_m45).and(region_p45).and(border_nodes);
@@ -970,7 +974,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 	}
 
 	private void computeBoundingBoxesTB(Residue node,
-			PositionManager posManager, BBoxManager bboxManager) throws Exception {
+										PositionManager posManager, BBoxManager bboxManager) throws Exception {
 		if (node == null)
 			return;
 
@@ -1074,8 +1078,8 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		else
 			bboxManager.alignSymmetricOnBottom(node_bbox, border_nodes,
 					region_p45, region_m45, 2 * theGraphicOptions.NODE_SPACE, 2
-					* theGraphicOptions.NODE_SPACE
-					+ theGraphicOptions.NODE_SIZE);
+							* theGraphicOptions.NODE_SPACE
+							+ theGraphicOptions.NODE_SIZE);
 
 		// align positions -90 and 90 with node to not clash with the rest
 		Union<Residue> ex_nodes = new Union<Residue>(region_0).and(region_m45).and(region_p45).and(border_nodes);
@@ -1097,7 +1101,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 	}
 
 	private void computeBoundingBoxesBT(Residue node,
-			PositionManager posManager, BBoxManager bboxManager) throws Exception {
+										PositionManager posManager, BBoxManager bboxManager) throws Exception {
 		if (node == null)
 			return;
 
@@ -1186,11 +1190,11 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		if (region_0.size() > 0) {
 			bboxManager.alignBottomsOnLeft(region_0, region_m45, theGraphicOptions.NODE_SPACE);
 			bboxManager.alignBottomsOnRight(region_0, new Union<Residue>(
-					region_0).and(region_m45), region_p45, region_p45,
+							region_0).and(region_m45), region_p45, region_p45,
 					theGraphicOptions.NODE_SPACE);
 			bboxManager.alignCentersOnTop(node_bbox, border_nodes, region_0,
 					new Union<Residue>(region_0).and(region_m45)
-					.and(region_p45), theGraphicOptions.NODE_SPACE);
+							.and(region_p45), theGraphicOptions.NODE_SPACE);
 		} else if (region_m45.size() == 0)
 			bboxManager.alignCornersOnTopAtRight(node_bbox, border_nodes,
 					region_p45, theGraphicOptions.NODE_SPACE,
@@ -1202,8 +1206,8 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		else
 			bboxManager.alignSymmetricOnTop(node_bbox, border_nodes,
 					region_m45, region_p45, theGraphicOptions.NODE_SPACE, 2
-					* theGraphicOptions.NODE_SPACE
-					+ theGraphicOptions.NODE_SIZE);
+							* theGraphicOptions.NODE_SPACE
+							+ theGraphicOptions.NODE_SIZE);
 
 		// align positions -90 and 90 with node to not clash with the rest
 		Union<Residue> ex_nodes = new Union<Residue>(region_0).and(region_m45).and(region_p45).and(border_nodes);
@@ -1220,7 +1224,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		if (node.hasChildren())
 			bboxManager.setSupport(node, new Rectangle(midx(node_bbox),
 					midy(node_bbox) - theGraphicOptions.NODE_SPACE
-					- theGraphicOptions.NODE_SIZE, 0, 0));
+							- theGraphicOptions.NODE_SIZE, 0, 0));
 		for (Iterator<Linkage> i = node.iterator(); i.hasNext();)
 			bboxManager.setParent(i.next().getChildResidue(), node_bbox);
 	}
@@ -1229,8 +1233,8 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 	// Bounding boxes bracket
 
 	private void computeBoundingBoxesBracket(Residue bracket, Residue root,
-			boolean COLLAPSE_MULTIPLE_ANTENNAE, PositionManager posManager,
-			BBoxManager bboxManager) throws Exception {
+											 boolean COLLAPSE_MULTIPLE_ANTENNAE, PositionManager posManager,
+											 BBoxManager bboxManager) throws Exception {
 		if (bracket == null || root == null)
 			return;
 
@@ -1254,8 +1258,8 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 	}
 
 	private void computeBoundingBoxesBracketLR(Residue bracket, Residue root,
-			boolean COLLAPSE_MULTIPLE_ANTENNAE, PositionManager posManager,
-			BBoxManager bboxManager) throws Exception {
+											   boolean COLLAPSE_MULTIPLE_ANTENNAE, PositionManager posManager,
+											   BBoxManager bboxManager) throws Exception {
 		if (bracket == null || root == null)
 			return;
 
@@ -1317,33 +1321,33 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 			bboxManager.alignCentersOnRight(bracket_bbox, antennaee, 0);
 		Rectangle antennaee_bbox = (antennaee.size() > 0) ? new Rectangle(
 				bboxManager.getComplete(antennaee)) : null;
-				Rectangle all_bbox = union(bracket_bbox, antennaee_bbox);
+		Rectangle all_bbox = union(bracket_bbox, antennaee_bbox);
 
-				// compute bbox for quantities
-				if (max_quantity > 1) {
-					Dimension quantity_text_dim = textBounds(max_quantity + "x",
-							theGraphicOptions.NODE_FONT_FACE,
-							theGraphicOptions.NODE_FONT_SIZE);
-					all_bbox.width += quantity_text_dim.width + 2;
-				}
+		// compute bbox for quantities
+		if (max_quantity > 1) {
+			Dimension quantity_text_dim = textBounds(max_quantity + "x",
+					theGraphicOptions.NODE_FONT_FACE,
+					theGraphicOptions.NODE_FONT_SIZE);
+			all_bbox.width += quantity_text_dim.width + 2;
+		}
 
-				// restore linkages
-				for (Residue antennae : antennaee) {
-					if (!posManager.isOnBorder(antennae))
-						bracket.removeChild(antennae);
-				}
+		// restore linkages
+		for (Residue antennae : antennaee) {
+			if (!posManager.isOnBorder(antennae))
+				bracket.removeChild(antennae);
+		}
 
-				// set bboxes
-				bboxManager.setParent(bracket, structure_bbox);
-				bboxManager.setCurrent(bracket, bracket_bbox);
-				bboxManager.setBorder(bracket, bracket_bbox);
-				bboxManager.setComplete(bracket, all_bbox);
-				bboxManager.setSupport(bracket, bracket_bbox);
+		// set bboxes
+		bboxManager.setParent(bracket, structure_bbox);
+		bboxManager.setCurrent(bracket, bracket_bbox);
+		bboxManager.setBorder(bracket, bracket_bbox);
+		bboxManager.setComplete(bracket, all_bbox);
+		bboxManager.setSupport(bracket, bracket_bbox);
 	}
 
 	private void computeBoundingBoxesBracketRL(Residue bracket, Residue root,
-			boolean COLLAPSE_MULTIPLE_ANTENNAE, PositionManager posManager,
-			BBoxManager bboxManager) throws Exception {
+											   boolean COLLAPSE_MULTIPLE_ANTENNAE, PositionManager posManager,
+											   BBoxManager bboxManager) throws Exception {
 		if (bracket == null || root == null)
 			return;
 
@@ -1405,34 +1409,34 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 			bboxManager.alignCentersOnLeft(bracket_bbox, antennaee, 0);
 		Rectangle antennaee_bbox = (antennaee.size() > 0) ? new Rectangle(
 				bboxManager.getComplete(antennaee)) : null;
-				Rectangle all_bbox = union(bracket_bbox, antennaee_bbox);
+		Rectangle all_bbox = union(bracket_bbox, antennaee_bbox);
 
-				// compute bbox for quantities
-				if (max_quantity > 1) {
-					Dimension quantity_text_dim = textBounds(max_quantity + "x",
-							theGraphicOptions.NODE_FONT_FACE,
-							theGraphicOptions.NODE_FONT_SIZE);
-					all_bbox.x -= quantity_text_dim.width + 2;
-					all_bbox.width += quantity_text_dim.width + 2;
-				}
+		// compute bbox for quantities
+		if (max_quantity > 1) {
+			Dimension quantity_text_dim = textBounds(max_quantity + "x",
+					theGraphicOptions.NODE_FONT_FACE,
+					theGraphicOptions.NODE_FONT_SIZE);
+			all_bbox.x -= quantity_text_dim.width + 2;
+			all_bbox.width += quantity_text_dim.width + 2;
+		}
 
-				// restore linkages
-				for (Residue antennae : antennaee) {
-					if (!posManager.isOnBorder(antennae))
-						bracket.removeChild(antennae);
-				}
+		// restore linkages
+		for (Residue antennae : antennaee) {
+			if (!posManager.isOnBorder(antennae))
+				bracket.removeChild(antennae);
+		}
 
-				// set bboxes
-				bboxManager.setParent(bracket, structure_bbox);
-				bboxManager.setCurrent(bracket, bracket_bbox);
-				bboxManager.setBorder(bracket, bracket_bbox);
-				bboxManager.setComplete(bracket, all_bbox);
-				bboxManager.setSupport(bracket, bracket_bbox);
+		// set bboxes
+		bboxManager.setParent(bracket, structure_bbox);
+		bboxManager.setCurrent(bracket, bracket_bbox);
+		bboxManager.setBorder(bracket, bracket_bbox);
+		bboxManager.setComplete(bracket, all_bbox);
+		bboxManager.setSupport(bracket, bracket_bbox);
 	}
 
 	private void computeBoundingBoxesBracketTB(Residue bracket, Residue root,
-			boolean COLLAPSE_MULTIPLE_ANTENNAE, PositionManager posManager,
-			BBoxManager bboxManager) throws Exception {
+											   boolean COLLAPSE_MULTIPLE_ANTENNAE, PositionManager posManager,
+											   BBoxManager bboxManager) throws Exception {
 		if (bracket == null || root == null)
 			return;
 
@@ -1495,34 +1499,34 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 			bboxManager.alignCentersOnBottom(bracket_bbox, antennaee, 0);
 		Rectangle antennaee_bbox = (antennaee.size() > 0) ? new Rectangle(
 				bboxManager.getComplete(antennaee)) : null;
-				Rectangle all_bbox = union(bracket_bbox, antennaee_bbox);
+		Rectangle all_bbox = union(bracket_bbox, antennaee_bbox);
 
-				// compute bbox for quantities
-				if (max_quantity > 1) {
-					Dimension quantity_text_dim = textBounds(max_quantity + "x",
-							theGraphicOptions.NODE_FONT_FACE,
-							theGraphicOptions.NODE_FONT_SIZE);
-					all_bbox.height += quantity_text_dim.width + 2; // the string is
-					// rotated
-				}
+		// compute bbox for quantities
+		if (max_quantity > 1) {
+			Dimension quantity_text_dim = textBounds(max_quantity + "x",
+					theGraphicOptions.NODE_FONT_FACE,
+					theGraphicOptions.NODE_FONT_SIZE);
+			all_bbox.height += quantity_text_dim.width + 2; // the string is
+			// rotated
+		}
 
-				// restore linkages
-				for (Residue antennae : antennaee) {
-					if (!posManager.isOnBorder(antennae))
-						bracket.removeChild(antennae);
-				}
+		// restore linkages
+		for (Residue antennae : antennaee) {
+			if (!posManager.isOnBorder(antennae))
+				bracket.removeChild(antennae);
+		}
 
-				// set bboxes
-				bboxManager.setParent(bracket, structure_bbox);
-				bboxManager.setCurrent(bracket, bracket_bbox);
-				bboxManager.setBorder(bracket, bracket_bbox);
-				bboxManager.setComplete(bracket, all_bbox);
-				bboxManager.setSupport(bracket, bracket_bbox);
+		// set bboxes
+		bboxManager.setParent(bracket, structure_bbox);
+		bboxManager.setCurrent(bracket, bracket_bbox);
+		bboxManager.setBorder(bracket, bracket_bbox);
+		bboxManager.setComplete(bracket, all_bbox);
+		bboxManager.setSupport(bracket, bracket_bbox);
 	}
 
 	private void computeBoundingBoxesBracketBT(Residue bracket, Residue root,
-			boolean COLLAPSE_MULTIPLE_ANTENNAE, PositionManager posManager,
-			BBoxManager bboxManager) throws Exception {
+											   boolean COLLAPSE_MULTIPLE_ANTENNAE, PositionManager posManager,
+											   BBoxManager bboxManager) throws Exception {
 		if (bracket == null || root == null)
 			return;
 
@@ -1609,13 +1613,13 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 	}
 
 	protected void paintBracket(Paintable paintable, Glycan _glycan,
-			HashSet<Residue> selected_residues,
-			HashSet<Linkage> selected_linkages,
-			Collection<Residue> active_residues, PositionManager posManager,
-			BBoxManager bboxManager) {
+								HashSet<Residue> selected_residues,
+								HashSet<Linkage> selected_linkages,
+								Collection<Residue> active_residues, PositionManager posManager,
+								BBoxManager bboxManager) {
 
 		if(_glycan == null || _glycan.getBracket() == null) return;
-		
+
 		Residue bracket = _glycan.getBracket();
 
 		Rectangle parent_bbox = bboxManager.getParent(bracket);
@@ -1631,7 +1635,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 					parent_bbox, bracket_bbox, support_bbox,
 					posManager.getOrientation(bracket));
 
-		// paint antennaee
+		// paint antennae
 		for (Linkage link : bracket.getChildrenLinkages()) {
 			Residue child = link.getChildResidue();
 			int quantity = bboxManager.getLinkedResidues(child).size() + 1;
@@ -1646,8 +1650,10 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 					selected = (selected_residues.contains(bracket) && selected_residues.contains(child)) || selected_linkages.contains(link);
 					active = (active_residues == null || (active_residues.contains(bracket) && active_residues.contains(child)));
 
-					if(!_glycan.isComposition())
+					//TODO : donorがfragmentAcceptorを持つ場合は描画するようにする
+					if (!link.getChildResidue().getParentsOfFragment().isEmpty()) {
 						theLinkageRenderer.paintEdge(paintable, link, selected, node_bbox, node_bbox, child_bbox, child_border_bbox);
+					}
 				}
 
 				// paint child
@@ -1672,7 +1678,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 	 */
 	@Override
 	public BufferedImage getImage(Glycan structure, boolean opaque,
-			boolean show_masses, boolean show_redend) {
+								  boolean show_masses, boolean show_redend) {
 		LinkedList<Glycan> structures = new LinkedList<Glycan>();
 		if (structure != null)
 			structures.add(structure);
@@ -1684,7 +1690,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 	 */
 	@Override
 	public synchronized BufferedImage getImage(Glycan structure, boolean opaque,
-			boolean show_masses, boolean show_redend, double scale) {
+											   boolean show_masses, boolean show_redend, double scale) {
 		LinkedList<Glycan> structures = new LinkedList<Glycan>();
 		if (structure != null)
 			structures.add(structure);
@@ -1696,7 +1702,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 	 */
 	@Override
 	public BufferedImage getImage(Collection<Glycan> structures,
-			boolean opaque, boolean show_masses, boolean show_redend) {
+								  boolean opaque, boolean show_masses, boolean show_redend) {
 		return getImage(structures, opaque, show_masses, show_redend, 1.);
 	}
 
@@ -1705,8 +1711,8 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 	 */
 	@Override
 	public BufferedImage getImage(Collection<Glycan> structures,
-			boolean opaque, boolean show_masses, boolean show_redend,
-			double scale) {
+								  boolean opaque, boolean show_masses, boolean show_redend,
+								  double scale) {
 		return getImage(structures, opaque, show_masses, show_redend, scale, new PositionManager(), new BBoxManager());
 	}
 
@@ -1714,5 +1720,5 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 	 * @see org.eurocarbdb.application.glycanbuilder.GlycanRenderer#getImage(java.util.Collection, boolean, boolean, boolean, double, org.eurocarbdb.application.glycanbuilder.PositionManager, org.eurocarbdb.application.glycanbuilder.BBoxManager)
 	 */
 	@Override
-	abstract public BufferedImage getImage(Collection<Glycan> structures,boolean opaque, boolean show_masses, boolean show_redend,double scale,PositionManager posManager,BBoxManager bboxManager);	
+	abstract public BufferedImage getImage(Collection<Glycan> structures,boolean opaque, boolean show_masses, boolean show_redend,double scale,PositionManager posManager,BBoxManager bboxManager);
 }
