@@ -75,7 +75,10 @@ public class SUBSTAnalyzer {
 	public Residue MAPToBridge(GLIN _glin) throws Exception {
 		if(_glin.getMAP().equals("")) return null;
 
-		BaseCrossLinkedTemplate crossTemp = BaseCrossLinkedTemplate.forMAP(_glin.getMAP());
+		MAPAnalyzer mapAnalyzer = new MAPAnalyzer();
+		mapAnalyzer.start(_glin.getMAP());
+		BaseCrossLinkedTemplate crossTemp = mapAnalyzer.getCrossTemplate();
+
 		return new Residue(CrossLinkedSubstituentDictionary.getCrossLinkedSubstituent(crossTemp.getIUPACnotation()));
 	}
 	
@@ -103,14 +106,14 @@ public class SUBSTAnalyzer {
 		BaseSubstituentTemplate subTemp = mapAnalyzer.getSingleTemplate();
 
 		if (!this.checkTrueMAP(mapAnalyzer)) {
-			throw new Exception(_subst.getMAP() + " is wrong MAP.");
+			throw new Exception("This MAP is not support in the GlycanBuilder2:" + _subst.getMAP());
 		}
 
 		char[] positions = this.makePosition(_subst.getPositions());
 		String subNotation = positions[0] + "*" + subTemp.getIUPACnotation();
 
 		if(subTemp.getIUPACnotation().equals(""))
-			throw new Exception(_subst.getMAP() + " can not handled in GlycanBuilder");
+			throw new Exception(_subst.getMAP() + " can not handled in GlycanBuilder2");
 		
 		// check native substituent
 		TrivialNameDictionary trivDict = TrivialNameDictionary.forThreeLetterCode(_residue.getTypeName());

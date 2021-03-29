@@ -54,11 +54,6 @@ public class GRESToResidue {
 		trinConv.start(_gres);
 		String trivialName = trinConv.getTrivialName().replace("5", "");
 
-		if (mscore.getSkeletonCode().indexOf("m") == 5) {
-			if (trivialName.contains("Tal") || trivialName.contains("Alt") || trivialName.contains("Gul")) {
-				trivialName = (mscore.getSkeletonCode().indexOf("m") + 1) + "d" + trivialName;
-			}
-		}
 		ResidueType newType = ResidueDictionary.findResidueType(trivialName);
 		Residue residue = new Residue(newType);
 

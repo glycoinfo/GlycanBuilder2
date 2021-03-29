@@ -123,6 +123,9 @@ public class TrivialNameConverter {
             if (skeletonCode.charAt(i) == 'a') {
                 if (pos == mono.getAnomericPosition()) continue;
             }
+            if (skeletonCode.charAt(i) == 'o') {
+                if (pos == 1 && mono.getAnomer().equals(AnomericStateDescriptor.OPEN)) continue;
+            }
             this.modifications.add(pos + "*" + skeletonCode.charAt(i));
         }
 
