@@ -577,6 +577,12 @@ public class Residue {
 	}
 
 	/*
+	   Return <code>true</code> if this residue represent a bridge node.
+	   @see ResidueType#isBridge
+	 */
+	public boolean isBridge() { return type.isBridge(); }
+
+	/*
        Return <code>true</code> if this residue is contained in a
        terminal structure linked to a bracket residue.
 	 */
