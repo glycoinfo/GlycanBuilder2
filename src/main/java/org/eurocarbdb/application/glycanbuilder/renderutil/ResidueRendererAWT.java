@@ -129,7 +129,8 @@ public class ResidueRendererAWT extends AbstractResidueRenderer {
     	ResidueStyle style = theResidueStyleDictionary.getStyle(node);
 
     	// assign blank pentagon for SNFG symbol
-		if (theGraphicOptions.NOTATION.equals(GraphicOptions.NOTATION_SNFG) && style.getShape() == null && node.isSaccharide()) {
+		if (theGraphicOptions.NOTATION.equals(GraphicOptions.NOTATION_SNFG) && style.getShape() == null && node.isSaccharide()
+				&& !node.getType().getSuperclass().equals("Bridge")) {
 	    	style = ResidueStyle.assignedSNFG(node);
 		}
 
