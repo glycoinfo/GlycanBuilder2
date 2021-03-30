@@ -19,6 +19,9 @@ public class WURCS2Parser implements GlycanParser{
 		if (structure.isFragment()) return "";
 
 		try{
+			LinkageTypeOptimizer linkOpt = new LinkageTypeOptimizer();
+			linkOpt.start(structure);
+
 			GlycanToWURCSGraph glycan2graph = new GlycanToWURCSGraph();
 			glycan2graph.start(structure);
 			WURCSFactory wf = new WURCSFactory(glycan2graph.getGraph());

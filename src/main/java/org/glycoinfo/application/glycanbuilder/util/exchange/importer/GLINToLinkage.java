@@ -191,7 +191,7 @@ public class GLINToLinkage {
 				Residue a_oSUB = a_oSUBSTAnalyzer.MAPToBridge(_donorGLIN);
 				linkage = new Linkage(a_oSUB, this.acceptorRES, a_cdPositions);
 				linkage.setAnomericCarbon(a_cdPositions[0]);
-				linkage.setSubstituent(a_oSUB);
+				//linkage.setSubstituent(a_oSUB);
 
 				this.a_oBridgeLinkage = linkage;
 
@@ -231,8 +231,9 @@ public class GLINToLinkage {
 				this.acceptorLinkages.add(a_oLIN);
 				
 				// sub<->]
-				this.a_oRepeatingChildLinkage = new Linkage(a_oSUB, null, a_cdPositions);
-				this.a_oRepeatingChildLinkage.setSubstituent(a_oSUB);
+				this.a_oRepeatingChildLinkage = new Linkage(null, a_oSUB, a_cdPositions);
+				//this.a_oRepeatingChildLinkage = new Linkage(a_oSUB, null, a_cdPositions);
+				//this.a_oRepeatingChildLinkage.setSubstituent(a_oSUB);
 				this.a_oRepeatingChildLinkage.setAnomericCarbon(a_cdPositions[0]);
 			} catch (Exception e) {
 				e.printStackTrace();

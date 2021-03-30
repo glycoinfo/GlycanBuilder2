@@ -78,7 +78,7 @@ public class ResidueAnalyzer {
 
 		// extract native modification
 		//TODO : 修飾の上書きをする場合, enxの解析と組み込み
-		for(String modification : this.extractNativeModificaiton(_residue)) {
+		for(String modification : this.extractNativeModification(_residue)) {
 			if(modification.equals("")) continue;
 			this.convertSingleModificationToCarbonDescriptor(modification);
 		}
@@ -120,8 +120,8 @@ public class ResidueAnalyzer {
 			throw new WURCSExchangeException("error");
 	}
 
-	private ArrayList<String> extractNativeModificaiton(Residue _residue) {
-		ArrayList<String> modifications = new ArrayList();
+	private ArrayList<String> extractNativeModification(Residue _residue) {
+		ArrayList<String> modifications = new ArrayList<>();
 
 		// for alditol
 		if(_residue.isAlditol())
@@ -173,6 +173,7 @@ public class ResidueAnalyzer {
 			modifications.add("2*d");
 			modifications.add("6*d");
 		}
+
 
 		return modifications;
 	}
@@ -261,7 +262,7 @@ public class ResidueAnalyzer {
 		return a_sStereoCode;
 	}
 
-	private void convertSingleModificationToCarbonDescriptor(String a_sModification) throws GlycoconjugateException {
+	private void convertSingleModificationToCarbonDescriptor(String a_sModification) {
 		if(a_sModification.contains(",")) return;
 
 		String[] mod = a_sModification.split("\\*");
@@ -287,7 +288,7 @@ public class ResidueAnalyzer {
 		this.pos2char.put(pos, carbonDescriptor);
 	}
 
-	private char convertModificationNameToCarbonDescriptor(String _mod) throws GlycoconjugateException {
+	private char convertModificationNameToCarbonDescriptor(String _mod) {
 		try {
 		    ModificationType modType = null;
 		    if (_mod.equals("O")) modType = ModificationType.KETO;

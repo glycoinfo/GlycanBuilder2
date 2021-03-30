@@ -53,8 +53,6 @@ public class LinkageTypeOptimizer {
                     }
                 }
 
-                System.out.println(acceptorLinkage.getChildLinkageType() + " " + acceptorLinkage.getParentLinkageType());
-
                 if (acceptorLinkage.getSubstituent() == null) continue;
 
                 // monosaccharide-bridge-monosaccharide
@@ -62,7 +60,6 @@ public class LinkageTypeOptimizer {
                     //acceptorLinkage.setParentLinkageType();
                     //acceptorLinkage.setChildLinkageType();
                 }
-                System.out.println(acceptorLinkage);
             }
         }
 

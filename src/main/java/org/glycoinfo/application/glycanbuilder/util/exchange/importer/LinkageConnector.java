@@ -33,7 +33,8 @@ public class LinkageConnector {
 		if(!_glin2linkage.getParentLinkage().isEmpty()) {
 			if(_glin2linkage.getBridgeLinkage() != null) {
 				donor.setParentLinkage(_glin2linkage.getBridgeLinkage());
-				substituent = _glin2linkage.getBridgeLinkage().getSubstituent();
+				//substituent = _glin2linkage.getBridgeLinkage().getSubstituent();
+				substituent = _glin2linkage.getBridgeLinkage().getParentResidue();
 				substituent.setParentLinkage(_glin2linkage.getParentLinkage().get(0));
 			}else {		
 				donor.setParentLinkage(_glin2linkage.getParentLinkage().getLast());
@@ -88,7 +89,7 @@ public class LinkageConnector {
 		
 		// define start cyclic bracket 
 		if(a_oG2L.getStartCyclicLinkage() != null) {
-			this.makeEdgeWithStartCyclic(a_oG2L, a_oRES);
+			this.makeEdgeWithStartCyclic(a_oRES);
 		}
 		
 		// define an edge for glycan structure
@@ -141,8 +142,9 @@ public class LinkageConnector {
 		Residue a_oStartRep = ResidueDictionary.createStartRepetition();
 		a_oStartRep.setParentLinkage(a_oG2L.getParentRepeatingLinkage());
 		a_oRES.setStartRepetiionResidue(a_oStartRep);
-		// start repeating bracket to residue : o<->]*/
-		a_oStartRep.addChild(a_oRES/*, a_oRES.getParentLinkage().getBonds()*/);
+		a_oStartRep.setAnomericCarbon(a_oRES.getAnomericCarbon());
+		// start repeating bracket to residue : o<->]
+		a_oStartRep.addChild(a_oRES, a_oRES.getParentLinkage().getBonds());
 		a_oStartRep.getParentLinkage().setLinkagePositions(a_oStartRep.getParentLinkage().getBonds());
 	}
 	
@@ -160,16 +162,16 @@ public class LinkageConnector {
 		a_oEndRep.setParentLinkage(a_oG2L.getChildRepeatingLinkage());
 		a_oEndRep.setStartResidue(this.start);
 		a_oRES.setEndRepitionResidue(a_oEndRep);
-		
+
 		// [<->s<->o
-		if(a_oG2L.getChildRepeatingLinkage().getSubstituent() != null) {
-			a_oSUB = a_oG2L.getChildRepeatingLinkage().getSubstituent();
+		if(a_oG2L.getChildRepeatingLinkage().getChildResidue() != null) {
+			a_oSUB = a_oG2L.getChildRepeatingLinkage().getChildResidue();
 			
-			// sugar to substituent : s<->o*/
+			// sugar to substituent : s<->o
 			a_oSUB.setParentLinkage(a_oG2L.getParentLinkage().get(0));
 			a_oRES.addChild(a_oSUB, a_oSUB.getParentLinkage().getBonds());
 			
-			// substituent to end repeating : [<->s*/		
+			// substituent to end repeating : [<->s
 			a_oSUB.addChild(a_oEndRep, a_oEndRep.getParentLinkage().getBonds());
 		} else {
 			// end repeating to residue : [<->o
@@ -181,10 +183,9 @@ public class LinkageConnector {
 	 * make edge between start cyclic and residue or start repeating bracket 
 	 * start cyclic to residue : o<->(
 	 * start cyclic to start repeating bracket : o-]<->(
-	 * @param a_oG2L
 	 * @param a_oRES
 	 */
-	private void makeEdgeWithStartCyclic(GLINToLinkage a_oG2L, Residue a_oRES) {
+	private void makeEdgeWithStartCyclic(Residue a_oRES) {
 		Residue a_oStartCyclic = ResidueDictionary.createStartCyclic();
 		a_oRES.setStartCyclicResidue(a_oStartCyclic);
 		
