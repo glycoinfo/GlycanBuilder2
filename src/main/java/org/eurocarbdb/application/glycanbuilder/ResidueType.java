@@ -651,7 +651,12 @@ public class ResidueType {
 		 return name.equals("#bracket");
 	 }
 
-	 /**
+	/**
+	 * Return <code>true</> if this type represent a bridge node.
+	 */
+	public boolean isBridge () { return superclass.equals("Bridge"); }
+
+	/**
        Return <code>true</code> if this type represent a cleavage marker.
 	  */
 	 public boolean isCleavage() {

@@ -427,7 +427,15 @@ public class Residue {
 	public boolean isModificaiton() {
 		return type.isModification();
 	}
-	
+
+	/*
+	Return <core>true</code> id this residue is a bridge.
+	@see ResidueType#isBridge
+	 */
+	public boolean isBridge () {
+		return type.isBridge();
+	}
+
 	/*
        Return <code>true</code> if this residue can be cleaved off the
        structure.
@@ -1343,12 +1351,12 @@ public class Residue {
 		//if( (getNoLinkages()+bonds.size())<getMaxLinkages() )
 
 		Linkage link = new Linkage(this,child,bonds);
+		link.getBonds().get(0).setProbabilityHigh(bonds.iterator().next().getProbabilityHigh());
+		link.getBonds().get(0).setProbabilityLow(bonds.iterator().next().getProbabilityLow());
+
 		if(child.getParentLinkage() != null) {
-			link.setSubstituent(child.getParentLinkage().getSubstituent());
-			link.setAnomericCarbon(child.getParentLinkage().getAnomericCarbon());
-			link.getBonds().get(0).setProbabilityHigh(bonds.iterator().next().getProbabilityHigh());
-			link.getBonds().get(0).setProbabilityLow(bonds.iterator().next().getProbabilityLow());
-			
+				//link.setChildResidue(child.getParentLinkage().getChildResidue());
+				//link.setAnomericCarbon(child.getParentLinkage().getAnomericCarbon());
 			try {
 				link.setParentLinkageType(child.getParentLinkage().getParentLinkageType());
 				link.setChildLinkageType(child.getParentLinkage().getChildLinkageType());
@@ -1795,7 +1803,6 @@ public class Residue {
 	public boolean isCyclic() {
 		return (type.getSuperclass().equals("Cyclic"));
 	}
-	
 	//-----------------
 	// serialization    
 
