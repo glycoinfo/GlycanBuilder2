@@ -207,15 +207,15 @@ public class ResidueRendererAWT extends AbstractResidueRenderer {
 
     		String text = getText(node,on_border);
     		if(isSNFG) {
-    			ArrayList<String> a_aConfs = this.checkComposiiton(node);
+    			ArrayList<String> configurations = this.checkComposiiton(node);
     			if(shape != null) {
-    				if(a_aConfs.size() == 1) text = a_aConfs.get(0);
-    				if(a_aConfs.size() == 2) text = a_aConfs.get(0) + a_aConfs.get(1);
-    				if(a_aConfs.size() == 3) text = a_aConfs.get(0) + a_aConfs.get(1) + a_aConfs.get(2);
+    				if(configurations.size() == 1) text = configurations.get(0);
+    				if(configurations.size() == 2) text = configurations.get(0) + configurations.get(1);
+    				if(configurations.size() == 3) text = configurations.get(0) + configurations.get(1) + configurations.get(2);
     			}else {
-    				for(String a_sConf : a_aConfs) {
-    					if(a_sConf.equals("p") || a_sConf.equals("f")) text = text + a_sConf;
-    					if(a_sConf.equals("D") || a_sConf.equals("L")) text = a_sConf + text;
+    				for(String configuration : configurations) {
+    					if(configuration.equals("p") || configuration.equals("f")) text = text + configuration;
+    					if(configuration.equals("D") || configuration.equals("L")) text = configuration + text;
     				}
     			}
     		}
@@ -269,14 +269,14 @@ public class ResidueRendererAWT extends AbstractResidueRenderer {
     		g2d.setFont(old_font);
     	}
     	
-    	boolean a_bIsShow = false;
-    	if(node.isSaccharide()) a_bIsShow = GlycanUtils.isFacingAnom(node);
+    	boolean isShow = false;
+    	if(node.isSaccharide()) isShow = GlycanUtils.isFacingAnom(node);
     	if(!theGraphicOptions.SHOW_REDEND_CANVAS && node.isSaccharide()) {
-    		a_bIsShow = (node.getTreeRoot().firstChild().equals(node) && !node.isAlditol() && !node.getTreeRoot().isBracket());
+    		isShow = (node.getTreeRoot().firstChild().equals(node) && !node.isAlditol() && !node.getTreeRoot().isBracket());
     	}
     	
     	// draw anomeric state
-    	if(shape != null && a_bIsShow == true) 
+    	if(shape != null && isShow)
     		showAnomericState(g2d, node, orientation, cur_bbox);
 
     	g2d.setColor(Color.black);

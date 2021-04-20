@@ -255,14 +255,11 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 
 		// draw core structures
 		if (!structure.isComposition()) {
-			paintResidue(paintable, structure.getRoot(isAlditol),
-					selected_residues, selected_linkages, active_residues,
-					posManager, bboxManager);
+			paintResidue(paintable, structure.getRoot(isAlditol), selected_residues, selected_linkages, active_residues, posManager, bboxManager, structure.isComposition());
 		}
 
 		// draw fragments
-		paintBracket(paintable, structure, selected_residues,
-				selected_linkages, active_residues, posManager, bboxManager);
+		paintBracket(paintable, structure, selected_residues, selected_linkages, active_residues, posManager, bboxManager);
 
 		if(this.theGraphicOptions.NOTATION.equals(GraphicOptions.NOTATION_SNFG))
 			displayLegend(paintable, structure, show_redend, bboxManager);
@@ -273,6 +270,8 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 	abstract protected void displayMass(Paintable paintable, Glycan structure,boolean show_redend, BBoxManager bboxManager);
 
 	abstract protected void displayLegend(Paintable paintable, Glycan structure, boolean show_redend, BBoxManager bboxManager);
+
+	abstract protected void displayWithoutLinkage(Paintable _paintable, Glycan _glycan, BBoxManager _bboxManager);
 
 	abstract protected void assignID (Glycan structure);
 
@@ -291,20 +290,17 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		return sb.toString();
 	}
 
-	abstract protected void paintComposition(Paintable paintable, Residue root,Residue bracket, HashSet<Residue> selected_residues,
-											 PositionManager posManager, BBoxManager bboxManager);
-
 	abstract protected void paintQuantity(Paintable paintable, Residue antennae, int quantity,BBoxManager bboxManager);
 
 	protected void paintResidue(Paintable paintable, Residue node,
 								HashSet<Residue> selected_residues,
 								HashSet<Linkage> selected_linkages,
 								Collection<Residue> active_residues, PositionManager posManager,
-								BBoxManager bboxManager) {
+								BBoxManager bboxManager, boolean isComposition) {
 		if (node == null) return;
 
 		Rectangle parent_bbox = bboxManager.getParent(node);
-		Rectangle node_bbox = bboxManager.getCurrent(node);
+		Rectangle node_bbox = (isComposition) ? bboxManager.getParent(node) : bboxManager.getCurrent(node);
 		Rectangle border_bbox = bboxManager.getBorder(node);
 		Rectangle support_bbox = bboxManager.getSupport(node);
 
@@ -319,26 +315,21 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 			Rectangle child_border_bbox = bboxManager.getBorder(child);
 
 			if (child_bbox != null && !posManager.isOnBorder(child)) {
-				boolean selected = (selected_residues.contains(node) && selected_residues
-						.contains(child)) || selected_linkages.contains(link);
-				boolean active = (active_residues == null || (active_residues
-						.contains(node) && active_residues.contains(child)));
-				theLinkageRenderer.paintEdge(paintable, link, selected, node_bbox,
-						border_bbox, child_bbox, child_border_bbox);
+				boolean selected = (selected_residues.contains(node) && selected_residues.contains(child)) || selected_linkages.contains(link);
+				boolean active = (active_residues == null || (active_residues.contains(node) && active_residues.contains(child)));
+				theLinkageRenderer.paintEdge(paintable, link, selected, node_bbox, border_bbox, child_bbox, child_border_bbox);
 			}
 		}
 
 		// paint node
 		boolean selected = selected_residues.contains(node);
 		boolean active = (active_residues == null || active_residues.contains(node));
-		theResidueRenderer.paint(paintable, node, selected, active,
-				posManager.isOnBorder(node), parent_bbox, node_bbox,
+		theResidueRenderer.paint(paintable, node, selected, active, posManager.isOnBorder(node), parent_bbox, node_bbox,
 				support_bbox, posManager.getOrientation(node));
 
 		// paint children
 		for (Linkage link : node.getChildrenLinkages())
-			paintResidue(paintable, link.getChildResidue(), selected_residues,
-					selected_linkages, active_residues, posManager, bboxManager);
+			paintResidue(paintable, link.getChildResidue(), selected_residues, selected_linkages, active_residues, posManager, bboxManager, isComposition);
 
 		// paint info
 		for (Linkage link : node.getChildrenLinkages()) {
@@ -400,8 +391,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		int cur_left=theGraphicOptions.MARGIN_LEFT;
 		for (Iterator<Glycan> i = structures.iterator(); i.hasNext();) {
 			// compute glycan bbox
-			Rectangle glycan_bbox = computeBoundingBoxes(i.next(), cur_left, cur_top, show_masses,
-					show_redend, posManager, bboxManager);
+			Rectangle glycan_bbox = computeBoundingBoxes(i.next(), cur_left, cur_top, show_masses, show_redend, posManager, bboxManager);
 
 			all_bbox = Geometry.union(all_bbox, glycan_bbox);
 
@@ -516,17 +506,6 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		} catch (Exception e) {
 			LogUtils.report(e);
 		}
-	}
-
-	private void assignPositionComposition(Residue current,
-										   PositionManager posManager) throws Exception {
-		if (current == null)
-			return;
-
-		posManager.add(current, theGraphicOptions.getOrientationAngle(),
-				new ResAngle(), false, false);
-		for (Linkage l : current.getChildrenLinkages())
-			assignPositionComposition(l.getChildResidue(), posManager);
 	}
 
 	private void assignPosition(Residue current, boolean sticky,
@@ -1621,7 +1600,6 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		if(_glycan == null || _glycan.getBracket() == null) return;
 
 		Residue bracket = _glycan.getBracket();
-
 		Rectangle parent_bbox = bboxManager.getParent(bracket);
 		Rectangle bracket_bbox = bboxManager.getCurrent(bracket);
 		Rectangle support_bbox = bboxManager.getSupport(bracket);
@@ -1629,11 +1607,11 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		// paint bracket
 		boolean selected = selected_residues.contains(bracket);
 		boolean active = (active_residues == null || active_residues.contains(bracket));
+		boolean withoutLinkage = false;
 
 		if(!_glycan.isComposition())
 			theResidueRenderer.paint(paintable, bracket, selected, active, false,
-					parent_bbox, bracket_bbox, support_bbox,
-					posManager.getOrientation(bracket));
+					parent_bbox, bracket_bbox, support_bbox, posManager.getOrientation(bracket));
 
 		// paint antennae
 		for (Linkage link : bracket.getChildrenLinkages()) {
@@ -1650,24 +1628,37 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 					selected = (selected_residues.contains(bracket) && selected_residues.contains(child)) || selected_linkages.contains(link);
 					active = (active_residues == null || (active_residues.contains(bracket) && active_residues.contains(child)));
 
-					//TODO : donorがfragmentAcceptorを持つ場合は描画するようにする
-					if (!link.getChildResidue().getParentsOfFragment().isEmpty()) {
+					if (!_glycan.isComposition() && !link.getChildResidue().getParentsOfFragment().isEmpty()) {
 						theLinkageRenderer.paintEdge(paintable, link, selected, node_bbox, node_bbox, child_bbox, child_border_bbox);
 					}
 				}
 
 				// paint child
-				paintResidue(paintable, child, selected_residues, selected_linkages, active_residues, posManager, bboxManager);
+				paintResidue(paintable, child, selected_residues, selected_linkages, active_residues, posManager, bboxManager, _glycan.isComposition());
 
 				// paint info
-				if (!posManager.isOnBorder(child))
-					theLinkageRenderer.paintInfo(paintable, link, node_bbox, node_bbox, child_bbox, child_border_bbox);
+				if (!posManager.isOnBorder(child)) {
+					if (_glycan.isComposition()) {
+						node_bbox.x = node_bbox.x + 35;
+						theLinkageRenderer.paintInfo(paintable, link, child_bbox, child_border_bbox, node_bbox, node_bbox);
+					} else {
+						theLinkageRenderer.paintInfo(paintable, link, node_bbox, node_bbox, child_bbox, child_border_bbox);
+					}
+				}
 
 				// paint quantity
 				if (quantity > 1)
 					paintQuantity(paintable, child, quantity, bboxManager);
+
+				// check composition without linkage
+				if (_glycan.isComposition() && link.getChildResidue().getParentsOfFragment().isEmpty())
+					withoutLinkage = true;
 			}
 		}
+
+		// paint annotation for composition without linkage (without Linkage)
+		if (withoutLinkage)
+			this.displayWithoutLinkage(paintable, _glycan, bboxManager);
 	}
 
 	// -------------------------

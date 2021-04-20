@@ -99,14 +99,11 @@ public class GlycanRendererAWT extends AbstractGlycanRenderer {
 
 		// draw core structures
 		if (!structure.isComposition()) {
-			paintResidue(paintable, structure.getRoot(isAlditol),
-					selected_residues, selected_linkages, null,
-					posManager, bboxManager);
+			paintResidue(paintable, structure.getRoot(isAlditol), selected_residues, selected_linkages, null, posManager, bboxManager, structure.isComposition());
 		}
 
 		// draw fragments
-		paintBracket(paintable, structure, selected_residues,
-				selected_linkages, null, posManager, bboxManager);
+		paintBracket(paintable, structure, selected_residues, selected_linkages, null, posManager, bboxManager);
 
 		if(this.theGraphicOptions.NOTATION.equals(GraphicOptions.NOTATION_SNFG))
 			displayLegend(paintable, structure, show_redend, bboxManager);
@@ -143,22 +140,25 @@ public class GlycanRendererAWT extends AbstractGlycanRenderer {
 		g2d.setFont(new Font(theGraphicOptions.MASS_TEXT_FONT_FACE, Font.PLAIN, 10));
 		
 		// create legend of unsupported monosaccharides
-		TreeMap<Integer, String> a_mIndex = new TreeMap<>();
+		TreeMap<Integer, String> nodeIndex = new TreeMap<>();
 		int id = 1;
-		StringBuilder a_sbLegend = new StringBuilder();
-		for(Residue a_oRES : structure.getAllResidues()) {
-			if(!a_oRES.isSaccharide() || a_oRES.getType().getSuperclass().equals("Bridge")) continue;
-			if(!theResidueStyleDictionary.containsResidue(a_oRES) && !a_mIndex.containsValue(a_oRES.getType().getDescription())) {
-				a_mIndex.put(id, a_oRES.getType().getDescription());
+		StringBuilder legend = new StringBuilder();
+		for(Residue residue : structure.getAllResidues()) {
+			if(!residue.isSaccharide() || residue.getType().getSuperclass().equals("Bridge")) continue;
+			if(!theResidueStyleDictionary.containsResidue(residue) && !nodeIndex.containsValue(residue.getType().getDescription())) {
+				nodeIndex.put(id, residue.getType().getDescription());
 				id++;
 			}
  		}
 		
-		for(Integer a_iKey : a_mIndex.keySet()) {
-			a_sbLegend.append(a_iKey + "=" + a_mIndex.get(a_iKey) + " \n");
+		for(Integer number : nodeIndex.keySet()) {
+			legend.append(number)
+				.append("=")
+				.append(nodeIndex.get(number))
+				.append(" \n");
 		}
 	
-		g2d.drawString(a_sbLegend.toString(), 
+		g2d.drawString(legend.toString(),
 				Geometry.left(structure_all_bbox), 
 				Geometry.bottom(structure_all_bbox) + theGraphicOptions.MASS_TEXT_SPACE/2 + 8);
 	}
@@ -182,40 +182,16 @@ public class GlycanRendererAWT extends AbstractGlycanRenderer {
 	}
 
 	@Override
-	protected void paintComposition(Paintable paintable, Residue root,
-			Residue bracket, HashSet<Residue> selected_residues,
-			PositionManager posManager, BBoxManager bboxManager) {
-		Graphics2D g2d=paintable.getGraphics2D();
-		ResAngle orientation = posManager.getOrientation(root);
+	protected void displayWithoutLinkage(Paintable _paintable, Glycan _glycan, BBoxManager _bboxManager) {
+		Graphics2D g2d = _paintable.getGraphics2D();
+		Rectangle structure_all_bbox = _bboxManager.getComplete(_glycan.getRoot(true));
 
-		String text = makeCompositionText(root, bracket, orientation, false);
-		Rectangle text_rect = bboxManager.getCurrent(bracket);
+		g2d.setColor(Color.black);
+		g2d.setFont(new Font(theGraphicOptions.MASS_TEXT_FONT_FACE, Font.PLAIN, 10));
 
-		// draw selected contour
-		if (selected_residues.contains(bracket)) {
-			float[] dashes = { 5.f, 5.f };
-			g2d.setStroke(new BasicStroke(2.f, BasicStroke.CAP_BUTT,
-					BasicStroke.JOIN_ROUND, 1.f, dashes, 0.f));
-			g2d.setColor(Color.black);
-			g2d.draw(text_rect);
-			g2d.setStroke(new BasicStroke(1));
-		}
-
-		Font font = new Font(theGraphicOptions.COMPOSITION_FONT_FACE,
-				Font.PLAIN, theGraphicOptions.COMPOSITION_FONT_SIZE);
-
-		StyledTextCellRenderer stcr = new StyledTextCellRenderer(false);
-		stcr.getRendererComponent(font, Color.black, Color.white, text);
-		BufferedImage img = SVGUtils.getImage(stcr, false);
-
-		if (orientation.equals(0) || orientation.equals(180))
-			g2d.drawImage(img, null, text_rect.x, text_rect.y);
-		else {
-			g2d.rotate(-Math.PI / 2.0);
-			g2d.drawImage(img, null, -text_rect.y - text_rect.height,
-					text_rect.x);
-			g2d.rotate(Math.PI / 2.0);
-		}
+		g2d.drawString("without linkage",
+				Geometry.left(structure_all_bbox),
+				Geometry.bottom(structure_all_bbox) + theGraphicOptions.MASS_TEXT_SPACE/2 + 8);
 	}
 
 	@Override
@@ -274,8 +250,7 @@ public class GlycanRendererAWT extends AbstractGlycanRenderer {
 	@Override
 	public BufferedImage getImage(Collection<Glycan> structures,boolean opaque, boolean show_masses, boolean show_redend,double scale,
 			PositionManager posManager,BBoxManager bboxManager) {
-		if (structures == null)
-			structures = new Vector<Glycan>();
+		if (structures == null) structures = new Vector<>();
 
 		// set scale
 		GraphicOptions view_opt = theGraphicOptions;
@@ -283,22 +258,18 @@ public class GlycanRendererAWT extends AbstractGlycanRenderer {
 		view_opt.SHOW_INFO = (old_flag && scale == 1.);
 		view_opt.setScale(scale * view_opt.SCALE_CANVAS);
 
-		Rectangle all_bbox = computeBoundingBoxes(structures, show_masses,
-				show_redend, posManager, bboxManager);
+		Rectangle all_bbox = computeBoundingBoxes(structures, show_masses, show_redend, posManager, bboxManager);
 
 		// Create an image that supports transparent pixels
 		Dimension d = computeSize(all_bbox);
-		BufferedImage img = createCompatibleImage(d.width,
-				d.height, opaque);
+		BufferedImage img = createCompatibleImage(d.width, d.height, opaque);
 
 		// prepare graphics context
 		Graphics2D g2d = img.createGraphics();
-		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-				RenderingHints.VALUE_ANTIALIAS_ON);
+		g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
 		if (opaque) {
-			g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
-					RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+			g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
 
 			// clear background
 			g2d.setBackground(Color.white);
@@ -306,15 +277,14 @@ public class GlycanRendererAWT extends AbstractGlycanRenderer {
 			// g2d.setColor(Color.white);
 			// g2d.fillRect(0, 0, d.width, d.height);
 		} else {
-			g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,
-					RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
+			g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
 			g2d.setBackground(new Color(255, 255, 255, 0));
 		}
 
 		// paint structures
-		for (Glycan s : structures)
-			paint(new DefaultPaintable(g2d), s, null, null, show_masses, show_redend, posManager,
-					bboxManager);
+		for (Glycan s : structures) {
+			paint(new DefaultPaintable(g2d), s, null, null, show_masses, show_redend, posManager, bboxManager);
+		}
 
 		// reset scale
 		view_opt.setScale(1.);

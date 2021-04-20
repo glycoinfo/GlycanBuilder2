@@ -23,29 +23,14 @@
 
 package org.eurocarbdb.application.glycanbuilder.renderutil;
 
-//import com.pietjonas.wmfwriter2d.*;
-
 import java.util.*;
-import java.text.*;
-import java.io.*;
-import java.awt.*;
-import java.awt.geom.*;
-import java.awt.event.*;
-import java.awt.datatransfer.*;
-import java.awt.image.*;
-
-import javax.swing.*;
 
 import org.eurocarbdb.application.glycanbuilder.util.GraphicOptions;
 import org.glycoinfo.application.glycanbuilder.util.GlycanUtils;
-import org.w3c.dom.*;
-import org.apache.batik.svggen.*;
-import org.apache.batik.ext.awt.g2d.GraphicContext;
 import org.eurocarbdb.application.glycanbuilder.DefaultPaintable;
 import org.eurocarbdb.application.glycanbuilder.Glycan;
 import org.eurocarbdb.application.glycanbuilder.Residue;
 import org.eurocarbdb.application.glycanbuilder.linkage.Linkage;
-
 
 class SVGGlycanRenderer extends GlycanRendererAWT {
 
@@ -74,17 +59,15 @@ class SVGGlycanRenderer extends GlycanRendererAWT {
 
         // draw core structures
         if (!structure.isComposition()) {
-            paintResidue(new DefaultPaintable(g2d), structure.getRoot(isAlditol),
-                    selected_residues, selected_linkages, null,
-                    posManager, bboxManager);
+            paintResidue(new DefaultPaintable(g2d), structure.getRoot(isAlditol), selected_residues, selected_linkages, null, posManager, bboxManager, structure.isComposition());
         }
 
         // draw fragments
-        paintBracket(new DefaultPaintable(g2d), structure, selected_residues,
-                selected_linkages, null, posManager, bboxManager);
+        paintBracket(new DefaultPaintable(g2d), structure, selected_residues, selected_linkages, null, posManager, bboxManager);
 
-        if(theGraphicOptions.NOTATION.equals(GraphicOptions.NOTATION_SNFG))
+        if(theGraphicOptions.NOTATION.equals(GraphicOptions.NOTATION_SNFG)) {
             displayLegend(new DefaultPaintable(g2d), structure, show_redend, bboxManager);
+        }
         if (show_mass) {
             g2d.addGroup("m", structure, null);
             displayMass(new DefaultPaintable(g2d), structure, show_redend, bboxManager);
