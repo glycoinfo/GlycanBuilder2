@@ -10,9 +10,7 @@ import static org.eurocarbdb.application.glycanbuilder.renderutil.Geometry.top;
 import static org.eurocarbdb.application.glycanbuilder.renderutil.Geometry.union;
 import static org.eurocarbdb.application.glycanbuilder.renderutil.Geometry.width;
 
-import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Font;
 import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.text.DecimalFormat;
@@ -271,8 +269,6 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 
 	abstract protected void displayLegend(Paintable paintable, Glycan structure, boolean show_redend, BBoxManager bboxManager);
 
-	abstract protected void displayWithoutLinkage(Paintable _paintable, Glycan _glycan, BBoxManager _bboxManager);
-
 	abstract protected void assignID (Glycan structure);
 
 	protected String getMassText(Glycan structure) {
@@ -355,6 +351,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 			return new Dimension(1, 1);
 		// return new
 		// Dimension(theGraphicOptions.MARGIN_LEFT+theGraphicOptions.MARGIN_RIGHT,theGraphicOptions.MARGIN_TOP+theGraphicOptions.MARGIN_BOTTOM);
+
 		return new Dimension(theGraphicOptions.MARGIN_LEFT + all_bbox.width
 				+ theGraphicOptions.MARGIN_RIGHT, theGraphicOptions.MARGIN_TOP
 				+ all_bbox.height + theGraphicOptions.MARGIN_BOTTOM);
@@ -420,23 +417,9 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 
 			if (!structure.isEmpty()) {
 
-				Residue root;// = structure.getRoot();
-				Residue bracket;// = structure.getBracket();
+				Residue root = structure.getRoot(show_redend);
+				Residue bracket = structure.getBracket();
 				ResAngle orientation = theGraphicOptions.getOrientationAngle();
-
-				/*if (structure.isComposition()) {
-					root = structure.getRoot();
-					bracket = structure.getBracket();
-
-					// assign positions
-					assignPositionComposition(root, posManager);
-					assignPositionComposition(bracket, posManager);
-
-					// compute bounding boxes
-					computeBoundingBoxesComposition(root, bracket, posManager, bboxManager);
-				} else {
-					*/root = structure.getRoot(show_redend);
-				bracket = structure.getBracket();
 
 				// assign positions
 				posManager.add(root, new ResAngle(), orientation, false, true);
@@ -470,6 +453,9 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 					bbox = union(bbox, text_bbox);
 				}
 
+				// add legend margin bottom
+				this.addLegendMargin(bbox, structure);
+
 				return bbox;
 				//}
 			}
@@ -482,6 +468,14 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		// instead it defaults to a tiny rectangle.
 
 		return new Rectangle(cur_left, cur_top, 0, 0);
+	}
+
+	private void addLegendMargin (Rectangle _bbox, Glycan _glycan) {
+		for (Residue res : _glycan.getAllResidues()) {
+			if (!res.getType().getSuperclass().equals("Assigned")) continue;
+			if (res.getType().getDescription().equals("without linkage")) continue;
+			_bbox.height = _bbox.height + theGraphicOptions.MASS_TEXT_SPACE;
+		}
 	}
 
 	/* (non-Javadoc)
@@ -523,6 +517,8 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 			Residue child = link.getChildResidue();
 			Residue matching_child = (child.getCleavedResidue() != null) ? child.getCleavedResidue() : child;
 
+			if (child.getType().getDescription().equals("without linkage")) continue;
+
 			// get placement
 			ResiduePlacement placement = matching_child.getPreferredPlacement();
 			if (placement == null
@@ -540,6 +536,8 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		// store positions
 		for (Iterator<Linkage> i = current.iterator(); i.hasNext();) {
 			Residue child = i.next().getChildResidue();
+
+			if (child.getType().getDescription().equals("without linkage")) continue;
 
 			ResiduePlacement child_placement = bookManager.getPlacement(child);
 			ResAngle child_pos = bookManager.getPosition(child);
@@ -659,26 +657,6 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		return text.toString();
 	}
 
-	private void computeBoundingBoxesComposition(Residue root, Residue bracket,
-												 PositionManager posManager, BBoxManager bboxManager) {
-		ResAngle orientation = posManager.getOrientation(root);
-
-		String text = makeCompositionText(root, bracket, orientation, true);
-		Font font = new Font(theGraphicOptions.COMPOSITION_FONT_FACE, Font.PLAIN, theGraphicOptions.COMPOSITION_FONT_SIZE);
-
-		StyledTextCellRenderer stcr = new StyledTextCellRenderer(false);
-		stcr.getRendererComponent(font, Color.black, Color.white, text);
-
-		Dimension d = stcr.getPreferredSize();
-		if (orientation.equals(0) || orientation.equals(180))
-			bboxManager.setAllBBoxes(bracket, new Rectangle(0, 0, d.width, d.height));
-		else
-			bboxManager.setAllBBoxes(bracket, new Rectangle(0, 0, d.height, d.width));
-
-		bboxManager.linkSubtree(bracket, root);
-		bboxManager.linkSubtree(bracket, bracket);
-	}
-
 	private void computeBoundingBoxes(Residue node, PositionManager posManager,
 									  BBoxManager bboxManager) throws Exception {
 		if (node == null) return;
@@ -694,8 +672,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		else if (orientation.equals(-90))
 			computeBoundingBoxesBT(node, posManager, bboxManager);
 		else
-			throw new Exception("Invalid orientation " + orientation
-					+ " at node " + node.id);
+			throw new Exception("Invalid orientation " + orientation + " at node " + node.id);
 	}
 
 	private void computeBoundingBoxesLR(Residue node,
@@ -1251,6 +1228,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		TreeMap<String, Pair<Residue, Integer>> unique_antennae = new TreeMap<String, Pair<Residue, Integer>>();
 		for (int i = 0; i < bracket.getNoChildren(); i++) {
 			Residue child = bracket.getChildAt(i); // avoid concurrent
+			if (child.getType().getDescription().equals("without linkage")) continue;
 			// modification of
 			// iterator!!
 			String child_str = (COLLAPSE_MULTIPLE_ANTENNAE) ? GWSParser.writeSubtree(child, false) : ("" + (id++));
@@ -1295,7 +1273,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		Rectangle bracket_bbox = new Rectangle(right(structure_bbox), top(structure_bbox), theGraphicOptions.NODE_SIZE,
 				structure_bbox.height);
 
-		// align antennaee
+		// align antennae
 		if (antennaee.size() > 0)
 			bboxManager.alignCentersOnRight(bracket_bbox, antennaee, 0);
 		Rectangle antennaee_bbox = (antennaee.size() > 0) ? new Rectangle(
@@ -1339,6 +1317,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		TreeMap<String, Pair<Residue, Integer>> unique_antennae = new TreeMap<String, Pair<Residue, Integer>>();
 		for (int i = 0; i < bracket.getNoChildren(); i++) {
 			Residue child = bracket.getChildAt(i); // avoid concurrent
+			if (child.getType().getDescription().equals("without linkage")) continue;
 			// modification of
 			// iterator!!
 			String child_str = (COLLAPSE_MULTIPLE_ANTENNAE) ? GWSParser.writeSubtree(child, false) : ("" + (id++));
@@ -1428,6 +1407,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		TreeMap<String, Pair<Residue, Integer>> unique_antennae = new TreeMap<String, Pair<Residue, Integer>>();
 		for (int i = 0; i < bracket.getNoChildren(); i++) {
 			Residue child = bracket.getChildAt(i); // avoid concurrent
+			if (child.getType().getDescription().equals("without linkage")) continue;
 			// modification of
 			// iterator!!
 			String child_str = (COLLAPSE_MULTIPLE_ANTENNAE) ? GWSParser.writeSubtree(child, false) : ("" + (id++));
@@ -1518,6 +1498,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		TreeMap<String, Pair<Residue, Integer>> unique_antennae = new TreeMap<String, Pair<Residue, Integer>>();
 		for (int i = 0; i < bracket.getNoChildren(); i++) {
 			Residue child = bracket.getChildAt(i); // avoid concurrent
+			if (child.getType().getDescription().equals("without linkage")) continue;
 			// modification of
 			// iterator!!
 			String child_str = (COLLAPSE_MULTIPLE_ANTENNAE) ? GWSParser.writeSubtree(child, false) : ("" + (id++));
@@ -1607,7 +1588,6 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		// paint bracket
 		boolean selected = selected_residues.contains(bracket);
 		boolean active = (active_residues == null || active_residues.contains(bracket));
-		boolean withoutLinkage = false;
 
 		if(!_glycan.isComposition())
 			theResidueRenderer.paint(paintable, bracket, selected, active, false,
@@ -1616,6 +1596,9 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		// paint antennae
 		for (Linkage link : bracket.getChildrenLinkages()) {
 			Residue child = link.getChildResidue();
+
+			if (child.getType().getDescription().equals("without linkage")) continue;
+
 			int quantity = bboxManager.getLinkedResidues(child).size() + 1;
 
 			Rectangle node_bbox = bboxManager.getParent(child);
@@ -1649,16 +1632,8 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 				// paint quantity
 				if (quantity > 1)
 					paintQuantity(paintable, child, quantity, bboxManager);
-
-				// check composition without linkage
-				if (_glycan.isComposition() && link.getChildResidue().getParentsOfFragment().isEmpty())
-					withoutLinkage = true;
 			}
 		}
-
-		// paint annotation for composition without linkage (without Linkage)
-		if (withoutLinkage)
-			this.displayWithoutLinkage(paintable, _glycan, bboxManager);
 	}
 
 	// -------------------------

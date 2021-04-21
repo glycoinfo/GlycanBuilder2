@@ -26,10 +26,7 @@ import static org.eurocarbdb.application.glycanbuilder.renderutil.Geometry.*;
 import java.awt.*;
 import java.awt.image.*;
 
-import org.eurocarbdb.application.glycanbuilder.DefaultPaintable;
-import org.eurocarbdb.application.glycanbuilder.Glycan;
-import org.eurocarbdb.application.glycanbuilder.Residue;
-import org.eurocarbdb.application.glycanbuilder.ResidueStyleDictionary;
+import org.eurocarbdb.application.glycanbuilder.*;
 import org.eurocarbdb.application.glycanbuilder.dataset.ResiduePlacementDictionary;
 import org.eurocarbdb.application.glycanbuilder.linkage.Linkage;
 import org.eurocarbdb.application.glycanbuilder.linkage.LinkageStyleDictionary;
@@ -112,22 +109,23 @@ public class GlycanRendererAWT extends AbstractGlycanRenderer {
 	}
 
 	protected void assignID (Glycan structure) {
-		HashMap<String, Integer> a_mIndex = new HashMap<>();
-		int a_iID = 1;
-		for(Residue a_oRES : structure.getAllResidues()) {
-			if(!a_oRES.isSaccharide() || a_oRES.getType().getSuperclass().equals("Bridge")) continue;
+		HashMap<String, Integer> nodeIndex = new HashMap<>();
+		int id = 1;
+		for(Residue residue : structure.getAllResidues()) {
+			if (residue.getType().getDescription().equals("without linkage")) continue;
+			if(!residue.isSaccharide() || residue.getType().getSuperclass().equals("Bridge")) continue;
 			if(theGraphicOptions.NOTATION.equals(GraphicOptions.NOTATION_SNFG)) {
-				if(!theResidueStyleDictionary.containsResidue(a_oRES)) {
-					if(!a_mIndex.containsKey(a_oRES.getType().getDescription())) {
-						a_mIndex.put(a_oRES.getType().getDescription(), a_iID);
-						a_iID++;
+				if(!theResidueStyleDictionary.containsResidue(residue)) {
+					if(!nodeIndex.containsKey(residue.getType().getDescription())) {
+						nodeIndex.put(residue.getType().getDescription(), id);
+						id++;
 					}
-					if(a_mIndex.containsKey(a_oRES.getType().getDescription())) {
-						a_oRES.setID(a_mIndex.get(a_oRES.getType().getDescription()));
+					if(nodeIndex.containsKey(residue.getType().getDescription())) {
+						residue.setID(nodeIndex.get(residue.getType().getDescription()));
 					}
 				}				
 			} else {
-				if(a_oRES.getID() != 0) a_oRES.setID(0);
+				if(residue.getID() != 0) residue.setID(0);
 			}
 		}
 	}
@@ -145,6 +143,10 @@ public class GlycanRendererAWT extends AbstractGlycanRenderer {
 		StringBuilder legend = new StringBuilder();
 		for(Residue residue : structure.getAllResidues()) {
 			if(!residue.isSaccharide() || residue.getType().getSuperclass().equals("Bridge")) continue;
+			if (residue.getType().getDescription().equals("without linkage")) {
+				nodeIndex.put(0, residue.getType().getDescription());
+				continue;
+			}
 			if(!theResidueStyleDictionary.containsResidue(residue) && !nodeIndex.containsValue(residue.getType().getDescription())) {
 				nodeIndex.put(id, residue.getType().getDescription());
 				id++;
@@ -152,15 +154,24 @@ public class GlycanRendererAWT extends AbstractGlycanRenderer {
  		}
 		
 		for(Integer number : nodeIndex.keySet()) {
-			legend.append(number)
-				.append("=")
-				.append(nodeIndex.get(number))
-				.append(" \n");
+			if (number != 0) {
+				legend.append(number)
+					.append("=");
+			}
+			legend.append(nodeIndex.get(number))
+				.append("|");
 		}
-	
-		g2d.drawString(legend.toString(),
-				Geometry.left(structure_all_bbox), 
+
+		int y = Geometry.bottom(structure_all_bbox);
+		for (String unit : legend.toString().split("\\|")) {
+			g2d.drawString(unit, Geometry.left(structure_all_bbox), y += g2d.getFontMetrics().getHeight());
+		}
+
+		/*
+		g2d.drawString(legend.toString().replace("|", "\n"),
+				Geometry.left(structure_all_bbox),
 				Geometry.bottom(structure_all_bbox) + theGraphicOptions.MASS_TEXT_SPACE/2 + 8);
+		 */
 	}
 	
 	@Override
@@ -179,19 +190,6 @@ public class GlycanRendererAWT extends AbstractGlycanRenderer {
 				Geometry.bottom(structure_all_bbox)
 						+ theGraphicOptions.MASS_TEXT_SPACE
 						+ theGraphicOptions.MASS_TEXT_SIZE);
-	}
-
-	@Override
-	protected void displayWithoutLinkage(Paintable _paintable, Glycan _glycan, BBoxManager _bboxManager) {
-		Graphics2D g2d = _paintable.getGraphics2D();
-		Rectangle structure_all_bbox = _bboxManager.getComplete(_glycan.getRoot(true));
-
-		g2d.setColor(Color.black);
-		g2d.setFont(new Font(theGraphicOptions.MASS_TEXT_FONT_FACE, Font.PLAIN, 10));
-
-		g2d.drawString("without linkage",
-				Geometry.left(structure_all_bbox),
-				Geometry.bottom(structure_all_bbox) + theGraphicOptions.MASS_TEXT_SPACE/2 + 8);
 	}
 
 	@Override

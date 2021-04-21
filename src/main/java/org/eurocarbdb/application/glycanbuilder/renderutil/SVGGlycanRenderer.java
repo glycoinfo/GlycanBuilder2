@@ -66,6 +66,7 @@ class SVGGlycanRenderer extends GlycanRendererAWT {
         paintBracket(new DefaultPaintable(g2d), structure, selected_residues, selected_linkages, null, posManager, bboxManager);
 
         if(theGraphicOptions.NOTATION.equals(GraphicOptions.NOTATION_SNFG)) {
+            g2d.addGroup("legend", structure, null);
             displayLegend(new DefaultPaintable(g2d), structure, show_redend, bboxManager);
         }
         if (show_mass) {

@@ -129,7 +129,7 @@ public class ResidueRendererAWT extends AbstractResidueRenderer {
     	ResidueStyle style = theResidueStyleDictionary.getStyle(node);
 
     	// assign blank pentagon for SNFG symbol
-		if (theGraphicOptions.NOTATION.equals(GraphicOptions.NOTATION_SNFG) && style.getShape() == null && node.isSaccharide()) {
+		if (this.haveSymbol(node)) {
 	    	style = ResidueStyle.assignedSNFG(node);
 		}
 
@@ -311,4 +311,12 @@ public class ResidueRendererAWT extends AbstractResidueRenderer {
 		
 		return g2d;
     }
+
+    private boolean haveSymbol (Residue _node) {
+		if (!theGraphicOptions.NOTATION.equals(GraphicOptions.NOTATION_SNFG)) return false;
+		if (!_node.isSaccharide()) return false;
+		if (_node.getType().getDescription().equals("without linkage")) return false;
+		ResidueStyle style = theResidueStyleDictionary.getStyle(_node);
+		return (style.getShape() == null);
+	}
 }
