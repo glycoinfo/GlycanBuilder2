@@ -87,9 +87,9 @@ public class LinkageRendererAWT extends AbstractLinkageRenderer {
     	
     	if( style.showParentLinkage(link) && checkEdgeConditionParentLinkage(link) )
     		paintInfo(paintable,createParentPosiitonProbability(link),parent_bbox,parent_border_bbox,child_bbox,child_border_bbox,true,false,link.hasMultipleBonds());
-    	if( style.showAnomericCarbon(link) ) 
+    	if( style.showAnomericCarbon(link) )
     		paintInfo(paintable,link.getChildPositionsString(),parent_bbox,parent_border_bbox,child_bbox,child_border_bbox,false,true,link.hasMultipleBonds());
-    	if( style.showAnomericState(link,child.getAnomericState()) && checkAnomericPosition(link)) 
+    	if( style.showAnomericState(link,child.getAnomericState()) && checkAnomericPosition(link))
     		paintInfo(paintable,TextUtils.toGreek(child.getAnomericState()),parent_bbox,parent_border_bbox,child_bbox,child_border_bbox,false,false,link.hasMultipleBonds());        
 
     	g2d.setFont(old_font);
@@ -135,34 +135,37 @@ public class LinkageRendererAWT extends AbstractLinkageRenderer {
     	return true;
     }
     
-    private String createParentPosiitonProbability (Linkage a_oLinkage) {
-    	StringBuilder a_sProbability = new StringBuilder("");
-    	int a_iHigh = a_oLinkage.getBonds().get(0).getProbabilityHigh();
-    	int a_iLow = a_oLinkage.getBonds().get(0).getProbabilityLow();
+    private String createParentPosiitonProbability (Linkage _linkage) {
+    	StringBuilder probability = new StringBuilder("");
+    	int high = _linkage.getBonds().get(0).getProbabilityHigh();
+    	int low = _linkage.getBonds().get(0).getProbabilityLow();
  
-    	if((a_iHigh != 100 && a_iLow != 100) && (a_iHigh == a_iLow)) {
-    		a_sProbability.append("(" + ((a_iHigh == -100) ? "?" : a_iHigh) + "%" + ")");
-    		a_sProbability.append(a_oLinkage.getParentPositionsString());
-    		return a_sProbability.toString();
+    	if((high != 100 && low != 100) && (high == low)) {
+    		probability.append("(")
+					.append((high == -100) ? "?" : high)
+					.append("%")
+					.append(")");
+    		probability.append(_linkage.getParentPositionsString());
+    		return probability.toString();
     	}
     	
-    	if(a_iLow != 100) {
-    		a_sProbability.append("(");
-    		a_sProbability.append((a_iLow == -100) ? "?" : a_iLow);
+    	if(low != 100) {
+    		probability.append("(");
+    		probability.append((low == -100) ? "?" : low);
     	}
-    	if(a_iHigh != 100 || a_iLow < 100) {
-    		if(a_sProbability.length() != 0) {
-    			a_sProbability.append(",");
-    			a_sProbability.append((a_iHigh == -100) ? "?" : a_iHigh);
+    	if(high != 100 || low < 100) {
+    		if(probability.length() != 0) {
+    			probability.append(",");
+    			probability.append((high == -100) ? "?" : high);
     		}else {
-    			a_sProbability.append("(");
-    			a_sProbability.append((a_iHigh == -100) ? "?" : a_iHigh);
+    			probability.append("(");
+    			probability.append((high == -100) ? "?" : high);
     		}
     	}
-    	if(a_sProbability.length() > 0) a_sProbability.append("%)");
+    	if(probability.length() > 0) probability.append("%)");
     	
-    	a_sProbability.append(a_oLinkage.getParentPositionsString());
+    	probability.append(_linkage.getParentPositionsString());
     	
-    	return a_sProbability.toString();
+    	return probability.toString();
     }
 }

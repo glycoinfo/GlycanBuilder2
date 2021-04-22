@@ -53,12 +53,8 @@ import org.glycoinfo.application.glycanbuilder.util.GlycanUtils;
 public class ResidueRendererAWT extends AbstractResidueRenderer {
 
 	boolean showAnom = true;
-	
-	public ResidueRendererAWT() {
 
-    }
-
-    public ResidueRendererAWT(GlycanRenderer src) {
+	public ResidueRendererAWT(GlycanRenderer src) {
     	super(src);
     } 
 	
@@ -315,7 +311,7 @@ public class ResidueRendererAWT extends AbstractResidueRenderer {
     private boolean haveSymbol (Residue _node) {
 		if (!theGraphicOptions.NOTATION.equals(GraphicOptions.NOTATION_SNFG)) return false;
 		if (!_node.isSaccharide()) return false;
-		if (_node.getType().getDescription().equals("without linkage")) return false;
+		if (_node.getType().getDescription().equals("no glycosidic linkages")) return false;
 		ResidueStyle style = theResidueStyleDictionary.getStyle(_node);
 		return (style.getShape() == null);
 	}
