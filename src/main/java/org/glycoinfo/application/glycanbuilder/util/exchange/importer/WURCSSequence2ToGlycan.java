@@ -5,6 +5,7 @@ import java.util.LinkedList;
 
 import org.eurocarbdb.application.glycanbuilder.Glycan;
 import org.eurocarbdb.application.glycanbuilder.Residue;
+import org.eurocarbdb.application.glycanbuilder.ResidueType;
 import org.eurocarbdb.application.glycanbuilder.dataset.ResidueDictionary;
 import org.eurocarbdb.application.glycanbuilder.linkage.Bond;
 import org.eurocarbdb.application.glycanbuilder.linkage.Linkage;
@@ -70,7 +71,7 @@ public class WURCSSequence2ToGlycan {
 			}
 			this.glycan.addAntenna(fragRoot, fragRoot.getParentLinkage().getBonds());
 		}
-		
+
 		// append composition
 		if(!gres2frag.getRootOfCompositions().isEmpty()) {
 			this.glycan = Glycan.createComposition(_massOpt);
@@ -86,6 +87,12 @@ public class WURCSSequence2ToGlycan {
 					fragRoot.addParentOfFragment(this.gres2residue.get(gres));
 				}
 				this.glycan.addAntenna(fragRoot, fragRoot.getParentLinkage().getBonds());
+			}
+
+			// without linkage label
+			if (this.isCompositionWithoutLinkage(this.glycan)) {
+				Residue withoutLinkage = new Residue(ResidueType.createAssigned("no glycosidic linkages"));
+				this.glycan.addAntenna(withoutLinkage);
 			}
 		}
 	}
@@ -189,5 +196,19 @@ public class WURCSSequence2ToGlycan {
 		}
 		
 		return null;
+	}
+
+	private boolean isCompositionWithoutLinkage (Glycan _glycan) {
+		if (!_glycan.isComposition()) return false;
+		boolean ret = false;
+		Residue bracket = _glycan.getBracket();
+		for (Linkage fragEdge : bracket.getChildrenLinkages()) {
+			Residue fragRoot = fragEdge.getChildResidue();
+			if (fragRoot.getParentsOfFragment().isEmpty()) {
+				ret = true;
+				break;
+			}
+		}
+		return ret;
 	}
 }

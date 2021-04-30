@@ -216,6 +216,23 @@ public class ResidueType {
 		 return ret;
 	 }
 
+	/**
+	 Create a generic residue type with unspecified mass and name
+	 <code>_name</code>
+	 */
+	static public ResidueType createAssigned (String _name) {
+		ResidueType ret = new ResidueType();
+		ret.name = _name;
+		ret.superclass = "Assigned";
+		ret.nlinkages = 0;
+		ret.linkage_pos = new char[] {};
+		ret.can_redend = false;
+		ret.can_parent = true;
+		ret.description = _name;
+		ret.is_saccharide = true;
+		return ret;
+	}
+
 	 /**
        Create a generic substituent type with unspecified mass and name
        <code>_name</code>

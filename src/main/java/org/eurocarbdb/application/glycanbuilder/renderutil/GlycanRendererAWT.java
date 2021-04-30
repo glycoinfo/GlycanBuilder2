@@ -193,8 +193,7 @@ public class GlycanRendererAWT extends AbstractGlycanRenderer {
 	}
 
 	@Override
-	protected void paintQuantity(Paintable paintable, Residue antenna, int quantity,
-			BBoxManager bboxManager) {
+	protected void paintQuantity(Paintable paintable, Residue antenna, int quantity, BBoxManager bboxManager) {
 		ResAngle orientation = theGraphicOptions.getOrientationAngle();
 		Graphics2D g2d=paintable.getGraphics2D();
 		// get dimensions
@@ -208,26 +207,17 @@ public class GlycanRendererAWT extends AbstractGlycanRenderer {
 				theGraphicOptions.NODE_FONT_SIZE);
 
 		// retrieve bounding box
-		Rectangle text_rect = null;
+		Rectangle text_rect;
 		Rectangle antenna_bbox = bboxManager.getComplete(antenna);
 
 		if (orientation.equals(0))
-			text_rect = new Rectangle(right(antenna_bbox) + 3,
-					midy(antenna_bbox) - 1 - text_dim.height / 2,
-					text_dim.width, text_dim.height); // left to right
+			text_rect = new Rectangle(right(antenna_bbox) + 3, midy(antenna_bbox) - 1 - text_dim.height / 2, text_dim.width, text_dim.height); // left to right
 		else if (orientation.equals(180))
-			text_rect = new Rectangle(left(antenna_bbox) - 3 - text_dim.width,
-					midy(antenna_bbox) - 1 - text_dim.height / 2,
-					text_dim.width, text_dim.height); // right to left
+			text_rect = new Rectangle(left(antenna_bbox) - 3 - text_dim.width, midy(antenna_bbox) - 1 - text_dim.height / 2, text_dim.width, text_dim.height); // right to left
 		else if (orientation.equals(90))
-			text_rect = new Rectangle(midx(antenna_bbox) - text_dim.height / 2,
-					bottom(antenna_bbox) + 3, text_dim.height, text_dim.width); // top
-																				// to
-																				// bottom
+			text_rect = new Rectangle(midx(antenna_bbox) - text_dim.height / 2, bottom(antenna_bbox) + 3, text_dim.height, text_dim.width); // top to bottom
 		else
-			text_rect = new Rectangle(midx(antenna_bbox) - text_dim.height / 2,
-					top(antenna_bbox) - 3 - text_dim.width, text_dim.height,
-					text_dim.width); // bottom to top
+			text_rect = new Rectangle(midx(antenna_bbox) - text_dim.height / 2, top(antenna_bbox) - 3 - text_dim.width, text_dim.height, text_dim.width); // bottom to top
 
 		// paint text
 		g2d.setColor(Color.black);

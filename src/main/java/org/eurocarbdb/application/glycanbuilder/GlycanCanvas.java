@@ -24,7 +24,6 @@ import org.eurocarbdb.application.glycanbuilder.dataset.CoreDictionary;
 import org.eurocarbdb.application.glycanbuilder.dataset.ResidueDictionary;
 import org.eurocarbdb.application.glycanbuilder.dataset.TerminalDictionary;
 import org.eurocarbdb.application.glycanbuilder.linkage.Linkage;
-import org.eurocarbdb.application.glycanbuilder.logutility.LogUtils;
 import org.eurocarbdb.application.glycanbuilder.renderutil.*;
 import org.eurocarbdb.application.glycanbuilder.util.*;
 import org.glycoinfo.application.glycanbuilder.dataset.CrossLinkedSubstituentDictionary;
@@ -111,7 +110,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 	 * Contains the information about a selection change event
 	 */
 	public static class SelectionChangeEvent {
-		private GlycanCanvas src;
+		private final GlycanCanvas src;
 
 		/**
 		 * Default constructor
@@ -211,7 +210,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 	private RibbonTask theStructureRibbon;
 	private RibbonTask theViewRibbon;
 	private JRibbonBand structureSelectionBand;
-	//private JRibbonBand structureRibbonBandCFG; /** for init Symbol notation?*/
+	//private JRibbonBand structureRibbonBandCFG; // for init Symbol notation?
 	private JRibbonBand structureRibbonBandSNFG;
 	//private JRibbonBand structureRibbonBandCFGGRY;
 	private String STRUCTURE_GALLERY_NAME = "Add structure";
@@ -251,7 +250,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 
 	private HashMap<RESIDUE_INSERT_MODES, List<ResidueGalleryIndex>> residueGalleries;
 
-	/**right click utility*/
+	// right click utility
 	private JComboBox field_anomeric_state_r;
 	private JComboBox field_anomeric_carbon_r;
 	private DropDownList field_linkage_position_r;
@@ -947,7 +946,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		last.setSelected(view_opt.NOTATION.equals(GraphicOptions.NOTATION_TEXT));
 		groupn.add(last);
 
-		/**SNFG notation*/
+		// SNFG notation
 		view_menu.add(last = new JRadioButtonMenuItem(getTheActionManager()
 				.get("notation=" + GraphicOptions.NOTATION_SNFG)));
 		last.setSelected(view_opt.NOTATION.equals(GraphicOptions.NOTATION_SNFG));
@@ -1067,7 +1066,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 						view_opt.NOTATION.equals(GraphicOptions.NOTATION_TEXT),
 						ICON_SIZE.L6));
 		
-		/**SNFG symbol*/
+		// SNFG symbol
 		panel.addButtonToLastGroup(getTheActionManager().get(
 				"notation=" + GraphicOptions.NOTATION_SNFG)
 				.getJCommandToggleButton("", this,
@@ -2288,7 +2287,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 						.parseString(content));
 			}
 		} catch (Exception e) {
-			LogUtils.report(e);
+			e.getMessage();
 		}
 	}
 
@@ -3321,12 +3320,11 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 				//this.getCurrentResidue().setAntennaeID(-1);
 			//}
 		} catch (Exception e) {
-			LogUtils.report(e);
+			e.getMessage();
 		}
 		
 		//updateResidue();
-		return;
-	}	
+	}
 	/***/
 	
 	public void hyperlinkUpdate(HyperlinkEvent e) {
@@ -3342,7 +3340,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		try {
 			theDoc.getUndoManager().undo();
 		} catch (Exception e) {
-			LogUtils.report(e);
+			e.getMessage();
 		}
 	}
 
@@ -3354,7 +3352,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		try {
 			theDoc.getUndoManager().redo();
 		} catch (Exception e) {
-			LogUtils.report(e);
+			e.getMessage();
 		}
 	}
 
@@ -3490,7 +3488,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 				theDoc.addStructure(a_oComposition);
 			}
 		} catch (Exception e) {
-			LogUtils.report(e);
+			e.getMessage();
 		}
 	}
 
@@ -3511,7 +3509,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 			}
 			theDoc.addStructure(a_oNewStructure);
 		} catch (Exception e) {
-			LogUtils.report(e);
+			e.getMessage();
 		}
 	}
 
@@ -3528,7 +3526,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 				for(String s : dlg.getStringEncoded()) theDoc.importFromString(s, dlg.getStringFormat());
 			}
 		} catch (Exception e) {
-			LogUtils.report(e);
+			e.getMessage();
 		}
 	}
 
@@ -3560,7 +3558,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 				this.theDoc.clearString();
 			}
 		} catch (Exception e) {
-			LogUtils.report(e);
+			e.getMessage();
 		}
 	}
 	
@@ -3578,7 +3576,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 			if (theDoc.addResidue(current, getLinkedResidues(), toadd) != null)
 				setSelection(current);
 		} catch (Exception e) {
-			LogUtils.report(e);
+			e.getMessage();
 		}
 	}
 
@@ -3620,8 +3618,6 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 					"Error while creating the repeating unit",
 					JOptionPane.ERROR_MESSAGE);
 		}
-		
-		return;
 	}
 
 	private void onAddCyclic() {
@@ -3658,8 +3654,6 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 					"Error while creating the cyclic unit",
 					JOptionPane.ERROR_MESSAGE);
 		}
-	
-		return;
 	}
 	
 	/**
@@ -3715,7 +3709,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 				theWorkspace.getResidueHistory().add(toinsert);
 			}
 		} catch (Exception e) {
-			LogUtils.report(e);
+			e.getMessage();
 		}
 	}
 
@@ -3734,7 +3728,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 				theWorkspace.getResidueHistory().add(current);
 			}
 		} catch (Exception e) {
-			LogUtils.report(e);
+			e.getMessage();
 		}
 	}
 
@@ -3782,8 +3776,6 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 					"Error in Change reducing end type",
 					JOptionPane.ERROR_MESSAGE);
 		}
-		
-		return;
 	}
 	
 	private void onChangeReducingEnd() {
@@ -3794,8 +3786,6 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 				if(a_oRoot.getChildAt(0).isAlditol()) a_oRoot.getChildAt(0).setAnomericState('o');
 			}
 		}
-		
-		return;
 	}
 
 	/**
@@ -3990,6 +3980,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 				char a_cParentPos = a_oEnd.getParentLinkage().getParentPositionsSingle();
 				Residue a_oBridge = new Residue(CrossLinkedSubstituentDictionary.getCrossLinkedSubstituent(a_sNodeName));
 
+				//TODO : acceptor -> bridge -> donor の形式に差し替える
 				a_oEnd.getParentLinkage().setSubstituent(a_oBridge);			
 				a_oStart.getChildrenLinkages().remove(a_oStart.getChildrenLinkages().indexOf(a_oEnd.getParentLinkage()));
 
@@ -4004,8 +3995,6 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 					"Error while insert bridge",
 					JOptionPane.ERROR_MESSAGE);
 		}
-
-		return;
 	}
 	
 	private void onAddALternative() {
@@ -4026,8 +4015,6 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		//a_oStartAlt.addChild(a_oEndAlt);
 		
 		//a_oCurrent.addChild(a_oStartAlt);
-		
-		return;
 	}
 
 	// ---------------

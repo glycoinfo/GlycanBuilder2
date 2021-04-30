@@ -69,7 +69,7 @@ public class Residue {
 	private LinkedList<Linkage> children_linkages;
 	
 	//annotation
-	private ArrayList<String> a_aModifications = new ArrayList<String>();
+	private final ArrayList<String> modifications = new ArrayList<>();
 	
 	// cleavage
 	private Residue cleaved_residue = null;
@@ -114,8 +114,8 @@ public class Residue {
 		this.isComposition = false;
 		
 		parent_linkage = null;
-		children_linkages = new LinkedList<Linkage>();
-		this.a_aParentsInFragment = new LinkedList<Residue>();
+		children_linkages = new LinkedList<>();
+		this.a_aParentsInFragment = new LinkedList<>();
 		
 		this.antennaeID = -1;
 	}
@@ -140,8 +140,8 @@ public class Residue {
 		this.isComposition = false;
 		
 		parent_linkage = null;
-		children_linkages = new LinkedList<Linkage>();
-		this.a_aParentsInFragment = new LinkedList<Residue>();
+		children_linkages = new LinkedList<>();
+		this.a_aParentsInFragment = new LinkedList<>();
 		
 		this.antennaeID = -1;
 	}
@@ -165,8 +165,8 @@ public class Residue {
 				_type.getName().contains("Fuc") || _type.getName().contains("Xyl");
 		
 		parent_linkage = null;
-		children_linkages = new LinkedList<Linkage>();
-		this.a_aParentsInFragment = new LinkedList<Residue>();
+		children_linkages = new LinkedList<>();
+		this.a_aParentsInFragment = new LinkedList<>();
 		
 		this.antennaeID = -1;
 	}
@@ -190,11 +190,11 @@ public class Residue {
 	}
 	
 	public void addModification(String a_sMOD) {
-		this.a_aModifications.add(a_sMOD);
+		this.modifications.add(a_sMOD);
 	}
 	
 	public ArrayList<String> getModifications() {
-		return this.a_aModifications;
+		return this.modifications;
 	}
 	
 	public void isComposition(boolean _isComposition) {
@@ -800,7 +800,7 @@ public class Residue {
 	public void sortChildLinkage() {
 		if(this.children_linkages.size() == 1) return;		
 
-		LinkedList<Linkage> lst_sorted = new LinkedList<Linkage>();
+		LinkedList<Linkage> lst_sorted = new LinkedList<>();
 		
 		String[] lst_parentPos = new String[this.children_linkages.size()];
 		for(Linkage lin : this.children_linkages) 
@@ -815,12 +815,10 @@ public class Residue {
 				if(pos.equals("?")) lst_sorted.addFirst(lin);
 				else lst_sorted.addLast(lin);
 				this.children_linkages.remove(lin);
-				continue;
 			}
 		}
 		
 		this.children_linkages = lst_sorted;
-		return;
 	}
 	
 	/*
@@ -902,8 +900,7 @@ public class Residue {
 	}
 
 	public boolean hasSaccharideParent() {
-		if(this.getSaccharideParent() != null) return true;
-		else return false;
+		return this.getSaccharideParent() != null;
 	}
 	
 	/*
@@ -1157,12 +1154,10 @@ public class Residue {
 		if( !match(this.anomeric_state,other.anomeric_state,fuzzy) )
 			return false;
 		if( !match(this.anomeric_carbon,other.anomeric_carbon,fuzzy) )
-			return false;    
-		if( !match(this.chirality,other.chirality,fuzzy) )
 			return false;
+		return match(this.chirality, other.chirality, fuzzy);
 		//if( !fuzzyMatch(this.ring_size,other.ring_size) )
 		//return false;
-		return true;
 	}
 
 
@@ -1195,10 +1190,7 @@ public class Residue {
 			return false;
 		if( this.chirality!=other.chirality )
 			return false;
-		if( this.ring_size!=other.ring_size )
-			return false;
-
-		return true;
+		return this.ring_size == other.ring_size;
 	}
 
 	/*
@@ -1673,7 +1665,7 @@ public class Residue {
        Create a copy of the subtree rooted at this residue.
 	 */
 	public Residue cloneSubtree() {
-		return cloneSubtree(null,(Residue)null,new ResidueHolder());
+		return cloneSubtree(null, null,new ResidueHolder());
 	}
 
 	protected Residue cloneSubtree(Residue stop_el, ResidueType stop_type) {
