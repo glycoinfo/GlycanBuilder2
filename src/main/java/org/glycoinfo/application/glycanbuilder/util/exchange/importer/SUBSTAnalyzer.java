@@ -105,24 +105,23 @@ public class SUBSTAnalyzer {
 		mapAnalyzer.start(_subst.getMAP());
 		BaseSubstituentTemplate subTemp = mapAnalyzer.getSingleTemplate();
 
-		if (!this.checkTrueMAP(mapAnalyzer)) {
+		if(subTemp == null)
 			throw new Exception("This MAP is not support in the GlycanBuilder2:" + _subst.getMAP());
-		}
 
 		char[] positions = this.makePosition(_subst.getPositions());
 		String subNotation = positions[0] + "*" + subTemp.getIUPACnotation();
 
 		if(subTemp.getIUPACnotation().equals(""))
-			throw new Exception(_subst.getMAP() + " can not handled in GlycanBuilder2");
-		
+			throw new Exception("This MAP is not support in the GlycanBuilder2:" + _subst.getMAP());
+
 		// check native substituent
 		TrivialNameDictionary trivDict = TrivialNameDictionary.forThreeLetterCode(_residue.getTypeName());
 		ModifiedMonosaccharideDescriptor modDesc = ModifiedMonosaccharideDescriptor.forTrivialName(_residue.getTypeName());
 		if(trivDict != null) {
 			if(trivDict.getSubstituents().contains(subNotation)) return;
 		}
-		if (modDesc != null) {
-			if (modDesc.getSubstituents().contains(subNotation)) return;
+		if(modDesc != null) {
+			if(modDesc.getSubstituents().contains(subNotation)) return;
 		}
 
 		// change n_sulfate with hexosamine
@@ -149,11 +148,11 @@ public class SUBSTAnalyzer {
 	private void analyzeBRIDGE(BRIDGE _bridge, Residue _residue) throws Exception {
 		Linkage linkage = new Linkage();
 		MAPAnalyzer mapAnalyzer = new MAPAnalyzer();
-		mapAnalyzer.start(_bridge.getMAP().equals("") ? "*o" : _bridge.getMAP());
+		mapAnalyzer.start(_bridge.getMAP().equals("") ? "*O*" : _bridge.getMAP());
 		BaseCrossLinkedTemplate crossTemp = mapAnalyzer.getCrossTemplate();
 
-		//String map = _bridge.getMAP().equals("") ? "*o" : _bridge.getMAP();
-		//BaseCrossLinkedTemplate crossTemp = BaseCrossLinkedTemplate.forMAP(map);
+		if (crossTemp == null)
+			throw new Exception("This MAP is not support in the GlycanBuilder2:" + _bridge.getMAP());
 
 		char[] startPos = this.makePosition(_bridge.getStartPositions());
 		char[] endPos = this.makePosition(_bridge.getEndPositions());
@@ -189,7 +188,7 @@ public class SUBSTAnalyzer {
 				_residue.addModification(mod);
 				if(trivDict.getModifications().contains(mod)) continue;
 			}
-			if (modDesc != null) {
+			if(modDesc != null) {
 				_residue.addModification(mod);
 				if(modDesc.getModifications().contains(mod)) continue;
 			}
@@ -262,7 +261,7 @@ public class SUBSTAnalyzer {
 		if(position != -1) {
 			char carbondescriptor = skeletonCode.charAt(position - 1);
 			CarbonDescriptor cdDesc = CarbonDescriptor.forCharacter(carbondescriptor, (position == 1 || skeletonCode.length() == position));
-			if (cdDesc.equals(CarbonDescriptor.SS3_CHIRAL_S_U) || cdDesc.equals(CarbonDescriptor.SS3_CHIRAL_R_U) ||
+			if(cdDesc.equals(CarbonDescriptor.SS3_CHIRAL_S_U) || cdDesc.equals(CarbonDescriptor.SS3_CHIRAL_R_U) ||
 					cdDesc.equals(CarbonDescriptor.SS3_CHIRAL_s_U) || cdDesc.equals(CarbonDescriptor.SS3_CHIRAL_r_U)) {
 				return LinkageType.H_LOSE;
 			}
@@ -283,12 +282,5 @@ public class SUBSTAnalyzer {
 		if(_subTemp.equals(BaseSubstituentTemplate.NMETHYL)) return true;
 		if(_subTemp.equals(BaseSubstituentTemplate.NSUCCINATE)) return true;
 		return _subTemp.equals(BaseSubstituentTemplate.ETHANOLAMINE);
-	}
-
-	private boolean checkTrueMAP (MAPAnalyzer _mapAnalyzer) {
-		if (this.isNTypes(_mapAnalyzer.getSingleTemplate())) return true;
-		if (_mapAnalyzer.getSingleTemplate().equals(BaseSubstituentTemplate.AMINE) ||
-		_mapAnalyzer.getSingleTemplate().equals(BaseSubstituentTemplate.METHYL)) return true;
-		return (!_mapAnalyzer.getHeadAtom().equals(""));
 	}
 }

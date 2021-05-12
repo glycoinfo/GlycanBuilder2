@@ -59,7 +59,7 @@ class SVGGlycanRenderer extends GlycanRendererAWT {
 
         // draw core structures
         if (!structure.isComposition()) {
-            paintResidue(new DefaultPaintable(g2d), structure.getRoot(isAlditol), selected_residues, selected_linkages, null, posManager, bboxManager, structure.isComposition());
+            paintResidue(new DefaultPaintable(g2d), structure.getRoot(isAlditol), selected_residues, selected_linkages, null, posManager, bboxManager);
         }
 
         // draw fragments

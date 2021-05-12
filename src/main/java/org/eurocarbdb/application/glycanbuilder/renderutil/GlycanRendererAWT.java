@@ -96,7 +96,7 @@ public class GlycanRendererAWT extends AbstractGlycanRenderer {
 
 		// draw core structures
 		if (!structure.isComposition()) {
-			paintResidue(paintable, structure.getRoot(isAlditol), selected_residues, selected_linkages, null, posManager, bboxManager, structure.isComposition());
+			paintResidue(paintable, structure.getRoot(isAlditol), selected_residues, selected_linkages, null, posManager, bboxManager);
 		}
 
 		// draw fragments
