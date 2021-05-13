@@ -11,6 +11,7 @@ PyrP	Bridge	PyrP	H4P2O7		-	PyrP	1	?	?	yes	yes	no	0	1	no	1	no	1	1	1	no	no	yes	Pyr
 S		Bridge	S		H2S1O4		-	S		1	?	?	yes	yes	no	0	3	no	1	no	1	1	1	no	no	yes	Sulfate
 Suc		Bridge	Suc		C4H4O4		-	Suc		1	?	?	yes	yes	no	0	3	no	1	no	1	1	1	no	no	yes	Succinate
 Tri-P	Bridge	Tri-P	H9P3O12		-	Tri-P	1	?	?	yes	yes	no	0	3	no	1	no	1	1	1	no	no	yes	Triphosphate
+SH		Bridge	SH		H2S1		-	SH		1	?	?	yes	yes	no	0	3	no	1	no	1	1	1	no	no	yes	Thio
 %ETHANOLAMINE_b
 %IMINO_b
 %PYROPHOSPHATE_b

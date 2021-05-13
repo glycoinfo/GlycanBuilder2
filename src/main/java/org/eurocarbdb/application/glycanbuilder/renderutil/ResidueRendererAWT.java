@@ -311,6 +311,7 @@ public class ResidueRendererAWT extends AbstractResidueRenderer {
     private boolean haveSymbol (Residue _node) {
 		if (!theGraphicOptions.NOTATION.equals(GraphicOptions.NOTATION_SNFG)) return false;
 		if (!_node.isSaccharide()) return false;
+		if (_node.isBridge()) return false;
 		if (_node.getType().getDescription().equals("no glycosidic linkages")) return false;
 		ResidueStyle style = theResidueStyleDictionary.getStyle(_node);
 		return (style.getShape() == null);
