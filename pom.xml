@@ -7,7 +7,7 @@
 	<description>Implement WURCS converter</description>
 
 	<groupId>org.eurocarbdb.glycanbuilder</groupId>
-	<artifactId>wurcsextend</artifactId>
+	<artifactId>glycanbuilder2</artifactId>
 	<version>1.12.0</version>
 	<packaging>jar</packaging>
 
@@ -18,7 +18,7 @@
 	<repositories>
 		<repository>
 			<id>glycoinfo</id>
-			<url>http://nexus.glycoinfo.org/content/groups/public</url>
+			<url>https://nexus.glycoinfo.org/content/groups/public</url>
 			<releases>
 				<enabled>true</enabled>
 				<updatePolicy>always</updatePolicy>
@@ -58,7 +58,7 @@
 		<snapshotRepository>
 			<id>glycoinfo-snapshots</id>
 			<name>Internal Release Snapshots</name>
-			<url>http://nexus.glycoinfo.org/content/repositories/snapshots</url>
+			<url>https://nexus.glycoinfo.org/content/repositories/snapshots</url>
 		</snapshotRepository>
 	</distributionManagement>
 
