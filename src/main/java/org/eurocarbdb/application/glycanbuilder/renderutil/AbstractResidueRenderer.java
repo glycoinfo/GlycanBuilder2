@@ -70,9 +70,12 @@ public abstract class AbstractResidueRenderer implements ResidueRenderer{
     		return "";
 
     	ResidueType  type  = node.getType();
-    	ResidueStyle style =
-    			theResidueStyleDictionary.getStyle(node);
+    	ResidueStyle style = theResidueStyleDictionary.getStyle(node);
     	String text = style.getText();
+
+    	if ((type.getSuperclass().equals("Bridge") && text != null) && text.equals("SH")) {
+    		text = "S";
+		}
 
     	return (text!=null) ?text :type.getResidueName();
     }

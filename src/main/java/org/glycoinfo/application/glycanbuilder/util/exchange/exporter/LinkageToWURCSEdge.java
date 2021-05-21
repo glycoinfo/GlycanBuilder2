@@ -27,8 +27,8 @@ public class LinkageToWURCSEdge {
 	private int mapPos4Child = 0;
 
 	public LinkageToWURCSEdge() {
-		parentEdges = new LinkedList<WURCSEdge>();
-		childEdges = new LinkedList<WURCSEdge>();
+		parentEdges = new LinkedList<>();
+		childEdges = new LinkedList<>();
 	}
 
 	public void setLinkage(Linkage a_oLIN) {

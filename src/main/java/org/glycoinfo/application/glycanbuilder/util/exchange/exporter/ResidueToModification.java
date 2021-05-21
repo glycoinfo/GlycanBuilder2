@@ -3,6 +3,9 @@ package org.glycoinfo.application.glycanbuilder.util.exchange.exporter;
 import org.eurocarbdb.MolecularFramework.sugar.LinkageType;
 import org.eurocarbdb.application.glycanbuilder.Residue;
 import org.eurocarbdb.application.glycanbuilder.linkage.Linkage;
+import org.glycoinfo.GlycanFormatconverter.Glycan.BaseCrossLinkedTemplate;
+import org.glycoinfo.GlycanFormatconverter.Glycan.BaseSubstituentTemplate;
+import org.glycoinfo.GlycanFormatconverter.Glycan.SubstituentInterface;
 import org.glycoinfo.GlycanFormatconverter.util.exchange.SugarToWURCSGraph.SubstituentTypeToMAP;
 import org.glycoinfo.WURCSFramework.util.oldUtil.SubstituentTemplate;
 
@@ -23,8 +26,7 @@ public class ResidueToModification {
 	private String map = "";
 	
 	private SubstituentTypeToMAP subType2MAP;
-	private SubstituentTemplate subTemp;
-	
+
 	private LinkageType parentLinkageType;
 	private LinkageType childLinkageType;
 	
@@ -49,11 +51,7 @@ public class ResidueToModification {
 	public String getTailAtom() {
 		return this.tailAtom;
 	}
-	
-	public SubstituentTemplate getSubstituentTemplate() {
-		return this.subTemp;
-	}
-	
+
 	public void setParentLinkage(Linkage _linkage) {
 		this.parentLinkage = _linkage;
 	}
@@ -62,11 +60,12 @@ public class ResidueToModification {
 		this.childLinkage = _linkage;
 	}
 	
-	public void setSubstituentTemplate(Residue _substituent) throws Exception {
-		this.subTemp =	SubstituentTemplate.forIUPACNotation(_substituent.getTypeName());
-		this.notationGCT = this.subTemp.getGlycoCTnotation();
-		
-		return;
+	public void setSubstituentTemplate(Residue _substituent) {
+		SubstituentInterface subTemp = BaseSubstituentTemplate.forIUPACNotationWithIgnore(_substituent.getTypeName());
+		if (subTemp == null) {
+			subTemp = BaseCrossLinkedTemplate.forIUPACNotationWithIgnore(_substituent.getTypeName());
+		}
+		this.notationGCT = subTemp.getglycoCTnotation();
 	}
 	
 	public void start(Residue _substituent) throws Exception {
