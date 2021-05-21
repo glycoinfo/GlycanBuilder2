@@ -39,10 +39,14 @@ $ mvn clean package
 When compilation in finished, jar file is created in the target folder.
 >[INFO] Building jar: /../../Directory_of_local_repository/GlycanBuilder2/target/glycanbuilder2-jar-with-dependencies.jar
 
+- Windows or Linux
+```
+java -jar glycanbuilder2-jar-with-dependencies.jar
+```
+- Mac OS X
 ```
 java -XstartOnFirstThread -jar glycanbuilder2-jar-with-dependencies.jar
 ```
-
 ## Example
 
 ### Import WURCS string
