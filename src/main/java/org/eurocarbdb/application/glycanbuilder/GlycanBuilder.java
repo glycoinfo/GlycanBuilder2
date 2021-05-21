@@ -790,13 +790,13 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
 	public void onAbout() {
 
 		try {
-			JDialog dlg = new JDialog(this, "About GlycanBuilder", true);        
+			JDialog dlg = new JDialog(this, "About GlycanBuilder2", true);
 			JEditorPane html = new JEditorPane(this.getClass().getResource("/html/about_builder.html"));
 			html.setEditable(false);
-			html.setBorder(new EmptyBorder(20,20,20,20));
+			html.setBorder(new EmptyBorder(0,20,20,20));
 
 			dlg.add(html);
-			dlg.setSize(320,320);
+			dlg.setSize(320,350);
 			dlg.setResizable(false);
 			dlg.setLocationRelativeTo(this);        
 

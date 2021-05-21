@@ -119,6 +119,7 @@ public class FileUtils {
 	 *            the desired file extension
 	 */
 	static public String enforceExtension(String filename, String extension) {
+		/*
 		String ext = "";
 		int i = filename.lastIndexOf('.');
 		if (i > 0 && i < filename.length() - 1)
@@ -126,6 +127,8 @@ public class FileUtils {
 		if (ext.equals(extension))
 			return filename;
 		return filename + "." + extension;
+		 */
+		return filename + ".txt";
 	}
 
 	/**

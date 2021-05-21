@@ -159,11 +159,9 @@ public class DropDownList extends JToggleButton implements ActionListener,
 		for (ActionListener al : this.getActionListeners()) {
 			if (al != this) {
 				if (getActionCommand() != null)
-					al.actionPerformed(new ActionEvent(this,
-							ActionEvent.ACTION_PERFORMED, getActionCommand()));
+					al.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, getActionCommand()));
 				else
-					al.actionPerformed(new ActionEvent(this,
-							ActionEvent.ACTION_PERFORMED, getText()));
+					al.actionPerformed(new ActionEvent(this, ActionEvent.ACTION_PERFORMED, getText()));
 			}
 		}
 		is_changed = false;

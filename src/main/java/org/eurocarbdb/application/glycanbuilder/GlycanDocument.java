@@ -1270,8 +1270,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	 *            specified in the dictionary
 	 * @see GlycanParserFactory#getParser
 	 */
-	public boolean importFromString(String buffer, String format,
-			boolean tolerate_unknown) {
+	public boolean importFromString(String buffer, String format, boolean tolerate_unknown) {
 		try {
 			// System.out.println("Importing from " + format + " with " +
 			// tolerate_unknown);

@@ -226,8 +226,7 @@ public class GlycanAction extends AbstractAction {
 	 * Notify all the listeners that the action has been performed.
 	 */
 	public void actionPerformed(ActionEvent e) {
-		for (Iterator<ActionListener> i = listeners.iterator(); i.hasNext();)
-			i.next().actionPerformed(e);
+		for (ActionListener listener : listeners) listener.actionPerformed(e);
 	}
 
 	/**

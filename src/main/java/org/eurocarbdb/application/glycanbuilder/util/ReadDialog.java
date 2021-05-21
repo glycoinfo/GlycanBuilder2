@@ -75,7 +75,7 @@ public class ReadDialog extends EscapeDialog implements ActionListener, ItemList
 	private void fillComponents() {
 		this.list_format.setModel(
 				new DefaultComboBoxModel(
-						new String[] {"GlycoCT{condensed}", "LinearCode", "KCF", "LINUCS", "WURCS1.0", "WURCS2.0"}));
+						new String[] {"GlycoCT{condensed}", "LinearCode", "KCF", "LINUCS", "WURCS2.0"}));
 	}
 
 	private void setTraversal() {
@@ -130,7 +130,7 @@ public class ReadDialog extends EscapeDialog implements ActionListener, ItemList
 		this.button_cancel.setText("Cancel");
 		this.list_format.setModel(
 				new DefaultComboBoxModel(
-						new String[] {"GlycoCT", "LinearCode", "KCF", "LINUCS", "WURCS1.0", "WURCS2.0"}));
+						new String[] {"GlycoCT", "LinearCode", "KCF", "LINUCS", "WURCS2.0"}));
 
 		GroupLayout layout = new GroupLayout(this.getContentPane());
 		this.getContentPane().setLayout(layout);
