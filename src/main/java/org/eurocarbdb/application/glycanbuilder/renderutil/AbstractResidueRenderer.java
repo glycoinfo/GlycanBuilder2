@@ -482,55 +482,39 @@ public abstract class AbstractResidueRenderer implements ResidueRenderer{
     	return new CubicCurve2D.Double(x1,y1,tx1,ty1,tx2,ty2,x2,y2);
     }
     
-    static private Shape createBracket(double angle, double x, double y, double w, double h) {        
+    static private Polygon createBracket(double angle, double x, double y, double w, double h) {
     	double rx = w/2.;
     	double ry = h/2.;
     	double cx = x+w/2.;
     	double cy = y+h/2.;
 
-    	// first start point
-    	double x11 = cx+rx*Math.cos(angle-Math.PI/2.)+0.2*rx*Math.cos(angle);
-    	double y11 = cy+ry*Math.sin(angle-Math.PI/2.)+0.2*ry*Math.sin(angle);
+		Polygon p = new Polygon();
 
-    	// first ctrl point 1
-    	double tx11 = cx+0.9*rx*Math.cos(angle-Math.PI/2.)+0.2*rx*Math.cos(angle-Math.PI);
-    	double ty11 = cy+0.9*ry*Math.sin(angle-Math.PI/2.)+0.2*ry*Math.sin(angle-Math.PI);
-
-    	// first ctrl point 2;
-    	double tx21 = cx+0.1*rx*Math.cos(angle-Math.PI/2.)+0.2*rx*Math.cos(angle);
-    	double ty21 = cy+0.1*ry*Math.sin(angle-Math.PI/2.)+0.2*ry*Math.sin(angle);
+		// first start point
+    	double x1 = cx+rx*Math.cos(angle-Math.PI/2.)-rx*Math.cos(angle);
+    	double y1 = cy+ry*Math.sin(angle-Math.PI/2.)+ry*Math.sin(angle);
+		p.addPoint((int)x1, (int)y1);
 
     	// first end point
-    	double x21 = cx+0.2*rx*Math.cos(angle-Math.PI);
-    	double y21 = cy+0.2*ry*Math.sin(angle-Math.PI);
-
-    	// first shape
-    	Shape s1 = new CubicCurve2D.Double(x11,y11,tx11,ty11,tx21,ty21,x21,y21);
+    	double x2 = cx+rx*Math.cos(angle-Math.PI/2.);
+    	double y2 = cy+ry*Math.sin(angle-Math.PI/2.);
+		p.addPoint((int)x2, (int)y2);
 
     	// second start point
-    	double x12 = cx+rx*Math.cos(angle+Math.PI/2.)+0.2*rx*Math.cos(angle);
-    	double y12 = cy+ry*Math.sin(angle+Math.PI/2.)+0.2*ry*Math.sin(angle);
-
-    	// second ctrl point 1
-    	double tx12 = cx+0.9*rx*Math.cos(angle+Math.PI/2.)+0.2*rx*Math.cos(angle-Math.PI);
-    	double ty12 = cy+0.9*ry*Math.sin(angle+Math.PI/2.)+0.2*ry*Math.sin(angle-Math.PI);
-
-    	// second ctrl point 2;
-    	double tx22 = cx+0.1*rx*Math.cos(angle+Math.PI/2.)+0.2*rx*Math.cos(angle);
-    	double ty22 = cy+0.1*ry*Math.sin(angle+Math.PI/2.)+0.2*ry*Math.sin(angle);
+		double x3 = cx+rx*Math.cos(angle+Math.PI/2.);
+		double y3 = cy+ry*Math.sin(angle+Math.PI/2.);
+		p.addPoint((int)x3, (int)y3);
 
     	// second end point
-    	double x22 = cx+0.2*rx*Math.cos(angle-Math.PI);
-    	double y22 = cy+0.2*ry*Math.sin(angle-Math.PI);
+		double x4 = cx+rx*Math.cos(angle+Math.PI/2.)-rx*Math.cos(angle);
+		double y4 = cy+ry*Math.sin(angle+Math.PI/2.)+ry*Math.sin(angle);
+		p.addPoint((int)x4, (int)y4);
 
-    	// second shape
-    	Shape s2 = new CubicCurve2D.Double(x12,y12,tx12,ty12,tx22,ty22,x22,y22);
+		// close shape
+		p.addPoint((int)x3,(int)y3);
+		p.addPoint((int)x2,(int)y2);
 
-    	// generate bracket
-    	GeneralPath b = new GeneralPath();
-    	b.append(s1,false);    
-    	b.append(s2,false);    
-    	return b;
+		return p;
     }
 
     private Shape createRepetition(double angle, double x, double y, double w, double h) {    
@@ -686,7 +670,7 @@ public abstract class AbstractResidueRenderer implements ResidueRenderer{
     		return createRHatDiamond(angle(pp,ps),x,y,w,h);            
     
     	if( shape.equals("bracket") ) 
-    		return createBracket(orientation.opposite().getAngle(),x,y,w,h);
+    		return createBracket(orientation.getAngle(),x,y,w,h);
     	if( shape.equals("startrep") ) 
     		return createRepetition(orientation.opposite().getAngle(),x,y,w,h);
     	if( shape.equals("endrep") ) 
