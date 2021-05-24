@@ -795,10 +795,12 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
 			html.setEditable(false);
 			html.setBorder(new EmptyBorder(0,20,20,20));
 
-			dlg.add(html);
+			JScrollPane jscPane = new JScrollPane(html);
+
+			dlg.add(jscPane);
 			dlg.setSize(320,350);
-			dlg.setResizable(false);
-			dlg.setLocationRelativeTo(this);        
+			dlg.setResizable(true);
+			dlg.setLocationRelativeTo(this);
 
 			dlg.setVisible(true);
 		}
