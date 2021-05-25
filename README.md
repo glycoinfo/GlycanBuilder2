@@ -78,7 +78,7 @@ Implementation of GlycanBuilder to draw a wide variety of ambiguous glycans, Car
 ## Downloads
 
 ### Standalone executable GlycanBuilder2
-* [GlycanBuilder2](http://www.rings.t.soka.ac.jp/downloads.html)
+* [GlycanBuilder2](https://github.com/glycoinfo/Executable/tree/master/GlycanBuilder2)
 * Supported OS : 
   * Windowds (64bit)
   * Mac OS X (64bit)
