@@ -24,6 +24,7 @@
 package org.eurocarbdb.application.glycanbuilder.renderutil;
 
 import java.util.*;
+import java.awt.Rectangle;
 
 import org.eurocarbdb.application.glycanbuilder.util.GraphicOptions;
 import org.glycoinfo.application.glycanbuilder.util.GlycanUtils;
@@ -33,6 +34,8 @@ import org.eurocarbdb.application.glycanbuilder.Residue;
 import org.eurocarbdb.application.glycanbuilder.linkage.Linkage;
 
 class SVGGlycanRenderer extends GlycanRendererAWT {
+
+    Glycan theStructure=null;
 
     public SVGGlycanRenderer(GlycanRendererAWT src) {
         theResidueRenderer = src.theResidueRenderer;
@@ -47,6 +50,8 @@ class SVGGlycanRenderer extends GlycanRendererAWT {
         if (structure == null || structure.getRoot(show_redend) == null)
             return;
 
+	theStructure = structure;
+
         boolean isAlditol = show_redend;
         if(!structure.isComposition()) {
             isAlditol = GlycanUtils.isShowRedEnd(structure, theGraphicOptions, show_redend);
@@ -59,7 +64,7 @@ class SVGGlycanRenderer extends GlycanRendererAWT {
 
         // draw core structures
         if (!structure.isComposition()) {
-            paintResidue(new DefaultPaintable(g2d), structure.getRoot(isAlditol), selected_residues, selected_linkages, null, posManager, bboxManager);
+            paintResidue(g2d, structure.getRoot(isAlditol), selected_residues, selected_linkages, null, posManager, bboxManager);
         }
 
         // draw fragments
@@ -75,54 +80,60 @@ class SVGGlycanRenderer extends GlycanRendererAWT {
         }
     }
 
-    /*
-    public void paintResidue(GroupingSVGGraphics2D g2d, Glycan structure,Residue node, HashSet<Residue> selected_residues, HashSet<Linkage> selected_linkages, PositionManager posManager, BBoxManager bboxManager) {    
-    if( node==null )
-        return;
+	public void paintResidue(GroupingSVGGraphics2D g2d, Residue node, 
+				 HashSet<Residue> selected_residues, 
+				 HashSet<Linkage> selected_linkages, 
+				 Collection<Residue> active_residues, PositionManager posManager, 
+				 BBoxManager bboxManager) {    
+		if (node == null) return;
 
-    Rectangle parent_bbox  = bboxManager.getParent(node);
-    Rectangle node_bbox    = bboxManager.getCurrent(node);
-    Rectangle border_bbox  = bboxManager.getBorder(node);
-    Rectangle support_bbox = bboxManager.getSupport(node);
-    
-    if( node_bbox==null ) // not shown
-        return;
+		Rectangle parent_bbox = bboxManager.getParent(node);
+		Rectangle node_bbox = bboxManager.getCurrent(node);
+		Rectangle border_bbox = bboxManager.getBorder(node);
+		Rectangle support_bbox = bboxManager.getSupport(node);
 
-    // paint edges
-    for(Linkage link : node.getChildrenLinkages() ) {
-        Residue child = link.getChildResidue();        
-        Rectangle child_bbox = bboxManager.getCurrent(child);
-        Rectangle child_border_bbox = bboxManager.getBorder(child);
+		// not shown 
+		if (node_bbox == null) return;
 
-        if( child_bbox!=null && !posManager.isOnBorder(child) ) {
-        g2d.addGroup("l",structure,node,child);
-        boolean selected = (selected_residues.contains(node) && selected_residues.contains(child)) || selected_linkages.contains(link);
-        theLinkageRenderer.paintEdge(new DefaultPaintable(g2d),link,selected,node_bbox,border_bbox,child_bbox,child_border_bbox);                
-        }        
-    }
-    
-    // paint node
-    g2d.addGroup("r",structure,node);
-    theResidueRenderer.paint(new DefaultPaintable(g2d),node,selected_residues.contains(node),posManager.isOnBorder(node),parent_bbox,node_bbox,support_bbox,posManager.getOrientation(node));
-    
-    // paint children
-    for(Linkage link : node.getChildrenLinkages() ) 
-        paintResidue(g2d,structure,link.getChildResidue(),selected_residues,selected_linkages,posManager,bboxManager);
+		// paint edges
+		for (Linkage link : node.getChildrenLinkages()) {
 
-    // paint info
-    for(Linkage link : node.getChildrenLinkages() ) {
-    
-        Residue child = link.getChildResidue();        
-        Rectangle child_bbox = bboxManager.getCurrent(child);
-        Rectangle child_border_bbox = bboxManager.getBorder(child);
+			Residue child = link.getChildResidue();
+			Rectangle child_bbox = bboxManager.getCurrent(child);
+			Rectangle child_border_bbox = bboxManager.getBorder(child);
 
-        if( child_bbox!=null && !posManager.isOnBorder(child) ) {
-        g2d.addGroup("li",structure,node,child);
-        theLinkageRenderer.paintInfo(new DefaultPaintable(g2d),link,node_bbox,border_bbox,child_bbox,child_border_bbox);                        
-        }
-    }
-    }
-     */
+			if (child_bbox != null && !posManager.isOnBorder(child)) {
+				g2d.addGroup("l",theStructure,node,child);
+				boolean selected = (selected_residues.contains(node) && selected_residues.contains(child)) || selected_linkages.contains(link);
+				boolean active = (active_residues == null || (active_residues.contains(node) && active_residues.contains(child)));
+				theLinkageRenderer.paintEdge(new DefaultPaintable(g2d),link,selected,node_bbox,border_bbox,child_bbox,child_border_bbox);                
+			}        
+		}
+
+		// paint node
+		g2d.addGroup("r",theStructure,node);
+		boolean selected = selected_residues.contains(node);
+		boolean active = (active_residues == null || active_residues.contains(node));
+		theResidueRenderer.paint(new DefaultPaintable(g2d), node, selected, active, posManager.isOnBorder(node), parent_bbox, node_bbox,
+				support_bbox,posManager.getOrientation(node));
+
+		// paint children
+		for (Linkage link : node.getChildrenLinkages())
+			paintResidue(g2d, link.getChildResidue(), selected_residues, selected_linkages, active_residues, posManager, bboxManager);
+
+		// paint info
+		for (Linkage link : node.getChildrenLinkages()) {
+
+			Residue child = link.getChildResidue();
+			Rectangle child_bbox = bboxManager.getCurrent(child);
+			Rectangle child_border_bbox = bboxManager.getBorder(child);
+
+			if (child_bbox != null && !posManager.isOnBorder(child)) {
+				g2d.addGroup("li",theStructure,node,child);
+				theLinkageRenderer.paintInfo(new DefaultPaintable(g2d),link,node_bbox,border_bbox,child_bbox,child_border_bbox);                        
+			}
+		}
+	}
 
     /*
     public void paintBracket(GroupingSVGGraphics2D g2d, Glycan structure, Residue bracket, HashSet<Residue> selected_residues, HashSet<Linkage> selected_linkages, PositionManager posManager, BBoxManager bboxManager) {    
