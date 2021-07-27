@@ -68,7 +68,7 @@ class SVGGlycanRenderer extends GlycanRendererAWT {
         }
 
         // draw fragments
-        paintBracket(new DefaultPaintable(g2d), structure, selected_residues, selected_linkages, null, posManager, bboxManager);
+        paintBracket(g2d, structure, selected_residues, selected_linkages, null, posManager, bboxManager);
 
         if(theGraphicOptions.NOTATION.equals(GraphicOptions.NOTATION_SNFG)) {
             g2d.addGroup("legend", structure, null);
@@ -135,50 +135,70 @@ class SVGGlycanRenderer extends GlycanRendererAWT {
 		}
 	}
 
-    /*
-    public void paintBracket(GroupingSVGGraphics2D g2d, Glycan structure, Residue bracket, HashSet<Residue> selected_residues, HashSet<Linkage> selected_linkages, PositionManager posManager, BBoxManager bboxManager) {    
-    if( bracket==null )
-        return;
-    
-    Rectangle parent_bbox  = bboxManager.getParent(bracket);
-    Rectangle bracket_bbox = bboxManager.getCurrent(bracket);
-    Rectangle support_bbox = bboxManager.getSupport(bracket);
 
-    // paint bracket
-    g2d.addGroup("b",structure,bracket);
-    theResidueRenderer.paint(new DefaultPaintable(g2d),bracket,selected_residues.contains(bracket),false,parent_bbox,bracket_bbox,support_bbox,posManager.getOrientation(bracket));
+	public void paintBracket(GroupingSVGGraphics2D g2d, Glycan _glycan, 
+				 HashSet<Residue> selected_residues, 
+				 HashSet<Linkage> selected_linkages, 
+				 Collection<Residue> active_residues, PositionManager posManager, 
+				 BBoxManager bboxManager) {    
 
-    // paint antennae
-    for( Linkage link : bracket.getChildrenLinkages() ) {
-        Residue child = link.getChildResidue();       
-        int quantity  = bboxManager.getLinkedResidues(child).size()+1;
+		if(_glycan == null || _glycan.getBracket() == null) return;
 
-        Rectangle node_bbox         = bboxManager.getParent(child);
-        Rectangle child_bbox        = bboxManager.getCurrent(child);
-        Rectangle child_border_bbox = bboxManager.getBorder(child);
-        
-        if( child_bbox!=null ) {        
-        // paint edge
-        if( !posManager.isOnBorder(child) ) {
-            g2d.addGroup("l",structure,bracket,child);
-            boolean selected = (selected_residues.contains(bracket) && selected_residues.contains(child)) || selected_linkages.contains(link);
-            theLinkageRenderer.paintEdge(new DefaultPaintable(g2d),link,selected,node_bbox,node_bbox,child_bbox,child_border_bbox);
-        }
-        
-        // paint child
-        paintResidue(g2d,structure,child,selected_residues,selected_linkages,posManager,bboxManager);    
+		Residue bracket = _glycan.getBracket();
+		Rectangle parent_bbox = bboxManager.getParent(bracket);
+		Rectangle bracket_bbox = bboxManager.getCurrent(bracket);
+		Rectangle support_bbox = bboxManager.getSupport(bracket);
 
-        // paint info
-        if( !posManager.isOnBorder(child) ) {
-            g2d.addGroup("li",structure,bracket,child);
-            theLinkageRenderer.paintInfo(new DefaultPaintable(g2d),link,node_bbox,node_bbox,child_bbox,child_border_bbox);
-        }
+		// paint bracket
+		g2d.addGroup("b",theStructure,bracket);
+		boolean selected = selected_residues.contains(bracket);
+		boolean active = (active_residues == null || active_residues.contains(bracket));
 
-        if( quantity>1 ) 
-            paintQuantity(new DefaultPaintable(g2d),child,quantity,bboxManager);        
-        }                
-    }    
-    }
-     */
+		if(!_glycan.isComposition())
+			theResidueRenderer.paint(new DefaultPaintable(g2d), bracket, selected, active, false,
+						 parent_bbox, bracket_bbox, support_bbox, posManager.getOrientation(bracket));
+
+		// paint antennae
+		for (Linkage link : bracket.getChildrenLinkages()) {
+			Residue child = link.getChildResidue();
+
+			if (child.getType().getDescription().equals("no glycosidic linkages")) continue;
+
+			int quantity = bboxManager.getLinkedResidues(child).size() + 1;
+
+			Rectangle node_bbox = bboxManager.getParent(child);
+			Rectangle child_bbox = bboxManager.getCurrent(child);
+			Rectangle child_border_bbox = bboxManager.getBorder(child);
+
+			if (child_bbox != null) {
+				// paint edge
+				if (!posManager.isOnBorder(child)) {
+					g2d.addGroup("l",theStructure,bracket,child);
+					selected = (selected_residues.contains(bracket) && selected_residues.contains(child)) || selected_linkages.contains(link);
+					active = (active_residues == null || (active_residues.contains(bracket) && active_residues.contains(child)));
+
+					if (!_glycan.isComposition() && !link.getChildResidue().getParentsOfFragment().isEmpty()) {
+						theLinkageRenderer.paintEdge(new DefaultPaintable(g2d), link, selected, node_bbox, node_bbox, child_bbox, child_border_bbox);
+					}
+				}
+
+				// paint child
+				paintResidue(new DefaultPaintable(g2d), child, selected_residues, selected_linkages, active_residues, posManager,bboxManager);    
+
+				// paint info
+				if (!posManager.isOnBorder(child)) {
+					if (_glycan.isComposition()) {
+						node_bbox.x = node_bbox.x + theGraphicOptions.NODE_SPACE;
+					}
+					g2d.addGroup("li",theStructure,bracket,child);
+					theLinkageRenderer.paintInfo(new DefaultPaintable(g2d), link, node_bbox, node_bbox, child_bbox, child_border_bbox);
+				}
+
+				// paint quantity
+				if (quantity > 1)
+					paintQuantity(new DefaultPaintable(g2d), child, quantity, bboxManager);        
+			}
+		}
+	}
 
 }
