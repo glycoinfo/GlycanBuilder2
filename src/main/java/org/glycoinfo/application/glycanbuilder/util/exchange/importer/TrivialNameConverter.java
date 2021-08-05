@@ -58,6 +58,9 @@ public class TrivialNameConverter {
         this.makeTrivialName(node);
         this.makeIUPACNotation(node);
         this.parseModifications(_gres);
+
+        // modify tirivial name
+        this.modifyTrivialName();
     }
 
     private void makeTrivialName (Node _node) {
@@ -137,6 +140,15 @@ public class TrivialNameConverter {
         if(unsaturation.length() != 0) {
             unsaturation += "*en";
             this.modifications.add(unsaturation);
+        }
+    }
+
+    public void modifyTrivialName () {
+        if (this.modifications.contains("6*m")) {
+            if (this.trivialName.equals("Hex")) {
+                this.trivialName = "dHex";
+                this.modifications.remove("6*m");
+            }
         }
     }
 }
