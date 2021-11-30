@@ -8,7 +8,7 @@
 
 	<groupId>org.eurocarbdb.glycanbuilder</groupId>
 	<artifactId>glycanbuilder2</artifactId>
-	<version>1.13.0</version>
+	<version>1.14.0</version>
 	<packaging>jar</packaging>
 
 	<properties>
@@ -37,8 +37,8 @@
 				<enabled>true</enabled>
 			</releases>
 		</repository>
-		<!-- <repository> <id>repository.jboss.org-public</id> <name>JBoss.org 
-			Maven repository</name> <url>https://repository.jboss.org/nexus/content/groups/public</url> 
+		<!-- <repository> <id>repository.jboss.org-public</id> <name>JBoss.org
+			Maven repository</name> <url>https://repository.jboss.org/nexus/content/groups/public</url>
 			</repository> -->
 	</repositories>
 

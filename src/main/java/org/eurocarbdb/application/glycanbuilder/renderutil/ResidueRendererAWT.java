@@ -48,6 +48,7 @@ import org.glycoinfo.application.glycanbuilder.util.GlycanUtils;
    ResidueStyleDictionary}.   
 
    @author Alessio Ceroni (a.ceroni@imperial.ac.uk)
+   @author Issaku Yamada (yamadaissaku@gmail.com)
 */
 
 public class ResidueRendererAWT extends AbstractResidueRenderer {
@@ -268,10 +269,28 @@ public class ResidueRendererAWT extends AbstractResidueRenderer {
     	boolean isShow = false;
     	if(node.isSaccharide()) isShow = GlycanUtils.isFacingAnom(node);
     	if(!theGraphicOptions.SHOW_REDEND_CANVAS && node.isSaccharide()) {
-    		isShow = (node.getTreeRoot().firstChild().equals(node) && !node.isAlditol() && !node.getTreeRoot().isBracket());
+
+
+			String viewType = theGraphicOptions.DISPLAY;
+			//System.out.println(viewType);
+    		isShow = (node.getTreeRoot().firstChild().equals(node)
+					&& !node.isAlditol()
+					&& !node.getTreeRoot().isBracket()
+					// glycan view type: compact, normal
+					&& viewType == "normal"
+					&& viewType == "compact"
+			);
+			if (node.getTreeRoot().firstChild().equals(node)
+					&& !node.isAlditol()
+					&& !node.getTreeRoot().isBracket()
+					// glycan view type:  -with linkage info (normalinfo)
+					&& viewType == "normalinfo"
+			) {
+				isShow = true;
+			}
     	}
     	
-    	// draw anomeric state
+    	// draw anomeric symbol
     	if(shape != null && isShow)
     		showAnomericState(g2d, node, orientation, cur_bbox);
 
