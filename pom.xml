@@ -37,8 +37,8 @@
 				<enabled>true</enabled>
 			</releases>
 		</repository>
-		<!-- <repository> <id>repository.jboss.org-public</id> <name>JBoss.org
-			Maven repository</name> <url>https://repository.jboss.org/nexus/content/groups/public</url>
+		<!-- <repository> <id>repository.jboss.org-public</id> <name>JBoss.org 
+			Maven repository</name> <url>https://repository.jboss.org/nexus/content/groups/public</url> 
 			</repository> -->
 	</repositories>
 
@@ -55,6 +55,11 @@
 			<name>GitHub OWNER Apache Maven Packages</name>
 			<url>https://maven.pkg.github.com/glycoinfo/GlycanBuilder2</url>
 		</repository>
+		<snapshotRepository>
+			<id>glycoinfo-snapshots</id>
+			<name>Internal Release Snapshots</name>
+			<url>https://nexus.glycoinfo.org/content/repositories/snapshots</url>
+		</snapshotRepository>
 	</distributionManagement>
 
 	<reporting>
@@ -267,7 +272,7 @@
 		<dependency>
 			<groupId>org.glycoinfo.convert</groupId>
 			<artifactId>glycanformatconverter</artifactId>
-			<version>2.7.0</version>
+			<version>2.6.0</version>
 		</dependency>
 		<!-- http://mvnrepository.com/artifact/org.apache.ant/ant-launcher -->
 		<dependency>
