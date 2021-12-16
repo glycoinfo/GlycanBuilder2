@@ -725,9 +725,9 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
 		JFileChooser fileChooser = new JFileChooser();
 		//20211215, S.TSUCHIYA add
 		if (GlycanParserFactory.getExportFormats().containsKey(format))
-			fileChooser.addChoosableFileFilter(new ExtensionFileFilter("txt"));
+			fileChooser.addChoosableFileFilter(new ExtensionFileFilter("txt", "Glycan text"));
 		else
-			fileChooser.addChoosableFileFilter(new ExtensionFileFilter(format));
+			fileChooser.addChoosableFileFilter(new ExtensionFileFilter(format, "Graphic image"));
 		fileChooser.setCurrentDirectory(theWorkspace.getFileHistory().getRecentFolder());    
 
 		// visualizzo la dialog
