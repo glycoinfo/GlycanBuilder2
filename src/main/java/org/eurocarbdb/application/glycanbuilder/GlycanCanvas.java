@@ -666,7 +666,10 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 			updateStructureRibbonGallery(STRUCTURE_GALLERY_NAME, structureSelectionBand);
 			
 			for (ResidueGalleryIndex gal : this.residueGalleries.get(RESIDUE_INSERT_MODES.TERMINAL)) {
-				updateTerminalRibbonGallery(gal.galleryName, gal.band);
+				if(gal.band.getControlPanel()!= null){
+					if (gal.band.getControlPanel().getRibbonGallery(gal.galleryName) == null)
+						updateTerminalRibbonGallery(gal.galleryName, gal.band);
+				}
 			}
 		}
 	}
@@ -703,25 +706,46 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		structureSelectionBand = createStructureRibbonBand();
 		
 		updateStructureRibbonGallery(STRUCTURE_GALLERY_NAME, structureSelectionBand);
-		
+		/***********************************************
+		　  Description： Add the Null check condition of control panel
+		　  @author: GIC
+		  Date: 2021/12/07
+		 ************************************************/
+		/***********************************************
+		　  Description： Add the Null check condition of ribbon gallery name
+		　  @author: GIC
+		  Date: 2021/11/26
+		 ************************************************/
 		for (ResidueGalleryIndex gal : this.residueGalleries
 				.get(RESIDUE_INSERT_MODES.ADD)) {
-			this.updateAddResidueRibbonGallery(gal.galleryName, gal.band);
+			if(gal.band.getControlPanel()!= null){
+				if (gal.band.getControlPanel().getRibbonGallery(gal.galleryName) == null)
+				this.updateAddResidueRibbonGallery(gal.galleryName, gal.band);
+			}
 		}
 
 		for (ResidueGalleryIndex gal : this.residueGalleries
 				.get(RESIDUE_INSERT_MODES.REPLACE)) {
-			this.updateChangeResidueRibbonGallery(gal.galleryName, gal.band);
+			if(gal.band.getControlPanel()!= null){
+				if (gal.band.getControlPanel().getRibbonGallery(gal.galleryName) == null)
+				this.updateChangeResidueRibbonGallery(gal.galleryName, gal.band);
+			}
 		}
 
 		for (ResidueGalleryIndex gal : this.residueGalleries
 				.get(RESIDUE_INSERT_MODES.INSERT)) {
-			this.updateInsertResidueRibbonGallery(gal.galleryName, gal.band);
+			if(gal.band.getControlPanel()!= null){
+				if (gal.band.getControlPanel().getRibbonGallery(gal.galleryName) == null)
+				this.updateInsertResidueRibbonGallery(gal.galleryName, gal.band);
+			}
 		}
 
 		for (ResidueGalleryIndex gal : this.residueGalleries
 				.get(RESIDUE_INSERT_MODES.TERMINAL)) {
-			updateTerminalRibbonGallery(gal.galleryName, gal.band);
+			if(gal.band.getControlPanel()!= null){
+				if (gal.band.getControlPanel().getRibbonGallery(gal.galleryName) == null)
+					updateTerminalRibbonGallery(gal.galleryName, gal.band);
+			}
 		}
 	}
 
@@ -4081,35 +4105,46 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 			this.respondToDocumentChange = true;
 			repaint();
 		} 
+		/***********************************************
+		　  Description： Convert 【JCheckBoxMenuItem】 to 【JCheckBox】
+		　  @author: GIC
+		  Date: 2021/11/30
+		 ************************************************/
 		if(a_enumAction.equals(CanvasActionDescriptor.COLLLAPSE)) {
-			theWorkspace.getGraphicOptions().COLLAPSE_MULTIPLE_ANTENNAE = ((JCheckBoxMenuItem) e.getSource()).isSelected();
+			//theWorkspace.getGraphicOptions().COLLAPSE_MULTIPLE_ANTENNAE = ((JCheckBoxMenuItem) e.getSource()).isSelected();
+			theWorkspace.getGraphicOptions().COLLAPSE_MULTIPLE_ANTENNAE = ((JCheckBox) e.getSource()).isSelected();
 			this.respondToDocumentChange = true;
 			repaint();
 		} 
 		if(a_enumAction.equals(CanvasActionDescriptor.SHOWMASSCANVAS)) {
-			theWorkspace.getGraphicOptions().SHOW_MASSES_CANVAS = ((JCheckBoxMenuItem) e.getSource()).isSelected();
+			//theWorkspace.getGraphicOptions().SHOW_MASSES_CANVAS = ((JCheckBoxMenuItem) e.getSource()).isSelected();
+			theWorkspace.getGraphicOptions().SHOW_MASSES_CANVAS = ((JCheckBox) e.getSource()).isSelected();
 			this.respondToDocumentChange = true;
 			repaint();
 		} 
 		if(a_enumAction.equals(CanvasActionDescriptor.SHOWMASS)) {
 			System.out.println(e.getSource());
-			theWorkspace.getGraphicOptions().SHOW_MASSES = ((JCheckBoxMenuItem) e.getSource()).isSelected();
+			//theWorkspace.getGraphicOptions().SHOW_MASSES = ((JCheckBoxMenuItem) e.getSource()).isSelected();
+			theWorkspace.getGraphicOptions().SHOW_MASSES = ((JCheckBox) e.getSource()).isSelected();
 			this.respondToDocumentChange = true;		
 			repaint();
 		} 
 		if(a_enumAction.equals(CanvasActionDescriptor.SHOWREDENDCANVAS) ) {
-			theWorkspace.getGraphicOptions().SHOW_REDEND_CANVAS = ((JCheckBoxMenuItem) e.getSource()).isSelected();
+			//theWorkspace.getGraphicOptions().SHOW_REDEND_CANVAS = ((JCheckBoxMenuItem) e.getSource()).isSelected();
+			theWorkspace.getGraphicOptions().SHOW_REDEND_CANVAS = ((JCheckBox) e.getSource()).isSelected();
 			this.respondToDocumentChange = true;
 			repaint();
 		} 
 		if(a_enumAction.equals(CanvasActionDescriptor.SHOWREDEND)) {
-			theWorkspace.getGraphicOptions().SHOW_REDEND = ((JCheckBoxMenuItem) e.getSource()).isSelected();
+			//theWorkspace.getGraphicOptions().SHOW_REDEND = ((JCheckBoxMenuItem) e.getSource()).isSelected();
+			theWorkspace.getGraphicOptions().SHOW_REDEND = ((JCheckBox) e.getSource()).isSelected();
 			this.respondToDocumentChange = true;
 			repaint();
 		}
 		if(a_enumAction.equals(CanvasActionDescriptor.SAVESPEC)) {
 			System.err.println("Save spectra found");
-			theWorkspace.getGraphicOptions().SAVE_SPECTRA_CUSTOM= ((JCheckBoxMenuItem) e.getSource()).isSelected();
+			//theWorkspace.getGraphicOptions().SAVE_SPECTRA_CUSTOM= ((JCheckBoxMenuItem) e.getSource()).isSelected();
+			theWorkspace.getGraphicOptions().SAVE_SPECTRA_CUSTOM= ((JCheckBox) e.getSource()).isSelected();
 		}
 		if(a_enumAction.equals(CanvasActionDescriptor.ORIENTATION)) {			
 			onChangeOrientation();
