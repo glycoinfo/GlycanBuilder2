@@ -30,6 +30,10 @@ import org.eurocarbdb.application.glycanbuilder.linkage.Linkage;
 import org.eurocarbdb.application.glycanbuilder.util.GraphicOptions;
 import org.eurocarbdb.application.glycanbuilder.util.TextUtils;
 
+/**
+   @author Issaku Yamada (yamadaissaku@gmail.com)
+ */
+
 public abstract class AbstractResidueRenderer implements ResidueRenderer{
 	protected ResidueStyleDictionary theResidueStyleDictionary; 
     protected GraphicOptions theGraphicOptions;
@@ -491,13 +495,29 @@ public abstract class AbstractResidueRenderer implements ResidueRenderer{
 		Polygon p = new Polygon();
 
 		// first start point
-    	double x1 = cx+rx*Math.cos(angle-Math.PI/2.)-rx*Math.cos(angle);
-    	double y1 = cy+ry*Math.sin(angle-Math.PI/2.)+ry*Math.sin(angle);
+		double x1;
+		double y1;
+		// Math.PI is right to left, 0 is left to right structure
+		if (angle == Math.PI || angle == 0 ) {
+			x1 = cx + rx * Math.cos(angle - Math.PI / 2.) - rx * Math.cos(angle);
+		}
+		else {
+			x1 = cx + rx * Math.cos(angle - Math.PI / 2.) + rx * Math.cos(angle);
+		}
+
+		// Math.PI is right to left, 0 is left to right structure
+		if (angle == Math.PI || angle == 0 ) {
+			y1 = cy + ry * Math.sin(angle - Math.PI / 2.) + ry * Math.sin(angle);
+		}
+		else {
+			y1 = cy + ry * Math.sin(angle - Math.PI / 2.) - ry * Math.sin(angle);
+		}
 		p.addPoint((int)x1, (int)y1);
 
     	// first end point
     	double x2 = cx+rx*Math.cos(angle-Math.PI/2.);
-    	double y2 = cy+ry*Math.sin(angle-Math.PI/2.);
+		double y2 = cy + ry * Math.sin(angle - Math.PI / 2.);
+
 		p.addPoint((int)x2, (int)y2);
 
     	// second start point
@@ -506,8 +526,23 @@ public abstract class AbstractResidueRenderer implements ResidueRenderer{
 		p.addPoint((int)x3, (int)y3);
 
     	// second end point
-		double x4 = cx+rx*Math.cos(angle+Math.PI/2.)-rx*Math.cos(angle);
-		double y4 = cy+ry*Math.sin(angle+Math.PI/2.)+ry*Math.sin(angle);
+		double x4;
+		double y4;
+		// Math.PI is right to left, 0 is left to right structure
+		if (angle == Math.PI || angle == 0 ) {
+			x4 = cx + rx * Math.cos(angle + Math.PI / 2.) - rx * Math.cos(angle);
+		}
+		else {
+			x4 = cx + rx * Math.cos(angle + Math.PI / 2.) + rx * Math.cos(angle);
+		}
+
+		// Math.PI is right to left, 0 is left to right structure
+		if (angle == Math.PI || angle == 0 ) {
+			y4 = cy + ry * Math.sin(angle + Math.PI / 2.) + ry * Math.sin(angle);
+		}
+		else {
+			y4 = cy + ry * Math.sin(angle + Math.PI / 2.) - ry * Math.sin(angle);
+		}
 		p.addPoint((int)x4, (int)y4);
 
 		// close shape

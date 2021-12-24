@@ -8,7 +8,7 @@
 
 	<groupId>org.eurocarbdb.glycanbuilder</groupId>
 	<artifactId>glycanbuilder2</artifactId>
-	<version>1.13.0</version>
+	<version>1.14.0</version>
 	<packaging>jar</packaging>
 
 	<properties>
@@ -200,9 +200,9 @@
 			<version>0.1-b37-SNAPSHOT</version>
 		</dependency>
 		<dependency>
-			<groupId>org.glycoinfo.eurocarbdb.depends</groupId>
-			<artifactId>flamingo</artifactId>
-			<version>0.1</version>
+			<groupId>com.github.insubstantial</groupId>
+    		<artifactId>flamingo</artifactId>
+    		<version>6.3</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.xmlgraphics</groupId>

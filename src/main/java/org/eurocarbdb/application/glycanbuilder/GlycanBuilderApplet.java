@@ -401,7 +401,7 @@ public class GlycanBuilderApplet extends JApplet implements ActionListener,
 	public void onAbout() {
 
 		try {
-			JDialog dlg = new JDialog((JFrame) null, "About GlycanBuilder",
+			JDialog dlg = new JDialog((JFrame) null, "About GlycanBuilder2",
 					true);
 			JEditorPane html = new JEditorPane(GlycanBuilderApplet.class
 					.getResource("/html/about_builder.html"));
@@ -409,7 +409,7 @@ public class GlycanBuilderApplet extends JApplet implements ActionListener,
 			html.setBorder(new EmptyBorder(20, 20, 20, 20));
 
 			dlg.add(html);
-			dlg.setSize(320, 320);
+			dlg.setSize(320, 340);
 			dlg.setResizable(false);
 			dlg.setLocationRelativeTo(this);
 
