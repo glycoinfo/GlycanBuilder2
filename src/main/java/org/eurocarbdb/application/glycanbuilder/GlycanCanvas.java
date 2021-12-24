@@ -707,7 +707,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		
 		updateStructureRibbonGallery(STRUCTURE_GALLERY_NAME, structureSelectionBand);
 		/***********************************************
-		　  Description： Add the Null check condition of control panel
+		　  Description： Add the Null check condition of control panel 
 		　  @author: GIC
 		  Date: 2021/12/07
 		 ************************************************/
