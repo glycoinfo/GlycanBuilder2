@@ -270,10 +270,14 @@ public class ResidueRendererAWT extends AbstractResidueRenderer {
     	if(node.isSaccharide()) isShow = GlycanUtils.isFacingAnom(node);
     	if(!theGraphicOptions.SHOW_REDEND_CANVAS && node.isSaccharide()) {
 
-
 			String viewType = theGraphicOptions.DISPLAY;
+			/***********************************************
+			　 Description： Correct the condition sentence left and right.
+			 　@author：
+			  Date: 2021/12/06
+			　************************************************/
 			//System.out.println(viewType);
-    		isShow = (node.getTreeRoot().firstChild().equals(node)
+    		/*isShow = (node.getTreeRoot().firstChild().equals(node)
 					&& !node.isAlditol()
 					&& !node.getTreeRoot().isBracket()
 					// glycan view type: compact, normal
@@ -281,6 +285,22 @@ public class ResidueRendererAWT extends AbstractResidueRenderer {
 					&& viewType == "compact"
 			);
 			if (node.getTreeRoot().firstChild().equals(node)
+					&& !node.isAlditol()
+					&& !node.getTreeRoot().isBracket()
+					// glycan view type:  -with linkage info (normalinfo)
+					&& viewType == "normalinfo"
+			) {
+				isShow = true;
+			}*/
+			isShow = (node.equals(node.getTreeRoot().firstChild())
+					&& !node.isAlditol()
+					&& !node.getTreeRoot().isBracket()
+					// glycan view type: compact, normal
+					&& viewType == "normal"
+					&& viewType == "compact"
+			);
+			
+			if (node.equals(node.getTreeRoot().firstChild())
 					&& !node.isAlditol()
 					&& !node.getTreeRoot().isBracket()
 					// glycan view type:  -with linkage info (normalinfo)
