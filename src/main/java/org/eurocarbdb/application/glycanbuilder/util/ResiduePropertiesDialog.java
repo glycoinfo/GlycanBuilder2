@@ -25,6 +25,7 @@ import javax.swing.*;
 import org.eurocarbdb.application.glycanbuilder.CustomFocusTraversalPolicy;
 import org.eurocarbdb.application.glycanbuilder.GlycanDocument;
 import org.eurocarbdb.application.glycanbuilder.Residue;
+import org.eurocarbdb.application.glycanbuilder.linkage.Bond;
 import org.eurocarbdb.application.glycanbuilder.linkage.Linkage;
 import org.glycoinfo.application.glycanbuilder.util.GlycanUtils;
 import org.eurocarbdb.MolecularFramework.sugar.LinkageType;
@@ -114,22 +115,65 @@ public class ResiduePropertiesDialog extends EscapeDialog implements java.awt.ev
     }
 
     private ListModel<String> createPositions(Residue parent) {
-    DefaultListModel<String> ret = new DefaultListModel<String>();
+		DefaultListModel<String> ret = new DefaultListModel<String>();
 
-    // collect available positions
-    char[] par_pos = null;
-    if( parent==null || parent.getType().getLinkagePositions().length==0 )
-        par_pos = new char[] { '1', '2', '3', '4', '5', '6', '7', '8', '9', 'N' };
-    else 
-        par_pos = parent.getType().getLinkagePositions();
+		// collect available positions
+		char[] par_pos = null;
+		if (parent == null || parent.getType().getLinkagePositions().length == 0)
+			par_pos = new char[]{'1', '2', '3', '4', '5', '6', '7', '8', '9', 'N'};
+		else
+			par_pos = parent.getType().getLinkagePositions();
 
-    // add elements
-    ret.addElement("?");    
-    for( int i=0; i<par_pos.length; i++ ) 
-        ret.addElement("" + par_pos[i]);
-    
-    return ret;
-    }
+		// 20211223, S.TSUCHIYA add
+		String par_pos_temp = String.valueOf(par_pos);
+
+		// select unavailable linkage position from par_pos
+		for (Linkage donorLinkage : parent.getChildrenLinkages()) {
+			if (this.current == donorLinkage.getChildResidue()) continue;
+
+			for (Bond donorBond : donorLinkage.getBonds()) {
+				if (donorBond.getParentPositions().length > 1) continue;
+				if (donorBond.getParentPositions()[0] == '?') continue;
+				char donorPos = donorBond.getParentPositions()[0];
+				par_pos_temp = par_pos_temp.replace(donorPos, ' ');
+			}
+		}
+
+		// replace ring position, 20211223, S.TSUCHIYA add
+		if (parent.getRingSize() == 'o') {
+			par_pos_temp += parent.getType().getAnomericCarbon();
+		}
+		if (parent.getRingSize() == 'p') {
+			if (parent.getAnomericCarbon() == '1') {
+				par_pos_temp = par_pos_temp.replace('5', ' ');
+			}
+			if (parent.getAnomericCarbon() == '2') {
+				par_pos_temp = par_pos_temp.replace('6', ' ');
+			}
+		}
+		if (parent.getRingSize() == 'f') {
+			if (parent.getAnomericCarbon() == '1') {
+				par_pos_temp = par_pos_temp.replace('4', ' ');
+			}
+			if (parent.getAnomericCarbon() == '2') {
+				par_pos_temp = par_pos_temp.replace('5', ' ');
+			}
+		}
+
+		// refresh par_pos, 20211223, S.TSUCHIYA add
+		if (!par_pos_temp.equals(String.valueOf(par_pos))) {
+			par_pos_temp = par_pos_temp.replaceAll(" ", "");
+			par_pos = par_pos_temp.toCharArray();
+			Arrays.sort(par_pos);
+		}
+
+		// add elements
+		ret.addElement("?");
+		for (int i = 0; i < par_pos.length; i++)
+			ret.addElement("" + par_pos[i]);
+
+		return ret;
+	}
 
     private void setSelections() {
     	if( parent_link!=null )        
