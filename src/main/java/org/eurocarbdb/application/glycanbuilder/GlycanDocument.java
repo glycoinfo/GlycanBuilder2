@@ -54,7 +54,7 @@ import org.xml.sax.helpers.AttributesImpl;
  */
 
 public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
-	
+
 
 	// workspace
 	private BaseWorkspace theWorkspace = null;
@@ -62,17 +62,17 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	// glycan structure
 	private LinkedList<Glycan> structures = new LinkedList<Glycan>();
 	private LinkedList<String> lst_encode = new LinkedList<String>();
-	
+
 	// ----------------
+
 	/**
 	 * Default constructor.
-	 * 
-	 * @param workspace
-	 *            the workspace from which to derive the mass settings for new
-	 *            structures
+	 *
+	 * @param workspace the workspace from which to derive the mass settings for new
+	 *                  structures
 	 */
 
-	public GlycanDocument(BaseWorkspace workspace) { 
+	public GlycanDocument(BaseWorkspace workspace) {
 		super();
 
 		theWorkspace = workspace;
@@ -83,11 +83,11 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	public LinkedList<String> getString() {
 		return this.lst_encode;
 	}
-	
+
 	public void clearString() {
 		this.lst_encode.clear();
 	}
-	
+
 	public String getName() {
 		return "Structures";
 	}
@@ -133,35 +133,35 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	public Glycan getFirstStructure() {
 		return (structures.isEmpty() ? null : structures.getFirst());
 	}
-	
+
 	/**
 	 * Return the last structure in the list or <code>null</code> if empty.
 	 */
 	public Glycan getLastStructure() {
 		return (structures.isEmpty() ? null : structures.getLast());
 	}
-	
+
 	/**
 	 * Return the structure at position <code>ind</code> in the list.
 	 */
 	public Glycan getStructure(int ind) {
 		return structures.get(ind);
 	}
-	
+
 	/**
 	 * Return the position of structure in the list.
 	 */
 	public int indexOf(Glycan structure) {
 		return structures.indexOf(structure);
 	}
-	
+
 	/**
 	 * Return the list of structures.
 	 */
 	public LinkedList<Glycan> getStructures() {
 		return structures;
 	}
-	
+
 	/**
 	 * Return the set of structures with specified indexes.
 	 */
@@ -186,7 +186,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	public Glycan findStructureWith(Residue node) {
 		if (node == null)
 			return null;
-		for (Iterator<Glycan> i = structures.iterator(); i.hasNext();) {
+		for (Iterator<Glycan> i = structures.iterator(); i.hasNext(); ) {
 			Glycan structure = i.next();
 			if (structure.contains(node))
 				return structure;
@@ -207,7 +207,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	 * Return the list structure containing the specified residues and linkages.
 	 */
 	public Collection<Glycan> findStructuresWith(Collection<Residue> nodes,
-			Collection<Linkage> links) {
+												 Collection<Linkage> links) {
 
 		LinkedList<Glycan> ret = new LinkedList<Glycan>();
 		if (nodes != null) {
@@ -304,7 +304,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	private Residue addStructure(Residue root, boolean fire) {
 		if (root == null) return null;
 		if (root.isReducingEnd() && !root.hasChildren()) return null;
-		
+
 		// add a structure
 		Glycan new_structure = new Glycan(root, true,
 				theWorkspace.getDefaultMassOptions());
@@ -339,7 +339,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	private void addStructures(Collection<Glycan> _structures, boolean fire) {
 		if (_structures != null && _structures.size() > 0) {
 			for (Glycan _structure : _structures) {
-				addStructure(_structure, false);	
+				addStructure(_structure, false);
 			}
 			if (fire) fireDocumentChanged();
 		}
@@ -369,7 +369,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 		boolean removed = false;
 
 		LinkedList<Glycan> toremove = getStructures(inds);
-		for (Iterator<Glycan> i = structures.iterator(); i.hasNext();) {
+		for (Iterator<Glycan> i = structures.iterator(); i.hasNext(); ) {
 			if (toremove.contains(i.next())) {
 				i.remove();
 				removed = true;
@@ -384,7 +384,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	 * Set the mass settings for the specified structures.
 	 */
 	public boolean setMassOptions(Collection<Glycan> structures,
-			MassOptions common_options) {
+								  MassOptions common_options) {
 		// set options for all structures
 		boolean changed = false;
 		for (Glycan structure : structures)
@@ -401,7 +401,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 
 	/**
 	 * Add <code>toadd</code> to the <code>current</code> residue.
-	 * 
+	 *
 	 * @see Residue#addChild
 	 */
 	public Residue addResidue(Residue current, Residue toadd) {
@@ -424,7 +424,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	/**
 	 * Add <code>toadd</code> to the <code>current</code> residue and to all the
 	 * residues that are drawn at the same position.
-	 * 
+	 *
 	 * @see Residue#addChild
 	 * @see GlycanRendererAWT
 	 * @see BBoxManager
@@ -437,7 +437,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 		if (isEmpty() || current == null || current.isReducingEnd()) {
 			return addStructure(toadd);
 		}
-		
+
 		// append node to current selection
 		if (!current.addChild(toadd))
 			return null;
@@ -463,7 +463,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	}
 
 
-	public Residue modifyLinkageType (Residue _toAdd, LinkageType _donorSide, LinkageType _acceptorSide) {
+	public Residue modifyLinkageType(Residue _toAdd, LinkageType _donorSide, LinkageType _acceptorSide) {
 		try {
 			_toAdd.getParentLinkage().setParentLinkageType(_acceptorSide);
 			_toAdd.getParentLinkage().setChildLinkageType(_donorSide);
@@ -476,7 +476,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	/**
 	 * Insert <code>toinsert</code> between the <code>current</code> residue and
 	 * its parent.
-	 * 
+	 *
 	 * @see Residue#addChild
 	 */
 	public Residue insertResidueBefore(Residue current, Residue toinsert) {
@@ -497,13 +497,13 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	 * Insert <code>toinsert</code> between the <code>current</code> residue and
 	 * its parent. Do the same to all the residues that are drawn at the same
 	 * position.
-	 * 
+	 *
 	 * @see Residue#addChild
 	 * @see GlycanRendererAWT
 	 * @see BBoxManager
 	 */
 	public Residue insertResidueBefore(Residue current, ArrayList<Residue> linked,
-			Residue toinsert) {
+									   Residue toinsert) {
 		if (toinsert == null || current == null || current.getParent() == null
 				|| isInComposition(current))
 			return null;
@@ -525,7 +525,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 
 	/**
 	 * Add a bracket residue to the structure containing <code>current</code>
-	 * 
+	 *
 	 * @see Glycan#addBracket
 	 */
 	public Residue addBracket(Residue current) {
@@ -543,7 +543,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 
 	/**
 	 * Change the residue type of <code>current</code>
-	 * 
+	 *
 	 * @see Residue#setType
 	 */
 
@@ -563,13 +563,13 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	/**
 	 * Change the residue type of <code>current</code> and of all the residues
 	 * that are drawn at the same position.
-	 * 
+	 *
 	 * @see Residue#setType
 	 * @see GlycanRendererAWT
 	 * @see BBoxManager
 	 */
 	public boolean changeResidueType(Residue current, ArrayList<Residue> linked,
-			ResidueType new_type) {
+									 ResidueType new_type) {
 		if (current == null
 				|| (current.hasParent() && !new_type.canHaveParent())
 				|| (!current.hasParent() && !new_type.canBeReducingEnd())
@@ -591,7 +591,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	}
 
 	private boolean changeReducingEndTypePVT(Glycan structure,
-			ResidueType new_type) {
+											 ResidueType new_type) {
 		if (structure != null)
 			return structure.setReducingEndType(new_type);
 		return false;
@@ -599,11 +599,11 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 
 	/**
 	 * Change the reducing end marker for all the specified structures.
-	 * 
+	 *
 	 * @see Glycan#setReducingEndType
 	 */
 	public boolean changeReducingEndType(Collection<Glycan> structures,
-			ResidueType new_type) {
+										 ResidueType new_type) {
 		boolean changed = false;
 		for (Glycan s : structures)
 			changed |= changeReducingEndTypePVT(s, new_type);
@@ -615,7 +615,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	/**
 	 * Change the reducing end marker for the structure containing
 	 * <code>current</code>
-	 * 
+	 *
 	 * @see Glycan#setReducingEndType
 	 */
 	public boolean changeReducingEndType(Residue current, ResidueType new_type) {
@@ -636,16 +636,16 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 			addStructures(toadd, false);
 		} else {
 			// append roots as child of the current selection
-			for (Iterator<Glycan> i = toadd.iterator(); i.hasNext();)
+			for (Iterator<Glycan> i = toadd.iterator(); i.hasNext(); )
 				current.addChild(i.next().getRoot());
 
 			// find non-overlapping set of antennae
 			LinkedList<Residue> brackets = new LinkedList<Residue>();
-			for (Iterator<Glycan> i = toadd.iterator(); i.hasNext();) {
+			for (Iterator<Glycan> i = toadd.iterator(); i.hasNext(); ) {
 				Glycan structure = i.next();
 				if (structure.getBracket() != null) {
 					boolean found = false;
-					for (Iterator<Residue> l = brackets.iterator(); l.hasNext();) {
+					for (Iterator<Residue> l = brackets.iterator(); l.hasNext(); ) {
 						if (structure.getBracket().subtreeEquals(l.next()))
 							found = true;
 					}
@@ -658,7 +658,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 			Glycan cur_structure = findStructureWith(current);
 			for (Residue b : brackets) {
 				for (Linkage link : b.getChildrenLinkages())
-					cur_structure.addAntenna(link.getChildResidue(),link.getBonds());
+					cur_structure.addAntenna(link.getChildResidue(), link.getBonds());
 			}
 		}
 		return true;
@@ -669,7 +669,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	 * <code>current</code>. The root of each structure is added as a child of
 	 * <code>current</code>, while the uncertain antennae are added to the
 	 * bracket.
-	 * 
+	 *
 	 * @see Residue#addChild
 	 * @see Glycan#addAntenna
 	 */
@@ -684,7 +684,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	 * Return <code>true</code> if the structure formed by the residues in
 	 * <code>toadd</code> can be merged with the structure containg
 	 * <code>current</code>.
-	 * 
+	 *
 	 * @see #addStructures
 	 * @see #extractView
 	 */
@@ -695,7 +695,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	/**
 	 * Return <code>true</code> if the structures can be merged with the glycan
 	 * object containing <code>current</code>.
-	 * 
+	 *
 	 * @see #addStructures
 	 */
 	public boolean canAddStructures(Residue current, Collection<Glycan> toadd) {
@@ -724,7 +724,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	/**
 	 * Merge the structures formed by the residues in <code>tocopy</code> with
 	 * the glycan object containing <code>current</code>.
-	 * 
+	 *
 	 * @see #addStructures
 	 * @see #extractView
 	 */
@@ -742,12 +742,12 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	 * Merge the structures formed by the residues in <code>tocopy</code> with
 	 * the glycan object containing <code>current</code>. Do the same with all
 	 * linked residues.
-	 * 
+	 *
 	 * @see #addStructures
 	 * @see #extractView
 	 */
 	public void copyResidues(Residue current, ArrayList<Residue> linked,
-			HashSet<Residue> tocopy) {
+							 HashSet<Residue> tocopy) {
 		// copy structures
 		LinkedList<Glycan> cloned_structures = extractView(tocopy);
 
@@ -766,7 +766,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	 * Merge the structures formed by the residues in <code>tocopy</code> with
 	 * the glycan object containing <code>current</code>. Remove the residues
 	 * from their containing structures after that.
-	 * 
+	 *
 	 * @see #addStructures
 	 * @see #extractView
 	 */
@@ -789,12 +789,12 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	 * the glycan object containing <code>current</code>. Do the same for all
 	 * linked residues. Remove the residues from their containing structures
 	 * after that.
-	 * 
+	 *
 	 * @see #addStructures
 	 * @see #extractView
 	 */
 	public void moveResidues(Residue current, ArrayList<Residue> linked,
-			HashSet<Residue> tomove) {
+							 HashSet<Residue> tomove) {
 		// copy structures
 		LinkedList<Glycan> cloned_structures = extractView(tomove);
 
@@ -815,12 +815,12 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	private boolean removeResiduePVT(Residue toremove) {
 		if (toremove == null) return false;
 
-		for(Glycan a_objGlycan : this.structures) {
-			if(a_objGlycan.removeResidue(toremove)) {
-				if(a_objGlycan.isEmpty()) {
+		for (Glycan a_objGlycan : this.structures) {
+			if (a_objGlycan.removeResidue(toremove)) {
+				if (a_objGlycan.isEmpty()) {
 					this.structures.remove(this.structures.indexOf(a_objGlycan));
-				}else {
-					for(Glycan obj_tmp : a_objGlycan.splitMultipleRoots()) {
+				} else {
+					for (Glycan obj_tmp : a_objGlycan.splitMultipleRoots()) {
 						this.structures.addLast(obj_tmp);
 					}
 				}
@@ -844,14 +844,14 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	private boolean removeResiduesPVT(Collection<Residue> toremove) {
 		if (toremove == null) return false;
 
-		boolean removed = false;	
-		for(Glycan elm_Glycan : (LinkedList<Glycan>) this.structures.clone()) {
+		boolean removed = false;
+		for (Glycan elm_Glycan : (LinkedList<Glycan>) this.structures.clone()) {
 			int index = this.structures.indexOf(elm_Glycan);
-			if(elm_Glycan.removeResidues(toremove)) {
-				if(elm_Glycan.isEmpty()) {
+			if (elm_Glycan.removeResidues(toremove)) {
+				if (elm_Glycan.isEmpty()) {
 					this.structures.remove(index);
 				} else {
-					for(Glycan obj_tmp : elm_Glycan.splitMultipleRoots())
+					for (Glycan obj_tmp : elm_Glycan.splitMultipleRoots())
 						this.structures.addLast(obj_tmp);
 				}
 				removed = true;
@@ -884,16 +884,13 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 
 	/**
 	 * Create a repeat block containing the selected nodes.
-	 * 
-	 * @param selected_last
-	 *            the last residue in the repeat block
-	 * @param nodes
-	 *            the residues in the repeat block
-	 * @throws Exception
-	 *             if the reapeat unit cannot be created
+	 *
+	 * @param selected_last the last residue in the repeat block
+	 * @param nodes         the residues in the repeat block
+	 * @throws Exception if the reapeat unit cannot be created
 	 */
 	public boolean createRepetition(Residue selected_last,
-			Collection<Residue> nodes) throws Exception {
+									Collection<Residue> nodes) throws Exception {
 		if (nodes == null || nodes.size() == 0)
 			return false;
 		// select first and last residue of the repetition,
@@ -962,17 +959,18 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 		//start.setAnomericState(first.getAnomericState());
 		start.setAnomericCarbon(first.getAnomericCarbon());
 		start.setParentLinkage(first.getParentLinkage());
-		
+
 		first.setStartRepetiionResidue(start);
 		first.insertParent(start, first.getParentLinkage().getBonds());
 		Residue end = ResidueDictionary.createEndRepetition();
-		
+
 		end.setStartResidue(first);
-		end.setParentLinkage(new Linkage(last, end, new char[] {first.getParentLinkage().getParentPositionsSingle()}));
-		
+		end.setParentLinkage(new Linkage(last, end, new char[]{first.getParentLinkage().getParentPositionsSingle()}));
+
 		last.setEndRepitionResidue(end);
 		last.addChild(end, end.getParentLinkage().getBonds());
-		/*for (Iterator<Linkage> il = last.iterator(); il.hasNext();) {
+		// 20211217, S.TSUCHIYA removed comment out
+		for (Iterator<Linkage> il = last.iterator(); il.hasNext(); ) {
 			Linkage child_link = il.next();
 			if (child_link.getChildResidue() != end
 					&& !nodes.contains(child_link.getChildResidue())) {
@@ -980,17 +978,17 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 				child_link.setParentResidue(end);
 				il.remove();
 			}
-		}*/
-		
-		fireDocumentChanged();		
+		}
+
+		fireDocumentChanged();
 		return true;
 	}
 
 	public boolean createCyclic(Residue selected_last,
-			Collection<Residue> nodes) throws Exception {
+								Collection<Residue> nodes) throws Exception {
 		Residue first = null;
 		Residue last = selected_last;
-		
+
 		for (Residue r : nodes) {
 			if (r.isReducingEnd())
 				throw new Exception("The cyclic unit cannot contain the reducing end");
@@ -1014,7 +1012,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 						if (last == null) last = r;
 						else
 							throw new Exception(
-								"There are more than one residue in the cyclic units with children not in the cyclic unit. Check that all the residues in the cyclic unit have been selected.");
+									"There are more than one residue in the cyclic units with children not in the cyclic unit. Check that all the residues in the cyclic unit have been selected.");
 					}
 				}
 			}
@@ -1028,25 +1026,27 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 			if (nodes.size() == 1) last = first;
 			else return false;
 		}
-		
-		if(!first.getParent().canBeReducingEnd()) 
+
+		if (!first.getParent().canBeReducingEnd())
 			throw new Exception("Cyclic structure is should contain a reducing end");
-		if(first.isStartCyclic())
+		if (first.isStartCyclic())
 			throw new Exception("Cyclic structure can not be nested");
-		
+
 		Residue a_oStartCyclic = ResidueDictionary.createStartCyclic();
-		
+
 		first.setStartCyclicResidue(a_oStartCyclic);
 		first.setParentLinkage(new Linkage(a_oStartCyclic, first, first.getParentLinkage().getParentPositionsSingle()));
 		a_oStartCyclic.addChild(first, first.getParentLinkage().getBonds());
-		
+
 		Residue a_oEndCyclic = ResidueDictionary.createEndCyclic();
-		
-		a_oEndCyclic.setParentLinkage(new Linkage(last, a_oEndCyclic, new char[] {first.getParentLinkage().getParentPositionsSingle()}));
+
+		a_oEndCyclic.setParentLinkage(new Linkage(last, a_oEndCyclic, new char[]{first.getParentLinkage().getParentPositionsSingle()}));
 		a_oEndCyclic.setStartResidue(first);
-		
+
 		last.setEndCyclicResidue(a_oEndCyclic);
 		last.addChild(a_oEndCyclic);
+		// 20211227, S.TSUCHIYA comment out
+		/*
 		for (Iterator<Linkage> il = last.iterator(); il.hasNext();) {
 			Linkage child_link = il.next();
 			if (child_link.getChildResidue() != a_oEndCyclic
@@ -1056,11 +1056,12 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 				il.remove();
 			}
 		}
-				
+		 */
+
 		fireDocumentChanged();
 		return true;
 	}
-	
+
 	// ---------------
 	// initialization
 
@@ -1069,13 +1070,13 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	}
 
 	private Residue cloneStructure(Residue root, HashSet<Residue> nodes,
-			boolean add_attachment) {
+								   boolean add_attachment) {
 		if (root == null) return null;
 
 		if (add_attachment
 				&& !root.isReducingEnd()
 				&& (root.getParent() == null || !root.getParent()
-						.isReducingEnd())) {
+				.isReducingEnd())) {
 			Residue cloned_root = ResidueDictionary.createAttachPoint();
 			cloned_root.addChild(cloneStructure(root, nodes, false), root
 					.getParentLinkage().getBonds());
@@ -1101,7 +1102,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	 * Disconnected components will constitute separate structures. Residues in
 	 * uncertain antenna will be added to all structures created by the residues
 	 * in the same original glycan object.
-	 * 
+	 *
 	 * @see Glycan
 	 * @see Glycan#addAntenna
 	 */
@@ -1110,7 +1111,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 		// search roots and antennae
 		LinkedList<Residue> roots = new LinkedList<Residue>();
 		LinkedList<Residue> antennae = new LinkedList<Residue>();
-		for (Iterator<Residue> i = nodes.iterator(); i.hasNext();) {
+		for (Iterator<Residue> i = nodes.iterator(); i.hasNext(); ) {
 			Residue cur = i.next();
 			Residue par = cur.getParent();
 			if (par == null || !nodes.contains(par) || par.isBracket()) {
@@ -1145,8 +1146,8 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 			ret_structures.addLast(ret_structure);
 
 			// add antennae
-			for(Residue red_antenna : antennae) {
-				if(antennae_map.get(red_antenna) == orig_structure) {
+			for (Residue red_antenna : antennae) {
+				if (antennae_map.get(red_antenna) == orig_structure) {
 					assigned_antennae.addLast(red_antenna);
 					ret_structure.addAntenna(cloneStructure(red_antenna, nodes, true));
 				}
@@ -1159,7 +1160,8 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 							true));
 				}
 			}
-*/		}
+*/
+		}
 
 		// create structures from unassigned antennae
 		for (Residue antenna : antennae) {
@@ -1171,7 +1173,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 		}
 
 		// remove unmatched repetitions
-		for (Glycan s : ret_structures){
+		for (Glycan s : ret_structures) {
 			s.removeUnpairedRepetitions();
 		}
 
@@ -1183,7 +1185,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 
 	/**
 	 * Get the list of available formats for parsing glycan structures.
-	 * 
+	 *
 	 * @see GlycanParserFactory#getImportFormats
 	 */
 	static public Map<String, String> getImportFormats() {
@@ -1192,7 +1194,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 
 	/**
 	 * Get the list of available formats for encoding glycan structures.
-	 * 
+	 *
 	 * @see GlycanParserFactory#getExportFormats
 	 */
 	static public Map<String, String> getExportFormats() {
@@ -1201,7 +1203,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 
 	/**
 	 * Get the list of all available formats for glycan structures.
-	 * 
+	 *
 	 * @see GlycanParserFactory#getFormats
 	 */
 	static public Map<String, String> getFormats() {
@@ -1211,7 +1213,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 
 	/**
 	 * Return <code>true</code> if the format is supported.
-	 * 
+	 *
 	 * @see GlycanParserFactory#isSequenceFormat
 	 */
 	static public boolean isSequenceFormat(String format) {
@@ -1236,7 +1238,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 
 	/**
 	 * Parse the structures from a file content using the specified format.
-	 * 
+	 *
 	 * @see GlycanParserFactory#getParser
 	 */
 	public boolean importFrom(String filename, String format) {
@@ -1251,11 +1253,10 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 		}
 	}
 
-	
-	
+
 	/**
 	 * Parse the structures from a string using the specified format.
-	 * 
+	 *
 	 * @see GlycanParserFactory#getParser
 	 */
 	public boolean importFromString(String buffer, String format) {
@@ -1264,10 +1265,9 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 
 	/**
 	 * Parse the structures from a string using the specified format.
-	 * 
-	 * @param tolerate_unknown
-	 *            if <code>true</code> tolerate residues of a type that is not
-	 *            specified in the dictionary
+	 *
+	 * @param tolerate_unknown if <code>true</code> tolerate residues of a type that is not
+	 *                         specified in the dictionary
 	 * @see GlycanParserFactory#getParser
 	 */
 	public boolean importFromString(String buffer, String format, boolean tolerate_unknown) {
@@ -1275,7 +1275,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 			// System.out.println("Importing from " + format + " with " +
 			// tolerate_unknown);
 			// read structures
-			
+
 			GlycanParser parser = GlycanParserFactory.getParser(format);
 			parser.setTolerateUnknown(tolerate_unknown);
 			fromString(buffer, true, true, parser);
@@ -1290,23 +1290,23 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	 * Encode the structures into a string using the specified format:
 	 */
 	public boolean exportFromStructure(Collection<Glycan> a_lstGlycan, String format) {
-		try{
+		try {
 			String str_encode = "";
 			GlycanParser parser = GlycanParserFactory.getParser(format);
 			str_encode = toString(a_lstGlycan, parser);
-			if(str_encode.equals("")) throw new Exception("Invalid output string");
-			
-			for(String s : str_encode.split(";")) this.lst_encode.addLast(s);
+			if (str_encode.equals("")) throw new Exception("Invalid output string");
+
+			for (String s : str_encode.split(";")) this.lst_encode.addLast(s);
 			return true;
 		} catch (Exception e) {
 			LogUtils.report(e);
 			return false;
 		}
 	}
-	
+
 	/**
 	 * Encode the structures into a file using the specified format.
-	 * 
+	 *
 	 * @see GlycanParserFactory#getParser
 	 */
 	public boolean exportTo(String filename, String format) {
@@ -1336,11 +1336,11 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 
 	/**
 	 * Encode the selected structures into a file using the specified format.
-	 * 
+	 *
 	 * @see GlycanParserFactory#getParser
 	 */
 	static public boolean exportTo(Collection<Glycan> toexport,
-			String filename, String format) {
+								   String filename, String format) {
 		try {
 			// open file
 			FileOutputStream fos = new FileOutputStream(filename);
@@ -1367,7 +1367,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	/**
 	 * Return a GlycoCT representation of the structures contained in the
 	 * document.
-	 * 
+	 *
 	 * @see GlycoCTParser
 	 */
 	public String toGlycoCT() {
@@ -1377,22 +1377,22 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	/**
 	 * Return a GlycoCTCondensed representation of the structures contained in the
 	 * document.
-	 * 
+	 *
 	 * @see GlycoCTParser
 	 */
 	public String toGlycoCTCondensed() {
 		return toString(structures, new GlycoCTCondensedParser(false));
 	}
-	
+
 	protected void fromGlycoCT(String str, boolean merge, boolean fire,
-			boolean tolerate) throws Exception {
+							   boolean tolerate) throws Exception {
 		fromString(str, merge, fire, new GlycoCTParser(tolerate));
 	}
 
 	/**
 	 * Create a string representation of the structures contained in the
 	 * document.
-	 * 
+	 *
 	 * @see GWSParser
 	 */
 	public String toString() {
@@ -1410,7 +1410,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	/**
 	 * Create a string representation of the structures contained in the
 	 * document in the specified format.
-	 * 
+	 *
 	 * @see GlycanParserFactory#getParser
 	 */
 	public String toString(String format) {
@@ -1421,8 +1421,8 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 			return "";
 		}
 	}
-	
-	public String toStringWithCoordinates(String format, BBoxManager bboxManager){
+
+	public String toStringWithCoordinates(String format, BBoxManager bboxManager) {
 		try {
 			return toString(structures, GlycanParserFactory.getParser(format), bboxManager);
 		} catch (Exception e) {
@@ -1433,38 +1433,37 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 
 	/**
 	 * Create a string representation of the specified structures.
-	 * 
+	 *
 	 * @see GWSParser
 	 */
 	static public String toString(Collection<Glycan> structures) {
 		return toString(structures, new GWSParser());
 	}
 
-	
-	
+
 	static public String toString(Collection<Glycan> structures,
-			GlycanParser parser) {
+								  GlycanParser parser) {
 		return toString(structures, parser, null);
 	}
-	
+
 	/**
 	 * Create a string representation of the specified structures using the
 	 * given parser.
 	 */
 	static public String toString(Collection<Glycan> structures,
-			GlycanParser parser, BBoxManager bboxManager) {
+								  GlycanParser parser, BBoxManager bboxManager) {
 
 		String str = "";
 		if (parser instanceof GWSParser) {
-			for (Iterator<Glycan> i = structures.iterator(); i.hasNext();) {
+			for (Iterator<Glycan> i = structures.iterator(); i.hasNext(); ) {
 				str += parser.writeGlycan(i.next(), bboxManager);
 				if (i.hasNext()) str += ";";
 			}
 		} else {
-			if(bboxManager!=null){ //At the moment this will force conversion to GlycoCT_XML
+			if (bboxManager != null) { //At the moment this will force conversion to GlycoCT_XML
 				str = parser.writeGlycan(structures.isEmpty() ? null : structures
-					.iterator().next(), bboxManager);
-			}else{
+						.iterator().next(), bboxManager);
+			} else {
 				str = parser.writeGlycan(structures.isEmpty() ? null : structures
 						.iterator().next());
 			}
@@ -1473,57 +1472,53 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 
 		return str;
 	}
-	
-	public void fromString(String str, String format) throws Exception{
-		setStructures(parseString(str,GlycanParserFactory.getParser(format)),true);
+
+	public void fromString(String str, String format) throws Exception {
+		setStructures(parseString(str, GlycanParserFactory.getParser(format)), true);
 	}
-	
-	public void fromURL(final String resourceLocation, final String format) throws Exception{
+
+	public void fromURL(final String resourceLocation, final String format) throws Exception {
 		java.security.AccessController.doPrivileged(
-					    new java.security.PrivilegedAction<String>() {
-					        public String run() {
-					        	try{
-					        		InputStream inStream=null;
+				new java.security.PrivilegedAction<String>() {
+					public String run() {
+						try {
+							InputStream inStream = null;
 
-					        		URL url=new URL(resourceLocation);
-					        		inStream=url.openStream();
+							URL url = new URL(resourceLocation);
+							inStream = url.openStream();
 
-					        		BufferedReader reader=new BufferedReader(new InputStreamReader(inStream));
+							BufferedReader reader = new BufferedReader(new InputStreamReader(inStream));
 
-					        		StringBuffer buffer=new StringBuffer();
+							StringBuffer buffer = new StringBuffer();
 
-					        		String line;
-					        		while((line=reader.readLine())!=null){
-					        			buffer.append(line+"\n");
-					        		}
+							String line;
+							while ((line = reader.readLine()) != null) {
+								buffer.append(line + "\n");
+							}
 
-					        		fromString(buffer.toString(),format);
-					        	}catch(Exception ex){
-					        		LogUtils.report(ex);
-					        	}
-					        	
-					        	return null;
-					        }
-					    }
+							fromString(buffer.toString(), format);
+						} catch (Exception ex) {
+							LogUtils.report(ex);
+						}
+
+						return null;
+					}
+				}
 		);
-		
-		
-		
 	}
 
 	/**
 	 * Add the structures parsed from the input string.
-	 * 
-	 * @param merge
-	 *            if <code>true</code> append the structures, otherwise
-	 *            overwrite the existing ones.
+	 *
+	 * @param merge if <code>true</code> append the structures, otherwise
+	 *              overwrite the existing ones.
 	 */
 	public void fromString(String str, boolean merge) throws Exception {
 		fromString(str, merge, false, new GWSParser());
 	}
 
 	public void fromString(String str, boolean merge, boolean fire,
-			GlycanParser parser) throws Exception {		
+						   GlycanParser parser) throws Exception {
 		if (merge)
 			addStructures(parseString(str, parser), fire);
 		else
@@ -1544,19 +1539,19 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 		} else
 			parsed.addLast(parser.readGlycan(str,
 					theWorkspace.getDefaultMassOptions()));
-		
+
 		return parsed;
 	}
 
 	/**
 	 * Parse structures from the input string using a specified parser.
-	 * 
+	 *
 	 * @see GWSParser
 	 */
 	public LinkedList<Glycan> parseString(String str) throws Exception {
 		// parse structures
 		LinkedList<Glycan> parsed = new LinkedList<Glycan>();
-		for (String t : TextUtils.tokenize(str, ";")){
+		for (String t : TextUtils.tokenize(str, ";")) {
 			parsed.addLast(GWSParser.fromString(t,
 					theWorkspace.getDefaultMassOptions()));
 		}
@@ -1566,7 +1561,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	/**
 	 * Parse structures from the input string using a specified parser. Use the
 	 * selected mass settings for all new structures.
-	 * 
+	 *
 	 * @see GWSParser
 	 */
 	static public LinkedList<Glycan> parseString(String str, MassOptions opt)
@@ -1624,12 +1619,10 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 
 		/**
 		 * Construct a new handler.
-		 * 
-		 * @param _doc
-		 *            recipient for the structures parsed from the XML
-		 * @param _merge
-		 *            if <code>true</code> append the new structures to the
-		 *            existing document.
+		 *
+		 * @param _doc   recipient for the structures parsed from the XML
+		 * @param _merge if <code>true</code> append the new structures to the
+		 *               existing document.
 		 */
 		public SAXHandler(GlycanDocument _doc, boolean _merge) {
 			theDocument = _doc;
@@ -1637,7 +1630,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 		}
 
 		public boolean isElement(String namespaceURI, String localName,
-				String qName) {
+								 String qName) {
 			return qName.equals(getNodeElementName());
 		}
 
@@ -1649,14 +1642,14 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 		}
 
 		protected SAXUtils.ObjectTreeHandler getHandler(String namespaceURI,
-				String localName, String qName) {
+														String localName, String qName) {
 			if (qName.equals(Glycan.SAXHandler.getNodeElementName()))
 				return new Glycan.SAXHandler(new MassOptions());
 			return null;
 		}
 
 		protected Object finalizeContent(String namespaceURI, String localName,
-				String qName) throws SAXException {
+										 String qName) throws SAXException {
 			// clear
 			if (!merge) {
 				theDocument.resetStatus();
