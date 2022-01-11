@@ -2,3 +2,5 @@
 target
 wurcsextend.iml
 log4j.properties
+.m2/
+TODO.txt
