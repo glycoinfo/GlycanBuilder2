@@ -365,20 +365,49 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
        Set the reducing end marker for this glycan structure. The mass
        settings are updated.
 	 */
-	public boolean setReducingEndType(ResidueType new_type) { 
-		Residue redend = getRoot();     
-		if( redend!=null && redend.isReducingEnd() && !redend.isCleavage() && !redend.getTypeName().equals(new_type.getName()) ) {
-			redend.setType(new_type);
-			if(redend.getTypeName().equals("redEnd") || redend.getTypeName().equals("d")) {
-				redend.getChildAt(0).setAnomericState('?');
+	public boolean setReducingEndType(ResidueType new_type) {
+		Residue redend = getRoot();
+
+		//20211216, S.TSUCHIYA add
+		if (redend == null) return false;
+		if (!redend.isReducingEnd()) return false;
+		if (redend.isCleavage()) return false;
+		if (redend.getTypeName().equals(new_type.getName())) return false;
+
+		//20211216, S.TSUCHIYA comment out
+		//if( redend!=null && redend.isReducingEnd() && !redend.isCleavage() && !redend.getTypeName().equals(new_type.getName()) ) {
+		redend.setType(new_type);
+
+		//20211215, S.TSUCHIYA add
+		if (redend.getTypeName().equals("redEnd")) {
+			redend.getChildAt(0).setAlditol(true);
+			redend.getChildAt(0).setAnomericState('?');
+			redend.getChildAt(0).setRingSize('o');
+		}
+		if (redend.getTypeName().equals("d")) {
+			redend.getChildAt(0).setAnomericState('?');
+		}
+		if (!redend.getTypeName().equals("redEnd")) {
+			redend.getChildAt(0).setAlditol(false);
+			if (redend.getChildAt(0).getRingSize() == 'o') {
+				redend.getChildAt(0).setRingSize(redend.getChildAt(0).getType().getRingSize());
 			}
-			if(redend.getTypeName().equals("redEnd"))
-				redend.getChildAt(0).setAlditol(true);
-			
-			return true;
-		}		
-		
-		return false;
+		}
+
+		//20211215, S.TSUCHIYA comment out
+		/*
+		if(redend.getTypeName().equals("redEnd") || redend.getTypeName().equals("d")) {
+			redend.getChildAt(0).setAnomericState('?');
+		}
+		if(redend.getTypeName().equals("redEnd"))
+			redend.getChildAt(0).setAlditol(true);
+		*/
+
+		return true;
+
+		//20211216, S.TSUCHIYA comment out
+		//}
+		//return false;
 	}
 
 	/**

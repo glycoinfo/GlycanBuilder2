@@ -25,6 +25,7 @@ import java.io.*;
 import javax.swing.*;
 import javax.swing.border.*;
 
+import org.eurocarbdb.application.glycanbuilder.converter.GlycanParserFactory;
 import org.eurocarbdb.application.glycanbuilder.util.ActionManager;
 import org.eurocarbdb.application.glycanbuilder.util.MouseUtils;
 import chrriis.dj.nativeswing.swtimpl.NativeInterface;
@@ -722,7 +723,11 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
 
 		// imposto la dialog per il salvataggio del file
 		JFileChooser fileChooser = new JFileChooser();
-		fileChooser.addChoosableFileFilter(new ExtensionFileFilter(format));
+		//20211215, S.TSUCHIYA add
+		if (GlycanParserFactory.getExportFormats().containsKey(format))
+			fileChooser.addChoosableFileFilter(new ExtensionFileFilter("txt", "Glycan text"));
+		else
+			fileChooser.addChoosableFileFilter(new ExtensionFileFilter(format, "Graphic image"));
 		fileChooser.setCurrentDirectory(theWorkspace.getFileHistory().getRecentFolder());    
 
 		// visualizzo la dialog

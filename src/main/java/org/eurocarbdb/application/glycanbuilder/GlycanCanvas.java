@@ -23,6 +23,7 @@ package org.eurocarbdb.application.glycanbuilder;
 import org.eurocarbdb.application.glycanbuilder.dataset.CoreDictionary;
 import org.eurocarbdb.application.glycanbuilder.dataset.ResidueDictionary;
 import org.eurocarbdb.application.glycanbuilder.dataset.TerminalDictionary;
+import org.eurocarbdb.application.glycanbuilder.linkage.Bond;
 import org.eurocarbdb.application.glycanbuilder.linkage.Linkage;
 import org.eurocarbdb.application.glycanbuilder.renderutil.*;
 import org.eurocarbdb.application.glycanbuilder.util.*;
@@ -165,7 +166,8 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 	protected JMenu theViewMenu = null;
 	protected JMenu theDebugMenu = null;
 
-	protected JCheckBoxMenuItem show_redend_canvas_button = null;
+	// 20211224, S.TSUCHIYA changed: JCheckBoxMenuItem -> JCheckBox
+	protected JCheckBox show_redend_canvas_button = null;
 
 	protected int recent_residues_index = -1;
 	protected int no_recent_residues_buttons = 0;
@@ -707,7 +709,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		
 		updateStructureRibbonGallery(STRUCTURE_GALLERY_NAME, structureSelectionBand);
 		/***********************************************
-		　  Description： Add the Null check condition of control panel
+		　  Description： Add the Null check condition of control panel 
 		　  @author: GIC
 		  Date: 2021/12/07
 		 ************************************************/
@@ -765,6 +767,49 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 			par_pos = new char[] { '1', '2', '3', '4', '5', '6', '7', '8', '9', 'N' };
 		else
 			par_pos = parent.getType().getLinkagePositions();
+
+		// 20211223, S.TSUCHIYA add
+		String par_pos_temp = String.valueOf(par_pos);
+
+		// select unavailable linkage position from par_pos
+		for (Linkage donorLinkage : parent.getChildrenLinkages()) {
+			if (this.current_residue == donorLinkage.getChildResidue()) continue;
+
+			for (Bond donorBond : donorLinkage.getBonds()) {
+				if (donorBond.getParentPositions().length > 1) continue;
+				if (donorBond.getParentPositions()[0] == '?') continue;
+				char donorPos = donorBond.getParentPositions()[0];
+				par_pos_temp = par_pos_temp.replace(donorPos, ' ');
+			}
+		}
+
+		// replace ring position, 20211223, S.TSUCHIYA add
+		if (parent.getRingSize() == 'o') {
+			par_pos_temp += parent.getType().getAnomericCarbon();
+		}
+		if (parent.getRingSize() == 'p') {
+			if (parent.getAnomericCarbon() == '1') {
+				par_pos_temp = par_pos_temp.replace('5', ' ');
+			}
+			if (parent.getAnomericCarbon() == '2') {
+				par_pos_temp = par_pos_temp.replace('6', ' ');
+			}
+		}
+		if (parent.getRingSize() == 'f') {
+			if (parent.getAnomericCarbon() == '1') {
+				par_pos_temp = par_pos_temp.replace('4', ' ');
+			}
+			if (parent.getAnomericCarbon() == '2') {
+				par_pos_temp = par_pos_temp.replace('5', ' ');
+			}
+		}
+
+		// refresh par_pos, 20211223, S.TSUCHIYA add
+		if (!par_pos_temp.equals(String.valueOf(par_pos))) {
+			par_pos_temp = par_pos_temp.replaceAll(" ", "");
+			par_pos = par_pos_temp.toCharArray();
+			Arrays.sort(par_pos);
+		}
 
 		// add elements
 		ret.addElement("?");
@@ -881,6 +926,13 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		if(current != null && current.isEndRepetition()) {
 			field_linkage_position.setEnabled(true);
 			field_anomeric_carbon.setSelectedItem("1");
+
+			// update linkage item, 20211224, S.TSUCHIYA add
+			Linkage parent_link = current.getParentLinkage();
+			if (parent_link != null) {
+				field_linkage_position.setListModel(createPositions(parent_link.getParentResidue()));
+				field_linkage_position.setSelectedValues(toStrings(parent_link.glycosidicBond().getParentPositions()));
+			}
 		}
 		
 		ignore_actions = false;
@@ -1015,23 +1067,19 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 
 		// export
 
-		JCheckBoxMenuItem lastcb = null;
-		view_menu.add(lastcb = new JCheckBoxMenuItem(getTheActionManager()
-				.get("collapsemultipleantennae")));
-		lastcb.setState(view_opt.COLLAPSE_MULTIPLE_ANTENNAE);
-		view_menu.add(lastcb = new JCheckBoxMenuItem(getTheActionManager()
-				.get("showmassescanvas")));
-		lastcb.setState(view_opt.SHOW_MASSES_CANVAS);
-		view_menu.add(lastcb = new JCheckBoxMenuItem(getTheActionManager()
-				.get("showmasses")));
-		lastcb.setState(view_opt.SHOW_MASSES);
-		view_menu.add(lastcb = new JCheckBoxMenuItem(getTheActionManager()
-				.get("showredendcanvas")));
+		// 20211224, S.TSUCHIYA changed: JCheckBoxMenuItem -> JCheckBox
+		JCheckBox lastcb;
+		view_menu.add(lastcb = new JCheckBox(getTheActionManager().get("collapsemultipleantennae")));
+		lastcb.setSelected(view_opt.COLLAPSE_MULTIPLE_ANTENNAE);
+		view_menu.add(lastcb = new JCheckBox(getTheActionManager().get("showmassescanvas")));
+		lastcb.setSelected(view_opt.SHOW_MASSES_CANVAS);
+		view_menu.add(lastcb = new JCheckBox(getTheActionManager().get("showmasses")));
+		lastcb.setSelected(view_opt.SHOW_MASSES);
+		view_menu.add(lastcb = new JCheckBox(getTheActionManager().get("showredendcanvas")));
 		show_redend_canvas_button = lastcb;
-		lastcb.setState(view_opt.SHOW_REDEND_CANVAS);
-		view_menu.add(lastcb = new JCheckBoxMenuItem(getTheActionManager()
-				.get("showredend")));
-		lastcb.setState(view_opt.SHOW_REDEND);
+		lastcb.setSelected(view_opt.SHOW_REDEND_CANVAS);
+		view_menu.add(lastcb = new JCheckBox(getTheActionManager().get("showredend")));
+		lastcb.setSelected(view_opt.SHOW_REDEND);
 
 		view_menu.addSeparator();
 
@@ -3526,11 +3574,14 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 	public void onAddStructure(String name) {
 		try {
 			Residue a_oNewStructure = CoreDictionary.newCore(name);
+			//20211215, S.TSUCHIYA comment out
+			/*
 			if(a_oNewStructure.isReducingEnd() && a_oNewStructure.getTypeName().equals("redEnd")) {
 				a_oNewStructure.firstChild().setAlditol(true);
 				a_oNewStructure.firstChild().setAnomericState('?');
 				a_oNewStructure.firstChild().setRingSize('o');
 			}
+			 */
 			theDoc.addStructure(a_oNewStructure);
 		} catch (Exception e) {
 			e.getMessage();

@@ -273,7 +273,7 @@ public class ResidueRendererAWT extends AbstractResidueRenderer {
 			String viewType = theGraphicOptions.DISPLAY;
 			/***********************************************
 			　 Description： Correct the condition sentence left and right.
-			 　@author：
+			 　@author：GIC
 			  Date: 2021/12/06
 			　************************************************/
 			//System.out.println(viewType);

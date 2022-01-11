@@ -20,6 +20,8 @@
 
 package org.eurocarbdb.application.glycanbuilder;
 
+import org.eurocarbdb.application.glycanbuilder.converter.GlycanParserFactory;
+
 import java.io.*;
 import java.nio.channels.FileChannel;
 
@@ -119,16 +121,19 @@ public class FileUtils {
 	 *            the desired file extension
 	 */
 	static public String enforceExtension(String filename, String extension) {
-		/*
 		String ext = "";
 		int i = filename.lastIndexOf('.');
 		if (i > 0 && i < filename.length() - 1)
 			ext = filename.substring(i + 1).toLowerCase();
 		if (ext.equals(extension))
 			return filename;
+
+		//20211208_S.TSUCHIYA, add
+		// check export text format
+		// if an extension contains as a key in GlycanParserFactory.getExportFormats(), an extension change to .txt
+		if (GlycanParserFactory.getExportFormats().containsKey(extension))
+			return filename + ".txt";
 		return filename + "." + extension;
-		 */
-		return filename + ".txt";
 	}
 
 	/**
