@@ -190,8 +190,8 @@
 					<outputDirectory>${project.build.directory}/mvn-repo</outputDirectory>
 					<branch>refs/heads/master</branch>
 					<includes><include>**/*</include></includes>
-					<repositoryName>TestMavenRepository</repositoryName>
-					<repositoryOwner>e15d5605</repositoryOwner>
+					<repositoryName>MavenRepository</repositoryName>
+					<repositoryOwner>glycoinfo</repositoryOwner>
 				</configuration>
 				<executions>
 					<execution>
