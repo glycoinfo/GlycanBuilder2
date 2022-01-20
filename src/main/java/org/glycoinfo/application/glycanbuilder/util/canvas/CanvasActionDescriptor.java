@@ -21,6 +21,7 @@ public enum CanvasActionDescriptor {
 	ADDCOMPOSITON("addcomposition"),
 	ADDSTRUCTURE("addstructure"),
 	ADDSTRUCTURESTR("addstructurestr"),
+	WRITE("write"),
 	GETSTRUCTURE("getstructure"),
 	GETSTRUCTURESTR("getstructurestr"),
 	ADD("add"),
