@@ -1428,11 +1428,11 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 			}
 
 			ICON_SIZE iconSize = ICON_SIZE.L6;
-			final List<StringValuePair<List<JCommandToggleButton>>> galleryButtons = new ArrayList<StringValuePair<List<JCommandToggleButton>>>();
+			final List<StringValuePair<List<JCommandToggleButton>>> galleryButtons = new ArrayList<>();
 			for (String superclass : CoreDictionary.getSuperclasses()) {
 				Collection<CoreType> core_types = CoreDictionary.getCores(superclass);
 				if (core_types.size() > 0) {
-					List<JCommandToggleButton> galleryButtonsList = new ArrayList<JCommandToggleButton>();
+					List<JCommandToggleButton> galleryButtonsList = new ArrayList<>();
 					
 					JCommandToggleButtonAction temp=null;
 					
@@ -1465,18 +1465,17 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 						}
 					}
 					
-					galleryButtons.add(new StringValuePair<List<JCommandToggleButton>>(
-									superclass, galleryButtonsList));
+					galleryButtons.add(new StringValuePair<>(superclass, galleryButtonsList));
 				}
 			}
 
-			final Map<RibbonElementPriority, Integer> visibleButtonCounts = new HashMap<RibbonElementPriority, Integer>();
+			final Map<RibbonElementPriority, Integer> visibleButtonCounts = new HashMap<>();
 			visibleButtonCounts.put(RibbonElementPriority.LOW, 4);
 			visibleButtonCounts.put(RibbonElementPriority.MEDIUM, 4);
 			visibleButtonCounts.put(RibbonElementPriority.TOP, 4);
 
-			//band.addRibbonGallery(galleryName, galleryButtons,
-			//			visibleButtonCounts, 4, 4, RibbonElementPriority.TOP);
+			band.addRibbonGallery(galleryName, galleryButtons,
+						visibleButtonCounts, 4, 4, RibbonElementPriority.TOP);
 		}
 	}
 
@@ -1664,7 +1663,6 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 			visibleButtonCounts.put(RibbonElementPriority.MEDIUM, 4);
 			visibleButtonCounts.put(RibbonElementPriority.TOP, 4);
 
-			System.out.println(galleryName);
 			band.addRibbonGallery(galleryName, galleryButtons,
 				visibleButtonCounts, 5, 4, RibbonElementPriority.TOP);
 		}
@@ -1811,15 +1809,12 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		
 		updateStructureRibbonGallery(STRUCTURE_GALLERY_NAME, structureSelectionBand);
 
+		//20220119, S.TSUCHIYA changed
 		structureSelectionBand.addCommandButton(getTheActionManager().get(
-				"addstructurestr").getJCommandButton(ICON_SIZE.L3, "Import glycan sequence",
+				"write").getJCommandButton(ICON_SIZE.L3, "Write",
 				this, new RichTooltip(" ", "Import structure from string")),
 				RibbonElementPriority.TOP);
-		structureSelectionBand.addCommandButton(getTheActionManager().get(
-				"getstructurestr").getJCommandButton(ICON_SIZE.L3, "Export glycan sequence",
-				this, new RichTooltip(" ", "Get string from structure")), 
-				RibbonElementPriority.TOP);
-		
+
 		structureSelectionBand.addCommandButton(getTheActionManager().get(
 				"addcomposition").getJCommandButton(ICON_SIZE.L3,
 				"Create composition", this, new RichTooltip("Open", " ")),
@@ -1829,18 +1824,15 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 	}
 
 	private RibbonTask createStructureRibbonTask() {
-		//structureRibbonBandCFG = createStructureRibbonBand();
 		structureRibbonBandSNFG = createStructureRibbonBand();
 		JRibbonBand band1 = createAddResidueBand();
 		RibbonTask task = new RibbonTask("Structure", structureRibbonBandSNFG,
 				band1,createAddTerminalRibbon());
-		//RibbonTask task = new RibbonTask("Structure", structureRibbonBandCFG,
-		//		band1,createAddTerminalRibbon());
 
 		return task;
 	}
 
-	/*private JRibbonBand createStructureRibbonControls() {
+	private JRibbonBand createStructureRibbonControls() {
 		JRibbonBand band = new JRibbonBand(
 				"Edit glycan",
 				new org.pushingpixels.flamingo.api.common.icon.EmptyResizableIcon(10));
@@ -1877,7 +1869,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 				RibbonElementPriority.TOP);
 
 		return band;
-	}*/
+	}
 
 	private JRibbonBand createAddTerminalRibbon() {
 
@@ -4130,6 +4122,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		if(a_enumAction.equals(CanvasActionDescriptor.ADDCOMPOSITON)) onAddComposition();
 		if(a_enumAction.equals(CanvasActionDescriptor.ADDSTRUCTURE)) onAddStructure(param);
 		if(a_enumAction.equals(CanvasActionDescriptor.ADDSTRUCTURESTR)) onAddStructureFromString();
+		if(a_enumAction.equals(CanvasActionDescriptor.WRITE)) onAddStructureFromString();
 		if(a_enumAction.equals(CanvasActionDescriptor.GETSTRUCTURESTR)) onGetStringFromStructure();
 		if(a_enumAction.equals(CanvasActionDescriptor.ADD)) onAdd(param);
 		if(a_enumAction.equals(CanvasActionDescriptor.INSERT)) onInsertBefore(param);

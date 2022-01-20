@@ -46,7 +46,7 @@ public class CanvasAction {
 	}
 	
 	private void createStructureAction (ActionManager a_oActionManager, ThemeManager themeManager, ICON_SIZE defaultMenuIconSize, ActionListener a_oListener) {
-		/** Original method*/
+		a_oActionManager.add("write", themeManager.getResizableIcon("write", defaultMenuIconSize), "Add structure from string", KeyEvent.VK_S, "", a_oListener);
 		a_oActionManager.add("addstructurestr", themeManager.getResizableIcon("import", defaultMenuIconSize), "Add structure from string", KeyEvent.VK_S, "", a_oListener);
 		a_oActionManager.add("getstructurestr", themeManager.getResizableIcon("export", defaultMenuIconSize), "Get string from structure", -1, "", a_oListener);
 		a_oActionManager.add("addcomposition", themeManager.getResizableIcon("piechart", defaultMenuIconSize), "Add composition", KeyEvent.VK_C, "", a_oListener);
