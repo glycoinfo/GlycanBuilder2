@@ -40,7 +40,8 @@ import org.eurocarbdb.application.glycanbuilder.util.GlycanUndoRedoListener;
 
 public class GlycanUndoManager implements BaseDocument.DocumentChangeListener {
 
-	private static final int MAXIMUM_NUMBER_OF_STATES = 20;
+	// 20220119, S.TSUCHIYA change 20 -> 50
+	private static final int MAXIMUM_NUMBER_OF_STATES = 50;
 
 	//
 
