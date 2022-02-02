@@ -1305,6 +1305,21 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	}
 	
 	/**
+	 *  Encode all structures and return specific format
+	 *  @author GIC 20210105
+	 */
+	public ArrayList<String> exportFromStructures(Collection<Glycan> a_lstGlycan, String format) throws Exception {
+		ArrayList<String> arr = new ArrayList<>();
+		GlycanParser parser = GlycanParserFactory.getParser(format); 
+		for(Glycan glycan : a_lstGlycan) {
+			LinkedList<Glycan> colGlycan = new LinkedList<Glycan>();
+			colGlycan.add(glycan);
+			arr.add(toString(colGlycan,parser).toString());
+		} 
+		return arr; 
+	}
+	
+	/**
 	 * Encode the structures into a file using the specified format.
 	 * 
 	 * @see GlycanParserFactory#getParser
