@@ -1689,7 +1689,6 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 			visibleButtonCounts.put(RibbonElementPriority.MEDIUM, 4);
 			visibleButtonCounts.put(RibbonElementPriority.TOP, 4);
 
-			System.out.println(galleryName);
 			band.addRibbonGallery(galleryName, galleryButtons,
 				visibleButtonCounts, 5, 4, RibbonElementPriority.TOP);
 		}
