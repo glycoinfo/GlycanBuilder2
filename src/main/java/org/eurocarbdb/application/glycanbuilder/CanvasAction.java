@@ -22,6 +22,7 @@ public class CanvasAction {
 		this.createViewAction(a_oActionManager, a_oTheme, defaultMenuIconSize, a_oListerner);
 		this.createOtherAction(a_oActionManager, a_oTheme, defaultMenuIconSize, a_oListerner);
 		this.createMonosaccharideAction(a_oActionManager, a_oTheme, a_oListerner, a_oGlycanRenderer);
+		this.createGlyTouCanAction(a_oActionManager, a_oTheme, defaultMenuIconSize, a_oListerner); //GIC added 20210105
 	}
 	
 	private void createEditAction(ActionManager a_oActionManager, ThemeManager a_oTheme, ICON_SIZE defaultMenuIconSize, ActionListener a_oListener) {
@@ -150,4 +151,14 @@ public class CanvasAction {
 		}
 	}
 	
+	/**
+	 * Create GlyTouCan Button Action
+	 * @author GIC 20210105
+	 */
+	private void createGlyTouCanAction(ActionManager a_oActionManager, ThemeManager a_oTheme, ICON_SIZE defaultMenuIconSize, ActionListener a_oListener) {
+		a_oActionManager.add("selectapidialog", a_oTheme.getResizableIcon("export", defaultMenuIconSize), "Send", KeyEvent.VK_E, "", a_oListener);
+		a_oActionManager.add("glycanidlist", a_oTheme.getResizableIcon("report", defaultMenuIconSize), "GlyTouCanID List", KeyEvent.VK_E, "", a_oListener);
+		a_oActionManager.add("edituser", a_oTheme.getResizableIcon("actions/edit_user", defaultMenuIconSize), "Change User", KeyEvent.VK_E, "", a_oListener);
+		//a_oActionManager.add("edituser", a_oTheme.getResizableIcon(STOCK_ICON.USER, ICON_SIZE.L2), "Change User", KeyEvent.VK_E, "", a_oListener);
+	}
 }

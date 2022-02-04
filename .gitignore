@@ -3,3 +3,7 @@ target
 wurcsextend.iml
 log4j.properties
 .m2/
+/.apt_generated/
+.settings
+.classpath
+.project
