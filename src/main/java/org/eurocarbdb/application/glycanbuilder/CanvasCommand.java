@@ -399,4 +399,27 @@ public class CanvasCommand {
 
 		return band;
 	}
+	
+	/**
+	 * Create GlyTouCan command Button
+	 * @author GIC 20211215
+	 */
+	public RibbonTask createGlyTouCanRibbonBand(ActionManager a_oActionManager, ActionListener a_oListener) {
+		JRibbonBand band2 = new JRibbonBand(
+				"GlyTouCan", new org.pushingpixels.flamingo.api.common.icon.EmptyResizableIcon(35));
+		ArrayList<RibbonBandResizePolicy> resizePolicies = new ArrayList<RibbonBandResizePolicy>();
+		resizePolicies.add(new CoreRibbonResizePolicies.Mirror(band2
+				.getControlPanel()));
+		resizePolicies.add(new CoreRibbonResizePolicies.Mid2Low(band2
+				.getControlPanel()));
+		band2.setResizePolicies(resizePolicies);
+		band2.addCommandButton(a_oActionManager.get("selectapidialog")
+				.getJCommandButton(ICON_SIZE.L4, "Send Structure Data", a_oListener, null), RibbonElementPriority.TOP);
+		band2.addCommandButton(a_oActionManager.get("glycanidlist")
+				.getJCommandButton(ICON_SIZE.L4, "GlyTouCanID List", a_oListener, null), RibbonElementPriority.TOP);
+		band2.addCommandButton(a_oActionManager.get("edituser")
+				.getJCommandButton(ICON_SIZE.L4, "Change User", a_oListener, null), RibbonElementPriority.TOP);
+		
+		return new RibbonTask("GlyTouCan", band2);
+	}
 }
