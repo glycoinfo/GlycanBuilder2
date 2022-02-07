@@ -35,6 +35,7 @@ import org.glycoinfo.application.glycanbuilder.util.GlycanUtils;
 import org.glycoinfo.application.glycanbuilder.util.canvas.CanvasActionDescriptor;
 import org.glycoinfo.application.glycanbuilder.util.canvas.CompositionUtility;
 import org.glycoinfo.application.glycanbuilder.util.canvas.DebugUtility;
+import org.json.simple.parser.ParseException;
 import org.pushingpixels.flamingo.api.common.*;
 import org.pushingpixels.flamingo.api.common.JCommandButton.CommandButtonKind;
 import org.pushingpixels.flamingo.api.common.icon.ResizableIcon;
@@ -142,6 +143,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 	protected JFrame theParent = null;
 	protected BuilderWorkspace theWorkspace = null;
 	protected GlycanDocument theDoc = null;
+	protected GlycanStructureAndChangeUser theStructure = null;
 	// protected ActionManager theActionManager;
 	private ActionManager theActionManager;
 
@@ -211,6 +213,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 	private RibbonTask theEditRibbon;
 	private RibbonTask theStructureRibbon;
 	private RibbonTask theViewRibbon;
+	private RibbonTask theGlyTouCanRibbon;
 	private JRibbonBand structureSelectionBand;
 	//private JRibbonBand structureRibbonBandCFG; // for init Symbol notation?
 	private JRibbonBand structureRibbonBandSNFG;
@@ -236,6 +239,8 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		theEditRibbon = null;
 		theStructureRibbon = null;
 		theViewRibbon = null;
+		// Added GIC 2021017
+		theGlyTouCanRibbon = null;
 		structureSelectionBand = null;
 		//structureRibbonBandCFG = null;
 		structureRibbonBandSNFG = null;
@@ -337,6 +342,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		theDoc = theWorkspace.getStructures();
 		theDoc.addDocumentChangeListener(this);
 		// theActionManager = new ActionManager();
+		theStructure = new GlycanStructureAndChangeUser();
 		setTheActionManager(new ActionManager());
 
 		current_residue = null;
@@ -380,6 +386,9 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 			}
 
 			theEditRibbon = createEditRibbonBand();
+			/*****************GIC Added 20211219****************************/
+			theGlyTouCanRibbon = createGlyTouCanRibbonBand();
+			/*********************************************/
 			theStructureRibbon = createStructureRibbonTask();
 			theViewRibbon = createViewRibbonTask();
 			theLinkageRibbon = createLinkageRibbon();
@@ -425,6 +434,14 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 
 	public RibbonTask getTheEditRibbon() {
 		return theEditRibbon;
+	}
+	
+	/**
+	 * Get GlyTouCan Ribbon
+	 * @author GIC 20211217
+	 */
+	public RibbonTask getTheGlyTouCanRibbon() {
+		return theGlyTouCanRibbon;
 	}
 
 	/**
@@ -1408,6 +1425,14 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 
 	private RibbonTask createEditRibbonBand() {
 		return this.a_oCommand.createEditRibbonBand(getTheActionManager(), this);
+	}
+	
+	/**
+	 * Create GlyTouCan Ribbon
+	 * @author GIC 20211219
+	 */
+	private RibbonTask createGlyTouCanRibbonBand() {
+		return this.a_oCommand.createGlyTouCanRibbonBand(getTheActionManager(), this);
 	}
 
 	/**
@@ -4083,6 +4108,32 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		
 		//a_oCurrent.addChild(a_oStartAlt);
 	}
+	
+	/**
+	 * Show Environment Select API Dialog
+	 * @author GIC 20211219
+	 */
+	private void onSelectAPIDialog() {
+		if (this.theDoc.getStructures().size() == 0) {
+			JOptionPane.showMessageDialog(null, "Glycan Structure is empty", "Error in GlycanBuilder2",
+					JOptionPane.ERROR_MESSAGE);
+		} else {
+			theStructure.onSelectAPIDialog(theParent,this.theDoc);
+		}
+	}
+	
+	/**
+	 *  Show Change User Dialog
+	 *  @author GIC 20211220
+	 */
+	private void changeUser() {
+		try {
+			theStructure.changeUser();
+		} catch (ParseException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
 
 	// ---------------
 	// events
@@ -4219,7 +4270,20 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		if(a_enumAction.equals(CanvasActionDescriptor.REMOVEAANOTATION)) DebugUtility.removeAnotation(getCurrentStructure());
 		if(a_enumAction.equals(CanvasActionDescriptor.INSERTBRIDGE)) insertCrossLinkedSubstituent(param);
 		//if(a_enumAction.equals(CanvasActionDescriptor.SHOWINDEX))
-			
+		
+		/****************************GIC added 20211220**********************/
+		//Send glycan structure
+		if(a_enumAction.equals(CanvasActionDescriptor.SELECTAPIDIALOG)) onSelectAPIDialog();
+		
+		//Show GlycanIDList
+		if(a_enumAction.equals(CanvasActionDescriptor.GLYCANIDLIST)) {
+				GlytoucanIDList.showGlycanIdList(theParent); 
+		} 	
+				
+		//change user
+		if(a_enumAction.equals(CanvasActionDescriptor.CHANGEUSER)) changeUser();
+		/*********************************************************************/
+		
 		updateActions();
 		
 		SwingUtilities.invokeLater(new Runnable(){

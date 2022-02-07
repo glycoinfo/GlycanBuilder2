@@ -58,7 +58,11 @@ public enum CanvasActionDescriptor {
 	NAVRIGHT("navright"),
 	EXPLODE("explode"),
 	IMPLODE("implode"),
-	
+	/******************GIC added 20211215******************/
+	SELECTAPIDIALOG("selectapidialog"), 
+	GLYCANIDLIST("glycanidlist"),		
+	CHANGEUSER("edituser"),			
+	/*************************************/
 	CHANGELV2("changeLV2"),
 	CHANGELV3("changeLV3"),
 	CHANGELV4("changeLV4"),
