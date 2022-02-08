@@ -18,6 +18,10 @@
 * Java 8 (or later)
 * maven 3.6 (or later)
 
+## Release node
+Latest version: 1.17.0\
+Please see about [details](CHANGELOG.md#1170-20220208).
+
 ## Compile
 Clone this repository in the local repository.
 ```
