@@ -1,5 +1,8 @@
 ## Change log
 
+### 1.17.1 (20220325)
+* Change anomeric state of the reducing end of Glc3Man9GlcNAc2 (α -> β) 
+
 ### 1.17.0 (20220208)
 * Add "Write" function (for GlycoWorkbench)
 * Change usable undo count 50 from 20
