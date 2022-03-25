@@ -8,7 +8,7 @@
 
 	<groupId>org.eurocarbdb.glycanbuilder</groupId>
 	<artifactId>glycanbuilder2</artifactId>
-	<version>1.17.0</version>
+	<version>1.17.1</version>
 	<packaging>jar</packaging>
 
 	<properties>
@@ -290,7 +290,7 @@
 		<dependency>
 			<groupId>org.glycoinfo.convert</groupId>
 			<artifactId>glycanformatconverter</artifactId>
-			<version>2.6.0</version>
+			<version>2.7.0</version>
 		</dependency>
 		<!-- http://mvnrepository.com/artifact/org.apache.ant/ant-launcher -->
 		<dependency>
