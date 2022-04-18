@@ -734,6 +734,14 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
 		int returnVal = fileChooser.showSaveDialog(this);        
 		if (returnVal == JFileChooser.APPROVE_OPTION) {
 
+			// TODO: make user selected glycans
+			/*
+			ArrayList<Glycan> selectedGlycans = new ArrayList<>();
+			for (Glycan select: this.theCanvas.getSelectedStructures()) {
+				selectedGlycans.add(select);
+			}
+			 */
+
 			// aggiunge l'estension
 			String filename = fileChooser.getSelectedFile().getAbsolutePath();
 			filename = FileUtils.enforceExtension(filename,format);
@@ -878,7 +886,7 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
 		else if( action.equals("import") ) onImportFrom(param);
 		else if( action.equals("export") ) onExportTo(param);
 		else if( action.equals("quit") ) onExit();
-		
+
 		// help
 		else if( action.equals("about") ) onAbout();
 		updateActions();

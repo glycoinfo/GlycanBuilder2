@@ -26,13 +26,13 @@ import java.io.*;
 import java.util.*;
 
 import org.apache.batik.svggen.SVGGraphics2D;
+import org.apache.fop.svg.PDFTranscoder;
 import org.w3c.dom.*;
 import org.apache.batik.ext.awt.g2d.GraphicContext;
 import org.eurocarbdb.application.glycanbuilder.DefaultPaintable;
 import org.eurocarbdb.application.glycanbuilder.Glycan;
 import org.eurocarbdb.application.glycanbuilder.logutility.LogUtils;
 import org.eurocarbdb.application.glycanbuilder.util.GraphicUtils;
-import org.glycoinfo.WURCSFramework.util.residuecontainer.ResidueContainer;
 
 /**
    Utility class containing functions to export glycan structures and
@@ -219,7 +219,7 @@ public class SVGUtils   {
        @param structures the structures to be rendered
      */
     static public byte[] getPDFGraphics(GlycanRenderer gr, Collection<Glycan> structures) {
-    return getTranscodedSVG(gr,structures,false,false, new org.apache.fop.svg.PDFTranscoder());
+    return getTranscodedSVG(gr,structures,false,false, new PDFTranscoder());
     }
 
     /**
