@@ -59,7 +59,12 @@ public class DictionaryConfiguration{
 	public static String SNFG_RESIDUE_PLACEMENTS_FILE= "snfg_residuePlacementsFile";
 	public static String SNFG_RESIDUE_STYLES_FILE = "snfg_residueStylesFile";
 	public static String SNFG_LINKAGE_STYLES_FILE = "snfg_linkageStylesFile";
-	
+
+	//SNFG_LINK, 2022XXXX, S.TSUCHIYA added
+	public static String SNFGLINK_RESIDUE_PLACEMENTS_FILE="snfgLink_residuePlacementsFile";
+	public static String SNFGLINK_RESIDUE_STYLES_FILE="snfgLink_residueStylesFile";
+	public static String SNFGLINK_LINKAGE_STYLES_FILE="snfgLink_linkageStylesFile";
+
 	private HashMap<String, String> keyToFile=new HashMap<String,String>(){
 		@Override
 		public String get(Object key) {
@@ -109,6 +114,8 @@ public class DictionaryConfiguration{
 		list.add(SNFG_RESIDUE_PLACEMENTS_FILE);
 		list.add(SNFG_RESIDUE_STYLES_FILE);
 		list.add(SNFG_LINKAGE_STYLES_FILE);
+		// 2022XXXX, S.TSUCHIYA added
+		list.add(SNFGLINK_LINKAGE_STYLES_FILE);
 
 		return list;
 	}
@@ -158,6 +165,9 @@ public class DictionaryConfiguration{
 		theConfiguration.put(DICT_SECT, SNFG_RESIDUE_PLACEMENTS_FILE, keyToFile.get(SNFG_RESIDUE_PLACEMENTS_FILE));
 		theConfiguration.put(DICT_SECT, SNFG_RESIDUE_STYLES_FILE, keyToFile.get(SNFG_RESIDUE_STYLES_FILE));
 		theConfiguration.put(DICT_SECT, SNFG_LINKAGE_STYLES_FILE, keyToFile.get(SNFG_LINKAGE_STYLES_FILE));
+
+		// 2022XXXX, S.TSUCHIYA added
+		theConfiguration.put(DICT_SECT, SNFGLINK_LINKAGE_STYLES_FILE, keyToFile.get(SNFGLINK_LINKAGE_STYLES_FILE));
 	}
 	
 	public void retrieve(Configuration theConfiguration){
@@ -195,6 +205,11 @@ public class DictionaryConfiguration{
 		keyToFile.put(SNFG_RESIDUE_STYLES_FILE,theConfiguration.get(DICT_SECT, SNFG_RESIDUE_STYLES_FILE, FileConstants.RESIDUE_STYLES_FILE_SNFG));
 		keyToFile.put(SNFG_RESIDUE_PLACEMENTS_FILE,theConfiguration.get(DICT_SECT, SNFG_RESIDUE_PLACEMENTS_FILE, FileConstants.RESIDUE_PLACEMENTS_FILE_SNFG));
 		keyToFile.put(SNFG_LINKAGE_STYLES_FILE,theConfiguration.get(DICT_SECT, SNFG_LINKAGE_STYLES_FILE, FileConstants.LINKAGE_STYLES_FILE_SNFG));
+
+		// 2022XXXX, S.TSUCHIYA added
+		keyToFile.put(SNFGLINK_RESIDUE_STYLES_FILE,theConfiguration.get(DICT_SECT, SNFGLINK_RESIDUE_STYLES_FILE, FileConstants.RESIDUE_STYLES_FILE_SNFGLINK));
+		keyToFile.put(SNFGLINK_RESIDUE_PLACEMENTS_FILE,theConfiguration.get(DICT_SECT, SNFGLINK_RESIDUE_PLACEMENTS_FILE, FileConstants.RESIDUE_PLACEMENTS_FILE_SNFGLINK));
+		keyToFile.put(SNFGLINK_LINKAGE_STYLES_FILE,theConfiguration.get(DICT_SECT, SNFGLINK_LINKAGE_STYLES_FILE, FileConstants.LINKAGE_STYLES_FILE_SNFGLINK));
 	}
 	
 	public static String getDefaultDictionaryFile(String dictionaryName){
@@ -259,7 +274,15 @@ public class DictionaryConfiguration{
 			return FileConstants.RESIDUE_PLACEMENTS_FILE_SNFG;
 		if(SNFG_LINKAGE_STYLES_FILE.equals(dictionaryName))
 			return FileConstants.LINKAGE_STYLES_FILE_SNFG;
-		
+
+		// 2022XXXX, S.TSUCHIYA added
+		if(SNFGLINK_RESIDUE_PLACEMENTS_FILE.equals(dictionaryName))
+			return FileConstants.RESIDUE_PLACEMENTS_FILE_SNFGLINK;
+		if(SNFGLINK_RESIDUE_STYLES_FILE.equals(dictionaryName))
+			return FileConstants.RESIDUE_STYLES_FILE_SNFGLINK;
+		if(SNFGLINK_LINKAGE_STYLES_FILE.equals(dictionaryName))
+			return FileConstants.LINKAGE_STYLES_FILE_SNFGLINK;
+
 		return null;
 	}
 	

@@ -1044,7 +1044,13 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 				.get("notation=" + GraphicOptions.NOTATION_SNFG)));
 		last.setSelected(view_opt.NOTATION.equals(GraphicOptions.NOTATION_SNFG));
 		groupn.add(last);
-		
+
+		// 2022XXXX, S.TSUCHIYA added
+		view_menu.add(last = new JRadioButtonMenuItem(getTheActionManager()
+				.get("notation=" + GraphicOptions.NOTATION_SNFGLINK)));
+		last.setSelected(view_opt.NOTATION.equals(GraphicOptions.NOTATION_SNFGLINK));
+		groupn.add(last);
+
 		view_menu.addSeparator();
 
 		// display
@@ -1161,7 +1167,14 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 				.getJCommandToggleButton("", this,
 						view_opt.NOTATION.equals(GraphicOptions.NOTATION_TEXT),
 						ICON_SIZE.L6));
-		
+
+		// 2022XXXX, S.TSUCHIYA added
+		panel.addButtonToLastGroup(getTheActionManager().get(
+				"notation=" + GraphicOptions.NOTATION_SNFGLINK)
+				.getJCommandToggleButton("", this,
+						view_opt.NOTATION.equals(GraphicOptions.NOTATION_TEXT),
+						ICON_SIZE.L6));
+
 		panel.setToShowGroupLabels(false);
 		panel.setSingleSelectionMode(true);
 		panel.setMaxButtonColumns(7);
@@ -4218,7 +4231,6 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 			repaint();
 		} 
 		if(a_enumAction.equals(CanvasActionDescriptor.SHOWMASS)) {
-			System.out.println(e.getSource());
 			//theWorkspace.getGraphicOptions().SHOW_MASSES = ((JCheckBoxMenuItem) e.getSource()).isSelected();
 			theWorkspace.getGraphicOptions().SHOW_MASSES = ((JCheckBox) e.getSource()).isSelected();
 			this.respondToDocumentChange = true;		

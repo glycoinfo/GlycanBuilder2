@@ -58,6 +58,8 @@ public class GraphicOptions {
 	public static final String NOTATION_UOXFCOL = "uoxfcol";
 	/** SNFG notation */
 	public static final String NOTATION_SNFG = "snfg";
+	/** SNFG notation with residue position depending on linkages */
+	public static final String NOTATION_SNFGLINK = "snfglink";
 
 	public String THEME = "org.pushingpixels.substance.api.skin.OfficeBlue2007Skin";
 
@@ -120,9 +122,10 @@ public class GraphicOptions {
 	public boolean SHOW_MASSES = false;
 	/**
 	 * Specify if the reducing-end marker should be displayed when exporting
-	 * (default = false)
+	 * (default = true)
 	 */
-	public boolean SHOW_REDEND = false;
+	//S.TSUCHIYA changed
+	public boolean SHOW_REDEND = true;
 
 	// size options
 	/** Specify if the linkage information should be displayed (default = true) */

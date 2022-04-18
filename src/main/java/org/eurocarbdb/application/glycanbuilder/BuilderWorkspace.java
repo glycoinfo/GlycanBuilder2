@@ -507,6 +507,14 @@ public class BuilderWorkspace extends BaseDocument implements BaseWorkspace,
 			theLinkageStyleDictionary
 			.loadStyles(getDictionaryConfig().getDictionaryFile(DictionaryConfiguration.CFG_LINKAGE_STYLES_FILE));
 		}
+		else if (notation.equals(GraphicOptions.NOTATION_SNFGLINK)) { //2022XXXX, S.TSUCHIYA added
+			theResiduePlacementDictionary
+					.loadPlacements(getDictionaryConfig().getDictionaryFile(DictionaryConfiguration.SNFGLINK_RESIDUE_PLACEMENTS_FILE));
+			theResidueStyleDictionary
+					.loadStyles(getDictionaryConfig().getDictionaryFile(DictionaryConfiguration.SNFGLINK_RESIDUE_STYLES_FILE));
+			theLinkageStyleDictionary
+					.loadStyles(getDictionaryConfig().getDictionaryFile(DictionaryConfiguration.SNFGLINK_LINKAGE_STYLES_FILE));
+		}
 		else {
 			theResiduePlacementDictionary
 			.loadPlacements(getDictionaryConfig().getDictionaryFile(DictionaryConfiguration.SNFG_RESIDUE_PLACEMENTS_FILE));
