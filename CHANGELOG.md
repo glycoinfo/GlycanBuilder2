@@ -1,5 +1,8 @@
 ## Change log
 
+### 1.18.0 (20220418)
+* Change API url `https://gtc.beta.glycosmos.org/` to `https://beta.glytoucan.org/`
+
 ### 1.17.1 (20220325)
 * Change anomeric state of the reducing end of Glc3Man9GlcNAc2 (α -> β) 
 
