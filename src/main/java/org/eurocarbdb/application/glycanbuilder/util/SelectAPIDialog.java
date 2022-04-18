@@ -59,7 +59,9 @@ public class SelectAPIDialog extends EscapeDialog implements ActionListener{
 	public static Map<String,String> selectAPIDialog() {
 		Map<String,String> ret = new TreeMap<String,String>();
 		ret.put("https://glytoucan.org/","https://glytoucan.org/");
-		ret.put("https://gtc.beta.glycosmos.org/", "https://gtc.beta.glycosmos.org/");
+		// 20220418, S.TSUCHIYA, comment out and changed.
+		//ret.put("https://gtc.beta.glycosmos.org/", "https://gtc.beta.glycosmos.org/");
+		ret.put("https://beta.glytoucan.org/", "https://beta.glytoucan.org/");
 		return ret;
 	}
 
