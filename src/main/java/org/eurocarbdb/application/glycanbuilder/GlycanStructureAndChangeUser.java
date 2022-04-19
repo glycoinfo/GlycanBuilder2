@@ -44,7 +44,9 @@ public class GlycanStructureAndChangeUser extends JComponent {
 	private boolean exists = false;
 	private static final String accessionIdBetaApi = "https://sparqlist.glyconavi.org/api/Get_beta_accession_number_by_wurcs_text?wurcs=";
 	private static final String accessionIdRealApi = "https://api.glycosmos.org/glycanformatconverter/2.7.0/wurcs2wurcs";
-	private static final String registerBetaApi = "https://api.gtc.beta.glycosmos.org/glycan/register";
+	//private static final String registerBetaApi = "https://api.gtc.beta.glycosmos.org/glycan/register";
+	//20220419, S.TSUCHIYA, changed
+	private static final String registerBetaApi = "https://api.beta.glytoucan.org/glycan/register";
 	private static final String registerRealApi = "https://api.glytoucan.org/glycan/register";
 
 	/**
