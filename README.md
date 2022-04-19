@@ -37,7 +37,7 @@ $ mvn clean compile
 ## JAR file
 Runable JAR (Java Archive) file is generate the below command.
 ```
-$ mvn clean package
+$ mvn clean -P make-fat-jar package
 ```
 
 When compilation in finished, jar file is created in the target folder.
