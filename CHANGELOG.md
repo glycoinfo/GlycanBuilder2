@@ -1,5 +1,8 @@
 ## Change log
 
+### 1.18.1 (20220419)
+* Change register API url `https://api.gtc.beta.glycosmos.org/glycan/register` to `https://api.beta.glytoucan.org/glycan/register`
+
 ### 1.18.0 (20220418)
 * Change API url `https://gtc.beta.glycosmos.org/` to `https://beta.glytoucan.org/`
 

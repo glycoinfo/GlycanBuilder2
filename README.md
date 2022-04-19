@@ -19,7 +19,7 @@
 * maven 3.6 (or later)
 
 ## Release node
-Latest version: 1.18.0\
+Latest version: 1.18.1\
 Please see about [details](CHANGELOG.md#1170-20220208).
 
 ## Compile
