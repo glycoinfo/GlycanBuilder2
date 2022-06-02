@@ -19,7 +19,7 @@
 	<repositories>
 		<repository>
 			<id>glycoinfo</id>
-			<url>https://nexus.glycoinfo.org/content/groups/public</url>
+			<url>https:/nexus/.glycoinfo.org/content/groups/public</url>
 			<releases>
 				<enabled>true</enabled>
 				<updatePolicy>always</updatePolicy>
@@ -62,17 +62,18 @@
 	</reporting>
 
 	<build>
+		<sourceDirectory>src/main/java</sourceDirectory>
+		<testSourceDirectory>src/test/java</testSourceDirectory>
+
 		<resources>
-			<resource>
-				<directory>src/main/java</directory>
-				<includes>
-					<include>**/*.xml</include>
-				</includes>
-			</resource>
 			<resource>
 				<directory>src/main/resources</directory>
 			</resource>
+			<resource>
+				<directory>src/test/resources</directory>
+			</resource>
 		</resources>
+
 		<plugins>
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
