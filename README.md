@@ -34,6 +34,11 @@ $ cd ~/Directory_of_local_repository/GlycanBuilder2
 $ mvn clean compile
 ```
 
+If a certificate error such as "PKIX path validation failed" occurred during the compilation process, please you try again with the below command.
+```
+$ mvn clean compile -X -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true
+```
+
 ## JAR file
 Runable JAR (Java Archive) file is generate the below command.
 ```
