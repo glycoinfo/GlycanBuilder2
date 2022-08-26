@@ -1,6 +1,6 @@
 %text style data in SNFG monosaccharide symbol
 %															option1
-%blue : 100,50,0,0 : 0,128,255								0,144,188
+%blue : 100,50,0,0 : 0,128,255								0,114,188
 %green : 100,0,100,0 : 0,255,0 -> 0,165,80 (SNFG option2)	0,166,81
 %yellow : 0,15,100,0 : 255,217,0							255,212,0
 %orange : 0,65,100,0 : 255,89,0								244,121,32
@@ -36,7 +36,7 @@ Xyl	star	0,0,0	full	no	244,121,32	-	0,0,0
 Rib	star	0,0,0	full	no	246,158,161	-	0,0,0
 
 %mono(di)-deoxy hexose
-Oli	flatsquare	0,0,0	full	no	0,144,188	-	0,0,0
+Oli	flatsquare	0,0,0	full	no	0,114,188	-	0,0,0
 Tyv	flatsquare	0,0,0	full	no	0,166,81	-	0,0,0
 Abe	flatsquare	0,0,0	full	no	244,121,32	-	0,0,0
 Par	flatsquare	0,0,0	full	no	246,158,161	-	0,0,0
@@ -44,7 +44,7 @@ Dig	flatsquare	0,0,0	full	no	165,67,153	-	0,0,0
 Col	flatsquare	0,0,0	full	no	143,204,233	-	0,0,0
 
 %Hexosamine
-GlcN	square	0,0,0,	topright	no	0,144,188	-	0,0,0
+GlcN	square	0,0,0,	topright	no	0,114,188	-	0,0,0
 %ManN	square	0,0,0,	topright	no	0,255,0		-	0,0,0
 ManN	square	0,0,0,	topright	no	0,166,81	-	0,0,0
 GalN	square	0,0,0,	topright	no	255,212,0	-	0,0,0
@@ -55,7 +55,7 @@ TalN	square	0,0,0,	topright	no	143,204,233	-	0,0,0
 IdoN	square	0,0,0,	topright	no	161,122,77	-	0,0,0
 
 %hexose
-Glc	circle	0,0,0	full	no	0,144,188	-	0,0,0
+Glc	circle	0,0,0	full	no	0,114,188	-	0,0,0
 Man	circle	0,0,0	full	no	0,166,81	-	0,0,0
 Gal	circle	0,0,0	full	no	255,212,0	-	0,0,0
 Gul	circle	0,0,0	full	no	244,121,32	-	0,0,0
@@ -66,7 +66,7 @@ Ido	circle	0,0,0	full	no	161,122,77	-	0,0,0
 Sia diamond	0,0,0	full	no	237,28,36	-	0,0,0
 
 %NAc
-GlcNAc	square	0,0,0	full	no	0,144,188	-	0,0,0
+GlcNAc	square	0,0,0	full	no	0,114,188	-	0,0,0
 ManNAc	square	0,0,0	full	no	0,166,81	-	0,0,0
 GalNAc	square	0,0,0	full	no	255,212,0	-	0,0,0
 GulNAc	square	0,0,0	full	no	244,121,32	-	0,0,0
@@ -76,7 +76,7 @@ TalNAc	square	0,0,0	full	no	143,204,233	-	0,0,0
 IdoNAc	square	0,0,0	full	no	161,122,77	-	0,0,0
 
 %Hexuronate
-GlcA	diamond	0,0,0	top		no	0,144,188	-	0,0,0
+GlcA	diamond	0,0,0	top		no	0,114,188	-	0,0,0
 %ManA	diamond	0,0,0	top		no	0,255,0		-	0,0,0
 ManA	diamond	0,0,0	top		no	0,166,81	-	0,0,0
 GalA	diamond	0,0,0	top		no	255,212,0	-	0,0,0
@@ -87,7 +87,7 @@ TalA	diamond	0,0,0	top		no	143,204,233	-	0,0,0
 IdoA	diamond	0,0,0	bottom	no	161,122,77	-	0,0,0
 
 %deoxy hexose
-Qui		triangle	0,0,0	full	no	0,144,188	-	0,0,0
+Qui		triangle	0,0,0	full	no	0,114,188	-	0,0,0
 Rha		triangle	0,0,0	full	no	0,166,81	-	0,0,0
 6dAlt	triangle	0,0,0	full	no	246,158,161	-	0,0,0
 6dTal	triangle	0,0,0	full	no	143,204,233	-	0,0,0
@@ -95,7 +95,7 @@ Rha		triangle	0,0,0	full	no	0,166,81	-	0,0,0
 Fuc		triangle	0,0,0	full	no	237,28,36	-	0,0,0
 
 %half triangle
-QuiNAc		triangle	0,0,0	right	no	0,144,188	-	0,0,0
+QuiNAc		triangle	0,0,0	right	no	0,114,188	-	0,0,0
 RhaNAc		triangle	0,0,0	right	no	0,166,81	-	0,0,0
 FucNAc		triangle	0,0,0	right	no	237,28,36	-	0,0,0
 6dTalNAc		triangle	0,0,0	right	no	143,204,233	-	0,0,0
@@ -108,7 +108,7 @@ NeuGc	diamond	0,0,0	full	no	143,204,233	-	0,0,0
 Neu		diamond	0,0,0	full	no	161,122,77	-	0,0,0
 
 %Other
-Bac				flathexagon	0,0,0	full	no	0,144,188	-	0,0,0
+Bac				flathexagon	0,0,0	full	no	0,114,188	-	0,0,0
 L-gro-D-manHep	flathexagon	0,0,0	full	no	0,166,81	-	0,0,0
 Kdo				flathexagon	0,0,0	full	no	255,212,0	-	0,0,0
 Dha				flathexagon	0,0,0	full	no	244,121,32	-	0,0,0
@@ -125,7 +125,7 @@ Aci		flatdiamond	0,0,0	full	no	246,158,161	-	0,0,0
 4eLeg	flatdiamond	0,0,0	full	no	143,204,233	-	0,0,0
 
 %Assigned
-Api	pentagon	0,0,0	full	no	0,144,188	-	0,0,0
+Api	pentagon	0,0,0	full	no	0,114,188	-	0,0,0
 Fru	pentagon	0,0,0	full	no	0,166,81	-	0,0,0
 Tag	pentagon	0,0,0	full	no	255,172,0	-	0,0,0
 Sor	pentagon	0,0,0	full	no	244,121,32	-	0,0,0
