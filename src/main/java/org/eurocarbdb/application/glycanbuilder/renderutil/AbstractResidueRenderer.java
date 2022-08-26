@@ -1,27 +1,5 @@
 package org.eurocarbdb.application.glycanbuilder.renderutil;
 
-import static org.eurocarbdb.application.glycanbuilder.renderutil.Geometry.angle;
-import static org.eurocarbdb.application.glycanbuilder.renderutil.Geometry.center;
-import static org.eurocarbdb.application.glycanbuilder.renderutil.Geometry.getTextShape;
-import static org.eurocarbdb.application.glycanbuilder.renderutil.Geometry.isDown;
-import static org.eurocarbdb.application.glycanbuilder.renderutil.Geometry.isLeft;
-import static org.eurocarbdb.application.glycanbuilder.renderutil.Geometry.isUp;
-import static org.eurocarbdb.application.glycanbuilder.renderutil.Geometry.textBounds;
-
-import java.awt.Dimension;
-import java.awt.Point;
-import java.awt.Polygon;
-import java.awt.Rectangle;
-import java.awt.Shape;
-import java.awt.geom.Arc2D;
-import java.awt.geom.CubicCurve2D;
-import java.awt.geom.Ellipse2D;
-import java.awt.geom.GeneralPath;
-import java.awt.geom.QuadCurve2D;
-import java.awt.geom.Rectangle2D;
-import java.util.ArrayList;
-import java.util.LinkedList;
-
 import org.eurocarbdb.application.glycanbuilder.Residue;
 import org.eurocarbdb.application.glycanbuilder.ResidueStyle;
 import org.eurocarbdb.application.glycanbuilder.ResidueStyleDictionary;
@@ -29,6 +7,13 @@ import org.eurocarbdb.application.glycanbuilder.ResidueType;
 import org.eurocarbdb.application.glycanbuilder.linkage.Linkage;
 import org.eurocarbdb.application.glycanbuilder.util.GraphicOptions;
 import org.eurocarbdb.application.glycanbuilder.util.TextUtils;
+
+import java.awt.*;
+import java.awt.geom.*;
+import java.util.ArrayList;
+import java.util.LinkedList;
+
+import static org.eurocarbdb.application.glycanbuilder.renderutil.Geometry.*;
 
 /**
    @author Issaku Yamada (yamadaissaku@gmail.com)
@@ -507,22 +492,22 @@ public abstract class AbstractResidueRenderer implements ResidueRenderer{
 
 		// Math.PI is right to left, 0 is left to right structure
 		if (angle == Math.PI || angle == 0 ) {
-			y1 = cy + ry * Math.sin(angle - Math.PI / 2.) + ry * Math.sin(angle);
+			y1 = cy + ry * Math.sin(angle - Math.PI / 2.) + ry * Math.sin(angle) + 10 * Math.sin(angle);
 		}
 		else {
-			y1 = cy + ry * Math.sin(angle - Math.PI / 2.) - ry * Math.sin(angle);
+			y1 = cy + ry * Math.sin(angle - Math.PI / 2.) - ry * Math.sin(angle) - 10 * Math.sin(angle);
 		}
 		p.addPoint((int)x1, (int)y1);
 
     	// first end point
     	double x2 = cx+rx*Math.cos(angle-Math.PI/2.);
-		double y2 = cy + ry * Math.sin(angle - Math.PI / 2.);
+		double y2 = cy + ry * Math.sin(angle - Math.PI / 2.) + 10 * Math.sin(angle);
 
 		p.addPoint((int)x2, (int)y2);
 
     	// second start point
 		double x3 = cx+rx*Math.cos(angle+Math.PI/2.);
-		double y3 = cy+ry*Math.sin(angle+Math.PI/2.);
+		double y3 = cy+ry*Math.sin(angle+Math.PI/2.) - 10 * Math.sin(angle);
 		p.addPoint((int)x3, (int)y3);
 
     	// second end point
@@ -538,10 +523,10 @@ public abstract class AbstractResidueRenderer implements ResidueRenderer{
 
 		// Math.PI is right to left, 0 is left to right structure
 		if (angle == Math.PI || angle == 0 ) {
-			y4 = cy + ry * Math.sin(angle + Math.PI / 2.) + ry * Math.sin(angle);
+			y4 = cy + ry * Math.sin(angle + Math.PI / 2.) + ry * Math.sin(angle) - 10 * Math.sin(angle);
 		}
 		else {
-			y4 = cy + ry * Math.sin(angle + Math.PI / 2.) - ry * Math.sin(angle);
+			y4 = cy + ry * Math.sin(angle + Math.PI / 2.) - ry * Math.sin(angle) + 10 * Math.sin(angle);
 		}
 		p.addPoint((int)x4, (int)y4);
 
@@ -593,7 +578,7 @@ public abstract class AbstractResidueRenderer implements ResidueRenderer{
     	double a_dXpoint = x;
     	double a_dCtrlX = 0.0;
     	double a_dCtrlY = 0.0;
-    	
+
     	Shape s1 = null;
     	
     	// R2L 180
@@ -684,7 +669,7 @@ public abstract class AbstractResidueRenderer implements ResidueRenderer{
     	Point pp = ( par_bbox!=null ) ?center(par_bbox) :center(cur_bbox);
     	Point pc = center(cur_bbox);
     	Point ps = ( sup_bbox!=null ) ?center(sup_bbox) :center(cur_bbox);
-    	
+
     	// partially oriented shapes
     	if( shape.equals("triangle") ) {
     		if(this.theGraphicOptions.NOTATION.equals(GraphicOptions.NOTATION_SNFG)) {
