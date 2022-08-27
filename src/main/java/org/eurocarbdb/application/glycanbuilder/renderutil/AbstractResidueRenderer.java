@@ -480,13 +480,16 @@ public abstract class AbstractResidueRenderer implements ResidueRenderer{
 		Polygon p = new Polygon();
 
 		// first start point
+		double xygap = 10d;
 		double x1;
 		double y1;
 		// Math.PI is right to left, 0 is left to right structure
-		if (angle == Math.PI || angle == 0 ) {
-			x1 = cx + rx * Math.cos(angle - Math.PI / 2.) - rx * Math.cos(angle) - 5;
-		}
-		else {
+		/*/
+		if (angle == Math.PI) {
+			x1 = cx + rx * Math.cos(angle - Math.PI / 2.) - rx * Math.cos(angle) - xygap;
+		} else if (angle == 0) {
+			x1 = cx + rx * Math.cos(angle - Math.PI / 2.) - rx * Math.cos(angle) + xygap;
+		} else {
 			x1 = cx + rx * Math.cos(angle - Math.PI / 2.) + rx * Math.cos(angle);
 		}
 
@@ -494,31 +497,81 @@ public abstract class AbstractResidueRenderer implements ResidueRenderer{
 		if (angle == Math.PI || angle == 0 ) {
 			y1 = cy + ry * Math.sin(angle - Math.PI / 2.) + ry * Math.sin(angle);
 		}
+		if (angle == Math.PI / 2d) {
+			y1 = cy + ry * Math.sin(angle - Math.PI / 2.) - ry * Math.sin(angle) + xygap;
+		}
 		else {
-			y1 = cy + ry * Math.sin(angle - Math.PI / 2.) - ry * Math.sin(angle) - 5;
+			y1 = cy + ry * Math.sin(angle - Math.PI / 2.) - ry * Math.sin(angle) - xygap;
+		}
+		*/
+		if (angle == Math.PI) {
+			x1 = cx + rx * Math.cos(angle - Math.PI / 2d) - rx * Math.cos(angle) - xygap;
+			y1 = cy + ry * Math.sin(angle - Math.PI / 2d) + ry * Math.sin(angle);
+		} else if (angle == 0) {
+			x1 = cx + rx * Math.cos(angle - Math.PI / 2d) - rx * Math.cos(angle) + xygap;
+			y1 = cy + ry * Math.sin(angle - Math.PI / 2d) + ry * Math.sin(angle);
+		} else if (angle == Math.PI / 2d) {
+			x1 = cx + rx * Math.cos(angle - Math.PI / 2d) + rx * Math.cos(angle);
+			y1 = cy + ry * Math.sin(angle - Math.PI / 2d) - ry * Math.sin(angle) + xygap;
+		} else {
+			x1 = cx + rx * Math.cos(angle - Math.PI / 2d) + rx * Math.cos(angle);
+			y1 = cy + ry * Math.sin(angle - Math.PI / 2d) - ry * Math.sin(angle) - xygap;
 		}
 		p.addPoint((int)x1, (int)y1);
 
     	// first end point
-    	double x2 = cx+rx*Math.cos(angle-Math.PI/2.);
+    	/*
+		double x2 = cx+rx*Math.cos(angle-Math.PI/2.);
 		double y2 = cy + ry * Math.sin(angle - Math.PI / 2.);
-		x2 = (angle == Math.PI || angle == 0 ) ? x2 - 5 : x2;
-		y2 = (angle == Math.PI || angle == 0 ) ? y2 : y2 - 5;
+		x2 = (angle == Math.PI || angle == 0 ) ? x2 - xygap : x2;
+		y2 = (angle == Math.PI || angle == 0 ) ? y2 : y2 - xygap;
+		*/
+		double x2 = cx + rx * Math.cos(angle - Math.PI / 2d);
+		double y2 = cy + ry * Math.sin(angle - Math.PI / 2d);
+		x2 = (angle == Math.PI) ? x2 - xygap : x2;
+		x2 = (angle == 0) ? x2 + xygap : x2;
+
+		if (angle == Math.PI) {
+			// y2 = y2;
+		} else if (angle == 0) {
+			// y2 = y2 - xygap;
+		} else if (angle == Math.PI / 2d) {
+			y2 = y2 + xygap;
+		} else {
+			y2 = y2 - xygap;
+		}
 		p.addPoint((int)x2, (int)y2);
 
     	// second start point
+		/*
 		double x3 = cx+rx*Math.cos(angle+Math.PI/2.);
 		double y3 = cy+ry*Math.sin(angle+Math.PI/2.);
-		x3 = (angle == Math.PI || angle == 0 ) ? x3 - 5 : x3;
-		y3 = (angle == Math.PI || angle == 0 ) ? y3 : y3 - 5;
+		x3 = (angle == Math.PI || angle == 0 ) ? x3 - xygap : x3;
+		y3 = (angle == Math.PI || angle == 0 ) ? y3 : y3 - xygap;
+		*/
+		double x3 = cx + rx * Math.cos(angle + Math.PI / 2d);
+		double y3 = cy + ry * Math.sin(angle + Math.PI / 2d);
+		x3 = (angle == Math.PI) ? x3 - xygap : x3;
+		x3 = (angle == 0) ? x3 + xygap : x3;
+		// y3 = (angle == Math.PI || angle == 0 ) ? y3 : y3 - xygap;
+		if (angle == Math.PI) {
+			// y2 = y2;
+		} else if (angle == 0) {
+			// y2 = y2 - xygap;
+		} else if (angle == Math.PI / 2d) {
+			y3 = y3 + xygap;
+		} else {
+			y3 = y3 - xygap;
+		}
 		p.addPoint((int)x3, (int)y3);
 
     	// second end point
 		double x4;
 		double y4;
 		// Math.PI is right to left, 0 is left to right structure
+		/*
 		if (angle == Math.PI || angle == 0 ) {
-			x4 = cx + rx * Math.cos(angle + Math.PI / 2.) - rx * Math.cos(angle) - 5;
+			x4 = cx + rx * Math.cos(angle + Math.PI / 2.) - rx * Math.cos(angle) - xygap;
 		}
 		else {
 			x4 = cx + rx * Math.cos(angle + Math.PI / 2.) + rx * Math.cos(angle);
@@ -529,7 +582,21 @@ public abstract class AbstractResidueRenderer implements ResidueRenderer{
 			y4 = cy + ry * Math.sin(angle + Math.PI / 2.) + ry * Math.sin(angle);
 		}
 		else {
-			y4 = cy + ry * Math.sin(angle + Math.PI / 2.) - ry * Math.sin(angle) - 5;
+			y4 = cy + ry * Math.sin(angle + Math.PI / 2.) - ry * Math.sin(angle) - xygap;
+		}
+		*/
+		if (angle == Math.PI) {
+			x4 = cx + rx * Math.cos(angle + Math.PI / 2d) - rx * Math.cos(angle) - xygap;
+			y4 = cy + ry * Math.sin(angle + Math.PI / 2d) + ry * Math.sin(angle);
+		} else if (angle == 0) {
+			x4 = cx + rx * Math.cos(angle + Math.PI / 2d) - rx * Math.cos(angle) + xygap;
+			y4 = cy + ry * Math.sin(angle + Math.PI / 2d) + ry * Math.sin(angle);
+		} else if (angle == Math.PI / 2d) {
+			x4 = cx + rx * Math.cos(angle + Math.PI / 2d) - rx * Math.cos(angle);
+			y4 = cy + ry * Math.sin(angle + Math.PI / 2d) - ry * Math.sin(angle) + xygap;
+		} else {
+			x4 = cx + rx * Math.cos(angle + Math.PI / 2d) + rx * Math.cos(angle);
+			y4 = cy + ry * Math.sin(angle + Math.PI / 2d) - ry * Math.sin(angle) - xygap;
 		}
 		p.addPoint((int)x4, (int)y4);
 
