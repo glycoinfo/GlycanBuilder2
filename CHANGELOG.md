@@ -1,5 +1,9 @@
 ## Change log
 
+### 1.19.0 (20220829)
+* Blue RGB value of the SNFG was changed `0,144,188` to `0,114,188`.
+* A clearance of bracket for glycan fragments was modified. 
+
 ### 1.18.1 (20220419)
 * Change register API url `https://api.gtc.beta.glycosmos.org/glycan/register` to `https://api.beta.glytoucan.org/glycan/register`
 
