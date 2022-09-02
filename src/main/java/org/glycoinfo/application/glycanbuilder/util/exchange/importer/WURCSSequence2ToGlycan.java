@@ -1,13 +1,9 @@
 package org.glycoinfo.application.glycanbuilder.util.exchange.importer;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-
 import org.eurocarbdb.application.glycanbuilder.Glycan;
 import org.eurocarbdb.application.glycanbuilder.Residue;
 import org.eurocarbdb.application.glycanbuilder.ResidueType;
 import org.eurocarbdb.application.glycanbuilder.dataset.ResidueDictionary;
-import org.eurocarbdb.application.glycanbuilder.linkage.Bond;
 import org.eurocarbdb.application.glycanbuilder.linkage.Linkage;
 import org.eurocarbdb.application.glycanbuilder.massutil.MassOptions;
 import org.glycoinfo.WURCSFramework.util.WURCSFactory;
@@ -17,11 +13,14 @@ import org.glycoinfo.WURCSFramework.wurcs.sequence2.GLIN;
 import org.glycoinfo.WURCSFramework.wurcs.sequence2.GRES;
 import org.glycoinfo.WURCSFramework.wurcs.sequence2.WURCSSequence2;
 
+import java.util.HashMap;
+import java.util.LinkedList;
+
 public class WURCSSequence2ToGlycan {
 
 	private Glycan glycan;
 	private final HashMap<GRES, Residue> gres2residue;
-	
+
 	private final GRESToFragment gres2frag;
 
 	public WURCSSequence2ToGlycan () {
@@ -33,11 +32,11 @@ public class WURCSSequence2ToGlycan {
 	public Glycan getGlycan() {
 		return this.glycan;
 	}
-	
+
 	public void start(WURCSFactory _wf, MassOptions _massOpt) throws Exception {
 		WURCSSequence2 wSeq2 = _wf.getSequence();
 		WURCSArray wArray = _wf.getArray();
-		
+
 		// convert GRES to Residue
 		for(GRES gres : wSeq2.getGRESs()) {
 			this.analyzeGRES(gres);
@@ -56,13 +55,13 @@ public class WURCSSequence2ToGlycan {
 		}
 
 		this.glycan = new Glycan(makeRoot(wSeq2.getGRESs()), false, _massOpt);
-		
+
 		// append ambiguous root
 		for(GRES gres : gres2frag.getRootOfFragments()) {
 			Residue fragRoot = this.gres2residue.get(gres);
 			this.glycan.addAntenna(fragRoot, fragRoot.getParentLinkage().getBonds());
 		}
-		
+
 		// append ambiguous substituent
 		for(GLIN glin : gres2frag.getSubstituentWithFragments()) {
 			Residue fragRoot = gres2frag.getSubStituentFragment(glin);
@@ -99,11 +98,11 @@ public class WURCSSequence2ToGlycan {
 
 	private void analyzeGRES(GRES _gres) throws Exception {
 		GRESToResidue gres2residue = new GRESToResidue();
-		
+
 		gres2residue.start(_gres);
 		Residue residue = gres2residue.getResidue();
 		this.gres2residue.put(_gres, residue);
-		
+
 		// add substituent as child residue
 		SUBSTAnalyzer substAnalyzer = new SUBSTAnalyzer(gres2residue.getModifications());
 		substAnalyzer.start(_gres, residue);
@@ -126,7 +125,7 @@ public class WURCSSequence2ToGlycan {
 	private void analyzeGLIN(GRES _gres, LinkedList<LIN> _lins) throws Exception {
 		GLINToLinkage glin2linkage = new GLINToLinkage(this.gres2residue.get(_gres), _lins);
 		glin2linkage.start(_gres);
-		
+
 		// define glycosidic bond
 		Residue donor = this.gres2residue.get(_gres);
 		Residue acceptor = glin2linkage.getParents().size() > 0 ?
@@ -143,18 +142,35 @@ public class WURCSSequence2ToGlycan {
 			}
 		}
 	}
-	
+
 	private Residue makeRoot(LinkedList<GRES> _gress) throws Exception {
 		// check type of reducing end
 		Residue root = this.gres2residue.get(getRootResidue(_gress));
 		Residue redEnd = null;
-		
+
 		if(root == null) return redEnd;
-	
-		
+
+
 		redEnd = root.isAlditol() && root.getStartRepetitionResidue() == null ?
 				ResidueDictionary.newResidue("redEnd") : ResidueDictionary.newResidue("freeEnd");
-		
+
+		// start-cyclic
+		if (root.getStartCyclicResidue() != null) {
+			return root.getStartCyclicResidue();
+		}
+
+		// start-rep is root
+		if (root.getStartRepetitionResidue() != null && root.getStartCyclicResidue() == null) {
+			redEnd.addChild(root.getStartRepetitionResidue(), root.getStartRepetitionResidue().getParentLinkage().getBonds());
+			return redEnd;
+		}
+
+		Linkage linkage = new Linkage(redEnd, root);
+		linkage.setLinkagePositions(new char[] {root.getAnomericCarbon()});
+		root.setParentLinkage(linkage);
+		redEnd.addChild(root, root.getParentLinkage().getBonds());
+
+		/*
 		if(root.getStartRepetitionResidue() != null) {
 			redEnd.addChild(root.getStartRepetitionResidue(), root.getStartRepetitionResidue().getParentLinkage().getBonds());
 		}else if (root.getStartCyclicResidue() != null){
@@ -165,14 +181,15 @@ public class WURCSSequence2ToGlycan {
 			root.setParentLinkage(linkage);
 			redEnd.addChild(root, root.getParentLinkage().getBonds());
 		}
-		
+		 */
+
 		return redEnd;
 	}
-	
+
 	private GRES getRootResidue(LinkedList<GRES> _gress) {
 		for(GRES gres : _gress) {
 			if(this.gres2frag.getRootOfCompositions().contains(gres)) continue;
-			
+
 			if(gres.getDonorGLINs().isEmpty() && gres.getAcceptorGLINs().isEmpty())
 				return gres;
 			if(gres.getDonorGLINs().isEmpty())
@@ -192,9 +209,9 @@ public class WURCSSequence2ToGlycan {
 						return gres;
 					}
 				}
-			}			
+			}
 		}
-		
+
 		return null;
 	}
 
