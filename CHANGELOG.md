@@ -1,5 +1,8 @@
 ## Change log
 
+### 1.20.0 (20221118)
+* Fix a stack overflow error when drawing glycan had repeat units.
+
 ### 1.19.0 (20220829)
 * Blue RGB value of the SNFG was changed `0,144,188` to `0,114,188`.
 * A clearance of bracket for glycan fragments was modified. 
