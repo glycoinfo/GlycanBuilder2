@@ -42,11 +42,15 @@ import org.eurocarbdb.application.glycanbuilder.util.IconProperties;
 import org.pushingpixels.flamingo.api.common.icon.ImageWrapperResizableIcon;
 
 public class ICON_PATH {
+
+	// 20221130 S.TSUCHIYA, investigating the error about java.io.FileNotFoundException
 	//static final Logger log = Logger.getLogger(ThemeManager.class);
 	static final ICON_SIZE iconSizes[] = ICON_SIZE.values();
+	/*
 	static {
-		//log.setLevel(Level.WARN);
+		log.setLevel(Level.WARN);
 	}
+	 */
 
 	protected URL iconPath;
 	protected Class clazz;
@@ -88,6 +92,7 @@ public class ICON_PATH {
 	
 	public ICON_PATH(String _iconPath, Class _clazz, ThemeManager _themeManager)
 			throws IOException {
+		// 20221130 S.TSUCHIYA comment out, investigating the error about java.io.FileNotFoundException
 		//log.setLevel(Level.WARN);
 		clazz = _clazz;
 		themeManager = _themeManager;
@@ -95,6 +100,7 @@ public class ICON_PATH {
 	}
 
 	public ICON_PATH(String _iconPath, Class _clazz) throws IOException {
+		// 20221130 S.TSUCHIYA comment out, investigating the error about java.io.FileNotFoundException
 		//log.setLevel(Level.WARN);
 		clazz = _clazz;
 		init(_iconPath);
@@ -107,6 +113,7 @@ public class ICON_PATH {
 	}
 
 	public void setIconPath(String iconPath) throws MalformedURLException {
+		// 20221130 S.TSUCHIYA comment out, investigating the error about java.io.FileNotFoundException
 		//ThemeManager.log.setLevel(Level.INFO);
 
 		URL url;
@@ -127,6 +134,7 @@ public class ICON_PATH {
 
 		this.iconPath = url;
 
+		// 20221130 S.TSUCHIYA comment out, investigating the error about java.io.FileNotFoundException
 		//ThemeManager.log.setLevel(Level.WARN);
 	}
 	
@@ -173,6 +181,7 @@ public class ICON_PATH {
 			}
 			iconSizeToInteger.put(ICON_SIZE.L0, 0);
 		} catch (FileNotFoundException fex) {
+			// 20221130 S.TSUCHIYA comment out, investigating the error about java.io.FileNotFoundException
 			//log.warn("ICON_PATH[parseCacheFile]: Missing theme cache file "
 			//		+ file + " for path " + this.iconPath);
 		}
@@ -194,6 +203,7 @@ public class ICON_PATH {
 				}
 			}
 		} catch (FileNotFoundException fex) {
+			// 20221130 S.TSUCHIYA comment out, investigating the error about java.io.FileNotFoundException
 			//log.warn("ICON_PATH[parseThemeFile]: Missing theme file " + file + " for path " + this.iconPath);
 		}
 	}

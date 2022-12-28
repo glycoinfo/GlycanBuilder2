@@ -153,7 +153,9 @@ public class LogUtils {
     		JOptionPane.showMessageDialog(null, e.getMessage(), "Error in GlycanBuilder2", JOptionPane.ERROR_MESSAGE);
     		new ReportDialog(loggerStorageIndex.getLogger().getFrameOwner(),loggerStorageIndex.getLogger().getLastStackError()).setVisible(true);
     	} else {
-    		Logger.getLogger( LogUtils.class ).error("Error in GlycanBuilder2",e);
+    		e.printStackTrace();
+            // 20221130 S.TSUCHIYA comment out, investigating the error about java.io.FileNotFoundException
+            //Logger.getLogger( LogUtils.class ).error("Error in GlycanBuilder2",e);
     	}
     }
 }

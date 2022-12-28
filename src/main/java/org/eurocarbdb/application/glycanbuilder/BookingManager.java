@@ -36,8 +36,9 @@ import org.eurocarbdb.application.glycanbuilder.renderutil.ResAngle;
 
 
 public class BookingManager {
-  
-  //private static final Log logger = LogFactory.getLog(BookingManager.class);
+
+	// 20221130 S.TSUCHIYA, investigating the error about java.io.FileNotFoundException
+	//private static final Log logger = LogFactory.getLog(BookingManager.class);
 
 	private HashMap<Integer,LinkedList<Residue> > available_positions;
 	private HashMap<Residue,ResAngle>          assigned_positions;
@@ -140,7 +141,8 @@ public class BookingManager {
 
 	private boolean isAvailable(ResAngle p) {
 	  // NPE found here: https://github.com/glytoucan/glytoucan.github.io/issues/91
-	  //logger.debug("NPE was here.");
+		// 20221130 S.TSUCHIYA, investigating the error about java.io.FileNotFoundException
+		//logger.debug("NPE was here.");
 	  if (p == null)
 	    return false;
 		return ( available_positions.get(p.getIntAngle())!=null );
