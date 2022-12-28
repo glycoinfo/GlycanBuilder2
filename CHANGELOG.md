@@ -1,5 +1,8 @@
 ## Change log
 
+### 1.20.1 (20221228)
+* Changed the dependency of logger from log4j to log4j-over-slf4j.
+
 ### 1.20.0 (20221118)
 * Fix a stack overflow error when drawing glycan had repeat units.
 
