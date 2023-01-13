@@ -1,5 +1,8 @@
 ## Change log
 
+### 1.22.0 (20230113)
+* Update lib: glycanformatconverter 2.8.2
+
 ### 1.21.0 (20230113)
 * Fixed URL (https:/nexus.glycoinfo.org/content/groups/public).
 * Update lib: glycanformatconverter 2.8.0
