@@ -19,30 +19,32 @@
 * maven 3.6 (or later)
 
 ## Release node
-Latest version: 1.20.1\
+Latest version: 1.22.0\
 Please see about [details](CHANGELOG.md#1201-20221228).
 
 ## Compile
 Clone this repository in the local repository.
 ```
-$ git clone https://github.com/glycoinfo/GlycanBuilder2.git
+git clone https://github.com/glycoinfo/GlycanBuilder2.git
 ```
 
 Move to the cloned local repository and compile the source files
 ```
-$ cd ~/Directory_of_local_repository/GlycanBuilder2
-$ mvn clean compile
+cd ~/Directory_of_local_repository/GlycanBuilder2
+```
+```
+mvn clean compile
 ```
 
 If a certificate error such as "PKIX path validation failed" occurred during the compilation process, please you try again with the below command.
 ```
-$ mvn clean compile -X -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true
+mvn clean compile -X -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true
 ```
 
 ## JAR file
 Runable JAR (Java Archive) file is generate the below command.
 ```
-$ mvn clean -P make-fat-jar package
+mvn clean -P make-fat-jar package
 ```
 
 When compilation in finished, jar file is created in the target folder.
@@ -50,11 +52,11 @@ When compilation in finished, jar file is created in the target folder.
 
 - Windows or Linux
 ```
-java -jar glycanbuilder2-jar-with-dependencies.jar
+java -jar ./target/glycanbuilder2-jar-with-dependencies.jar
 ```
 - Mac OS X
 ```
-java -XstartOnFirstThread -jar glycanbuilder2-jar-with-dependencies.jar
+java -XstartOnFirstThread -jar ./target/glycanbuilder2-jar-with-dependencies.jar
 ```
 ## Example
 
@@ -90,4 +92,4 @@ Implementation of GlycanBuilder to draw a wide variety of ambiguous glycans, Car
 * [GlycanBuilder2](https://github.com/glycoinfo/Executable/tree/master/GlycanBuilder2)
 * Supported OS : 
   * Windowds (64bit)
-  * Mac OS X (64bit)
+  * macOS (64bit)
