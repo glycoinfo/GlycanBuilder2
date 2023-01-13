@@ -1,5 +1,10 @@
 ## Change log
 
+### 1.21.0 (20230113)
+* Fixed URL (https:/nexus.glycoinfo.org/content/groups/public).
+* Update lib: glycanformatconverter 2.8.0
+* Update lib: wurcsframework 1.2.9
+
 ### 1.20.1 (20221228)
 * Changed the dependency of logger from log4j to log4j-over-slf4j.
 
