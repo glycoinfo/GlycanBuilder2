@@ -19,7 +19,7 @@
 	<repositories>
 		<repository>
 			<id>glycoinfo</id>
-			<url>https:/nexus.glycoinfo.org/content/groups/public</url>
+			<url>https://nexus.glycoinfo.org/content/groups/public</url>
 			<releases>
 				<enabled>true</enabled>
 				<updatePolicy>always</updatePolicy>
