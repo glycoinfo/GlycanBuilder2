@@ -50,3 +50,6 @@ nbdist/
 
 ### VSCode ###
 .vscode
+
+.m2/
+.m2/settings.xml
