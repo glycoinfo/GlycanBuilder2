@@ -1,5 +1,10 @@
 ## Change log
 
+### 1.23.0 (20230628)
+* Update lib: glycanformatconverter 2.9.1
+* Update lib: MolecularFramework 1.0.0
+* Update lib: wurcsframework 1.2.13
+
 ### 1.22.0 (20230113)
 * Update lib: glycanformatconverter 2.8.2
 
