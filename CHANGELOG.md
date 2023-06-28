@@ -1,5 +1,8 @@
 ## Change log
 
+### 1.23.1 (20230628)
+* typo in about_builder.html. version 1.23.0-SNAPSHOT to 1.23.1
+
 ### 1.23.0 (20230628)
 * Update lib: glycanformatconverter 2.9.1
 * Update lib: MolecularFramework 1.0.0
