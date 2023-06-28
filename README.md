@@ -19,7 +19,7 @@
 * maven 3.6 (or later)
 
 ## Release node
-Latest version: 1.23.0\
+Latest version: 1.23.1\
 Please see about [details](CHANGELOG.md#1201-20221228).
 
 ## Compile
