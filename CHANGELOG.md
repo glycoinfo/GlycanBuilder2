@@ -1,5 +1,9 @@
 ## Change log
 
+### 1.24.0 (20230915)
+* Update lib: WURCSFramework 1.2.14
+
+
 ### 1.23.1 (20230628)
 * typo in about_builder.html. version 1.23.0-SNAPSHOT to 1.23.1
 
