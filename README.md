@@ -19,8 +19,8 @@
 * maven 3.6 (or later)
 
 ## Release node
-Latest version: 1.24.0\
-Please see about [details](CHANGELOG.md#1201-20221228).
+Latest version: 1.25.0\\
+Please see about [details](CHANGELOG.md).
 
 ## Compile
 Clone this repository in the local repository.

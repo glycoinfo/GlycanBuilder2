@@ -17,6 +17,7 @@ public class WURCS2Parser implements GlycanParser{
 	
 	public String writeGlycan(Glycan structure) {
 		if (structure.isFragment()) return "";
+    if (structure.isComposition()) return "";
 
 		try{
 			LinkageTypeOptimizer linkOpt = new LinkageTypeOptimizer();
