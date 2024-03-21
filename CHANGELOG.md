@@ -1,5 +1,9 @@
 ## Change log
 
+### 1.25.1  (20240321)
+* Update pom.xml: Add dependency of org.eclipse.swt.cocoa.macosx.aarch64
+* Update lib: WURCSFramework 1.2.15
+
 ### 1.25.0  (20231031)
 * changed not to export to WURCS from Composition structure.
 
