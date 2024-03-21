@@ -307,6 +307,12 @@
 			<artifactId>unirest-java</artifactId>
 			<version>1.4.9</version>
 		</dependency>
+		<!-- 2024-03-21 Issaku Yamada -->
+		<dependency>
+    			<groupId>org.eclipse.platform</groupId>
+    			<artifactId>org.eclipse.swt.cocoa.macosx.aarch64</artifactId>
+    			<version>3.125.0</version>
+		</dependency>
 	</dependencies>
 
 	<!-- platform -->
