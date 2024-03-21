@@ -307,18 +307,12 @@
 			<artifactId>unirest-java</artifactId>
 			<version>1.4.9</version>
 		</dependency>
-		<!-- 2024-03-21 Issaku Yamada -->
-		<dependency>
-    			<groupId>org.eclipse.platform</groupId>
-    			<artifactId>org.eclipse.swt.cocoa.macosx.aarch64</artifactId>
-    			<version>3.125.0</version>
-		</dependency>
 	</dependencies>
 
 	<!-- platform -->
 	<profiles>
 		<profile>
-			<id>windowds_x86</id>
+			<id>windows_x86</id>
 			<activation>
 				<os>
 					<family>windows</family>
@@ -335,7 +329,7 @@
 		</profile>
 
 		<profile>
-			<id>windowds_x86_64</id>
+			<id>windows_x86_64</id>
 			<activation>
 				<os>
 					<family>windows</family>
@@ -398,6 +392,23 @@
 					<groupId>org.eclipse.swt</groupId>
 					<artifactId>org.eclipse.swt.cocoa.macosx.x86_64</artifactId>
 					<version>4.3</version>
+				</dependency>
+			</dependencies>
+		</profile>
+
+		<profile>
+			<id>macosx_arm64</id>
+			<activation>
+				<os>
+					<family>mac</family>
+					<arch>aarch64</arch>
+				</os>
+			</activation>
+			<dependencies>
+				<dependency>
+						<groupId>org.eclipse.platform</groupId>
+						<artifactId>org.eclipse.swt.cocoa.macosx.aarch64</artifactId>
+						<version>3.125.0</version>
 				</dependency>
 			</dependencies>
 		</profile>
