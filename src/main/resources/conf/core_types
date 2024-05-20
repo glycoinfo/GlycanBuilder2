@@ -7,7 +7,7 @@ ncorehyb	N-glycans		freeEnd--?b1D-GlcNAc,p--4b1D-GlcNAc,p--4b1D-Man,p(--3a1D-Man
 ncorehybfuc	N-glycans		freeEnd--?b1D-GlcNAc,p(--4b1D-GlcNAc,p--4b1D-Man,p(--3a1D-Man,p)--6a1D-Man,p(--3a1D-Man,p)--6a1D-Man,p)--6a1L-Fuc,p	 N-glycan hybrid fucosylated
 ncorehybbis	N-glycans		freeEnd--?b1D-GlcNAc,p--4b1D-GlcNAc,p--4b1D-Man,p((--3a1D-Man,p)--4b1D-GlcNAc,p)--6a1D-Man,p(--3a1D-Man,p)--6a1D-Man,p	 N-glycan hybrid bisected
 ncorehybbisfuc	N-glycans		freeEnd--?b1D-GlcNAc,p(--4b1D-GlcNAc,p--4b1D-Man,p((--3a1D-Man,p)--4b1D-GlcNAc,p)--6a1D-Man,p(--3a1D-Man,p)--6a1D-Man,p)--6a1L-Fuc,p	 N-glycan hybrid bisected fucosylated core
-ncoreman	N-glycans		freeEnd--?a1D-GlcNAc,p--4b1D-GlcNAc,p--4b1D-Man,p(--3a1D-Man,p--2a1D-Man,p--2a1D-Man,p)--6a1D-Man,p(--3a1D-Man,p--2a1D-Man,p)--6a1D-Man,p--2a1D-Man,p	 N-glycan high-mannose
+ncoreman	N-glycans		freeEnd--?b1D-GlcNAc,p--4b1D-GlcNAc,p--4b1D-Man,p(--3a1D-Man,p--2a1D-Man,p--2a1D-Man,p)--6a1D-Man,p(--3a1D-Man,p--2a1D-Man,p)--6a1D-Man,p--2a1D-Man,p	 N-glycan high-mannose
 ncorecomplex	N-glycans		freeEnd--?b1D-GlcNAc,p(--4b1D-GlcNAc,p--4b1D-Man,p(--3a1D-Man,p--2b1D-GlcNAc,p--4b1D-Gal,p--6a2D-NeuAc,p)--6a1D-Man,p--2b1D-GlcNAc,p--4b1D-Gal,p--6a2D-NeuAc,p)--6a1L-Fuc,p	 N-glycan complex
 ncorehybrid	N-glycans		freeEnd--?b1D-GlcNAc,p--4b1D-GlcNAc,p--4b1D-Man,p(--3a1D-Man,p--2b1D-GlcNAc,p--4b1D-Gal,p--6a2D-NeuAc,p)--6a1D-Man,p(--3a1D-Man,p)--6a1D-Man,p	 N-glycan hybrid
 ncoreoligosaccharide	N-glycans		freeEnd--?b1D-GlcNAc,p--4b1D-GlcNAc,p--4b1D-Man,p(--3a1D-Man,p--2a1D-Man,p--2a1D-Man,p--3a1D-Glc,p--3a1D-Glc,p--2a1D-Glc,p)--6a1D-Man,p(--3a1D-Man,p--2a1D-Man,p)--6a1D-Man,p--2a1D-Man,p	 N-glycan oligosaccharide
