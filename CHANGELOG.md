@@ -1,5 +1,10 @@
 ## Change log
 
+### 1.25.2  (20240520)
+* Fixing the High Mannose Structure Template
+* Update lib: wurcsframework 1.3.1
+* Update lib: glycanformatconverter 2.10.3
+
 ### 1.25.1  (20240321)
 * Update pom.xml: Add dependency of org.eclipse.swt.cocoa.macosx.aarch64
 * Update lib: WURCSFramework 1.2.15
