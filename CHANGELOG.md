@@ -1,5 +1,8 @@
 ## Change log
 
+### 1.25.3  (20240826)
+* Update lib: glycanformatconverter 2.10.4
+
 ### 1.25.2  (20240520)
 * Fixing the High Mannose Structure Template
 * Update lib: wurcsframework 1.3.1
