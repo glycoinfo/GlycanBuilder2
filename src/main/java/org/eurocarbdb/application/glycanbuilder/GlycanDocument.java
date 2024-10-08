@@ -453,7 +453,8 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 				toadd = modifyLinkageType(toadd, LinkageType.DEOXY, LinkageType.H_AT_OH);
 			}
 			if (toadd.isSubstituent()) {
-				toadd = modifyLinkageType(toadd, LinkageType.NONMONOSACCHARID, LinkageType.DEOXY);
+				LinkageType lTypeOnChild = getSubstituentLinkageType(toadd);
+				toadd = modifyLinkageType(toadd, LinkageType.NONMONOSACCHARID, lTypeOnChild);
 			}
 		}
 
@@ -462,6 +463,19 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 		return toadd;
 	}
 
+	private LinkageType getSubstituentLinkageType(Residue toadd) {
+		switch(toadd.getType().getCompositionClass()) {
+			case "O-type":
+			case "Organic":
+				return LinkageType.H_AT_OH;
+		}
+		switch(toadd.getType().getName()) {
+			case "P":
+			case "S":
+				return LinkageType.H_AT_OH;
+		}
+		return LinkageType.DEOXY;
+	}
 
 	public Residue modifyLinkageType(Residue _toAdd, LinkageType _donorSide, LinkageType _acceptorSide) {
 		try {
