@@ -8,7 +8,7 @@
 
 	<groupId>org.eurocarbdb.glycanbuilder</groupId>
 	<artifactId>glycanbuilder2</artifactId>
-	<version>1.25.3</version>
+	<version>1.25.4</version>
 	<packaging>jar</packaging>
 
 	<properties>
