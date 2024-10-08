@@ -1,5 +1,8 @@
 ## Change log
 
+### 1.25.4  (20241008)
+* Fixed wrong MAP encoding for O-linked substituents
+
 ### 1.25.3  (20240826)
 * Update lib: glycanformatconverter 2.10.4
 

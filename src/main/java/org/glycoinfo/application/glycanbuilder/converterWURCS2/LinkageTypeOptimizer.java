@@ -17,7 +17,8 @@ public class LinkageTypeOptimizer {
                 if (!donorType.equals(LinkageType.UNVALIDATED) || !acceptorType.equals(LinkageType.UNVALIDATED)) continue;
 
                 try {
-                    acceptorLinkage.setParentLinkageType(LinkageType.H_AT_OH);
+                	LinkageType lTypeOnChild = getSubstituentLinkageType(res);
+                    acceptorLinkage.setParentLinkageType(lTypeOnChild);
                     acceptorLinkage.setChildLinkageType(LinkageType.NONMONOSACCHARID);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -65,4 +66,19 @@ public class LinkageTypeOptimizer {
 
         return _glycan;
     }
+
+	private LinkageType getSubstituentLinkageType(Residue res) {
+		switch(res.getType().getCompositionClass()) {
+			case "O-type":
+			case "Organic":
+				return LinkageType.H_AT_OH;
+		}
+		switch(res.getType().getName()) {
+			case "P":
+			case "S":
+				return LinkageType.H_AT_OH;
+		}
+		return LinkageType.DEOXY;
+	}
+
 }
