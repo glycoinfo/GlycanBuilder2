@@ -3,12 +3,12 @@
 
 	<modelVersion>4.0.0</modelVersion>
 
-	<name>GlycanBuilder WURCS extened</name>
+	<name>GlycanBuilder WURCS extend</name>
 	<description>Implement WURCS converter</description>
 
 	<groupId>org.eurocarbdb.glycanbuilder</groupId>
 	<artifactId>glycanbuilder2</artifactId>
-	<version>1.25.4</version>
+	<version>1.25.5</version>
 	<packaging>jar</packaging>
 
 	<properties>
@@ -18,47 +18,18 @@
 
 	<repositories>
 		<repository>
-      			<id>github</id>
-      			<name>my github repository</name>
-      			<url>https://raw.githubusercontent.com/glycoinfo/MavenRepository/master/</url>
-    		</repository>
-		<repository>
-			<id>glycoinfo</id>
-			<url>https://nexus.glycoinfo.org/content/groups/public</url>
-			<releases>
-				<enabled>true</enabled>
-				<updatePolicy>always</updatePolicy>
-				<checksumPolicy>warn</checksumPolicy>
-			</releases>
-			<snapshots>
-				<enabled>true</enabled>
-				<updatePolicy>always</updatePolicy>
-				<checksumPolicy>warn</checksumPolicy>
-			</snapshots>
+			<id>github</id>
+			<name>my github repository</name>
+			<url>https://raw.githubusercontent.com/glycoinfo/MavenRepository/master/</url>
 		</repository>
-		<!--
 		<repository>
-			<id>org.glycoinfo</id>
-			<url>https://glycoinfo.gitlab.io/wurcsframework</url>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
+			<id>gitlab-maven-wfw</id>
+			<url>https://gitlab.com/api/v4/projects/17725126/packages/maven</url>
 		</repository>
-		-->
-		<!--
 		<repository>
-			<id>gitlab-maven</id>
-			<url>https://gitlab.com/api/v4/projects/31913017/packages/maven</url>
+			<id>gitlab-maven-gfc</id>
+			<url>https://gitlab.com/api/v4/projects/41883306/packages/maven</url>
 		</repository>
-		-->
-		<repository>
-    		<id>gitlab-maven-wfw</id>
-    		<url>https://gitlab.com/api/v4/projects/17725126/packages/maven</url>
-  		</repository>
-		<repository>
-    		<id>gitlab-maven-gfc</id>
-    		<url>https://gitlab.com/api/v4/projects/41883306/packages/maven</url>
-  		</repository>
 
 	</repositories>
 
@@ -68,12 +39,6 @@
 			<name>GlycanBuilder2 github repository</name>
 			<url>file://${project.build.directory}/mvn-repo</url>
 		</repository>
-		<!--
-		<repository>
-    		<id>gitlab-maven</id>
-    		<url>https://gitlab.com/api/v4/projects/41883306/packages/maven</url>
-  		</repository>
-		-->
 	</distributionManagement>
 
 	<reporting>
@@ -118,21 +83,6 @@
 				</configuration>
 			</plugin>
 
-			<!--
-			<plugin>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<executions>
-					<execution>
-						<id>attach-javadocs</id>
-						<phase>deploy</phase>
-						<goals>
-							<goal>jar</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
-			-->
-
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -171,7 +121,7 @@
 				<artifactId>site-maven-plugin</artifactId>
 				<version>0.12</version>
 				<configuration>
-					<message>Maven artifacts for ${project.version}</message>
+					<message>Maven artifacts for ${project.artifactId}-${project.version}</message>
 					<noJekyll>true</noJekyll>
 					<merge>true</merge>
 					<outputDirectory>${project.build.directory}/mvn-repo</outputDirectory>
@@ -206,8 +156,8 @@
 		</dependency>
 		<dependency>
 			<groupId>com.github.insubstantial</groupId>
-    		<artifactId>flamingo</artifactId>
-    		<version>6.3</version>
+			<artifactId>flamingo</artifactId>
+			<version>6.3</version>
 		</dependency>
 		<dependency>
 			<groupId>org.apache.xmlgraphics</groupId>
@@ -225,13 +175,6 @@
 			<version>4.13.1</version>
 			<scope>test</scope>
 		</dependency>
-		<!--
-		<dependency>
-			<groupId>log4j</groupId>
-			<artifactId>log4j</artifactId>
-			<version>1.2.17</version>
-		</dependency>
-		-->
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>log4j-over-slf4j</artifactId>
@@ -265,7 +208,7 @@
 		<dependency>
 			<groupId>org.eurocarbdb</groupId>
 			<artifactId>resourcesdb</artifactId>
-			<version>0.4</version>
+			<version>1.0.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.eclipse.birt.runtime.3_7_1</groupId>
