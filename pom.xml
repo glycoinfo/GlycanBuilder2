@@ -22,20 +22,6 @@
       			<name>my github repository</name>
       			<url>https://raw.githubusercontent.com/glycoinfo/MavenRepository/master/</url>
     		</repository>
-		<repository>
-			<id>glycoinfo</id>
-			<url>https://nexus.glycoinfo.org/content/groups/public</url>
-			<releases>
-				<enabled>true</enabled>
-				<updatePolicy>always</updatePolicy>
-				<checksumPolicy>warn</checksumPolicy>
-			</releases>
-			<snapshots>
-				<enabled>true</enabled>
-				<updatePolicy>always</updatePolicy>
-				<checksumPolicy>warn</checksumPolicy>
-			</snapshots>
-		</repository>
 		<!--
 		<repository>
 			<id>org.glycoinfo</id>
@@ -265,7 +251,7 @@
 		<dependency>
 			<groupId>org.eurocarbdb</groupId>
 			<artifactId>resourcesdb</artifactId>
-			<version>0.4</version>
+			<version>1.0.0</version>
 			<exclusions>
 				<exclusion>
 					<groupId>org.eclipse.birt.runtime.3_7_1</groupId>
