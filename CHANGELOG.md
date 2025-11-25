@@ -1,5 +1,8 @@
 ## Change log
 
+### 1.25.5  (20251125)
+* Updated dependency location for artifacts in org.glycoinfo.eurocarbdb.depends
+
 ### 1.25.4  (20241008)
 * Fixed wrong MAP encoding for O-linked substituents
 
