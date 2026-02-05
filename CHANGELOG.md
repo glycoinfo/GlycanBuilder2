@@ -1,5 +1,8 @@
 ## Change log
 
+### 1.25.6  (20260205)
+* Removed incorrect template structures
+
 ### 1.25.5  (20251125)
 * Updated dependency location for artifacts in org.glycoinfo.eurocarbdb.depends
 
