@@ -1,0 +1,46 @@
+name: Release GlycanBuilder2
+
+on:
+  #push:
+  #  branches: [ main , develop ]
+  #  tags: [ 'v*' ]
+  #pull_request:
+  #  branches: [ main ]
+  workflow_dispatch:
+
+env:
+  GH_TOKEN: ${{ github.token }}
+
+jobs:
+  build-installer:
+    uses: ./.github/workflows/jpackage_installer.yml
+
+  build-installer-rpm:
+    uses: ./.github/workflows/jpackage_installer_rpm.yml
+
+  release:
+    needs: [build-installer, build-installer-rpm]
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download installer artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: List downloaded artifacts
+        run: |
+          find artifacts -type f -name "*" | sort
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: true
+          generate_release_notes: true
+          files: |
+            artifacts/*
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
