@@ -61,7 +61,7 @@ jobs:
         restore-keys: ${{ runner.os }}_m2
 
     - name: Build GlycanBuilder2
-      run: mvn clean package -DskipTests
+      run: mvn clean package -P make-fat-jar -DskipTests
       shell: bash
 
     - name: Set up application version
