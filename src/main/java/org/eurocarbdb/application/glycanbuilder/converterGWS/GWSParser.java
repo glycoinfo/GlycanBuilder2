@@ -37,6 +37,7 @@ import org.eurocarbdb.application.glycanbuilder.massutil.MassOptions;
 import org.eurocarbdb.application.glycanbuilder.renderutil.BBoxManager;
 import org.eurocarbdb.application.glycanbuilder.renderutil.ResAngle;
 import org.eurocarbdb.application.glycanbuilder.util.TextUtils;
+import org.glycoinfo.application.glycanbuilder.dataset.CrossLinkedSubstituentDictionary;
 
 /**
    Read and write glycan structures in the GlycoWorkbench internal
@@ -433,6 +434,11 @@ public class GWSParser implements GlycanParser {
 				str = "";
 			}
 
+			// Try to change Substituent to CrossLinkedSubstituent
+			if ( ret.getType().getSuperclass().equals("Substituent")
+			  && CrossLinkedSubstituentDictionary.hasCrossLinkedSubstituent(ret.getTypeName()) )
+					ret.setType(CrossLinkedSubstituentDictionary.getCrossLinkedSubstituent(ret.getTypeName()));
+
 			// add child
 			child_link.setParentResidue(ret);
 			ret.getChildrenLinkages().add(child_link);
@@ -440,8 +446,6 @@ public class GWSParser implements GlycanParser {
 
 		return ret;
 	}
-
-
 
 	static public Linkage readSubtreeLinkage(String str, ResidueHolder startRep) throws Exception {
 
