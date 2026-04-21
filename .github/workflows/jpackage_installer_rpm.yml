@@ -89,7 +89,7 @@ jobs:
           --name "GlycanBuilder2" \
           --main-jar glycanbuilder2-jar-with-dependencies.jar \
           --main-class org.eurocarbdb.application.glycanbuilder.GlycanBuilder \
-          --icon ./src/main/resources/icons/glycan_builder/about.png \
+          --icon ./src/main/resources/icons/icon_large.png \
           --type rpm \
           --dest installers \
           --runtime-image runtime-image \
