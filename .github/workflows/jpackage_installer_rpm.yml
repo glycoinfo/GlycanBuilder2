@@ -37,7 +37,7 @@ jobs:
 
     - name: Install deps
       run: |
-        dnf install -y rpm-build
+        dnf install -y rpm-build maven
 
     - name: Set up JDK ${{ env.JAVA_VERSION }}
       uses: actions/setup-java@v5

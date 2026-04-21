@@ -19,7 +19,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest, macos-13]
+        os: [ubuntu-latest, windows-latest, macos-latest, macos-15-intel]
         include:
           - os: ubuntu-latest
             platform: linux-debian
@@ -33,7 +33,7 @@ jobs:
             platform: macos
             installer-type: dmg
             icon-path: ./glycanbuilder2.icns
-          - os: macos-13
+          - os: macos-15-intel
             platform: macos-intel
             installer-type: dmg
             icon-path: ./glycanbuilder2.icns
@@ -84,7 +84,7 @@ jobs:
       shell: powershell
 
     - name: Create macOS icon
-      if: matrix.os == 'macos-latest' || matrix.os == 'macos-13'
+      if: matrix.os == 'macos-latest' || matrix.os == 'macos-15-intel'
       run: |
         SRCIMG=./src/main/resources/icons/glycan_builder/about.png
         mkdir -p AppIcon.iconset
@@ -152,7 +152,7 @@ jobs:
       shell: powershell
 
     - name: Create installer with jpackage (macOS)
-      if: matrix.os == 'macos-latest' || matrix.os == 'macos-13'
+      if: matrix.os == 'macos-latest' || matrix.os == 'macos-15-intel'
       run: |
         $JAVA_HOME/bin/jpackage \
           --input ./target \
@@ -169,7 +169,7 @@ jobs:
           --copyright "Copyright © 2026 The Noguchi Institute"
 
     - name: Rename created installer
-      if: matrix.os == 'macos-latest' || matrix.os == 'macos-13'
+      if: matrix.os == 'macos-latest' || matrix.os == 'macos-15-intel'
       run: |
         cd installers
         fname=(*.dmg)
