@@ -40,6 +40,7 @@ import org.eurocarbdb.application.glycanbuilder.renderutil.GlycanRendererAWT;
 import org.eurocarbdb.application.glycanbuilder.util.SAXUtils;
 import org.eurocarbdb.application.glycanbuilder.util.TextUtils;
 import org.eurocarbdb.application.glycanbuilder.util.XMLUtils;
+import org.glycoinfo.application.glycanbuilder.converterWURCS2.WURCS2Parser;
 import org.w3c.dom.*;
 import org.xml.sax.SAXException;
 
@@ -1487,6 +1488,11 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 			for (Iterator<Glycan> i = structures.iterator(); i.hasNext(); ) {
 				str += parser.writeGlycan(i.next(), bboxManager);
 				if (i.hasNext()) str += ";";
+			}
+		} else if (parser instanceof WURCS2Parser) {
+			for (Iterator<Glycan> i = structures.iterator(); i.hasNext(); ) {
+				str += parser.writeGlycan(i.next());
+				if (i.hasNext()) str += "\n";
 			}
 		} else {
 			if (bboxManager != null) { //At the moment this will force conversion to GlycoCT_XML
