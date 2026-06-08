@@ -711,7 +711,7 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
 	 */
 	public boolean onExportTo(String format) {
 
-		if( theDoc.getStructures().size()>1 && !theDoc.supportMultipleStructures(format) ) {
+		if( theDoc.getStructures().size()>1 && !GlycanDocument.supportMultipleStructures(format) ) {
 			int retValue = JOptionPane.showOptionDialog(this, "The selected format does not support multiple structures.\n" +
 					"Only the first structure will be exported. Continue?",
 					"Cannot export all structures", JOptionPane.YES_NO_OPTION, 

@@ -1245,7 +1245,13 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 
 		try {
 			GlycanParser parser = GlycanParserFactory.getParser(format);
-			return (parser != null && parser instanceof GWSParser);
+			if (parser == null)
+				return false;
+			if (parser instanceof GWSParser)
+				return true;
+			if (parser instanceof WURCS2Parser)
+				return true;
+			return false;
 		} catch (Exception e) {
 			return false;
 		}
