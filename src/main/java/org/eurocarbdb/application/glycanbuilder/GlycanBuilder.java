@@ -642,6 +642,7 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
 
 		// imposto la dialog per il salvataggio del file
 		JFileChooser fileChooser = new JFileChooser();
+		fileChooser.setAcceptAllFileFilterUsed(false);
 		for( javax.swing.filechooser.FileFilter ff : doc.getFileFormats() )         
 			fileChooser.addChoosableFileFilter(ff);
 		fileChooser.setCurrentDirectory(theWorkspace.getFileHistory().getRecentFolder());
