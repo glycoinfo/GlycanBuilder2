@@ -2138,6 +2138,84 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		return ret;
 	}
 
+	/** anomeric states: unknown, alpha, beta */
+	private static String[] SET_ANOM_STATE = new String[] { "?", "a", "b"};
+	/** anomeric carbon numbers: unknown, 1-3 */
+	private static String[] SET_ANOM_CARBON = new String[] { "?", "1", "2", "3" };
+	/** linkage position numbers: unknown, 1-9 */
+	private static String[] SET_LINK_POS
+		= new String[] { "?", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
+	/** chirality: unknown, D, L */
+	private static String[] SET_CHIRALITY = new String[] { "?", "D", "L" };
+	/** ring size: unknown, pentose, furanose, alditol, aldehyde/keto */
+	private static String[] SET_RING_SIZE = new String[] { "?", "p", "f", "o", "a" };
+
+	private void createLinkagePropertyFields(JToolBar toolbar, boolean forRibbon) {
+		JComboBox anomeric_state = new JComboBox(SET_ANOM_STATE);
+		JComboBox anomeric_carbon = new JComboBox(SET_ANOM_CARBON);
+		DropDownList linkage_position = new DropDownList(SET_LINK_POS);
+		JComboBox chirality = new JComboBox(SET_CHIRALITY);
+		JComboBox ring_size = new JComboBox(SET_RING_SIZE);
+		JCheckBox second_bond = new JCheckBox("");
+		JComboBox second_child_position = new JComboBox(SET_ANOM_CARBON);
+		DropDownList second_parent_position = new DropDownList(SET_LINK_POS);
+		
+		toolbar.add(createLabel("Linkage", 5));
+		toolbar.add(anomeric_state);
+		toolbar.add(anomeric_carbon);
+		toolbar.add(createLabel("->", 1));
+		toolbar.add(linkage_position);
+		toolbar.add(createLabel("Chirality", 5));
+		toolbar.add(chirality);
+		toolbar.add(createLabel("Ring", 5));
+		toolbar.add(ring_size);
+		toolbar.add(createLabel("2nd bond", 5));
+		toolbar.add(second_bond);
+		toolbar.add(second_child_position);
+		toolbar.add(createLabel("->", 1));
+		toolbar.add(second_parent_position);
+
+		String actionCommand = (forRibbon) ? "setproperties_r" : "setproperties";
+		
+		anomeric_state.setActionCommand(actionCommand);
+		anomeric_carbon.setActionCommand(actionCommand);
+		linkage_position.setActionCommand(actionCommand);
+		chirality.setActionCommand(actionCommand);
+		ring_size.setActionCommand(actionCommand);
+		second_bond.setActionCommand(actionCommand);
+		second_child_position.setActionCommand(actionCommand);
+		second_parent_position.setActionCommand(actionCommand);
+		
+		anomeric_state.addActionListener(this);
+		anomeric_carbon.addActionListener(this);
+		linkage_position.addActionListener(this);
+		chirality.addActionListener(this);
+		ring_size.addActionListener(this);
+		second_bond.addActionListener(this);
+		second_child_position.addActionListener(this);
+		second_parent_position.addActionListener(this);
+
+		if(forRibbon){
+			this.field_anomeric_state_r=anomeric_state;
+			this.field_anomeric_carbon_r=anomeric_carbon;
+			this.field_linkage_position_r=linkage_position;
+			this.field_chirality_r=chirality;
+			this.field_ring_size_r=ring_size;
+			this.field_second_bond_r=second_bond;
+			this.field_second_child_position_r=second_child_position;
+			this.field_second_parent_position_r=second_parent_position;
+		}else{
+			this.field_anomeric_state=anomeric_state;
+			this.field_anomeric_carbon=anomeric_carbon;
+			this.field_linkage_position=linkage_position;
+			this.field_chirality=chirality;
+			this.field_ring_size=ring_size;
+			this.field_second_bond=second_bond;
+			this.field_second_child_position=second_child_position;
+			this.field_second_parent_position=second_parent_position;
+		}
+	}
+
 	private JToolBar createToolBarProperties() {
 		JToolBar toolbar = new JToolBar(){
 			
@@ -2181,41 +2259,8 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		toolbar.setLayout(new FlowLayout(FlowLayout.LEFT){
 			
 		});
-
-		toolbar.add(createLabel("Linkage", 5));
-		toolbar.add(field_anomeric_state = new JComboBox(new String[] { "?", "a", "b"}));
-		toolbar.add(field_anomeric_carbon = new JComboBox(new String[] { "?", "1", "2", "3" }));
-		toolbar.add(createLabel("->", 1));
-		toolbar.add(field_linkage_position = new DropDownList(new String[] {
-				"?", "1", "2", "3", "4", "5", "6", "7", "8", "9" }));
-		toolbar.add(createLabel("Chirality", 5));
-		toolbar.add(field_chirality = new JComboBox(new String[] { "?", "D", "L" }));
-		toolbar.add(createLabel("Ring", 5));
-		toolbar.add(field_ring_size = new JComboBox(new String[] { "?", "p", "f", "o" }));
-		toolbar.add(createLabel("2nd bond", 5));
-		toolbar.add(field_second_bond = new JCheckBox(""));
-		toolbar.add(field_second_child_position = new JComboBox(new String[] { "?", "1", "2", "3" }));
-		toolbar.add(createLabel("->", 1));
-		toolbar.add(field_second_parent_position = new DropDownList(
-						new String[] { "?", "1", "2", "3", "4", "5", "6", "7", "8", "9" }));
 		
-		field_anomeric_state.setActionCommand("setproperties");
-		field_anomeric_carbon.setActionCommand("setproperties");
-		field_linkage_position.setActionCommand("setproperties");
-		field_chirality.setActionCommand("setproperties");
-		field_ring_size.setActionCommand("setproperties");
-		field_second_bond.setActionCommand("setproperties");
-		field_second_child_position.setActionCommand("setproperties");
-		field_second_parent_position.setActionCommand("setproperties");
-		
-		field_anomeric_state.addActionListener(this);
-		field_anomeric_carbon.addActionListener(this);
-		field_linkage_position.addActionListener(this);
-		field_chirality.addActionListener(this);
-		field_ring_size.addActionListener(this);
-		field_second_bond.addActionListener(this);
-		field_second_child_position.addActionListener(this);
-		field_second_parent_position.addActionListener(this);
+		createLinkagePropertyFields(toolbar, false);
 		
 		return toolbar;
 	}
@@ -2228,41 +2273,8 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		JToolBar toolbar = new JToolBar();
 		toolbar.setFloatable(false);
 		toolbar.setLayout(new FlowLayout(FlowLayout.LEFT));
-
-		toolbar.add(createLabel("Linkage", 5));
-		toolbar.add(field_anomeric_state_r = new JComboBox(new String[] {"?", "a", "b", "o"}));
-		toolbar.add(field_anomeric_carbon_r = new JComboBox(new String[] {"?", "1", "2", "3"}));
-		toolbar.add(createLabel("->", 1));
-		toolbar.add(field_linkage_position_r = 
-			new DropDownList(new String[] {"?", "1", "2", "3", "4", "5", "6", "7", "8", "9"}));
-		toolbar.add(createLabel("Chirality", 5));
-		toolbar.add(field_chirality_r = new JComboBox(new String[] {"?", "D","L"}));
-		toolbar.add(createLabel("Ring", 5));
-		toolbar.add(field_ring_size_r = new JComboBox(new String[] {"?", "p", "f", "o"}));
-		toolbar.add(createLabel("2nd bond", 5));
-		toolbar.add(field_second_bond_r = new JCheckBox(""));
-		toolbar.add(field_second_child_position_r = new JComboBox(new String[] {"?", "1", "2", "3"}));
-		toolbar.add(createLabel("->", 1));
-		toolbar.add(field_second_parent_position_r = new DropDownList(
-			new String[] { "?", "1", "2", "3", "4", "5", "6", "7", "8", "9" }));
-
-		field_anomeric_state_r.setActionCommand("setproperties_r");
-		field_anomeric_carbon_r.setActionCommand("setproperties_r");
-		field_linkage_position_r.setActionCommand("setproperties_r");
-		field_chirality_r.setActionCommand("setproperties_r");
-		field_ring_size_r.setActionCommand("setproperties_r");
-		field_second_bond_r.setActionCommand("setproperties_r");
-		field_second_child_position_r.setActionCommand("setproperties_r");
-		field_second_parent_position_r.setActionCommand("setproperties_r");
 		
-		field_anomeric_state_r.addActionListener(this);
-		field_anomeric_carbon_r.addActionListener(this);
-		field_linkage_position_r.addActionListener(this);
-		field_chirality_r.addActionListener(this);
-		field_ring_size_r.addActionListener(this);
-		field_second_bond_r.addActionListener(this);
-		field_second_child_position_r.addActionListener(this);
-		field_second_parent_position_r.addActionListener(this);
+		createLinkagePropertyFields(toolbar, true);
 		
 		// band1.setLayout(new BorderLayout());
 		band1.addFlowComponent(toolbar);
@@ -3967,14 +3979,27 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 			}
 			
 			if(current.isSaccharide() && !GlycanUtils.isFacingAnom(current)) {
-				if(!current.isAlditol() && getSelectedValueChar(field_ring_size) == 'o') {
+				char sel_ring_size = getSelectedValueChar(field_ring_size);
+				if(!current.isAlditol() && sel_ring_size == 'o') {
 					current.setAlditol(true);
+					current.setAldehyde(false);
 					field_anomeric_state.setSelectedItem("" + '?');
 					current.setAnomericState('?');
 				}
-				if(current.isAlditol() && (getSelectedValueChar(field_anomeric_state) != '?' || getSelectedValueChar(field_ring_size) != 'o')) {
+				if(!current.isAldehyde() && sel_ring_size == 'a') {
+					current.setAldehyde(true);
+					current.setAlditol(false);
+					field_anomeric_state.setSelectedItem("" + '?');
+					current.setAnomericState('?');
+				}
+				char sel_anomeric_state = getSelectedValueChar(field_anomeric_state);
+				if(current.isAlditol() && (sel_anomeric_state != '?' || sel_ring_size != 'o')) {
 					current.setAlditol(false);
 					current.setRingSize(current.getRingSize() == 'o' ? '?' : current.getRingSize());
+				}
+				if(current.isAldehyde() && (sel_anomeric_state != '?' || sel_ring_size != 'a')) {
+					current.setAldehyde(false);
+					current.setRingSize(current.getRingSize() == 'a' ? '?' : current.getRingSize());
 				}
 			}
 			
