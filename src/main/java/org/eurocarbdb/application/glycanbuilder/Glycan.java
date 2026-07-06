@@ -36,6 +36,7 @@ import org.eurocarbdb.application.glycanbuilder.massutil.MassUtils;
 import org.eurocarbdb.application.glycanbuilder.massutil.Molecule;
 import org.eurocarbdb.application.glycanbuilder.util.SAXUtils;
 import org.eurocarbdb.application.glycanbuilder.util.XMLUtils;
+import org.glycoinfo.application.glycanbuilder.util.GlycanUtils;
 
 import java.util.*;
 
@@ -161,6 +162,19 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 			bracket = _bracket;
 		else
 			bracket = null;
+
+		// set parent residues to children of bracket
+		LinkedList<Residue> root_residues = new LinkedList<Residue>();
+		root_residues.add(root);
+		while( !root_residues.isEmpty() ) {
+			Residue current = root_residues.removeFirst();
+			for( Linkage linkage : current.getChildrenLinkages() )
+				root_residues.addLast(linkage.getChildResidue());
+
+			if( !current.isSaccharide() ) continue;
+			for( Linkage linkage : bracket.getChildrenLinkages() )
+				linkage.getChildResidue().addParentOfFragment(current);
+		}
 
 		// set mass options
 		if( mass_opt!=null ) 
