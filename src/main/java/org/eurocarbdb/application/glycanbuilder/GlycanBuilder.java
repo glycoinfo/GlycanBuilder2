@@ -642,6 +642,7 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
 
 		// imposto la dialog per il salvataggio del file
 		JFileChooser fileChooser = new JFileChooser();
+		fileChooser.setAcceptAllFileFilterUsed(false);
 		for( javax.swing.filechooser.FileFilter ff : doc.getFileFormats() )         
 			fileChooser.addChoosableFileFilter(ff);
 		fileChooser.setCurrentDirectory(theWorkspace.getFileHistory().getRecentFolder());
@@ -711,7 +712,7 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
 	 */
 	public boolean onExportTo(String format) {
 
-		if( theDoc.getStructures().size()>1 && !theDoc.supportMultipleStructures(format) ) {
+		if( theDoc.getStructures().size()>1 && !GlycanDocument.supportMultipleStructures(format) ) {
 			int retValue = JOptionPane.showOptionDialog(this, "The selected format does not support multiple structures.\n" +
 					"Only the first structure will be exported. Continue?",
 					"Cannot export all structures", JOptionPane.YES_NO_OPTION, 

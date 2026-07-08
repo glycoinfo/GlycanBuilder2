@@ -1,5 +1,14 @@
 ## Change log
 
+### 1.26.0  (202607--)
+* Added methyl-phosphate (PMe) as a new organic substituent
+* Handled multi-line and selected WURCS export
+* Set file extension to “gws” when saving
+* Handled open-chain (aldehyde/keto) form
+* Updated read process from GWS to handle parents of fragment and bridging substituent
+* Updated lib: glycanformatconverter 2.10.5
+* Update lib: wurcsframework 1.3.3
+
 ### 1.25.6  (20260205)
 * Removed incorrect template structures
 

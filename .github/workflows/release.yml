@@ -12,14 +12,20 @@ env:
   GH_TOKEN: ${{ github.token }}
 
 jobs:
-  build-installer:
-    uses: ./.github/workflows/jpackage_installer.yml
+  build-installer-linux:
+    uses: ./.github/workflows/jpackage_installer_linux.yml
+
+  build-installer-macos:
+    uses: ./.github/workflows/jpackage_installer_macos.yml
+
+  build-installer-windows:
+    uses: ./.github/workflows/jpackage_installer_windows.yml
 
   build-installer-rpm:
     uses: ./.github/workflows/jpackage_installer_rpm.yml
 
   release:
-    needs: [build-installer, build-installer-rpm]
+    needs: [build-installer-linux, build-installer-macos, build-installer-windows, build-installer-rpm]
     runs-on: ubuntu-latest
 
     steps:

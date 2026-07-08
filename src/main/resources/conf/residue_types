@@ -139,6 +139,7 @@ NAc		Substituent	N-type		C2H5O1N1	-	NAc				1	?	?	no	no	no	0	2	no	1	no	1	-	-	no	n
 P		Substituent	Inorganic	H3P1O4		-	P				1	?	?	no	yes	yes	0	3	no	1	no	1	-	1	no	no	yes	Phosphate
 S		Substituent	Inorganic	H2S1O4		-	S				1	?	?	no	yes	yes	0	1	no	1	no	1	-	1	no	no	yes	Sulfate
 Pyr		Substituent	Organic		C3H4O3		-	Pyr				1	?	?	no	no	no	0	1	no	1	yes	1	-	-	no	no	yes	Pyruvate
+PMe		Substituent	Organic		C1H5P1O4	-	PMe				1	?	?	no	yes	yes	0	2	no	1	no	1	-	1	no	no	yes	Methyl-phosphate
 PCho	Substituent	Organic		C5H14NO4P	-	PC				1	?	?	no	no	no	0	2	no	1	no	1	-	-	no	no	yes	Phosphocholine
 PPEtn	Substituent	Organic		C2H9NO7P2	-	PPEtn			1	?	?	no	no	no	0	2	no	1	no	1	-	-	no	no	yes	Diphosphoethanolamine
 PEtn	Substituent	Organic		C2H8NO4P	-	PEtn			1	?	?	no	no	no	0	2	no	1	no	1	-	-	no	no	yes	Phosphoethanolamine

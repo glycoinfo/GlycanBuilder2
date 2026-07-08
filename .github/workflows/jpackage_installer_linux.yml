@@ -1,4 +1,4 @@
-name: Build GlycanBuilder2 and Create Installer (rpm)
+name: Build GlycanBuilder2 and Create Installer (Linux deb)
 
 on:
   #push:
@@ -15,29 +15,14 @@ env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
-  build-rpm:
+  build:
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        include:
-          - container: almalinux:9
-            distro: alma9
-          - container: almalinux:10
-            distro: alma10
-
-    container:
-      image: ${{ matrix.container }}
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
-
-    - name: Install deps
-      run: |
-        dnf install -y rpm-build maven
 
     - name: Set up JDK ${{ env.JAVA_VERSION }}
       uses: actions/setup-java@v5
@@ -52,8 +37,8 @@ jobs:
       uses: actions/cache@v3
       with:
         path: ~/.m2
-        key: ${{ matrix.distro }}_m2_${{ hashFiles('**/pom.xml') }}
-        restore-keys: ${{ matrix.distro }}_m2
+        key: ${{ runner.os }}_m2_${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}_m2
 
     - name: Build GlycanBuilder2
       run: mvn clean package -P make-fat-jar -DskipTests
@@ -90,7 +75,7 @@ jobs:
           --main-jar glycanbuilder2-jar-with-dependencies.jar \
           --main-class org.eurocarbdb.application.glycanbuilder.GlycanBuilder \
           --icon ./src/main/resources/icons/icon_large.png \
-          --type rpm \
+          --type deb \
           --dest installers \
           --runtime-image runtime-image \
           --app-version ${{ steps.version.outputs.VERSION }} \
@@ -99,23 +84,16 @@ jobs:
           --copyright "Copyright © 2026 The Noguchi Institute" \
           --linux-shortcut \
           --linux-menu-group "Science"
-
-    - name: Rename created installer
-      run: |
-        cd installers
-        fname=(*.x86_64.rpm)
-        mv -- "$fname" "${fname%.x86_64.rpm}.${{ matrix.distro }}.x86_64.rpm"
       shell: bash
 
     - name: List created installers
-      run: |
-        ls -la installers/
+      run: ls -la installers/
       shell: bash
 
     - name: Upload installer artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: glycanbuilder2-installer-linux-rpm-${{ matrix.distro }}
+        name: glycanbuilder2-installer-linux-debian
         path: installers/*
         retention-days: 30
 
@@ -123,7 +101,7 @@ jobs:
       if: failure()
       uses: actions/upload-artifact@v4
       with:
-        name: build-logs-linux-rpm-${{ matrix.distro }}
+        name: build-logs-linux-debian
         path: |
           target/surefire-reports/
         retention-days: 7

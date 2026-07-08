@@ -1,4 +1,4 @@
-name: Build GlycanBuilder2 and Create Installer (rpm)
+name: Build GlycanBuilder2 and Create Installer (macOS)
 
 on:
   #push:
@@ -15,29 +15,21 @@ env:
   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
 jobs:
-  build-rpm:
-    runs-on: ubuntu-latest
-
+  build:
+    runs-on: ${{ matrix.os }}
     strategy:
       matrix:
         include:
-          - container: almalinux:9
-            distro: alma9
-          - container: almalinux:10
-            distro: alma10
-
-    container:
-      image: ${{ matrix.container }}
+          - os: macos-latest
+            platform: macos
+          - os: macos-15-intel
+            platform: macos-intel
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
         fetch-depth: 0
-
-    - name: Install deps
-      run: |
-        dnf install -y rpm-build maven
 
     - name: Set up JDK ${{ env.JAVA_VERSION }}
       uses: actions/setup-java@v5
@@ -52,8 +44,8 @@ jobs:
       uses: actions/cache@v3
       with:
         path: ~/.m2
-        key: ${{ matrix.distro }}_m2_${{ hashFiles('**/pom.xml') }}
-        restore-keys: ${{ matrix.distro }}_m2
+        key: ${{ runner.os }}_m2_${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}_m2
 
     - name: Build GlycanBuilder2
       run: mvn clean package -P make-fat-jar -DskipTests
@@ -69,6 +61,23 @@ jobs:
         fi
         echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
         echo "App version: $VERSION"
+      shell: bash
+
+    - name: Create macOS icon
+      run: |
+        SMALL=./src/main/resources/icons/icon_small.png
+        LARGE=./src/main/resources/icons/icon_large.png
+        mkdir -p AppIcon.iconset
+        sips -z 16 16     $SMALL --out AppIcon.iconset/icon_16x16.png
+        sips -z 32 32     $SMALL --out AppIcon.iconset/icon_16x16@2x.png
+        sips -z 32 32     $SMALL --out AppIcon.iconset/icon_32x32.png
+        sips -z 64 64     $SMALL --out AppIcon.iconset/icon_32x32@2x.png
+        sips -z 128 128   $LARGE --out AppIcon.iconset/icon_128x128.png
+        sips -z 256 256   $LARGE --out AppIcon.iconset/icon_128x128@2x.png
+        sips -z 256 256   $LARGE --out AppIcon.iconset/icon_256x256.png
+        sips -z 512 512   $LARGE --out AppIcon.iconset/icon_256x256@2x.png
+        sips -z 512 512   $LARGE --out AppIcon.iconset/icon_512x512.png
+        iconutil -c icns AppIcon.iconset -o glycanbuilder2.icns
       shell: bash
 
     - name: Create runtime image with jlink
@@ -89,33 +98,32 @@ jobs:
           --name "GlycanBuilder2" \
           --main-jar glycanbuilder2-jar-with-dependencies.jar \
           --main-class org.eurocarbdb.application.glycanbuilder.GlycanBuilder \
-          --icon ./src/main/resources/icons/icon_large.png \
-          --type rpm \
+          --icon ./glycanbuilder2.icns \
+          --type dmg \
           --dest installers \
           --runtime-image runtime-image \
           --app-version ${{ steps.version.outputs.VERSION }} \
           --vendor "The Noguchi Institute - Glycoinformatics Lab." \
           --description "A tool for drawing and editing glycans intuitively" \
           --copyright "Copyright © 2026 The Noguchi Institute" \
-          --linux-shortcut \
-          --linux-menu-group "Science"
+          --java-options "-XstartOnFirstThread"
+      shell: bash
 
     - name: Rename created installer
       run: |
         cd installers
-        fname=(*.x86_64.rpm)
-        mv -- "$fname" "${fname%.x86_64.rpm}.${{ matrix.distro }}.x86_64.rpm"
+        fname=(*.dmg)
+        mv -- "$fname" "${fname%.dmg}.${{ runner.arch }}.dmg"
       shell: bash
 
     - name: List created installers
-      run: |
-        ls -la installers/
+      run: ls -la installers/
       shell: bash
 
     - name: Upload installer artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: glycanbuilder2-installer-linux-rpm-${{ matrix.distro }}
+        name: glycanbuilder2-installer-${{ matrix.platform }}
         path: installers/*
         retention-days: 30
 
@@ -123,7 +131,7 @@ jobs:
       if: failure()
       uses: actions/upload-artifact@v4
       with:
-        name: build-logs-linux-rpm-${{ matrix.distro }}
+        name: build-logs-${{ matrix.platform }}
         path: |
           target/surefire-reports/
         retention-days: 7

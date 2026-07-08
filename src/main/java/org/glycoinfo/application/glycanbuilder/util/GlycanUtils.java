@@ -74,7 +74,7 @@ public class GlycanUtils {
 		if(a_oRoot.isSaccharide() && isFacingAnom(a_oRoot)) ret = false;
 		if(a_oRoot.isStartCyclic()) ret = false;
 		if(theGraphicOptions.NOTATION.equals(GraphicOptions.NOTATION_SNFG)) {
-			if(a_oGlycan.getRoot().firstChild().isAlditol()) ret = false;
+			if(a_oRoot.isAlditol() || a_oRoot.isAldehyde()) return false;
 		}
 		
 		return ret;
