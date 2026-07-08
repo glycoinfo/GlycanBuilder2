@@ -1,4 +1,4 @@
-name: Build GlycanBuilder2 and Create Installer
+name: Build GlycanBuilder2 and Create Installer (macOS)
 
 on:
   #push:
@@ -19,24 +19,11 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest, macos-15-intel]
         include:
-          - os: ubuntu-latest
-            platform: linux-debian
-            installer-type: deb
-            icon-path: ./src/main/resources/icons/icon_large.png
-          - os: windows-latest
-            platform: windows
-            installer-type: msi
-            icon-path: .\glycanbuilder2.ico
           - os: macos-latest
             platform: macos
-            installer-type: dmg
-            icon-path: ./glycanbuilder2.icns
           - os: macos-15-intel
             platform: macos-intel
-            installer-type: dmg
-            icon-path: ./glycanbuilder2.icns
 
     steps:
     - name: Checkout repository
@@ -76,24 +63,7 @@ jobs:
         echo "App version: $VERSION"
       shell: bash
 
-    - name: Create Windows icon
-      if: matrix.os == 'windows-latest'
-      run: |
-        choco install imagemagick -y
-        $SMALL = "src\main\resources\icons\icon_small.png"
-        $LARGE = "src\main\resources\icons\icon_large.png"
-        magick $SMALL -resize 16x16   icon_16.png
-        magick $SMALL -resize 24x24   icon_24.png
-        magick $SMALL -resize 32x32   icon_32.png
-        magick $SMALL -resize 48x48   icon_48.png
-        magick $SMALL -resize 64x64   icon_64.png
-        magick $LARGE -resize 128x128 icon_128.png
-        magick $LARGE -resize 256x256 icon_256.png
-        magick icon_16.png icon_24.png icon_32.png icon_48.png icon_64.png icon_128.png icon_256.png glycanbuilder2.ico
-      shell: powershell
-
     - name: Create macOS icon
-      if: matrix.os == 'macos-latest' || matrix.os == 'macos-15-intel'
       run: |
         SMALL=./src/main/resources/icons/icon_small.png
         LARGE=./src/main/resources/icons/icon_large.png
@@ -121,56 +91,15 @@ jobs:
           --no-man-pages
       shell: bash
 
-    - name: Create installer with jpackage (Linux)
-      if: matrix.os == 'ubuntu-latest'
+    - name: Create installer with jpackage
       run: |
         $JAVA_HOME/bin/jpackage \
           --input ./target \
           --name "GlycanBuilder2" \
           --main-jar glycanbuilder2-jar-with-dependencies.jar \
           --main-class org.eurocarbdb.application.glycanbuilder.GlycanBuilder \
-          --icon ${{ matrix.icon-path }} \
-          --type ${{ matrix.installer-type }} \
-          --dest installers \
-          --runtime-image runtime-image \
-          --app-version ${{ steps.version.outputs.VERSION }} \
-          --vendor "The Noguchi Institute - Glycoinformatics Lab." \
-          --description "A tool for drawing and editing glycans intuitively" \
-          --copyright "Copyright © 2026 The Noguchi Institute" \
-          --linux-shortcut \
-          --linux-menu-group "Science"
-
-    - name: Create installer with jpackage (Windows)
-      if: matrix.os == 'windows-latest'
-      run: |
-        & "$env:JAVA_HOME\bin\jpackage.exe" `
-          --input .\target `
-          --name "GlycanBuilder2" `
-          --main-jar glycanbuilder2-jar-with-dependencies.jar `
-          --main-class org.eurocarbdb.application.glycanbuilder.GlycanBuilder `
-          --icon ${{ matrix.icon-path }} `
-          --type ${{ matrix.installer-type }} `
-          --dest installers `
-          --runtime-image runtime-image `
-          --app-version ${{ steps.version.outputs.VERSION }} `
-          --vendor "The Noguchi Institute - Glycoinformatics Lab." `
-          --description "A tool for drawing and editing glycans intuitively" `
-          --copyright "Copyright © 2026 The Noguchi Institute" `
-          --win-shortcut `
-          --win-menu `
-          --win-dir-chooser
-      shell: powershell
-
-    - name: Create installer with jpackage (macOS)
-      if: matrix.os == 'macos-latest' || matrix.os == 'macos-15-intel'
-      run: |
-        $JAVA_HOME/bin/jpackage \
-          --input ./target \
-          --name "GlycanBuilder2" \
-          --main-jar glycanbuilder2-jar-with-dependencies.jar \
-          --main-class org.eurocarbdb.application.glycanbuilder.GlycanBuilder \
-          --icon ${{ matrix.icon-path }} \
-          --type ${{ matrix.installer-type }} \
+          --icon ./glycanbuilder2.icns \
+          --type dmg \
           --dest installers \
           --runtime-image runtime-image \
           --app-version ${{ steps.version.outputs.VERSION }} \
@@ -178,9 +107,9 @@ jobs:
           --description "A tool for drawing and editing glycans intuitively" \
           --copyright "Copyright © 2026 The Noguchi Institute" \
           --java-options "-XstartOnFirstThread"
+      shell: bash
 
     - name: Rename created installer
-      if: matrix.os == 'macos-latest' || matrix.os == 'macos-15-intel'
       run: |
         cd installers
         fname=(*.dmg)
@@ -188,8 +117,7 @@ jobs:
       shell: bash
 
     - name: List created installers
-      run: |
-        ls -la installers/
+      run: ls -la installers/
       shell: bash
 
     - name: Upload installer artifacts
