@@ -17,6 +17,7 @@ jobs:
 
   build-installer-macos:
     uses: ./.github/workflows/jpackage_installer_macos.yml
+    secrets: inherit
 
   build-installer-windows:
     uses: ./.github/workflows/jpackage_installer_windows.yml

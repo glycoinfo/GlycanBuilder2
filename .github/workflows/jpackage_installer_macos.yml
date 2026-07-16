@@ -41,7 +41,7 @@ jobs:
         server-password: GITHUB_TOKEN
 
     - name: Cache Maven dependencies
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: ~/.m2
         key: ${{ runner.os }}_m2_${{ hashFiles('**/pom.xml') }}
@@ -61,6 +61,28 @@ jobs:
         fi
         echo "VERSION=$VERSION" >> $GITHUB_OUTPUT
         echo "App version: $VERSION"
+      shell: bash
+
+    - name: Import signing certificate
+      env:
+        MACOS_CERTIFICATE: ${{ secrets.MACOS_CERTIFICATE }}
+        MACOS_CERTIFICATE_PWD: ${{ secrets.MACOS_CERTIFICATE_PWD }}
+      run: |
+        echo "$MACOS_CERTIFICATE" | base64 --decode > certificate.p12
+        security create-keychain -p "" build.keychain
+        security import certificate.p12 -k build.keychain -P "$MACOS_CERTIFICATE_PWD" -T /usr/bin/codesign
+        security list-keychains -s build.keychain
+        security default-keychain -s build.keychain
+        security unlock-keychain -p "" build.keychain
+        security set-key-partition-list -S apple-tool:,apple: -s -k "" build.keychain
+      shell: bash
+
+    - name: Get signing identity
+      id: signing
+      run: |
+        IDENTITY=$(security find-identity -v -p codesigning build.keychain | grep "Developer ID Application" | head -1 | sed 's/.*"\(.*\)"/\1/')
+        echo "IDENTITY=$IDENTITY" >> $GITHUB_OUTPUT
+        echo "Signing identity: $IDENTITY"
       shell: bash
 
     - name: Create macOS icon
@@ -106,7 +128,25 @@ jobs:
           --vendor "The Noguchi Institute - Glycoinformatics Lab." \
           --description "A tool for drawing and editing glycans intuitively" \
           --copyright "Copyright © 2026 The Noguchi Institute" \
-          --java-options "-XstartOnFirstThread"
+          --java-options "-XstartOnFirstThread" \
+          --mac-sign \
+          --mac-signing-key-user-name "${{ steps.signing.outputs.IDENTITY }}"
+      shell: bash
+
+    - name: Notarize DMG
+      env:
+        APPLE_ID: ${{ secrets.APPLE_ID }}
+        APPLE_APP_PASSWORD: ${{ secrets.APPLE_APP_PASSWORD }}
+        APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+      run: |
+        cd installers
+        fname=(*.dmg)
+        xcrun notarytool submit "$fname" \
+          --apple-id "$APPLE_ID" \
+          --password "$APPLE_APP_PASSWORD" \
+          --team-id "$APPLE_TEAM_ID" \
+          --wait
+        xcrun stapler staple "$fname"
       shell: bash
 
     - name: Rename created installer
