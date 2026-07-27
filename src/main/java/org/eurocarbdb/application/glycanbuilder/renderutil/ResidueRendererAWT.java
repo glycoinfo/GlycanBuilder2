@@ -269,48 +269,11 @@ public class ResidueRendererAWT extends AbstractResidueRenderer {
     	
     	boolean isShow = false;
     	if(node.isSaccharide()) isShow = GlycanUtils.isFacingAnom(node);
-    	if(!theGraphicOptions.SHOW_REDEND_CANVAS && node.isSaccharide()) {
+    	// A hidden aglycon no longer takes its anomeric symbol away from the reducing-end monosaccharide:
+    	// the aglycon stays in the layout, so the bond to it carries the symbol as ordinary linkage
+    	// information (see AbstractGlycanRenderer#laysOutAglycon). Only a root that already faces its own
+    	// anomeric centre, which has no such bond, still needs the symbol drawn here.
 
-			String viewType = theGraphicOptions.DISPLAY;
-			/***********************************************
-			　 Description： Correct the condition sentence left and right.
-			 　@author：GIC
-			  Date: 2021/12/06
-			　************************************************/
-			//System.out.println(viewType);
-    		/*isShow = (node.getTreeRoot().firstChild().equals(node)
-					&& !node.isAlditol()
-					&& !node.getTreeRoot().isBracket()
-					// glycan view type: compact, normal
-					&& viewType == "normal"
-					&& viewType == "compact"
-			);
-			if (node.getTreeRoot().firstChild().equals(node)
-					&& !node.isAlditol()
-					&& !node.getTreeRoot().isBracket()
-					// glycan view type:  -with linkage info (normalinfo)
-					&& viewType == "normalinfo"
-			) {
-				isShow = true;
-			}*/
-			isShow = (node.equals(node.getTreeRoot().firstChild())
-					&& !node.isAlditol()
-					&& !node.getTreeRoot().isBracket()
-					// glycan view type: compact, normal
-					&& viewType == "normal"
-					&& viewType == "compact"
-			);
-			
-			if (node.equals(node.getTreeRoot().firstChild())
-					&& !node.isAlditol()
-					&& !node.getTreeRoot().isBracket()
-					// glycan view type:  -with linkage info (normalinfo)
-					&& viewType == "normalinfo"
-			) {
-				isShow = true;
-			}
-    	}
-    	
     	// draw anomeric symbol
     	if(shape != null && isShow)
     		showAnomericState(g2d, node, orientation, cur_bbox);

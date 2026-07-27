@@ -212,6 +212,9 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 	// -----------------
 	// Painting
 
+	/** Whether the aglycon itself is painted. It is laid out either way, see {@link #laysOutAglycon}. */
+	protected boolean paintsAglycon = true;
+
 	/* (non-Javadoc)
 	 * @see org.eurocarbdb.application.glycanbuilder.GlycanRenderer#paint(java.awt.Graphics2D, org.eurocarbdb.application.glycanbuilder.Glycan, java.util.HashSet, java.util.HashSet, boolean, boolean, org.eurocarbdb.application.glycanbuilder.PositionManager, org.eurocarbdb.application.glycanbuilder.BBoxManager)
 	 */
@@ -239,10 +242,8 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		if (structure == null || structure.isEmpty())
 			return;
 
-		boolean isAlditol = show_redend;
-		if(!structure.isComposition()) {
-			isAlditol = GlycanUtils.isShowRedEnd(structure, theGraphicOptions, show_redend);
-		}
+		boolean laysOutAglycon = laysOutAglycon(structure, show_redend);
+		this.paintsAglycon = laysOutAglycon && show_redend;
 
 		this.assignID(structure);
 
@@ -251,7 +252,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 
 		// draw core structures
 		if (!structure.isComposition()) {
-			paintResidue(paintable, structure.getRoot(isAlditol), selected_residues, selected_linkages, active_residues, posManager, bboxManager);
+			paintResidue(paintable, structure.getRoot(laysOutAglycon), selected_residues, selected_linkages, active_residues, posManager, bboxManager);
 		}
 
 		// draw fragments
@@ -261,6 +262,23 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 			displayLegend(paintable, structure, show_redend, bboxManager);
 		if (show_mass)
 			displayMass(paintable, structure, show_redend, bboxManager);
+	}
+
+	/**
+	 * Whether the aglycon takes part in the layout. It does whenever the structure really has one, even
+	 * when it is not shown: keeping it in the layout is what gives the reducing-end monosaccharide its
+	 * anomeric symbol, which is drawn as the linkage information of the bond to the aglycon — at the same
+	 * place, in the same direction and at the same size as every other linkage label, at every zoom and
+	 * orientation. Alditols, aldehydes, cyclic forms and roots that already face their anomeric centre
+	 * have no aglycon to lay out, exactly as before.
+	 * @param structure Structure being drawn.
+	 * @param show_redend Whether the aglycon is shown.
+	 * @return Returns whether the aglycon is part of the layout.
+	 */
+	protected boolean laysOutAglycon(Glycan structure, boolean show_redend) {
+		if (structure == null) return show_redend;
+		if (structure.isComposition()) return show_redend;
+		return GlycanUtils.isShowRedEnd(structure, theGraphicOptions, true);
 	}
 
 	abstract protected void displayMass(Paintable paintable, Glycan structure,boolean show_redend, BBoxManager bboxManager);
@@ -308,7 +326,10 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 			Rectangle child_bbox = bboxManager.getCurrent(child);
 			Rectangle child_border_bbox = bboxManager.getBorder(child);
 
-			if (child_bbox != null && !posManager.isOnBorder(child)) {
+			// The bond to a hidden aglycon is laid out only so that its linkage information supplies the
+			// reducing end's anomeric symbol, painted by the "paint info" loop below; the bond itself and
+			// the aglycon are left unpainted.
+			if (child_bbox != null && !posManager.isOnBorder(child) && (paintsAglycon || !node.isReducingEnd())) {
 				boolean selected = (selected_residues.contains(node) && selected_residues.contains(child)) || selected_linkages.contains(link);
 				boolean active = (active_residues == null || (active_residues.contains(node) && active_residues.contains(child)));
 				theLinkageRenderer.paintEdge(paintable, link, selected, node_bbox, border_bbox, child_bbox, child_border_bbox);
@@ -318,8 +339,10 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		// paint node
 		boolean selected = selected_residues.contains(node);
 		boolean active = (active_residues == null || active_residues.contains(node));
-		theResidueRenderer.paint(paintable, node, selected, active, posManager.isOnBorder(node), parent_bbox, node_bbox,
-				support_bbox, posManager.getOrientation(node));
+		if (paintsAglycon || !node.isReducingEnd()) {
+			theResidueRenderer.paint(paintable, node, selected, active, posManager.isOnBorder(node), parent_bbox, node_bbox,
+					support_bbox, posManager.getOrientation(node));
+		}
 
 		// paint children
 		for (Linkage link : node.getChildrenLinkages())
@@ -416,7 +439,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 
 			if (!structure.isEmpty()) {
 
-				Residue root = structure.getRoot(show_redend);
+				Residue root = structure.getRoot(laysOutAglycon(structure, show_redend));
 				Residue bracket = structure.getBracket();
 				ResAngle orientation = theGraphicOptions.getOrientationAngle();
 

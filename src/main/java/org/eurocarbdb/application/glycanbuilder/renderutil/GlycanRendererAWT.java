@@ -84,11 +84,9 @@ public class GlycanRendererAWT extends AbstractGlycanRenderer {
 		if (structure == null || structure.isEmpty())
 			return;
 
-		boolean isAlditol = show_redend;
-		if(!structure.isComposition()) {
-			isAlditol = GlycanUtils.isShowRedEnd(structure, theGraphicOptions, show_redend);
-		}
-		
+		boolean laysOutAglycon = laysOutAglycon(structure, show_redend);
+		this.paintsAglycon = laysOutAglycon && show_redend;
+
 		this.assignID(structure);
 			
 		selected_residues = (selected_residues != null) ? selected_residues : new HashSet<>();
@@ -96,7 +94,7 @@ public class GlycanRendererAWT extends AbstractGlycanRenderer {
 
 		// draw core structures
 		if (!structure.isComposition()) {
-			paintResidue(paintable, structure.getRoot(isAlditol), selected_residues, selected_linkages, null, posManager, bboxManager);
+			paintResidue(paintable, structure.getRoot(laysOutAglycon), selected_residues, selected_linkages, null, posManager, bboxManager);
 		}
 
 		// draw fragments
