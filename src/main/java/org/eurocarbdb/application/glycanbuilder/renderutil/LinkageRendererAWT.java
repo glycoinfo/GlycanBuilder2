@@ -64,7 +64,7 @@ public class LinkageRendererAWT extends AbstractLinkageRenderer {
     		g2d.setStroke(edge_stroke);
     		g2d.setColor(Color.black);
     		g2d.draw(edge_shape);    
-    		g2d.setStroke(new BasicStroke(1));
+    		g2d.setStroke(scaledStroke(1.f));
     	}    
     }
 
@@ -109,11 +109,12 @@ public class LinkageRendererAWT extends AbstractLinkageRenderer {
     	LinkageStyle style = theLinkageStyleDictionary.getStyle(link);
 
     	if( style.isDashed() ) {
-    		float[] dashes = {5.f,5.f};
-    		return new BasicStroke((selected) ?2.f :1.f,BasicStroke.CAP_BUTT,BasicStroke.JOIN_ROUND,1.f,dashes,0.f);
+    		float scale = (float) theGraphicOptions.SCALE;
+    		float[] dashes = {5.f * scale, 5.f * scale};
+    		return new BasicStroke(scaledWidth((selected) ?2.f :1.f),BasicStroke.CAP_BUTT,BasicStroke.JOIN_ROUND,1.f,dashes,0.f);
     	}
 
-    	return new BasicStroke((selected) ?2.f :1.f);
+    	return scaledStroke((selected) ?2.f :1.f);
     }
     
     private boolean checkEdgeConditionParentLinkage(Linkage link) {
@@ -167,5 +168,23 @@ public class LinkageRendererAWT extends AbstractLinkageRenderer {
     	probability.append(_linkage.getParentPositionsString());
     	
     	return probability.toString();
+    }
+
+    /**
+     * A stroke whose width follows the current zoom, so the bonds of an enlarged structure thicken
+     * with it instead of staying hairlines. At 100% (SCALE = 1) the width is unchanged.
+     * @param width Width at 100% zoom.
+     * @return Returns the scaled stroke.
+     */
+    protected BasicStroke scaledStroke(float width) {
+    	return new BasicStroke(scaledWidth(width));
+    }
+
+    /**
+     * @param width Width at 100% zoom.
+     * @return Returns the width scaled to the current zoom, never thinner than a hairline.
+     */
+    protected float scaledWidth(float width) {
+    	return (float) Math.max(0.5, width * theGraphicOptions.SCALE);
     }
 }

@@ -175,18 +175,19 @@ public class ResidueRendererAWT extends AbstractResidueRenderer {
     		}
 
     		//draw contour
-    		g2d.setStroke( (selected) ?new BasicStroke(2) :new BasicStroke(1));
+    		g2d.setStroke( (selected) ?scaledStroke(2.f) :scaledStroke(1.f));
     		g2d.setColor(shape_color);
     		g2d.draw(shape);
-    		g2d.setStroke(new BasicStroke(1));
+    		g2d.setStroke(scaledStroke(1.f));
     	}
     	else if( selected ) {
     		//draw selected contour for empty shape
-    		float[] dashes = {5.f,5.f};
-    		g2d.setStroke(new BasicStroke(2.f,BasicStroke.CAP_BUTT,BasicStroke.JOIN_ROUND,1.f,dashes,0.f));
+    		float scale = (float) theGraphicOptions.SCALE;
+    		float[] dashes = {5.f * scale, 5.f * scale};
+    		g2d.setStroke(new BasicStroke(scaledWidth(2.f),BasicStroke.CAP_BUTT,BasicStroke.JOIN_ROUND,1.f,dashes,0.f));
     		g2d.setColor(shape_color);        
     		g2d.draw(cur_bbox);
-    		g2d.setStroke(new BasicStroke(1));
+    		g2d.setStroke(scaledStroke(1.f));
     	}
 
     	//add text shape
@@ -328,13 +329,16 @@ public class ResidueRendererAWT extends AbstractResidueRenderer {
 		text_bound.setRect(new TextLayout(TextUtils.toGreek(node.getAnomericState()),newFont,g2d.getFontRenderContext()).getBounds());
 
 		Rectangle2D.Double txtRect = null;
+		// The offset that pushes the symbol clear of the residue must follow the zoom, or the symbol
+		// ends up inside the residue when scaled up (SCALE is 1 at 100%, so this is unchanged there).
+		int offset = (int) Math.round(15 * theGraphicOptions.SCALE);
 		int margine = 0;
 		if(orientation.equals(0) || orientation.equals(180)) {
-			margine = (orientation.equals(0)) ? -15 : 15;
+			margine = (orientation.equals(0)) ? -offset : offset;
 			txtRect = new Rectangle2D.Double(midx(cur_bbox)-text_bound.width/2,midy(cur_bbox)-text_bound.height/2,text_bound.width,text_bound.height);
 			g2d.drawString(anomString, (int)txtRect.x + margine, (int)(txtRect.y + txtRect.height));
 		} else {
-			margine = (orientation.equals(90)) ? -15 : 15;
+			margine = (orientation.equals(90)) ? -offset : offset;
 			txtRect = new Rectangle2D.Double(midx(cur_bbox)-text_bound.height/2,midy(cur_bbox)-text_bound.width/2,text_bound.height,text_bound.width);
 
 			g2d.rotate(-Math.PI/2.0); 
@@ -355,4 +359,22 @@ public class ResidueRendererAWT extends AbstractResidueRenderer {
 		ResidueStyle style = theResidueStyleDictionary.getStyle(_node);
 		return (style.getShape() == null);
 	}
+
+    /**
+     * A stroke whose width follows the current zoom, so an enlarged structure gets proportionally
+     * thicker outlines instead of hairlines. At 100% (SCALE = 1) the width is unchanged.
+     * @param width Width at 100% zoom.
+     * @return Returns the scaled stroke.
+     */
+    protected BasicStroke scaledStroke(float width) {
+    	return new BasicStroke(scaledWidth(width));
+    }
+
+    /**
+     * @param width Width at 100% zoom.
+     * @return Returns the width scaled to the current zoom, never thinner than a hairline.
+     */
+    protected float scaledWidth(float width) {
+    	return (float) Math.max(0.5, width * theGraphicOptions.SCALE);
+    }
 }
