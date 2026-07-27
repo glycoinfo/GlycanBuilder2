@@ -47,15 +47,13 @@ class SVGGlycanRenderer extends GlycanRendererAWT {
     }
 
     public void paint(GroupingSVGGraphics2D g2d, Glycan structure, HashSet<Residue> selected_residues, HashSet<Linkage> selected_linkages, boolean show_mass, boolean show_redend, PositionManager posManager, BBoxManager bboxManager) {
-        if (structure == null || structure.getRoot(show_redend) == null)
+        boolean laysOutAglycon = laysOutAglycon(structure, show_redend);
+        if (structure == null || structure.getRoot(laysOutAglycon) == null)
             return;
 
 	theStructure = structure;
 
-        boolean isAlditol = show_redend;
-        if(!structure.isComposition()) {
-            isAlditol = GlycanUtils.isShowRedEnd(structure, theGraphicOptions, show_redend);
-        }
+        this.paintsAglycon = laysOutAglycon && show_redend;
 
         this.assignID(structure);
 
@@ -64,7 +62,7 @@ class SVGGlycanRenderer extends GlycanRendererAWT {
 
         // draw core structures
         if (!structure.isComposition()) {
-            paintResidue(g2d, structure.getRoot(isAlditol), selected_residues, selected_linkages, null, posManager, bboxManager);
+            paintResidue(g2d, structure.getRoot(laysOutAglycon), selected_residues, selected_linkages, null, posManager, bboxManager);
         }
 
         // draw fragments
@@ -102,7 +100,10 @@ class SVGGlycanRenderer extends GlycanRendererAWT {
 			Rectangle child_bbox = bboxManager.getCurrent(child);
 			Rectangle child_border_bbox = bboxManager.getBorder(child);
 
-			if (child_bbox != null && !posManager.isOnBorder(child)) {
+			// The bond to a hidden aglycon is laid out only so that its linkage information supplies the
+			// reducing end's anomeric symbol, painted by the "paint info" loop below; the bond itself and
+			// the aglycon are left unpainted.
+			if (child_bbox != null && !posManager.isOnBorder(child) && (paintsAglycon || !node.isReducingEnd())) {
 				g2d.addGroup("l",theStructure,node,child);
 				boolean selected = (selected_residues.contains(node) && selected_residues.contains(child)) || selected_linkages.contains(link);
 				boolean active = (active_residues == null || (active_residues.contains(node) && active_residues.contains(child)));
@@ -111,11 +112,13 @@ class SVGGlycanRenderer extends GlycanRendererAWT {
 		}
 
 		// paint node
-		g2d.addGroup("r",theStructure,node);
 		boolean selected = selected_residues.contains(node);
 		boolean active = (active_residues == null || active_residues.contains(node));
-		theResidueRenderer.paint(new DefaultPaintable(g2d), node, selected, active, posManager.isOnBorder(node), parent_bbox, node_bbox,
-				support_bbox,posManager.getOrientation(node));
+		if (paintsAglycon || !node.isReducingEnd()) {
+			g2d.addGroup("r",theStructure,node);
+			theResidueRenderer.paint(new DefaultPaintable(g2d), node, selected, active, posManager.isOnBorder(node), parent_bbox, node_bbox,
+					support_bbox,posManager.getOrientation(node));
+		}
 
 		// paint children
 		for (Linkage link : node.getChildrenLinkages())
