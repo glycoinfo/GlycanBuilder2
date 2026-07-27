@@ -37,13 +37,28 @@ class SVGGlycanRenderer extends GlycanRendererAWT {
 
     Glycan theStructure=null;
 
+    /** The renderer this one draws on behalf of, so anything it customises reaches the SVG output too. */
+    private final GlycanRendererAWT theSource;
+
     public SVGGlycanRenderer(GlycanRendererAWT src) {
+        theSource = src;
         theResidueRenderer = src.theResidueRenderer;
         theLinkageRenderer = src.theLinkageRenderer;
         theResiduePlacementDictionary = src.theResiduePlacementDictionary;
         theResidueStyleDictionary = src.theResidueStyleDictionary;
         theLinkageStyleDictionary = src.theLinkageStyleDictionary;
         theGraphicOptions = src.theGraphicOptions;
+    }
+
+    /**
+     * The mass text of the renderer this one draws on behalf of, so that the SVG output reads like the
+     * canvas or image the same renderer would have produced.
+     * @param structure Structure being drawn.
+     * @return Returns the mass text.
+     */
+    @Override
+    protected String getMassText(Glycan structure) {
+        return (theSource != null) ? theSource.getMassText(structure) : super.getMassText(structure);
     }
 
     public void paint(GroupingSVGGraphics2D g2d, Glycan structure, HashSet<Residue> selected_residues, HashSet<Linkage> selected_linkages, boolean show_mass, boolean show_redend, PositionManager posManager, BBoxManager bboxManager) {
