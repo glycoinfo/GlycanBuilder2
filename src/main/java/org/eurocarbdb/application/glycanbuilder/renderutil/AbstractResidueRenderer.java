@@ -250,34 +250,16 @@ public abstract class AbstractResidueRenderer implements ResidueRenderer{
     	return p;
     }
     
-    static private Polygon createTopTriangle(int angle, double x, double y, double w, double h) {
+    /**
+     * A triangle pointing up. The SNFG asks that its symbols are not rotated - a symbol means the same
+     * monosaccharide whichever way round it is drawn - so a triangle keeps this one orientation whatever
+     * direction the structure grows in and wherever the residue's own bond points.
+     */
+    static private Polygon createUpTriangle(double x, double y, double w, double h) {
     	Polygon p = new Polygon();
-    	
-    	if(angle == 0) {
-    		// pointing up
-    		p.addPoint((int)(x+w/2), (int)(y));
-    		p.addPoint((int)(x+w),   (int)(y+h));
-    		p.addPoint((int)(x),     (int)(y+h));
-    	}
-    	if(angle == 1) {
-    		//pointing right
-    		p.addPoint((int)(x+w), (int)(y+h/2));
-    		p.addPoint((int)(x),   (int)(y+h));
-    		p.addPoint((int)(x),   (int)(y));
-    	}
-    	if(angle == 2) {
-    		//pointing down
-    		p.addPoint((int)(x+w/2), (int)(y+h));
-    		p.addPoint((int)(x),     (int)(y));
-    		p.addPoint((int)(x+w),   (int)(y));
-    	}
-    	if(angle == 3) {
-    		//pointing left
-    		p.addPoint((int)(x),   (int)(y+h/2));
-    		p.addPoint((int)(x+w), (int)(y+h));
-    		p.addPoint((int)(x+w), (int)(y));
-    	}
-    	
+    	p.addPoint((int)(x+w/2), (int)(y));
+    	p.addPoint((int)(x+w),   (int)(y+h));
+    	p.addPoint((int)(x),     (int)(y+h));
     	return p;
     }
 
@@ -742,17 +724,12 @@ public abstract class AbstractResidueRenderer implements ResidueRenderer{
 
     	// partially oriented shapes
     	if( shape.equals("triangle") ) {
-    		if(this.theGraphicOptions.NOTATION.equals(GraphicOptions.NOTATION_SNFG)) {
-    			if(node.getWasSticky()) {
-    				if(orientation.getIntAngle() == 180) {
-        				return createTopTriangle(theGraphicOptions.ORIENTATION,x,y,w,h);
-    				}else
-    					return createTriangle(angle(pp,ps),x,y,w,h);
-    			}else {
-    				return createTopTriangle(theGraphicOptions.ORIENTATION,x,y,w,h);
-    			}
-    		}else
-    			return createTriangle(angle(pp,ps),x,y,w,h);
+    		// The SNFG's triangle always points up: its symbols are not to be rotated, so neither the
+    		// direction the structure grows in nor the direction of the residue's own bond may turn it.
+    		// The other notations keep pointing it along the bond, as they always have.
+    		if(this.theGraphicOptions.NOTATION.equals(GraphicOptions.NOTATION_SNFG))
+    			return createUpTriangle(x,y,w,h);
+    		return createTriangle(angle(pp,ps),x,y,w,h);
     	}
     	if( shape.equals("hatdiamond") ) 
     		return createHatDiamond(angle(pp,ps),x,y,w,h);            

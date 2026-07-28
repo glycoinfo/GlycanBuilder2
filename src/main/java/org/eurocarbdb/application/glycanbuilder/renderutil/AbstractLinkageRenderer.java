@@ -71,15 +71,17 @@ public abstract class AbstractLinkageRenderer implements LinkageRenderer{
     		cx = cp.x;
     		cy = cp.y;
     		angle = angle(cc,cp);
-    		R = getExclusionRadius(cp,angle,pb)+2;
+    		R = getExclusionRadius(cp,angle,pb)+2*theGraphicOptions.SCALE;
     	}
     	else {
     		cx = c.x+c.width/2;
     		cy = c.y+c.height/2;
     		angle = angle(cp,cc);
-    		R = getExclusionRadius(cc,angle,cb)+2;
+    		R = getExclusionRadius(cc,angle,cb)+2*theGraphicOptions.SCALE;
     	}
-    	double space = (multiple) ?4. :2.;
+    	// The gap between the label and the bond scales too, so labels stay clear of the symbols when
+    	// the structure is enlarged (SCALE is 1 at 100%, leaving the default layout unchanged).
+    	double space = ((multiple) ?4. :2.) * theGraphicOptions.SCALE;
 
     	boolean add = above;
     	if( toparent )
