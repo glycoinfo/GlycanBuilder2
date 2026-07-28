@@ -1,6 +1,10 @@
 ## Change log
+### 1.26.1  (20260728)
+* Fixed anomeric symbol representation when aglycon is hidden
+* Fixed not to rotate symbol
+* Updated SVG export to match to other image export
 
-### 1.26.0  (202607--)
+### 1.26.0  (20260708)
 * Added methyl-phosphate (PMe) as a new organic substituent
 * Handled multi-line and selected WURCS export
 * Set file extension to “gws” when saving
