@@ -130,7 +130,7 @@ public class GlycanRendererAWT extends AbstractGlycanRenderer {
 	
 	protected void displayLegend(Paintable paintable, Glycan structure, boolean show_redend, BBoxManager bboxManager) {
 		Graphics2D g2d = paintable.getGraphics2D();
-		Rectangle structure_all_bbox = bboxManager.getComplete(structure.getRoot(show_redend));
+		Rectangle structure_all_bbox = bboxManager.getComplete(structure.getRoot(laysOutAglycon(structure, show_redend)));
 		
 		g2d.setColor(Color.black);
 		g2d.setFont(new Font(theGraphicOptions.MASS_TEXT_FONT_FACE, Font.PLAIN, 10));
@@ -177,7 +177,7 @@ public class GlycanRendererAWT extends AbstractGlycanRenderer {
 			boolean show_redend, BBoxManager bboxManager) {
 		Graphics2D g2d=paintable.getGraphics2D();
 		Rectangle structure_all_bbox = bboxManager.getComplete(structure
-				.getRoot(show_redend));
+				.getRoot(laysOutAglycon(structure, show_redend)));
 
 		g2d.setColor(Color.black);
 		g2d.setFont(new Font(theGraphicOptions.MASS_TEXT_FONT_FACE, Font.PLAIN,
