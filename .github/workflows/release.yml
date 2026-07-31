@@ -35,6 +35,7 @@ jobs:
         with:
           path: artifacts
           merge-multiple: true
+          pattern: '!glycanbuilder2-installer-windows'
 
       - name: List downloaded artifacts
         run: |
@@ -47,6 +48,10 @@ jobs:
           draft: false
           prerelease: true
           generate_release_notes: true
+          body: |
+            ## Windows
+            Install GlycanBuilder2 from the Microsoft Store:
+            https://apps.microsoft.com/detail/9pp6bsnx71jl
           files: |
             artifacts/*
         env:
