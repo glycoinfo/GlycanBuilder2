@@ -18,32 +18,30 @@ public class CompositionUtility {
 			
 			LinkedList<Residue> a_aResidues = copy(a_oGlycan);
 			a_oGlycan = Glycan.createComposition(a_oGlycan.getMassOptions());
-			for(Residue a_oRES : a_aResidues) {
-				a_oRES.isComposition(true);
+			for(Residue a_oRES : a_aResidues)
 				a_oGlycan.addAntenna(a_oRES);
-			}
-			
+			a_oGlycan.normalizeCompositionFlags();
+
 		} catch (Exception e) {
 			JOptionPane.showMessageDialog(null, e.getMessage(),
 					"Error while creating the cyclic unit",
 					JOptionPane.ERROR_MESSAGE);
 		}
 		theDoc.addStructure(a_oGlycan);
-		
+
 		return;
 	}
-	
+
 	public static void onChangeLV4(GlycanDocument theDoc, Glycan a_oGlycan) {
 		try {
 			if(a_oGlycan == null)
 				throw new Exception("This utility is need to select some structure");
-			
+
 			LinkedList<Residue> a_aResidues = convertMotif(a_oGlycan);
 			a_oGlycan = Glycan.createComposition(a_oGlycan.getMassOptions());
-			for(Residue a_oRES : a_aResidues) {
-				a_oRES.isComposition(true);
+			for(Residue a_oRES : a_aResidues)
 				a_oGlycan.addAntenna(a_oRES);
-			}
+			a_oGlycan.normalizeCompositionFlags();
 		} catch (Exception e) {
 			JOptionPane.showMessageDialog(null, e.getMessage(),
 					"Error while creating the cyclic unit",

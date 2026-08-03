@@ -76,7 +76,6 @@ public class WURCSSequence2ToGlycan {
 			this.glycan = Glycan.createComposition(_massOpt);
 			for(GRES gres : gres2frag.getRootOfCompositions()) {
 				Residue compoRoot = this.gres2residue.get(gres);
-				compoRoot.isComposition(true);
 				this.glycan.addAntenna(compoRoot);
 			}
 			// substituent composition
@@ -93,6 +92,8 @@ public class WURCSSequence2ToGlycan {
 				Residue withoutLinkage = new Residue(ResidueType.createAssigned("no glycosidic linkages"));
 				this.glycan.addAntenna(withoutLinkage);
 			}
+
+			this.glycan.normalizeCompositionFlags();
 		}
 	}
 

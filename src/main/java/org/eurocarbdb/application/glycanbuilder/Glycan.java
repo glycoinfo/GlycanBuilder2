@@ -176,6 +176,8 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 				linkage.getChildResidue().addParentOfFragment(current);
 		}
 
+		normalizeCompositionFlags();
+
 		// set mass options
 		if( mass_opt!=null ) 
 			mass_options.setValues(mass_opt);
@@ -239,10 +241,11 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 						ret.addAntenna(ResidueDictionary.newResidue(r.getType().getName()));
 				}
 			}
+			ret.normalizeCompositionFlags();
 			return ret;
-		}    
+		}
 		catch(Exception e) {
-			return createComposition(this.mass_options);      
+			return createComposition(this.mass_options);
 		}
 	}
 
@@ -507,6 +510,31 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 	 */
 	public boolean isComposition() {
 		return (bracket!=null && root!=null && !root.hasChildren());
+	}
+
+	/**
+	   Bring every residue's {@link Residue#isComposition} flag in line with
+	   {@link #isComposition}. Residues attached directly to a composition's
+	   bracket form a flat, unordered list rather than a linked structure, and
+	   this flag is what tells mass calculation and rendering not to mistake
+	   their bracket attachment for a real glycosidic bond.
+
+	   <p>Call this once, after a composition's residues have all been
+	   attached (e.g. after a sequence of {@link #addAntenna}/{@link #setRoot}
+	   calls) - not while such a sequence is still in progress. {@link
+	   #isComposition} is derived from the current shape of the tree, so it
+	   can legitimately flip from <code>true</code> to <code>false</code>
+	   partway through building a structure (for instance, if the root ends up
+	   with children); trying to keep the flag continuously in sync during
+	   that process would just as easily leave it wrong. Normalizing once,
+	   against the final shape, avoids that ordering hazard entirely - and
+	   also clears the flag on residues that were previously marked as a
+	   composition member but no longer are.
+	 */
+	public void normalizeCompositionFlags() {
+		boolean composition = isComposition();
+		for( Residue r : getAllResidues() )
+			r.isComposition(composition);
 	}
 
 	/**
