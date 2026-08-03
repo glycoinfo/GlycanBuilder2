@@ -60,7 +60,12 @@ public class CanvasCommand {
 	
 	private JMenu extractGAGs(String a_sUnitType, ActionManager a_oActionManager) {
 		JMenu a_oGAGsMenu = new JMenu(a_sUnitType);
-		
+		// match the placeholder icon of its sibling leaf items (registered via
+		// "addstructure=" below): without it, this nested JMenu has no icon at
+		// all, which some look-and-feels (e.g. Mac Aqua) indent differently
+		// from its icon-bearing siblings, misaligning the label text
+		a_oGAGsMenu.setIcon(ThemeManager.getResizableEmptyIcon(ICON_SIZE.L3).getResizableIcon());
+
 		for(CoreType a_oCore : CoreDictionary.getCores("GAGs")) {
 			if(a_oCore.getDescription().contains(a_sUnitType))
 				a_oGAGsMenu.add(a_oActionManager.get("addstructure=" + a_oCore.getName()));
