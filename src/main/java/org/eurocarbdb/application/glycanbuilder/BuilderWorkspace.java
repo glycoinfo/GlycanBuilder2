@@ -301,11 +301,72 @@ public class BuilderWorkspace extends BaseDocument implements BaseWorkspace,
 
 	/**
 	 * Return the value of the <code>autosave</code> flag
-	 * 
+	 *
 	 * @see #exit(String)
 	 */
 	public boolean getAutoSave() {
 		return autosave;
+	}
+
+	// ---- cross-session history persistence
+	//
+	// Whether the file history (recent files, last used folder) and the other
+	// options are allowed to be written to disk so they survive an application
+	// restart. This is off by default: nothing is ever written unless the user
+	// explicitly turns it on (see setHistoryPersistenceEnabled), and the mere
+	// presence of the file on disk is itself the record of that consent - there
+	// is no separate flag to keep in sync with it.
+
+	private boolean historyPersistenceEnabled;
+
+	/**
+	 * Return the fixed, OS-independent location of the configuration file used
+	 * to persist history/options across sessions. <code>user.home</code> is
+	 * resolved correctly by the JVM on Windows, macOS and Linux, so no
+	 * per-platform branching is needed.
+	 */
+	public static String getPersistentConfigFile() {
+		return System.getProperty("user.home") + File.separator + ".glycanbuilder" + File.separator + "config.xml";
+	}
+
+	/**
+	 * Return <code>true</code> if the file history and options are persisted to
+	 * disk between sessions.
+	 */
+	public boolean isHistoryPersistenceEnabled() {
+		return historyPersistenceEnabled;
+	}
+
+	/**
+	 * Record whether cross-session persistence is currently in effect, without
+	 * writing or deleting anything. Used once at startup to reflect whether the
+	 * workspace was just loaded from {@link #getPersistentConfigFile} or from
+	 * the bundled defaults; use {@link #setHistoryPersistenceEnabled} for the
+	 * user-facing toggle, which does have those side effects.
+	 */
+	public void setHistoryPersistenceEnabledSilently(boolean enabled) {
+		historyPersistenceEnabled = enabled;
+	}
+
+	/**
+	 * Turn cross-session persistence on or off. Turning it on immediately writes
+	 * the current state to {@link #getPersistentConfigFile}, so the effect of
+	 * opting in is visible right away rather than silently deferred to the next
+	 * exit. Turning it off deletes that file, so nothing is left behind on disk.
+	 */
+	public void setHistoryPersistenceEnabled(boolean enabled) {
+		historyPersistenceEnabled = enabled;
+
+		String config_file = getPersistentConfigFile();
+		File file = new File(config_file);
+		File parent = file.getParentFile();
+		if (enabled) {
+			if (parent != null) parent.mkdirs();
+			storeConfiguration(config_file);
+		} else {
+			file.delete();
+			if (parent != null) parent.delete(); // only succeeds if now empty, harmless no-op otherwise
+		}
 	}
 
 	/**

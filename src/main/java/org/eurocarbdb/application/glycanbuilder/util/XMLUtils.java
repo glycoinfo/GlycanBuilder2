@@ -117,12 +117,12 @@ public class XMLUtils {
         TransformerFactory tFactory = TransformerFactory.newInstance();
         Transformer transformer = tFactory.newTransformer();
         transformer.setOutputProperty(OutputKeys.INDENT, "yes");
-        
-        DOMSource source = new DOMSource(d);
-        BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os));
-        StreamResult result = new StreamResult(bw); // if you open a StreamResult with a File and the filename contain spaces you get an exception
 
-        transformer.transform(source, result);      
+        DOMSource source = new DOMSource(d);
+        try( BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(os)) ) {
+            StreamResult result = new StreamResult(bw); // if you open a StreamResult with a File and the filename contain spaces you get an exception
+            transformer.transform(source, result);
+        }
         return true;
     }
     catch(Exception e) {
