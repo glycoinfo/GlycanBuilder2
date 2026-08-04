@@ -554,22 +554,6 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		return this.theDebugMenu;
 	}
 	
-	private String getCurrentOrientation() {
-		int orientation = theWorkspace.getGraphicOptions().ORIENTATION;
-		String iconId;
-		if (orientation == GraphicOptions.LR) iconId = "lr";
-		else if (orientation == GraphicOptions.RL) iconId = "rl";
-		else if (orientation == GraphicOptions.TB) iconId = "tb";
-		else if (orientation == GraphicOptions.BT) iconId = "bt";
-		else return null;
-		return iconId;
-	}
-
-	private EurocarbResizableIcon getOrientationIcon() {
-		return themeManager.getResizableIcon(getCurrentOrientation(),
-				ICON_SIZE.L3);
-	}
-
 	private void createActions() {
 		CanvasAction a_oAction = new CanvasAction();
 		a_oAction.createAction(getTheActionManager(), themeManager, defaultMenuIconSize, this, getTheGlycanRenderer());
@@ -1398,28 +1382,13 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 	}
 
 	private void updateOrientationButton() {
+		// the button always shows the same "rotate" icon (see CanvasAction),
+		// regardless of the current orientation - it represents the action
+		// (rotate the drawing), not the current state, so there is nothing to
+		// update here beyond creating it once
 		if (orientationButton == null) {
 			orientationButton = getTheActionManager().get("orientation")
 					.getJCommandButton(ICON_SIZE.L4, this, " ");
-		}
-		EurocarbResizableIcon iconR = getOrientationIcon();
-		if(iconR==null){
-			System.err.println("Icon R is null1");
-		}else if(iconR.getIconProperties()==null){
-			System.err.println("Icon R is null2");
-		}else if(iconR.getIconProperties().id==null){
-			System.err.println("Icon R is null3");
-		}
-		orientationButton.setIcon(iconR.getThemeManager().getResizableIcon(
-				iconR.getIconProperties().id, ICON_SIZE.L4).getResizableIcon());
-
-		try {
-			getTheActionManager().get("orientation").putValue(
-					Action.SMALL_ICON,
-					iconR.getThemeManager().getImageIcon(
-							iconR.getIconProperties().id, ICON_SIZE.L3));
-		} catch (IOException e) {
-			e.printStackTrace();
 		}
 	}
 
