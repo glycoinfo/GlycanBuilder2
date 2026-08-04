@@ -69,8 +69,10 @@ public class GlycanUtils {
 	
 	public static boolean isShowRedEnd (Glycan a_oGlycan, GraphicOptions theGraphicOptions, boolean show_redend) {
 		Residue a_oRoot = a_oGlycan.getRoot().firstChild();
+		if(a_oRoot==null) return show_redend;
+
 		boolean ret = show_redend;
-		
+
 		if(a_oRoot.isSaccharide() && isFacingAnom(a_oRoot)) ret = false;
 		if(a_oRoot.isStartCyclic()) ret = false;
 		if(theGraphicOptions.NOTATION.equals(GraphicOptions.NOTATION_SNFG)) {
