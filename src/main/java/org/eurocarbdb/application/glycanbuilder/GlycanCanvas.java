@@ -3584,8 +3584,24 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		try {
 			Residue toadd = TerminalDictionary.newTerminal(name);
 			Residue current = getCurrentResidue();
-			if (theDoc.addResidue(current, getLinkedResidues(), toadd) != null)
+			if (theDoc.addResidue(current, getLinkedResidues(), toadd) != null) {
 				setSelection(current);
+
+				if (current != null && current.isBracket()) {
+					// addResidue() may have unwrapped an attach-point residue (see
+					// Residue#addChild), so the residue actually attached to the
+					// bracket is its last child now, not necessarily "toadd" itself
+					Residue added = current.getChildrenLinkages().getLast().getChildResidue();
+
+					GlycanUtils glycanUtils = new GlycanUtils();
+					glycanUtils.getCoreResidue(this.getSelectedStructures());
+
+					LinkedList<Residue> core = glycanUtils.getCoreResidues();
+					for(Residue coreResidue : core) {
+						added.addParentOfFragment(coreResidue);
+					}
+				}
+			}
 		} catch (Exception e) {
 			e.getMessage();
 		}
