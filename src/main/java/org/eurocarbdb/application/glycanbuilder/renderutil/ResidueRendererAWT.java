@@ -248,9 +248,15 @@ public class ResidueRendererAWT extends AbstractResidueRenderer {
     			g2d.drawString(text,(int)text_rect.x,(int)(text_rect.y+text_rect.height));
     		}
     		if(orientation.equals(-90) || orientation.equals(90)) {
-    			if(isSNFG) {
+    			// keep the label upright and readable whenever it is the residue's
+    			// only visual representation (no shape to rotate along with): this
+    			// already happened for SNFG monosaccharide shapes, but substituents
+    			// and bridges never have a "composition" per checkComposiiton(), so
+    			// isSNFG was always false for them and their labels turned sideways
+    			// with the structure's orientation (issue #86)
+    			if(isSNFG || shape==null) {
     				Rectangle2D.Double text_rect = new Rectangle2D.Double(midx(cur_bbox)-text_bound.width/2,midy(cur_bbox)-text_bound.height/2,text_bound.width,text_bound.height);
-        			if( shape==null || fill_shape==null ) 
+        			if( shape==null || fill_shape==null )
         				g2d.clearRect((int)text_rect.x,(int)text_rect.y,(int)text_rect.width,(int)text_rect.height);
         			g2d.drawString(text,(int)text_rect.x,(int)(text_rect.y+text_rect.height));
     			} else {
