@@ -1,4 +1,18 @@
 ## Change log
+### 1.26.-  (202608--)
+* Updated README.md to add installer info
+* Fixed error when root is alditol or open-chain
+* Fixed onBorder check not to have linkage to substituent with placement
+* Restored feature to remember last directory and recent files
+* Trimmed spaces on the head of description
+* Set empty icons on GAGs in Add structure
+* Fixed composition representation
+* Updated sentences for remembering recent files
+* Fixed image for rotation button icon
+* Removed action and function for root of fragment and composition
+* Fixed to show linkage when terminals are added to bracket
+* Changed not to rotate substituent
+
 ### 1.26.1  (20260728)
 * Fixed anomeric symbol representation when aglycon is hidden
 * Fixed not to rotate symbol
