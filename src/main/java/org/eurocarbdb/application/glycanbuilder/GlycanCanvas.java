@@ -605,20 +605,6 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		}*/
 		//getTheActionManager().get("stringNotation").setEnabled(true);
 		
-		if(this.getCurrentResidue() == null || 
-				!this.getCurrentResidue().isSaccharide() || 
-				!this.getCurrentResidue().hasParent() ||
-				!this.getCurrentResidue().getParent().isBracket()) {
-			getTheActionManager().get("antennaParent").setEnabled(false);
-			if(this.antennaParentButton!=null) this.antennaParentButton.setVisible(false);
-			if(this.antennaParentItem!=null) this.antennaParentItem.setVisible(false);
-		}else {
-			boolean isAntenna = this.getCurrentResidue().getParent().isBracket();
-			getTheActionManager().get("antennaParent").setEnabled(isAntenna);
-			if(this.antennaParentButton!=null) this.antennaParentButton.setVisible(isAntenna);
-			if(this.antennaParentItem!=null) this.antennaParentItem.setVisible(isAntenna);
-		}
-		
 		getTheActionManager().get("properties").setEnabled(hasCurrentResidue());
 
 		// theActionManager.get("orientation").putValue(Action.SMALL_ICON,
@@ -1929,7 +1915,6 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		
 		bracketMenuItem=structure_menu.add(getTheActionManager().get("bracket"));
 		repeatMenuItem=structure_menu.add(getTheActionManager().get("repeat"));
-		antennaParentItem=structure_menu.add(getTheActionManager().get("antennaParent"));
 		cyclicMenuItem = structure_menu.add(getTheActionManager().get("cyclic"));
 		
 		structure_menu.addSeparator();
@@ -2087,8 +2072,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		cyclicButton=toolbar.add(getTheActionManager().get("cyclic"));
 		//altButton = toolbar.add(getTheActionManager().get("alternative"));
 		toolbar.add(getTheActionManager().get("properties"));
-		
-		this.antennaParentButton=toolbar.add(getTheActionManager().get("antennaParent"));
+
 		//toolbar.add(getTheActionManager().get("stringNotation"));
 		
 		toolbar.addSeparator();
@@ -3351,52 +3335,6 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		return;
 	}
 		
-	public void onAntennaParent() {
-		try {
-			//this.getCurrentResidue().getParentsOfFragment().clear();
-			LinkedList<Linkage> linkages =
-				getSelectedStructures().iterator().next().getBracket().getChildrenLinkages();
-
-			GlycanUtils glycanUtil = new GlycanUtils();
-			glycanUtil.getCoreResidue(this.getSelectedStructures());
-			Residue root = glycanUtil.getCoreResidues().getFirst();
-
-			for(Linkage linkage : linkages) {
-				if(linkage.getChildResidue().equals(getSelectedResiduesList().iterator().next())) {
-					int antennaIndex = linkages.indexOf(linkage);
-					getCurrentResidue().setAntennaeID(antennaIndex + 1);
-					break;
-				}
-			}		
-			
-			ResidueSelectorDialog rsd = new ResidueSelectorDialog(
-					theParent, "Select parent node",
-					"Select parent node of this antenna", 
-					new Glycan(root, true, null),
-					glycanUtil.getCoreResidues(), true, getTheGlycanRenderer());
-			
-			rsd.setVisible(true);
-			if (!rsd.isCanceled()) {
-				if (rsd.getSelectedResidues().size() == 1) {
-					throw new Exception("Core node should be selected more than one monosaccharide.");
-				}
-				this.getCurrentResidue().getParentsOfFragment().clear();
-				for(Residue residue : rsd.getSelectedResidues()) {
-					if(!residue.isSaccharide()) continue;
-					this.getCurrentResidue().addParentOfFragment(residue);
-				}
-			} //else {
-				//this.getCurrentResidue().getParentsOfFragment().clear();
-				//this.getCurrentResidue().setAntennaeID(-1);
-			//}
-		} catch (Exception e) {
-			e.getMessage();
-		}
-		
-		//updateResidue();
-	}
-	/***/
-	
 	public void hyperlinkUpdate(HyperlinkEvent e) {
 		if(e.getEventType() != HyperlinkEvent.EventType.ACTIVATED) return;
 		String url = e.getURL().toString();
@@ -4141,7 +4079,6 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		
 		// editing
 		if(a_enumAction.equals(CanvasActionDescriptor.STRINGNOTATION)) onAddStringNotation();
-		if(a_enumAction.equals(CanvasActionDescriptor.ANTENNAPARENT)) onAntennaParent();
 		if(a_enumAction.equals(CanvasActionDescriptor.UNDO)) onUndo();
 		if(a_enumAction.equals(CanvasActionDescriptor.REDO)) onRedo();
 		if(a_enumAction.equals(CanvasActionDescriptor.CUT)) cut();
@@ -4583,12 +4520,10 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 
 	private JMenuItem bracketMenuItem;
 	private JMenuItem repeatMenuItem;
-	private JMenuItem antennaParentItem;
 	private JMenuItem cyclicMenuItem;
-	
+
 	private JButton bracketButton;
 	private JButton repeatButton;
-	private JButton antennaParentButton;
 	private JButton cyclicButton;
 	private JButton altButton;
 	
