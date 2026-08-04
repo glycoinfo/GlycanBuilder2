@@ -197,7 +197,7 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
 	private void askAboutHistoryPersistence() {
 		int answer = JOptionPane.showConfirmDialog(this,
 				"Would you like GlycanBuilder to remember recently opened files\n" +
-				"and the last used folder between sessions?\n\n" +
+				"and the last used folder after restarting?\n\n" +
 				"You can change this later from the File menu.",
 				"Remember recent files?",
 				JOptionPane.YES_NO_OPTION,
@@ -392,7 +392,7 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
 		file_menu.add(theActionManager.get("openinto"));
 		file_menu.add(recent_files_menu);
 
-		remember_history_item = new JCheckBoxMenuItem("Remember recent files and folder between sessions");
+		remember_history_item = new JCheckBoxMenuItem("Remember files after restarting");
 		remember_history_item.setSelected(theWorkspace.isHistoryPersistenceEnabled());
 		remember_history_item.addItemListener(new ItemListener() {
 			public void itemStateChanged(ItemEvent e) {
