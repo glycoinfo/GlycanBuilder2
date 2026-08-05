@@ -421,14 +421,6 @@ public class Residue {
 	}
 
 	/*
-    Return <code>true</code> if this residue is a modificaiton.
-    @see ResidueType#isModification
-	 */
-	public boolean isModificaiton() {
-		return type.isModification();
-	}
-
-	/*
 	Return <core>true</code> id this residue is a bridge.
 	@see ResidueType#isBridge
 	 */

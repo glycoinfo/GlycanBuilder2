@@ -5,7 +5,6 @@ import org.eurocarbdb.MolecularFramework.sugar.GlycoconjugateException;
 import org.eurocarbdb.MolecularFramework.sugar.ModificationType;
 import org.eurocarbdb.MolecularFramework.sugar.Superclass;
 import org.eurocarbdb.application.glycanbuilder.Residue;
-import org.eurocarbdb.application.glycanbuilder.linkage.Linkage;
 import org.glycoinfo.GlycanFormatconverter.util.exchange.SugarToWURCSGraph.BaseTypeForRelativeConfiguration;
 import org.glycoinfo.WURCSFramework.util.exchange.*;
 import org.glycoinfo.GlycanFormatconverter.util.TrivialName.TrivialNameDictionary;
@@ -126,11 +125,6 @@ public class ResidueAnalyzer {
 		// for alditol
 		if(_residue.isAlditol())
 			modifications.add("1*aldi");
-
-		for(Linkage a_oLIN : _residue.getChildrenLinkages()) {
-			if(!a_oLIN.getChildResidue().isModificaiton()) continue;
-			modifications.add(a_oLIN.getParentPositionsString() + "*" + a_oLIN.getChildResidue().getTypeName());
-		}
 
 		for(String modification : _residue.getModifications()) {
 			modifications.add(modification);

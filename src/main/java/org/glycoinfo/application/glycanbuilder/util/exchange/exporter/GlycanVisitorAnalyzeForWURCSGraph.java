@@ -78,7 +78,7 @@ public class GlycanVisitorAnalyzeForWURCSGraph implements GlycanVisitor {
 		if(a_oResidue.isStartRepetition() || a_oResidue.isEndCyclic() || a_oResidue.isStartCyclic() ||
 				a_oResidue.getType().getSuperclass().equals("Bridge") || this.isContain(a_oResidue.getParentLinkage())) return;
 		
-		if((a_oResidue.isSubstituent() || a_oResidue.isModificaiton())) {
+		if(a_oResidue.isSubstituent()) {
 			if(a_oResidue.hasParent()) {
 				if(isProbability(a_oResidue.getParentLinkage()) || a_oResidue.getParent().isBracket())
 					this.a_aRootOfFragments.add(a_oResidue);

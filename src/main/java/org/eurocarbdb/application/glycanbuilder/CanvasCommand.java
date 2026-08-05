@@ -128,7 +128,7 @@ public class CanvasCommand {
 		for (String superclass : ResidueDictionary.getSuperclasses()) {
 			if(superclass.equals("Reducing end")) continue;
 			if(a_sActionType.equals("insert=")) {
-				if(superclass.equals("Substituent") || superclass.equals("Modification")) continue;
+				if(superclass.equals("Substituent")) continue;
 			}
 
 			JMenu class_menu = new JMenu(superclass);

@@ -169,12 +169,3 @@ SH		Substituent	Deoxy-type	H2S1		-	thio			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no
 Ino		Substituent	O-type		C6H12O6		-	Ino				1	?	?	no	yes	no	0	6	no	6	no	1	-	-	no	no	yes	Inositol
 %Ino		Substituent	O-type		C6H12O6	-	Ino				?	?	?	no	yes	no	0	6	no	6	no	1	-	-	no	no	yes	Inositol
 %162.0528	162.1424
-%
-% MODIFICATIONS
-d		Modification	d		H2		d	d		?	?	?	no	no	no	0	1	no	1	no	1	-	-	no	yes	yes	Deoxygenation
-a		Modification	aric	H2O2	-	aric	?	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Aric
-en		Modification	en		H2O2		-	en		?	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	en
-%sat		Modification	sat		-		-	sat		?	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Unsaturation
-ulo		Modification	ulo		O		-	ulo		?	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Ulosonic
-%onic	Modification	onic	C1H2O3	-	onic	?	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Carbonic acid
-aldi	Modification	aldi	H2O		-	aldi	?	?	?	no	no	no	0	1	no	1	no	1	-	-	yes	no	yes	Alditol

@@ -401,9 +401,6 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 			redend.getChildAt(0).setAnomericState('?');
 			redend.getChildAt(0).setRingSize('o');
 		}
-		if (redend.getTypeName().equals("d")) {
-			redend.getChildAt(0).setAnomericState('?');
-		}
 		if (!redend.getTypeName().equals("redEnd")) {
 			redend.getChildAt(0).setAlditol(false);
 			if (redend.getChildAt(0).getRingSize() == 'o') {
