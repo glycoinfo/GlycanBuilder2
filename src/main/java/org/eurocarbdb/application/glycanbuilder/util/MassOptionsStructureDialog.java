@@ -236,7 +236,7 @@ public class MassOptionsStructureDialog extends EscapeDialog implements java.awt
 		// retrieve common options
 		if( field_reducingend.getSelectedItem().equals("Other...") ) {
 			ResidueType red_end_type = ResidueType.createOtherReducingEnd(field_other_name.getText(),Double.valueOf(field_other_mass.getText()));
-			if( ResidueDictionary.findResidueType(red_end_type.getResidueName())!=null ) {
+			if( ResidueDictionary.hasResidueType(red_end_type.getResidueName()) ) {
 				javax.swing.JOptionPane.showMessageDialog(this,"The name specified for the reducing end is already existing.", "Duplicate name", javax.swing.JOptionPane.ERROR_MESSAGE);
 				return false;
 			}

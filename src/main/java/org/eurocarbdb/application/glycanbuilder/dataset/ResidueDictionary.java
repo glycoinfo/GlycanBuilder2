@@ -94,7 +94,7 @@ public class ResidueDictionary {
        @see ResidueType
 	 */
 	public static boolean hasResidueType(String type_name) {
-		return (findResidueType(type_name)!=null);
+		return dictionary.containsKey(type_name.toLowerCase());
 	}
 
 	/**
