@@ -68,9 +68,11 @@ public abstract class LinkageMatcher {
          <li>cr: child is a ring fragment </li> 
          <li>cx: child is a special residue </li> 
          <li>cc: child is a glycosidic cleaveage</li> 
-         <li>cp: child is a repeating block indicator</li> 
+         <li>cp: child is a repeating block indicator</li>
+         <li>cbr: child is a cross-linked (Bridge) substituent</li>
+         <li>chc: child has children</li>
        </ul>
-       
+
      */
     static public LinkageMatcher parse(String init) {
     try {
@@ -245,6 +247,10 @@ class ConditionFactory {
         return new ChildIsBracketCondition();
         if( attribute.equals("cp") )
         return new ChildIsRepetitionCondition();
+        if( attribute.equals("cbr") )
+        return new ChildIsBridgeCondition();
+        if( attribute.equals("chc") )
+        return new ChildHasChildrenCondition();
 
         throw new Exception("Invalid attribute name: <" + attribute + ">");
     }
@@ -432,6 +438,26 @@ class ChildIsRepetitionCondition extends LinkageMatcher {
 
     public String toString() {
     return "cp";
+    }
+}
+
+class ChildIsBridgeCondition extends LinkageMatcher {
+    public boolean matches(Residue parent, Linkage link, Residue child) {
+    return (child!=null && child.isBridge());
+    }
+
+    public String toString() {
+    return "cbr";
+    }
+}
+
+class ChildHasChildrenCondition extends LinkageMatcher {
+    public boolean matches(Residue parent, Linkage link, Residue child) {
+    return (child!=null && child.hasChildren());
+    }
+
+    public String toString() {
+    return "chc";
     }
 }
 

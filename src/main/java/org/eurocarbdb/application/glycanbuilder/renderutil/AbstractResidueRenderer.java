@@ -62,8 +62,10 @@ public abstract class AbstractResidueRenderer implements ResidueRenderer{
     	ResidueStyle style = theResidueStyleDictionary.getStyle(node);
     	String text = style.getText();
 
+    	// as a bridge the thio group has lost its H, but showing bare "S" is
+    	// indistinguishable from the Sulfate bridge symbol
     	if ((type.getSuperclass().equals("Bridge") && text != null) && text.equals("SH")) {
-    		text = "S";
+    		text = "Thio";
 		}
 
     	return (text!=null) ?text :type.getResidueName();

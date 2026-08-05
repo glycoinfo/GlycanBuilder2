@@ -154,13 +154,9 @@ NSuc	Substituent	N-type		C4H7N1O3	-	NSuc			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	n
 Fo		Substituent	O-type		C1H2O2		-	OFo				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Formyl
 Am		Substituent	O-type		C1H4N2O1	-	OAm				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Amidino
 Suc		Substituent	O-type		C4H6O4		-	Sub				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Succinate
-DiMe	Substituent	O-type		C2H6O1		-	DiMe			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Dimethyl
 NDiMe	Substituent	N-type		C2H6N1		-	N-DiMe			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	N-dimethyl
 PyrP	Substituent	P/S-type	H4P2O7		-	PyrP			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Pyrophosphate
 Tri-P	Substituent	P/S-type	H5O10P3		-	Tri-P			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Triphosphate
-OMeOH	Substituent	O-type		C1H4O1		-	OMeOH			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Hydroxymethyl
-EtOH	Substituent	O-type		C2H6O2		-	EtOH			1	?	?	no	no	no	0	1	no	1	no	1	-	1	no	no	yes	Ethanol
-NEtOH	Substituent	N-type		C2H7N1O1	-	NEtOH			1	?	?	no	no	no	0	1	no	1	no	1	-	1	no	no	yes	Ethanolamine
 F		Substituent	Deoxy-type	H1F1		-	Fluoro			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Fluoro
 I		Substituent	Deoxy-type	H1I1		-	Iodo			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Iodo
 Br		Substituent	Deoxy-type	H1Br1		-	Bromo			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Bromo
@@ -169,11 +165,7 @@ SH		Substituent	Deoxy-type	H2S1		-	thio			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no
 (S)Lac	Substituent	O-type		C3H6O3		-	(s)-lactate		1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	S-lactate
 (R)Lac	Substituent	O-type		C3H6O3		-	(r)-lactate		1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	R-lactate
 (X)Lac	Substituent	O-type		C3H6O3		-	(x)-lactate		1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	X-lactate
-(S)Py	Substituent	O-type		C3H5O4		-	(s)-pyruvate	2	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	S-pyruvate
-(R)Py	Substituent	O-type		C3H5O4		-	(r)-pyruvate	2	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	R-pyruvate
-Py		Substituent	O-type		C3H5O4		-	(x)-pyruvate	2	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	X-pyruvate
 ?		Substituent	Unknown		H2			-	?				?	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Unknown
-Anhydro	Substituent	Unknown		H2O1		-	Anhydro			?	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Anhydro
 Ino		Substituent	O-type		C6H12O6		-	Ino				1	?	?	no	yes	no	0	6	no	6	no	1	-	-	no	no	yes	Inositol
 %Ino		Substituent	O-type		C6H12O6	-	Ino				?	?	?	no	yes	no	0	6	no	6	no	1	-	-	no	no	yes	Inositol
 %162.0528	162.1424
