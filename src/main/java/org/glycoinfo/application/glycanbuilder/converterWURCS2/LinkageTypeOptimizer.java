@@ -68,14 +68,12 @@ public class LinkageTypeOptimizer {
     }
 
 	private LinkageType getSubstituentLinkageType(Residue res) {
+		// O-type and P/S-type substituents both attach through an oxygen (the
+		// old "Organic" category, and "P"/"S" matched by name, have been folded
+		// into these two respectively - see residue_types)
 		switch(res.getType().getCompositionClass()) {
 			case "O-type":
-			case "Organic":
-				return LinkageType.H_AT_OH;
-		}
-		switch(res.getType().getName()) {
-			case "P":
-			case "S":
+			case "P/S-type":
 				return LinkageType.H_AT_OH;
 		}
 		return LinkageType.DEOXY;
