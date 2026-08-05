@@ -9,11 +9,20 @@ import org.glycoinfo.GlycanFormatconverter.Glycan.SubstituentInterface;
 import org.glycoinfo.GlycanFormatconverter.util.exchange.SugarToWURCSGraph.SubstituentTypeToMAP;
 import org.glycoinfo.WURCSFramework.util.oldUtil.SubstituentTemplate;
 
+import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
 public class ResidueToModification {
+
+	// substituents whose upstream glycanformatconverter template/MAP table is missing
+	// or unreliable (e.g. Py/(S)Py/(R)Py all collapse to the same stereo notation) -
+	// WURCS2 export is deliberately unsupported for these until that table is fixed
+	private static final Set<String> WURCS2_UNSUPPORTED_SUBSTITUENTS = new HashSet<>(Arrays.asList(
+			"Pyr", "?", "Ino", "Py", "(S)Py", "(R)Py"));
 
 	private Residue subtituent;
 	private Linkage childLinkage = null;
@@ -60,7 +69,10 @@ public class ResidueToModification {
 		this.childLinkage = _linkage;
 	}
 	
-	public void setSubstituentTemplate(Residue _substituent) {
+	public void setSubstituentTemplate(Residue _substituent) throws Exception {
+		if (WURCS2_UNSUPPORTED_SUBSTITUENTS.contains(_substituent.getTypeName()))
+			throw new Exception("WURCS2 export is not supported for substituent \"" + _substituent.getTypeName() + "\"");
+
 		SubstituentInterface subTemp = BaseSubstituentTemplate.forIUPACNotationWithIgnore(_substituent.getTypeName());
 		if (subTemp == null) {
 			subTemp = BaseCrossLinkedTemplate.forIUPACNotationWithIgnore(_substituent.getTypeName());
