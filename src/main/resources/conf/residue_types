@@ -165,7 +165,6 @@ SH		Substituent	Deoxy-type	H2S1		-	thio			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no
 (S)Lac	Substituent	O-type		C3H6O3		-	(s)-lactate		1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	S-lactate
 (R)Lac	Substituent	O-type		C3H6O3		-	(r)-lactate		1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	R-lactate
 (X)Lac	Substituent	O-type		C3H6O3		-	(x)-lactate		1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	X-lactate
-?		Substituent	Unknown		H2			-	?				?	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Unknown
 Ino		Substituent	O-type		C6H12O6		-	Ino				1	?	?	no	yes	no	0	6	no	6	no	1	-	-	no	no	yes	Inositol
 %Ino		Substituent	O-type		C6H12O6	-	Ino				?	?	?	no	yes	no	0	6	no	6	no	1	-	-	no	no	yes	Inositol
 %162.0528	162.1424

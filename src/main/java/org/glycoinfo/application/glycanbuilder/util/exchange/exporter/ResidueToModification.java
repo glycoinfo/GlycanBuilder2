@@ -22,7 +22,7 @@ public class ResidueToModification {
 	// or unreliable (e.g. Py/(S)Py/(R)Py all collapse to the same stereo notation) -
 	// WURCS2 export is deliberately unsupported for these until that table is fixed
 	private static final Set<String> WURCS2_UNSUPPORTED_SUBSTITUENTS = new HashSet<>(Arrays.asList(
-			"Pyr", "?", "Ino", "Py", "(S)Py", "(R)Py"));
+			"Pyr", "Ino", "Py", "(S)Py", "(R)Py"));
 
 	private Residue subtituent;
 	private Linkage childLinkage = null;

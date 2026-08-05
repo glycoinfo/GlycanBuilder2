@@ -30,11 +30,12 @@ public class SubstituentWURCSConversionTester {
 	// Py, (S)Py, (R)Py and Anhydro are intentionally excluded: they are Bridge-only
 	// now (see cross_linked_substituent_types) and no longer resolvable via the
 	// plain ResidueDictionary used by this single/synthetic-double-bond test.
+	// "?" (Unknown) is likewise excluded: removed from residue_types entirely.
 	private static final String[] SUBSTITUENTS = {
 		"Me", "Ac", "Et", "NAc", "P", "S", "Pyr", "PMe", "PCho", "PPEtn", "PEtn", "N",
 		"Gc", "NGc", "NS", "NFo", "NAm", "NMe", "NSuc", "Fo", "Am", "Suc", "NDiMe",
 		"PyrP", "Tri-P", "F", "I", "Br", "Cl", "SH",
-		"(S)Lac", "(R)Lac", "(X)Lac", "?", "Ino"
+		"(S)Lac", "(R)Lac", "(X)Lac", "Ino"
 	};
 
 	public static void main(String[] args) throws Exception {
