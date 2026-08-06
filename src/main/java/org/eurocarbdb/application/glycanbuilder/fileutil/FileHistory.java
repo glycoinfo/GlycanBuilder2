@@ -271,11 +271,13 @@ public class FileHistory {
         config.put("FileHistory", "file_type" + c, getFileType(file_path));
         c++;
     }
+
+    config.put("FileHistory", "recent_folder", (recent_folder!=null) ?recent_folder :"");
     }
 
-    public void retrieve(Configuration config) {    
+    public void retrieve(Configuration config) {
     clear();
-    
+
     for( int c=0; c<8; c++ ) {
         String file_path = config.get("FileHistory", "file_path" + c);
         String file_type = config.get("FileHistory", "file_type" + c);
@@ -284,6 +286,10 @@ public class FileHistory {
         file_types.put(file_path,file_type);
         }
     }
+
+    String folder = config.get("FileHistory", "recent_folder");
+    if( folder!=null && folder.length()>0 )
+        recent_folder = folder;
     }
-    
+
 }

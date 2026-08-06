@@ -9,6 +9,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 
 import org.eurocarbdb.application.glycanbuilder.ResidueType;
 import org.eurocarbdb.application.glycanbuilder.dataset.ResidueDictionary;
@@ -19,12 +20,14 @@ public class CrossLinkedSubstituentDictionary {
 
 
 	static {
-		dictionary = new HashMap<String,ResidueType>();
-		
+		dictionary = new LinkedHashMap<String,ResidueType>();
+
 		initDictionary();
 	}
 
-	private static HashMap<String,ResidueType>  dictionary;
+	// LinkedHashMap so getCrossLinkedSubstituents() (used to build the Insert
+	// Bridge menu) preserves the order of cross_linked_substituent_types
+	private static LinkedHashMap<String,ResidueType>  dictionary;
 	
 	// --- Data access
 

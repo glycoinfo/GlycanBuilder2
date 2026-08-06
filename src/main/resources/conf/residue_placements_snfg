@@ -1,4 +1,6 @@
 % Regex				Positions	OnBorder	Sticky
+cbr&(!chc)			90,-90		yes		yes
+cbr&chc				0		no		no
 (pb)&(!cs)&(!cx)		0		yes		yes
 (!ps)&(!pr)			0		no		no
 (!cs)&(!cx)&(lp=[1-3[N]])	-90		yes		yes

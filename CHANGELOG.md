@@ -1,4 +1,26 @@
 ## Change log
+### 1.27.0  (20260806)
+* Updated README.md to add installer info
+* Fixed error when root is alditol or open-chain
+* Fixed onBorder check not to have linkage to substituent with placement
+* Restored feature to remember last directory and recent files
+* Trimmed spaces on the head of description
+* Set empty icons on GAGs in Add structure
+* Fixed composition representation
+* Updated sentences for remembering recent files
+* Fixed image for rotation button icon
+* Removed action and function for root of fragment and composition
+* Fixed to show linkage when terminals are added to bracket
+* Changed not to rotate substituent
+* Organized substituents and their categories
+  * O-type,N-type,Organic,Inorganic -> O-type,N-type,Deoxy-type,P/S-type
+  * Removed unused substituents and "unknown"
+* Updated handling for bridge substituents
+* Updated WURCS conversion for substitutents
+* Removed Modification category
+* Fixed other reducing end input
+* Updated collision check for linkage positions
+
 ### 1.26.1  (20260728)
 * Fixed anomeric symbol representation when aglycon is hidden
 * Fixed not to rotate symbol

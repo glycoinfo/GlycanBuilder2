@@ -43,7 +43,6 @@ public class CanvasAction {
 		a_oActionManager.add("gotoend", a_oTheme.getResizableIcon("go-last", defaultMenuIconSize), "Show end of the canvas", KeyEvent.VK_E, "ctrl END", a_oListener);
 		
 		//a_oActionManager.add("stringNotation", a_oTheme.getResizableIcon("glycandoc", ICON_SIZE.L3), "Non symbol notation", -1, "", a_oListener);
-		a_oActionManager.add("antennaParent", a_oTheme.getResizableIcon(STOCK_ICON.FAMILY, ICON_SIZE.L2), "SelectParent", -1, "", a_oListener);
 	}
 	
 	private void createStructureAction (ActionManager a_oActionManager, ThemeManager themeManager, ICON_SIZE defaultMenuIconSize, ActionListener a_oListener) {

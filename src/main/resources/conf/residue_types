@@ -134,16 +134,16 @@ DH		Reducing end	DH		C12H15N3O2S	-	dh		?	?	?	no	no	no	0	4	no	2	no	1	-	-	yes	yes	
 % SUBSTITUENTS
 Me		Substituent	O-type		C1H4		-	OMe				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Methyl
 Ac		Substituent	O-type		C2H4O2		-	OAc				1	?	?	no	no	no	0	1	no	1	no	0	-	-	no	no	yes	Acetate
-Et		Substituent	Organic		C2H6O1		-	Et				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Ethyl
+Et		Substituent	O-type		C2H6O1		-	Et				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Ethyl
 NAc		Substituent	N-type		C2H5O1N1	-	NAc				1	?	?	no	no	no	0	2	no	1	no	1	-	-	no	no	yes	N-Acetate
-P		Substituent	Inorganic	H3P1O4		-	P				1	?	?	no	yes	yes	0	3	no	1	no	1	-	1	no	no	yes	Phosphate
-S		Substituent	Inorganic	H2S1O4		-	S				1	?	?	no	yes	yes	0	1	no	1	no	1	-	1	no	no	yes	Sulfate
-Pyr		Substituent	Organic		C3H4O3		-	Pyr				1	?	?	no	no	no	0	1	no	1	yes	1	-	-	no	no	yes	Pyruvate
-PMe		Substituent	Organic		C1H5P1O4	-	PMe				1	?	?	no	yes	yes	0	2	no	1	no	1	-	1	no	no	yes	Methyl-phosphate
-PCho	Substituent	Organic		C5H14NO4P	-	PC				1	?	?	no	no	no	0	2	no	1	no	1	-	-	no	no	yes	Phosphocholine
-PPEtn	Substituent	Organic		C2H9NO7P2	-	PPEtn			1	?	?	no	no	no	0	2	no	1	no	1	-	-	no	no	yes	Diphosphoethanolamine
-PEtn	Substituent	Organic		C2H8NO4P	-	PEtn			1	?	?	no	no	no	0	2	no	1	no	1	-	-	no	no	yes	Phosphoethanolamine
-N		Substituent	Inorganic	N1H3		-	N				1	?	?	no	no	no	0	2	no	2	no	1	-	-	no	no	yes	Amino
+P		Substituent	P/S-type	H3P1O4		-	P				1	?	?	no	yes	yes	0	3	no	1	no	1	-	1	no	no	yes	Phosphate
+S		Substituent	P/S-type	H2S1O4		-	S				1	?	?	no	yes	yes	0	1	no	1	no	1	-	1	no	no	yes	Sulfate
+Pyr		Substituent	O-type		C3H4O3		-	Pyr				1	?	?	no	no	no	0	1	no	1	yes	1	-	-	no	no	yes	Pyruvate
+PMe		Substituent	P/S-type	C1H5P1O4	-	PMe				1	?	?	no	yes	yes	0	2	no	1	no	1	-	1	no	no	yes	Methyl-phosphate
+PCho	Substituent	P/S-type	C5H14NO4P	-	PC				1	?	?	no	no	no	0	2	no	1	no	1	-	-	no	no	yes	Phosphocholine
+PPEtn	Substituent	P/S-type	C2H9NO7P2	-	PPEtn			1	?	?	no	no	no	0	2	no	1	no	1	-	-	no	no	yes	Diphosphoethanolamine
+PEtn	Substituent	P/S-type	C2H8NO4P	-	PEtn			1	?	?	no	no	no	0	2	no	1	no	1	-	-	no	no	yes	Phosphoethanolamine
+N		Substituent	N-type		N1H3		-	N				1	?	?	no	no	no	0	2	no	2	no	1	-	-	no	no	yes	Amino
 Gc		Substituent	O-type		C2H4O3		-	OGc				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Glycolyl
 NGc		Substituent	N-type		C2H5N1O2	-	NGc				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	N-glycolyl
 NS		Substituent	N-type		H3N1O3S1	-	NS				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	N-sulfate
@@ -153,36 +153,18 @@ NMe		Substituent	N-type		C1H5N1		-	NMe				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no
 NSuc	Substituent	N-type		C4H7N1O3	-	NSuc			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	N-succinate
 Fo		Substituent	O-type		C1H2O2		-	OFo				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Formyl
 Am		Substituent	O-type		C1H4N2O1	-	OAm				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Amidino
-Suc		Substituent	Organic		C4H6O4		-	Sub				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Succinate
-DiMe	Substituent	Organic		C2H6O1		-	DiMe			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Dimethyl
+Suc		Substituent	O-type		C4H6O4		-	Sub				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Succinate
 NDiMe	Substituent	N-type		C2H6N1		-	N-DiMe			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	N-dimethyl
-PyrP	Substituent	Organic		H4P2O7		-	PyrP			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Pyrophosphate
-Tri-P	Substituent	Inorganic	H5O10P3		-	Tri-P			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Triphosphate
-OMeOH	Substituent	Organic		C1H4O1		-	OMeOH			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Hydroxymethyl
-EtOH	Substituent	Organic		C2H6O2		-	EtOH			1	?	?	no	no	no	0	1	no	1	no	1	-	1	no	no	yes	Ethanol
-NEtOH	Substituent	N-type		C2H7N1O1	-	NEtOH			1	?	?	no	no	no	0	1	no	1	no	1	-	1	no	no	yes	Ethanolamine
-F		Substituent	Inorganic	H1F1		-	Fluoro			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Fluoro
-I		Substituent	Inorganic	H1I1		-	Iodo			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Iodo
-Br		Substituent	Inorganic	H1Br1		-	Bromo			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Bromo
-Cl		Substituent	Inorganic	H1Cl1		-	Chloro			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Chloro
-SH		Substituent	Inorganic	H2S1		-	thio			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Thio
-(S)Lac	Substituent	Organic		C3H6O3		-	(s)-lactate		1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	S-lactate
-(R)Lac	Substituent	Organic		C3H6O3		-	(r)-lactate		1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	R-lactate
-(X)Lac	Substituent	Organic		C3H6O3		-	(x)-lactate		1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	X-lactate
-(S)Py	Substituent	Organic		C3H5O4		-	(s)-pyruvate	2	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	S-pyruvate
-(R)Py	Substituent	Organic		C3H5O4		-	(r)-pyruvate	2	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	R-pyruvate
-Py		Substituent	Organic		C3H5O4		-	(x)-pyruvate	2	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	X-pyruvate
-?		Substituent	Unknown		H2			-	?				?	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Unknown
-Anhydro	Substituent	Unknown		H2O1		-	Anhydro			?	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Anhydro
-Ino		Substituent	Organic		C6H12O6		-	Ino				1	?	?	no	yes	no	0	6	no	6	no	1	-	-	no	no	yes	Inositol
-%Ino		Substituent	Organic		C6H12O6	-	Ino				?	?	?	no	yes	no	0	6	no	6	no	1	-	-	no	no	yes	Inositol
+PyrP	Substituent	P/S-type	H4P2O7		-	PyrP			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Pyrophosphate
+Tri-P	Substituent	P/S-type	H5O10P3		-	Tri-P			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Triphosphate
+F		Substituent	Deoxy-type	H1F1		-	Fluoro			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Fluoro
+I		Substituent	Deoxy-type	H1I1		-	Iodo			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Iodo
+Br		Substituent	Deoxy-type	H1Br1		-	Bromo			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Bromo
+Cl		Substituent	Deoxy-type	H1Cl1		-	Chloro			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Chloro
+SH		Substituent	Deoxy-type	H2S1		-	thio			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Thio
+(S)Lac	Substituent	O-type		C3H6O3		-	(s)-lactate		1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	S-lactate
+(R)Lac	Substituent	O-type		C3H6O3		-	(r)-lactate		1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	R-lactate
+(X)Lac	Substituent	O-type		C3H6O3		-	(x)-lactate		1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	X-lactate
+Ino		Substituent	O-type		C6H12O6		-	Ino				1	?	?	no	yes	no	0	6	no	6	no	1	-	-	no	no	yes	Inositol
+%Ino		Substituent	O-type		C6H12O6	-	Ino				?	?	?	no	yes	no	0	6	no	6	no	1	-	-	no	no	yes	Inositol
 %162.0528	162.1424
-%
-% MODIFICATIONS
-d		Modification	d		H2		d	d		?	?	?	no	no	no	0	1	no	1	no	1	-	-	no	yes	yes	Deoxygenation
-a		Modification	aric	H2O2	-	aric	?	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Aric
-en		Modification	en		H2O2		-	en		?	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	en
-%sat		Modification	sat		-		-	sat		?	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Unsaturation
-ulo		Modification	ulo		O		-	ulo		?	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Ulosonic
-%onic	Modification	onic	C1H2O3	-	onic	?	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Carbonic acid
-aldi	Modification	aldi	H2O		-	aldi	?	?	?	no	no	no	0	1	no	1	no	1	-	-	yes	no	yes	Alditol

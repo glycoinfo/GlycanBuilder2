@@ -554,22 +554,6 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		return this.theDebugMenu;
 	}
 	
-	private String getCurrentOrientation() {
-		int orientation = theWorkspace.getGraphicOptions().ORIENTATION;
-		String iconId;
-		if (orientation == GraphicOptions.LR) iconId = "lr";
-		else if (orientation == GraphicOptions.RL) iconId = "rl";
-		else if (orientation == GraphicOptions.TB) iconId = "tb";
-		else if (orientation == GraphicOptions.BT) iconId = "bt";
-		else return null;
-		return iconId;
-	}
-
-	private EurocarbResizableIcon getOrientationIcon() {
-		return themeManager.getResizableIcon(getCurrentOrientation(),
-				ICON_SIZE.L3);
-	}
-
 	private void createActions() {
 		CanvasAction a_oAction = new CanvasAction();
 		a_oAction.createAction(getTheActionManager(), themeManager, defaultMenuIconSize, this, getTheGlycanRenderer());
@@ -621,20 +605,6 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		}*/
 		//getTheActionManager().get("stringNotation").setEnabled(true);
 		
-		if(this.getCurrentResidue() == null || 
-				!this.getCurrentResidue().isSaccharide() || 
-				!this.getCurrentResidue().hasParent() ||
-				!this.getCurrentResidue().getParent().isBracket()) {
-			getTheActionManager().get("antennaParent").setEnabled(false);
-			if(this.antennaParentButton!=null) this.antennaParentButton.setVisible(false);
-			if(this.antennaParentItem!=null) this.antennaParentItem.setVisible(false);
-		}else {
-			boolean isAntenna = this.getCurrentResidue().getParent().isBracket();
-			getTheActionManager().get("antennaParent").setEnabled(isAntenna);
-			if(this.antennaParentButton!=null) this.antennaParentButton.setVisible(isAntenna);
-			if(this.antennaParentItem!=null) this.antennaParentItem.setVisible(isAntenna);
-		}
-		
 		getTheActionManager().get("properties").setEnabled(hasCurrentResidue());
 
 		// theActionManager.get("orientation").putValue(Action.SMALL_ICON,
@@ -653,8 +623,27 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		}else{
 			setAddStructureStatus(true);
 		}
+
+		updateInsertBridgeStatus();
 	}
-	
+
+	// enable each "bridge=" action only if the currently selected residue(s)
+	// match the bridge type's Class (Intra: one monosaccharide, Inter: two,
+	// Both: either); insertCrossLinkedSubstituent() re-checks this anyway,
+	// but disabling the inapplicable menu items avoids the error dialog
+	private void updateInsertBridgeStatus() {
+		int a_iNoSelected = this.getSelectedResiduesList().size();
+
+		for (ResidueType t : CrossLinkedSubstituentDictionary.getCrossLinkedSubstituents()) {
+			boolean enable;
+			if (a_iNoSelected == 1) enable = isIntraBridge(t);
+			else if (a_iNoSelected == 2) enable = isInterBridge(t);
+			else enable = false;
+
+			getTheActionManager().get("bridge=" + t.getName()).setEnabled(enable);
+		}
+	}
+
 	protected void setAddStructureStatus(boolean enable){
 		ResidueRenderer rr = getTheGlycanRenderer().getResidueRenderer();
 		for (ResidueType t : ResidueDictionary.allResidues()) {
@@ -1398,28 +1387,13 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 	}
 
 	private void updateOrientationButton() {
+		// the button always shows the same "rotate" icon (see CanvasAction),
+		// regardless of the current orientation - it represents the action
+		// (rotate the drawing), not the current state, so there is nothing to
+		// update here beyond creating it once
 		if (orientationButton == null) {
 			orientationButton = getTheActionManager().get("orientation")
 					.getJCommandButton(ICON_SIZE.L4, this, " ");
-		}
-		EurocarbResizableIcon iconR = getOrientationIcon();
-		if(iconR==null){
-			System.err.println("Icon R is null1");
-		}else if(iconR.getIconProperties()==null){
-			System.err.println("Icon R is null2");
-		}else if(iconR.getIconProperties().id==null){
-			System.err.println("Icon R is null3");
-		}
-		orientationButton.setIcon(iconR.getThemeManager().getResizableIcon(
-				iconR.getIconProperties().id, ICON_SIZE.L4).getResizableIcon());
-
-		try {
-			getTheActionManager().get("orientation").putValue(
-					Action.SMALL_ICON,
-					iconR.getThemeManager().getImageIcon(
-							iconR.getIconProperties().id, ICON_SIZE.L3));
-		} catch (IOException e) {
-			e.printStackTrace();
 		}
 	}
 
@@ -1960,7 +1934,6 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		
 		bracketMenuItem=structure_menu.add(getTheActionManager().get("bracket"));
 		repeatMenuItem=structure_menu.add(getTheActionManager().get("repeat"));
-		antennaParentItem=structure_menu.add(getTheActionManager().get("antennaParent"));
 		cyclicMenuItem = structure_menu.add(getTheActionManager().get("cyclic"));
 		
 		structure_menu.addSeparator();
@@ -2118,8 +2091,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		cyclicButton=toolbar.add(getTheActionManager().get("cyclic"));
 		//altButton = toolbar.add(getTheActionManager().get("alternative"));
 		toolbar.add(getTheActionManager().get("properties"));
-		
-		this.antennaParentButton=toolbar.add(getTheActionManager().get("antennaParent"));
+
 		//toolbar.add(getTheActionManager().get("stringNotation"));
 		
 		toolbar.addSeparator();
@@ -3382,52 +3354,6 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		return;
 	}
 		
-	public void onAntennaParent() {
-		try {
-			//this.getCurrentResidue().getParentsOfFragment().clear();
-			LinkedList<Linkage> linkages =
-				getSelectedStructures().iterator().next().getBracket().getChildrenLinkages();
-
-			GlycanUtils glycanUtil = new GlycanUtils();
-			glycanUtil.getCoreResidue(this.getSelectedStructures());
-			Residue root = glycanUtil.getCoreResidues().getFirst();
-
-			for(Linkage linkage : linkages) {
-				if(linkage.getChildResidue().equals(getSelectedResiduesList().iterator().next())) {
-					int antennaIndex = linkages.indexOf(linkage);
-					getCurrentResidue().setAntennaeID(antennaIndex + 1);
-					break;
-				}
-			}		
-			
-			ResidueSelectorDialog rsd = new ResidueSelectorDialog(
-					theParent, "Select parent node",
-					"Select parent node of this antenna", 
-					new Glycan(root, true, null),
-					glycanUtil.getCoreResidues(), true, getTheGlycanRenderer());
-			
-			rsd.setVisible(true);
-			if (!rsd.isCanceled()) {
-				if (rsd.getSelectedResidues().size() == 1) {
-					throw new Exception("Core node should be selected more than one monosaccharide.");
-				}
-				this.getCurrentResidue().getParentsOfFragment().clear();
-				for(Residue residue : rsd.getSelectedResidues()) {
-					if(!residue.isSaccharide()) continue;
-					this.getCurrentResidue().addParentOfFragment(residue);
-				}
-			} //else {
-				//this.getCurrentResidue().getParentsOfFragment().clear();
-				//this.getCurrentResidue().setAntennaeID(-1);
-			//}
-		} catch (Exception e) {
-			e.getMessage();
-		}
-		
-		//updateResidue();
-	}
-	/***/
-	
 	public void hyperlinkUpdate(HyperlinkEvent e) {
 		if(e.getEventType() != HyperlinkEvent.EventType.ACTIVATED) return;
 		String url = e.getURL().toString();
@@ -3677,8 +3603,24 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		try {
 			Residue toadd = TerminalDictionary.newTerminal(name);
 			Residue current = getCurrentResidue();
-			if (theDoc.addResidue(current, getLinkedResidues(), toadd) != null)
+			if (theDoc.addResidue(current, getLinkedResidues(), toadd) != null) {
 				setSelection(current);
+
+				if (current != null && current.isBracket()) {
+					// addResidue() may have unwrapped an attach-point residue (see
+					// Residue#addChild), so the residue actually attached to the
+					// bracket is its last child now, not necessarily "toadd" itself
+					Residue added = current.getChildrenLinkages().getLast().getChildResidue();
+
+					GlycanUtils glycanUtils = new GlycanUtils();
+					glycanUtils.getCoreResidue(this.getSelectedStructures());
+
+					LinkedList<Residue> core = glycanUtils.getCoreResidues();
+					for(Residue coreResidue : core) {
+						added.addParentOfFragment(coreResidue);
+					}
+				}
+			}
 		} catch (Exception e) {
 			e.getMessage();
 		}
@@ -4073,20 +4015,24 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 			if(this.getSelectedResiduesList().size() == 1) {
 				Residue a_oParent = getSelectedResidues()[0];
 				if(!a_oParent.isSaccharide()) throw new Exception(a_oParent.getType().getDescription() + " can not insert cross-linked substituent");
-				
-				Residue a_oBridge = new Residue(ResidueDictionary.getResidueType(a_sNodeName));
+
+				ResidueType a_oBridgeType = CrossLinkedSubstituentDictionary.getCrossLinkedSubstituent(a_sNodeName);
+				if(!isIntraBridge(a_oBridgeType))
+					throw new Exception(a_sNodeName + " can only bridge between two monosaccharides");
+
+				Residue a_oBridge = new Residue(a_oBridgeType);
 				a_oBridge.setParentLinkage(new Linkage(a_oParent, a_oBridge, new char[] {'?'}, new char[] {'?'}, a_oBridge.getAnomericCarbon()));
 				a_oParent.addChild(a_oBridge, a_oBridge.getParentLinkage().getBonds());
 			}
-			
+
 			if(this.getSelectedResiduesList().size() == 2) {
 				Object[] a_aResidues = getSelectedResidues();
 				Residue a_oStart = (Residue) a_aResidues[0];
 				Residue a_oEnd = (Residue) a_aResidues[1];
 
-				if(a_oStart.getParent().equals(a_oEnd)) {				
+				if(a_oStart.getParent().equals(a_oEnd)) {
 					a_oStart = (Residue) a_aResidues[1];
-					a_oEnd = (Residue) a_aResidues[0];				
+					a_oEnd = (Residue) a_aResidues[0];
 				}
 
 				if(a_oStart.getType().getSuperclass().equals("Bridge"))
@@ -4094,14 +4040,18 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 				if(a_oEnd.getType().getSuperclass().equals("Bridge"))
 					throw new Exception(a_oEnd.getTypeName() + " is cross-linked substituent");
 
+				ResidueType a_oBridgeType = CrossLinkedSubstituentDictionary.getCrossLinkedSubstituent(a_sNodeName);
+				if(!isInterBridge(a_oBridgeType))
+					throw new Exception(a_sNodeName + " can only bridge within a single monosaccharide");
+
 				char a_cParentPos = a_oEnd.getParentLinkage().getParentPositionsSingle();
-				Residue a_oBridge = new Residue(CrossLinkedSubstituentDictionary.getCrossLinkedSubstituent(a_sNodeName));
+				Residue a_oBridge = new Residue(a_oBridgeType);
 
 				//TODO : acceptor -> bridge -> donor の形式に差し替える
-				a_oEnd.getParentLinkage().setSubstituent(a_oBridge);			
+				a_oEnd.getParentLinkage().setSubstituent(a_oBridge);
 				a_oStart.getChildrenLinkages().remove(a_oStart.getChildrenLinkages().indexOf(a_oEnd.getParentLinkage()));
 
-				a_oBridge.setParentLinkage(new Linkage(a_oStart, a_oBridge, a_cParentPos));	
+				a_oBridge.setParentLinkage(new Linkage(a_oStart, a_oBridge, a_cParentPos));
 				a_oEnd.setParentLinkage(new Linkage(a_oBridge, a_oEnd, '1'));
 				a_oStart.addChild(a_oBridge, a_oBridge.getParentLinkage().getBonds());
 				a_oBridge.addChild(a_oEnd, a_oEnd.getParentLinkage().getBonds());
@@ -4112,6 +4062,19 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 					"Error while insert bridge",
 					JOptionPane.ERROR_MESSAGE);
 		}
+	}
+
+	// a bridge substituent's Class in cross_linked_substituent_types records
+	// whether it may only bridge within one monosaccharide (Intra), only
+	// between two monosaccharides (Inter), or either (Both)
+	private boolean isIntraBridge(ResidueType a_oBridgeType) {
+		String a_sClass = a_oBridgeType.getCompositionClass();
+		return a_sClass.equals("Intra") || a_sClass.equals("Both");
+	}
+
+	private boolean isInterBridge(ResidueType a_oBridgeType) {
+		String a_sClass = a_oBridgeType.getCompositionClass();
+		return a_sClass.equals("Inter") || a_sClass.equals("Both");
 	}
 	
 	private void onAddALternative() {
@@ -4172,7 +4135,6 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		
 		// editing
 		if(a_enumAction.equals(CanvasActionDescriptor.STRINGNOTATION)) onAddStringNotation();
-		if(a_enumAction.equals(CanvasActionDescriptor.ANTENNAPARENT)) onAntennaParent();
 		if(a_enumAction.equals(CanvasActionDescriptor.UNDO)) onUndo();
 		if(a_enumAction.equals(CanvasActionDescriptor.REDO)) onRedo();
 		if(a_enumAction.equals(CanvasActionDescriptor.CUT)) cut();
@@ -4614,12 +4576,10 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 
 	private JMenuItem bracketMenuItem;
 	private JMenuItem repeatMenuItem;
-	private JMenuItem antennaParentItem;
 	private JMenuItem cyclicMenuItem;
-	
+
 	private JButton bracketButton;
 	private JButton repeatButton;
-	private JButton antennaParentButton;
 	private JButton cyclicButton;
 	private JButton altButton;
 	

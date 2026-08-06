@@ -159,7 +159,7 @@ public class SUBSTAnalyzer {
 		
 		linkage.setLinkagePositions(endPos, startPos, '1');
 		
-		Residue bridge = ResidueDictionary.newResidue(crossTemp.getIUPACnotation());
+		Residue bridge = new Residue(CrossLinkedSubstituentDictionary.getCrossLinkedSubstituent(crossTemp.getIUPACnotation()));
 		this.checkNode(bridge, crossTemp.getIUPACnotation());
 		_residue.addChild(bridge, linkage.getBonds());
 	}

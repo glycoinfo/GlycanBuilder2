@@ -3,7 +3,6 @@ package org.glycoinfo.application.glycanbuilder.util.canvas;
 public enum CanvasActionDescriptor {
 
 	STRINGNOTATION("stringNotation"),
-	ANTENNAPARENT("antennaParent"),
 	UNDO("undo"),
 	REDO("redo"),
 	CUT("cut"),

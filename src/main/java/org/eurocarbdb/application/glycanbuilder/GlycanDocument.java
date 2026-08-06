@@ -38,6 +38,7 @@ import org.eurocarbdb.application.glycanbuilder.massutil.MassOptions;
 import org.eurocarbdb.application.glycanbuilder.renderutil.BBoxManager;
 import org.eurocarbdb.application.glycanbuilder.renderutil.GlycanRendererAWT;
 import org.eurocarbdb.application.glycanbuilder.util.SAXUtils;
+import org.glycoinfo.application.glycanbuilder.util.GlycanUtils;
 import org.eurocarbdb.application.glycanbuilder.util.TextUtils;
 import org.eurocarbdb.application.glycanbuilder.util.XMLUtils;
 import org.glycoinfo.application.glycanbuilder.converterWURCS2.WURCS2Parser;
@@ -465,14 +466,12 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	}
 
 	private LinkageType getSubstituentLinkageType(Residue toadd) {
+		// O-type and P/S-type substituents both attach through an oxygen (the
+		// old "Organic" category, and "P"/"S" matched by name, have been folded
+		// into these two respectively - see residue_types)
 		switch(toadd.getType().getCompositionClass()) {
 			case "O-type":
-			case "Organic":
-				return LinkageType.H_AT_OH;
-		}
-		switch(toadd.getType().getName()) {
-			case "P":
-			case "S":
+			case "P/S-type":
 				return LinkageType.H_AT_OH;
 		}
 		return LinkageType.DEOXY;
@@ -651,8 +650,18 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 			addStructures(toadd, false);
 		} else {
 			// append roots as child of the current selection
-			for (Iterator<Glycan> i = toadd.iterator(); i.hasNext(); )
+			for (Iterator<Glycan> i = toadd.iterator(); i.hasNext(); ) {
 				current.addChild(i.next().getRoot());
+
+				// a pasted/copied residue keeps the parent-linkage position it
+				// had at its original location, which can collide with an
+				// existing sibling or the ring closure on this new parent -
+				// reset to unknown so the pasted structure stays valid; the
+				// user can then pick a free position via the Properties panel
+				Linkage addedLinkage = current.getChildrenLinkages().getLast();
+				if (GlycanUtils.isCollisionLinkagePosition(current))
+					addedLinkage.setLinkagePositions('?');
+			}
 
 			// find non-overlapping set of antennae
 			LinkedList<Residue> brackets = new LinkedList<Residue>();

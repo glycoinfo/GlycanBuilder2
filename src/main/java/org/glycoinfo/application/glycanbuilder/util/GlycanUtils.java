@@ -27,24 +27,43 @@ public class GlycanUtils {
 	}
 	
 	public static boolean isCollisionLinkagePosition (Residue a_oResidue) {
-		if(a_oResidue.getChildrenLinkages().size() != 1) return false;
+		if(a_oResidue.getChildrenLinkages().size() < 1) return false;
 		boolean a_bIsCollision = false;
 		HashMap<String, Integer> a_mapCount = new HashMap<String, Integer>();
-		
+
+		// the ring closure itself occupies a position (e.g. C5 of a pyranose
+		// with anomeric carbon 1), so a child linkage there collides with the
+		// ring just as much as with another child - mirrors GlycanCanvas.createPositions()
+		char a_cRingClosurePos = getRingClosurePosition(a_oResidue);
+		if(a_cRingClosurePos != '?')
+			a_mapCount.put(String.valueOf(a_cRingClosurePos), 1);
+
 		for(Linkage a_oLinkage : a_oResidue.getChildrenLinkages()) {
 			String a_sPosition = a_oLinkage.getParentPositionsString();
 			if(/*!a_oLinkage.getChildResidue().isSaccharide() || */a_sPosition.equals("?")) continue;
-			
+
 			if(!a_mapCount.containsKey(a_sPosition))
 				a_mapCount.put(a_sPosition, 1);
 			else {
 				a_bIsCollision = true;
 			}
 		}
-		
+
 		return a_bIsCollision;
 	}
-	
+
+	private static char getRingClosurePosition(Residue a_oResidue) {
+		if(a_oResidue.getRingSize() == 'p') {
+			if(a_oResidue.getAnomericCarbon() == '1') return '5';
+			if(a_oResidue.getAnomericCarbon() == '2') return '6';
+		}
+		if(a_oResidue.getRingSize() == 'f') {
+			if(a_oResidue.getAnomericCarbon() == '1') return '4';
+			if(a_oResidue.getAnomericCarbon() == '2') return '5';
+		}
+		return '?';
+	}
+
 	public static boolean isFacingAnom (Residue a_oRES) {
 		boolean ret = false;
 		
@@ -69,8 +88,10 @@ public class GlycanUtils {
 	
 	public static boolean isShowRedEnd (Glycan a_oGlycan, GraphicOptions theGraphicOptions, boolean show_redend) {
 		Residue a_oRoot = a_oGlycan.getRoot().firstChild();
+		if(a_oRoot==null) return show_redend;
+
 		boolean ret = show_redend;
-		
+
 		if(a_oRoot.isSaccharide() && isFacingAnom(a_oRoot)) ret = false;
 		if(a_oRoot.isStartCyclic()) ret = false;
 		if(theGraphicOptions.NOTATION.equals(GraphicOptions.NOTATION_SNFG)) {

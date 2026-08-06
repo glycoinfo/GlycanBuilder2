@@ -1,72 +1,67 @@
 # GlycanBuilder2
-<!--
-書いておくこと（書き終わったものは文頭に"*"を書いておく）
 
-* 実行ファイルへのリンク（RINGSで公開されているもの, GLICで公開されているとのこと）
-  64bitOSで実行することを想定して良さそう、32bitは考慮しない
-
-* ビルドのやり方
-* 実行ファイルの実行方法
-* 論文の書誌情報
-  マニュアルはどこかにあっただろうか？
-
-* GUIの使用する場合の操作方法（必要最低限の操作は書いておいたほうがいいかもしれない）
-* Import/Exportのやり方だけでも書いておく方がユーザビリティに富むと思われるが
--->
+A tool for drawing and editing glycans intuitively using [SNFG](https://www.ncbi.nlm.nih.gov/glycans/snfg.html) symbols.
 
 ## Downloads
 
-### Standalone executable GlycanBuilder2
-* [GlycanBuilder2](https://gitlab.com/GlycoTool/dev-version/-/tree/master/GlycanBuilder)
-* Supported OS : 
-  * Windowds (64bit)
-  * macOS (64bit/Intel&M1,M2)
+### Windows
+Install from the Microsoft Store:
 
+[https://apps.microsoft.com/detail/9pp6bsnx71jl](https://apps.microsoft.com/detail/9pp6bsnx71jl)
 
-## Requirement
-* Java 8 (or later)
-* maven 3.6 (or later)
+### macOS / Linux
+Download the installer from [GitHub Releases](https://github.com/glycoinfo/GlycanBuilder2/releases).
 
-## Release node
-Please see about [details](CHANGELOG.md).
+| File | Platform |
+|---|---|
+| `GlycanBuilder2-*.ARM64.dmg` | macOS (Apple Silicon) |
+| `GlycanBuilder2-*.X86_64.dmg` | macOS (Intel) |
+| `glycanbuilder2_*_amd64.deb` | Linux (Debian/Ubuntu) |
+| `glycanbuilder2-*.alma9.x86_64.rpm` | Linux (AlmaLinux 9) |
+| `glycanbuilder2-*.alma10.x86_64.rpm` | Linux (AlmaLinux 10) |
 
-## Compile
-Clone this repository in the local repository.
+## Requirements
+
+### Using the installer
+No Java installation required. The Java runtime is bundled.
+
+### Building from source
+- Java 8 (or later)
+- Maven 3.6 (or later)
+
+## Build from Source
+
+Clone this repository:
 ```
 git clone https://github.com/glycoinfo/GlycanBuilder2.git
+cd GlycanBuilder2
 ```
 
-Move to the cloned local repository and compile the source files
-```
-cd ~/Directory_of_local_repository/GlycanBuilder2
-```
+Compile:
 ```
 mvn clean compile
 ```
 
-If a certificate error such as "PKIX path validation failed" occurred during the compilation process, please you try again with the below command.
+If a certificate error such as "PKIX path validation failed" occurs, try:
 ```
-mvn clean compile -X -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true
+mvn clean compile -Dmaven.wagon.http.ssl.insecure=true -Dmaven.wagon.http.ssl.allowall=true -Dmaven.wagon.http.ssl.ignore.validity.dates=true
 ```
 
-## JAR file
-Runable JAR (Java Archive) file is generate the below command.
+Build a runnable JAR:
 ```
 mvn clean -P make-fat-jar package
 ```
 
-When compilation in finished, jar file is created in the target folder.
->[INFO] Building jar: /../../Directory_of_local_repository/GlycanBuilder2/target/glycanbuilder2-jar-with-dependencies.jar
-
-- Windows or Linux
+Run the JAR:
 ```
+# Windows / Linux
 java -jar ./target/glycanbuilder2-jar-with-dependencies.jar
-```
-- Mac OS X
-```
+
+# macOS
 java -XstartOnFirstThread -jar ./target/glycanbuilder2-jar-with-dependencies.jar
 ```
-## Example
+
+## Usage
 
 ### Import WURCS string
 
@@ -90,7 +85,11 @@ java -XstartOnFirstThread -jar ./target/glycanbuilder2-jar-with-dependencies.jar
 2. Click **Export to graphical formats** on the **File** tab and select the image format.
 3. Select a directory to save the image.
 
+## Release Notes
+
+Please see [CHANGELOG.md](CHANGELOG.md) for details.
+
 ## Publications
+
 * [Shinichiro Tsuchiya, Nobuyuki P. Aoki, Daisuke Shinmachi, Masaaki Matsubara, Issaku Yamada, Kiyoko F. Aoki-Kinoshita, Hisashi Narimatsu,
 Implementation of GlycanBuilder to draw a wide variety of ambiguous glycans, Carbohydrate Research, Volume 445, 2017, Pages 104-116](https://www.sciencedirect.com/science/article/pii/S0008621516305316)
-

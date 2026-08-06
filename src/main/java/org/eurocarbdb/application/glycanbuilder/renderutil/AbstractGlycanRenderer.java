@@ -15,6 +15,7 @@ import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.text.DecimalFormat;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -531,6 +532,12 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		// init positions
 		BookingManager bookManager = new BookingManager(posManager.getAvailablePositions(current, orientation));
 
+		// the placement dictionary is the single authority on whether a residue is
+		// drawn on the border of its parent (no linkage line): a custom preferred
+		// placement may override the display angle, but never the on-border status,
+		// which is always looked up here
+		HashMap<Residue,Boolean> onBorder = new HashMap<Residue,Boolean>();
+
 		// add children to the booking manager
 		for (Iterator<Linkage> i = current.iterator(); i.hasNext();) {
 			Linkage link = i.next();
@@ -539,12 +546,15 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 
 			if (child.getType().getDescription().equals("no glycosidic linkages")) continue;
 
+			ResiduePlacement default_placement = theResiduePlacementDictionary.getPlacement(current, link, matching_child, sticky);
+			onBorder.put(child, default_placement.isOnBorder());
+
 			// get placement
 			ResiduePlacement placement = matching_child.getPreferredPlacement();
 			if (placement == null
 					|| (!current.isSaccharide() && !current.isBracket())
 					|| !bookManager.isAvailable(placement))
-				placement = theResiduePlacementDictionary.getPlacement(current, link, matching_child, sticky);
+				placement = default_placement;
 
 			// set placement
 			bookManager.add(child, placement);
@@ -561,7 +571,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 
 			ResiduePlacement child_placement = bookManager.getPlacement(child);
 			ResAngle child_pos = bookManager.getPosition(child);
-			posManager.add(child, orientation, child_pos, child_placement.isOnBorder(), child_placement.isSticky());
+			posManager.add(child, orientation, child_pos, onBorder.get(child), child_placement.isSticky());
 
 			ResAngle child_orientation = posManager.getOrientation(child);
 			Residue child_turning_point = (child_orientation.equals(orientation)) ? turning_point : child;

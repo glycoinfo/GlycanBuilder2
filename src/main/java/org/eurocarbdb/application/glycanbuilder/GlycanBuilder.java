@@ -71,6 +71,7 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
 
 	// menus
 	protected JMenu recent_files_menu;
+	protected JCheckBoxMenuItem remember_history_item;
 	protected String last_exported_file = null;
 
 	private Monitor halt_interactions = null;
@@ -113,9 +114,15 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
 		LogUtils.setGraphicalReport(true);       
 
 		// create the default workspace
-		String resource = "/config.xml";
+		// if a config file previously saved by setHistoryPersistenceEnabled(true) exists,
+		// load it so recent files/last folder/options survive across sessions; otherwise
+		// fall back to the bundled defaults, exactly as before, and touch nothing on disk
+		String persistentConfig = BuilderWorkspace.getPersistentConfigFile();
+		boolean hasPersistentConfig = new File(persistentConfig).exists();
+		String resource = hasPersistentConfig ? persistentConfig : "/config.xml";
 		theWorkspace = new BuilderWorkspace(resource, true, new GlycanRendererAWT());
 		theWorkspace.setAutoSave(true);
+		theWorkspace.setHistoryPersistenceEnabledSilently(hasPersistentConfig);
 
 		// create singletons 
 		theDoc = theWorkspace.getStructures(); 
@@ -187,14 +194,35 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
 		JDialog.setDefaultLookAndFeelDecorated(true);
 	}
 
+	private void askAboutHistoryPersistence() {
+		int answer = JOptionPane.showConfirmDialog(this,
+				"Would you like GlycanBuilder to remember recently opened files\n" +
+				"and the last used folder after restarting?\n\n" +
+				"You can change this later from the File menu.",
+				"Remember recent files?",
+				JOptionPane.YES_NO_OPTION,
+				JOptionPane.QUESTION_MESSAGE);
+
+		if( answer == JOptionPane.YES_OPTION )
+			theWorkspace.setHistoryPersistenceEnabled(true);
+
+		updateHistoryPersistenceMenuItem();
+	}
+
+	private void updateHistoryPersistenceMenuItem() {
+		remember_history_item.setSelected(theWorkspace.isHistoryPersistenceEnabled());
+	}
+
 	/**
        Exit the application immediately with a specified error
        level. Save the configuration to file       
 	 */   
-	public void exit(int err_level) {    
-		// save configurations
-		String resource = "./config.xml";
-		//theWorkspace.exit(resource);
+	public void exit(int err_level) {
+		// save configuration, but only if the user opted in (see
+		// BuilderWorkspace#setHistoryPersistenceEnabled) - otherwise nothing is
+		// written to disk, exactly as before this feature existed
+		if( theWorkspace.isHistoryPersistenceEnabled() )
+			theWorkspace.exit(BuilderWorkspace.getPersistentConfigFile());
 
 		// clear memory
 		theWorkspace.init();
@@ -363,6 +391,16 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
 		file_menu.add(theActionManager.get("open"));
 		file_menu.add(theActionManager.get("openinto"));
 		file_menu.add(recent_files_menu);
+
+		remember_history_item = new JCheckBoxMenuItem("Remember files after restarting");
+		remember_history_item.setSelected(theWorkspace.isHistoryPersistenceEnabled());
+		remember_history_item.addItemListener(new ItemListener() {
+			public void itemStateChanged(ItemEvent e) {
+				theWorkspace.setHistoryPersistenceEnabled(e.getStateChange() == ItemEvent.SELECTED);
+			}
+		});
+		file_menu.add(remember_history_item);
+
 		file_menu.addSeparator();
 		file_menu.add(theActionManager.get("save"));
 		file_menu.add(theActionManager.get("saveas"));
@@ -784,7 +822,27 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
        application
 	 */
 	public void onExit() {
-		if( checkDocumentChanges(theDoc) ) this.exit(0);
+		if( checkDocumentChanges(theDoc) ) {
+			// as long as the user hasn't opted in, ask again every time: this is the
+			// only way to guarantee that declining leaves absolutely nothing behind
+			// on disk - there is no separate "already asked" marker to write instead.
+			// Shown right before the app actually closes, alongside the "save
+			// changes?" prompt above, rather than interrupting startup.
+			// Deferred to a fresh event queue turn: showing this dialog immediately
+			// after the "save changes?" one closes lets a still-pending mouse click
+			// from dismissing that dialog bleed through and instantly dismiss this
+			// one too, before the user ever sees it.
+			if( !theWorkspace.isHistoryPersistenceEnabled() ) {
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						askAboutHistoryPersistence();
+						exit(0);
+					}
+				});
+			} else {
+				this.exit(0);
+			}
+		}
 	}
 			
 	//------------------

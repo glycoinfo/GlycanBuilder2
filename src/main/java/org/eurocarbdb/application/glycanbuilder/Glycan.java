@@ -176,6 +176,8 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 				linkage.getChildResidue().addParentOfFragment(current);
 		}
 
+		normalizeCompositionFlags();
+
 		// set mass options
 		if( mass_opt!=null ) 
 			mass_options.setValues(mass_opt);
@@ -239,10 +241,11 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 						ret.addAntenna(ResidueDictionary.newResidue(r.getType().getName()));
 				}
 			}
+			ret.normalizeCompositionFlags();
 			return ret;
-		}    
+		}
 		catch(Exception e) {
-			return createComposition(this.mass_options);      
+			return createComposition(this.mass_options);
 		}
 	}
 
@@ -398,9 +401,6 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 			redend.getChildAt(0).setAnomericState('?');
 			redend.getChildAt(0).setRingSize('o');
 		}
-		if (redend.getTypeName().equals("d")) {
-			redend.getChildAt(0).setAnomericState('?');
-		}
 		if (!redend.getTypeName().equals("redEnd")) {
 			redend.getChildAt(0).setAlditol(false);
 			if (redend.getChildAt(0).getRingSize() == 'o') {
@@ -503,10 +503,49 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 
 	/**
        Return <code>true</code> if this object represents a glycan
-       composition.
+       composition. A composition has no residue privileged as the reducing
+       end - conceptually, any of its members could occupy that role - so the
+       root must be nothing more than the "freeEnd" marker for "nothing is
+       attached here" (not a real residue, and not any other reducing-end
+       label such as "redEnd" or a derivatization tag: a childless label
+       residue represents a real, specific choice about the reducing end,
+       which contradicts what a composition means).
+       <p>
+       Ideally a composition's root would be absent entirely
+       (<code>null</code>) rather than even a "freeEnd" placeholder, since no
+       member is really the reducing end - but the constructors currently
+       discard {@link #bracket}'s content whenever root is null, so a
+       <code>null</code>-rooted composition is not something this data model
+       can actually hold today. "childless freeEnd" is the closest
+       practically-supported approximation.
 	 */
 	public boolean isComposition() {
-		return (bracket!=null && root!=null && !root.hasChildren());
+		return (bracket!=null && root!=null && root.isFreeReducingEnd() && !root.hasChildren());
+	}
+
+	/**
+	   Bring every residue's {@link Residue#isComposition} flag in line with
+	   {@link #isComposition}. Residues attached directly to a composition's
+	   bracket form a flat, unordered list rather than a linked structure, and
+	   this flag is what tells mass calculation and rendering not to mistake
+	   their bracket attachment for a real glycosidic bond.
+
+	   <p>Call this once, after a composition's residues have all been
+	   attached (e.g. after a sequence of {@link #addAntenna}/{@link #setRoot}
+	   calls) - not while such a sequence is still in progress. {@link
+	   #isComposition} is derived from the current shape of the tree, so it
+	   can legitimately flip from <code>true</code> to <code>false</code>
+	   partway through building a structure (for instance, if the root ends up
+	   with children); trying to keep the flag continuously in sync during
+	   that process would just as easily leave it wrong. Normalizing once,
+	   against the final shape, avoids that ordering hazard entirely - and
+	   also clears the flag on residues that were previously marked as a
+	   composition member but no longer are.
+	 */
+	public void normalizeCompositionFlags() {
+		boolean composition = isComposition();
+		for( Residue r : getAllResidues() )
+			r.isComposition(composition);
 	}
 
 	/**
@@ -1384,7 +1423,17 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 	private double computeMass(Residue node, double multipler) {
 		if( node==null || node.getTypeName().equals("Sugar"))
 			return 0.;
-		
+
+		// a composition has no distinguished reducing end of its own: the root
+		// node is only a structural placeholder required by the data model
+		// (see #isComposition), not a real residue, and must never contribute
+		// mass - whatever its actual type happens to be (e.g. "freeEnd",
+		// "redEnd", ...). The bracket's own calculation accounts for the N-1
+		// implicit bonds among the composition's members independently of this.
+		if( node==root && isComposition() )
+			return 0.;
+
+
 		if(node.isStartRepetition()){
 			Residue end=node.getEndRepitionResidue();
 			if(end.getMaxRepetitions()==end.getMinRepetitions()){
@@ -1412,15 +1461,38 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 		if( node.isReducingEnd() && node.getType().makesAlditol() )
 			mass += 2*MassUtils.hydrogen.getMass();
 
-		if( node.isBracket() && !node.isComposition()) {
-			int no_linked_labiles = Math.min(countLabilePositions(),countDetachedLabiles());
-			mass -= (no_bonds-no_linked_labiles)*substitutionMass();
+		if( node.isBracket() ) {
+			// a composition's bracket is just a structural container for a flat,
+			// unordered list of residues - its "no_bonds" only counts how many
+			// composition members are attached, not real substitutable OH
+			// positions, so unlike an ordinary bracket it must not get the
+			// generic per-bond substitution adjustment below
+			if( !node.isComposition() ) {
+				int no_linked_labiles = Math.min(countLabilePositions(),countDetachedLabiles());
+				mass -= (no_bonds-no_linked_labiles)*substitutionMass();
+			}
+			else {
+				// a composition of N monosaccharides implicitly represents them
+				// assembled into a single structure, with N-1 glycosidic bonds
+				// among them (a lone residue has none): the per-link dehydration
+				// check below deliberately treats every bracket attachment as
+				// bond-free, since there is no reason to single out any one
+				// residue as "the odd one out" among equals - so the water for
+				// those N-1 implicit bonds is subtracted once here instead, for
+				// the bracket as a whole. The root placeholder required by the
+				// data model contributes no mass of its own for a composition
+				// (see the top of this method), whatever its actual residue
+				// type happens to be, so there is nothing else to account for.
+				int no_members = node.getChildrenLinkages().size();
+				if( no_members>0 )
+					mass -= (no_members-1)*MassUtils.water.getMass();
+			}
 		}
 		else if( node.isCleavage() && !node.isRingFragment() ) {
 			// cleavages have no derivatization
 			if( node.isReducingEnd() && !node.hasChildren() ) {
 				// fix for composition
-				//mass += MassOptions.H2O;    
+				//mass += MassOptions.H2O;
 				mass += substitutionMass();
 			}
 		}
@@ -1432,7 +1504,7 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 				else
 					mass += ((noSubstitutions(type)-no_bonds)*substitutionMass());
 			}
-		}    
+		}
 
 		mass=mass*multipler;
 		
@@ -1485,11 +1557,13 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 	private boolean isDehydrationBond(Linkage childLinkage) {
 		Residue child = childLinkage.getChildResidue();
 		if(child.isRepetition()) return false;
-		if(child.isComposition()) { 
-			if(child.getParentsOfFragment().isEmpty()) return false;
-			if(child.getParentsOfFragment().contains(child) && child.getParentsOfFragment().size() == 1) return false;
-		}
-		
+		// a composition's bracket attachment is never a real glycosidic bond,
+		// regardless of any parentsOfFragment tracking (e.g. WURCS import
+		// records ambiguous connectivity between composition members there,
+		// but that must not override isComposition() as the single source of
+		// truth for this)
+		if(child.isComposition()) return false;
+
 		return true;
 	}
 	

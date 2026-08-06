@@ -161,7 +161,7 @@ public class LinkageToWURCSEdge {
 	}
 	
 	protected void setChild(Residue _childRES) {
-		if(_childRES.isSubstituent() || _childRES.isModificaiton()) {
+		if(_childRES.isSubstituent()) {
 			this.substituent = _childRES;
 		}else {
 			this.childRes = _childRES;

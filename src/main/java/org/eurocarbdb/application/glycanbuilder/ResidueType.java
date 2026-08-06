@@ -614,13 +614,6 @@ public class ResidueType {
 		 return superclass.equals("Substituent");
 	 }
 
-	 /**
-     Return <code>true</code> if this type represent a modification.
-	  */
-	 public boolean isModification() {
-		 return superclass.equals("Modification");
-	 }
-
 	/**
        Return <code>true</code> if this type represent special residue
        type.

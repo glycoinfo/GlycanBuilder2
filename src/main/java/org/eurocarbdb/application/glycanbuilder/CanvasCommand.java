@@ -60,7 +60,12 @@ public class CanvasCommand {
 	
 	private JMenu extractGAGs(String a_sUnitType, ActionManager a_oActionManager) {
 		JMenu a_oGAGsMenu = new JMenu(a_sUnitType);
-		
+		// match the placeholder icon of its sibling leaf items (registered via
+		// "addstructure=" below): without it, this nested JMenu has no icon at
+		// all, which some look-and-feels (e.g. Mac Aqua) indent differently
+		// from its icon-bearing siblings, misaligning the label text
+		a_oGAGsMenu.setIcon(ThemeManager.getResizableEmptyIcon(ICON_SIZE.L3).getResizableIcon());
+
 		for(CoreType a_oCore : CoreDictionary.getCores("GAGs")) {
 			if(a_oCore.getDescription().contains(a_sUnitType))
 				a_oGAGsMenu.add(a_oActionManager.get("addstructure=" + a_oCore.getName()));
@@ -123,26 +128,28 @@ public class CanvasCommand {
 		for (String superclass : ResidueDictionary.getSuperclasses()) {
 			if(superclass.equals("Reducing end")) continue;
 			if(a_sActionType.equals("insert=")) {
-				if(superclass.equals("Substituent") || superclass.equals("Modification")) continue;
+				if(superclass.equals("Substituent")) continue;
 			}
 
 			JMenu class_menu = new JMenu(superclass);
-			
+
 			if(superclass.equals("Substituent")) {
-				for(SubstituentTypeDescriptor a_enumSub : SubstituentTypeDescriptor.getTypeList()) {
+				// grouped by SubstituentTypeDescriptor (O-type/N-type/Deoxy-type/
+				// P/S-type/Unknown)
+				for(SubstituentTypeDescriptor a_enumSub : SubstituentTypeDescriptor.values()) {
 					JMenu a_Item = new JMenu(a_enumSub.getClassName());
 					for(ResidueType t : ResidueDictionary.getResidues(superclass)) {
-						if(a_enumSub.equals(SubstituentTypeDescriptor.forClass(t.getCompositionClass()))) {
+						if(a_enumSub.getClassName().equals(t.getCompositionClass())) {
 							a_Item.add(new JMenuItem(a_oActionManager.get(a_sActionType + t.getName())));
 						}
 					}
-					class_menu.add(a_Item);
+					if (a_Item.getItemCount() > 0) class_menu.add(a_Item);
 				}
 			}else {
 				for (ResidueType t : ResidueDictionary.getResidues(superclass)) {
 					if (t.canHaveParent())
 						class_menu.add(a_oActionManager.get(a_sActionType + t.getName()));
-				} 
+				}
 			}
 			if (class_menu.getItemCount() > 0) a_oMenu.add(class_menu);
 		}

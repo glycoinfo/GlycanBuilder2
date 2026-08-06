@@ -177,7 +177,7 @@ public class GlycanToResidueContainer {
 
 		for(Linkage a_objLIN : a_objResidue.getChildrenLinkages()) {
 			Residue a_objSub = a_objLIN.getChildResidue();
-			if(a_objSub.isSubstituent() || a_objSub.isModificaiton()) {
+			if(a_objSub.isSubstituent()) {
 				StringBuilder str_mod = new StringBuilder();
 				str_mod.append(a_objLIN.getParentPositionsString());
 				str_mod.append("*" + a_objSub.getTypeName());
@@ -268,7 +268,7 @@ public class GlycanToResidueContainer {
 	}
 	
 	private Residue getSaccharideResidue(Residue a_objResidue) {
-		if(a_objResidue.isSubstituent() || a_objResidue.isModificaiton()) return a_objResidue.getParent();
+		if(a_objResidue.isSubstituent()) return a_objResidue.getParent();
 		if(a_objResidue.isEndRepetition() && !a_objResidue.hasChildren()) return a_objResidue.getParent();
 		if(a_objResidue.getType().getSuperclass().equals("unknown")) return a_objResidue.getParent();
 		if(a_objResidue.isEndCyclic()) return a_objResidue.getParent();
