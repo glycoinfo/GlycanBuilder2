@@ -7,6 +7,7 @@ import org.glycoinfo.GlycanFormatconverter.Glycan.BaseCrossLinkedTemplate;
 import org.glycoinfo.GlycanFormatconverter.Glycan.BaseSubstituentTemplate;
 import org.glycoinfo.GlycanFormatconverter.Glycan.SubstituentInterface;
 import org.glycoinfo.GlycanFormatconverter.util.exchange.SugarToWURCSGraph.SubstituentTypeToMAP;
+import org.glycoinfo.application.glycanbuilder.dataset.SubstituentMAPDictionary;
 import org.glycoinfo.WURCSFramework.util.oldUtil.SubstituentTemplate;
 
 import java.util.Arrays;
@@ -121,16 +122,52 @@ public class ResidueToModification {
 		// Re-deriving it from the glycoCT notation loses both, so it is used verbatim here.
 		if(this.crossTemplate != null) {
 			this.applyCrossLinkedTemplate();
+			this.normalizeMAP();
 			return;
 		}
 
 		String mapDouble = this.subType2MAP.getMAPDouble();
 		if(mapDouble != null && mapDouble.equals("") &&
 				_substituent.getParentLinkage().getBonds().size() > 1) return;
-		
+
 		this.map = (_substituent.getParentLinkage().getBonds().size() == 1 &&
 				!_substituent.getType().getSuperclass().equals("Bridge")) ?
 				this.getMAPCodeSingle() : this.getMAPCodeDouble();
+
+		this.normalizeMAP();
+	}
+
+	/**
+	 * Puts the MAP into the form a validator asks for - notably without the {@code ^X} that marks a
+	 * phosphorus of unknown configuration.
+	 *
+	 * <p>Normalizing can also introduce the star indices that mark the two ends of a divalent MAP,
+	 * and WURCS then requires each linkage to name the end it attaches to. The two go together: a
+	 * MAP written {@code *1NS*2} with a linkage written {@code 4-6} is rejected, while the same MAP
+	 * with {@code 4n1-6n2} is accepted.</p>
+	 */
+	private void normalizeMAP() {
+		if(this.map == null || this.map.isEmpty()) return;
+
+		String normalized = SubstituentMAPDictionary.normalize(this.map);
+		if(normalized.equals(this.map)) return;
+
+		if(this.hasStarIndices(normalized) && !this.hasStarIndices(this.map)) {
+			// only a divalent MAP has two ends to tell apart: within one monosaccharide both bonds
+			// hang off the parent linkage, between two it is the parent and the child linkage
+			boolean isDivalent = this.parentLinkage.getBonds().size() > 1 || this.childLinkage != null;
+			if(!isDivalent) return;
+
+			Boolean isSwap = this.resolveSwap();
+			this.parentMAPPosition = (isSwap != null && isSwap) ? 2 : 1;
+			this.childMAPPosition = (isSwap != null && isSwap) ? 1 : 2;
+		}
+
+		this.map = normalized;
+	}
+
+	private boolean hasStarIndices(String _map) {
+		return _map.contains("*1") && _map.contains("*2");
 	}
 
 	/**

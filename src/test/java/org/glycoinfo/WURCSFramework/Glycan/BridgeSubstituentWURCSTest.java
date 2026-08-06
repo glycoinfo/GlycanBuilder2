@@ -128,8 +128,21 @@ public class BridgeSubstituentWURCSTest {
 	}
 
 	/**
-	 * Whatever each bridge type produces, it has to be WURCS the validator accepts and the importer
-	 * can read back as the same bridge - the previous output could not be re-imported at all.
+	 * Normalizing a divalent MAP can introduce the star indices that mark its two ends, and WURCS
+	 * then requires each linkage to name the end it attaches to - "4-6" alongside "*1NS*2" is
+	 * rejected. The two are written together.
+	 */
+	@Test
+	public void starIndicesInTheMapAreNamedByTheLinkage() throws Exception {
+		assertEquals("WURCS=2.0/1,1,0/[a2122h-1x_1-5_4n2-6n1*1NS*2/3=O/3=O]/1/", intraBridgeOnGlc("NS"));
+		assertEquals("WURCS=2.0/1,1,0/[a2122h-1x_1-5_4n1-6n2*1OPOPOP*2/7O/7=O/5O/5=O/3O/3=O]/1/",
+				intraBridgeOnGlc("Tri-P"));
+	}
+
+	/**
+	 * Whatever each bridge type produces, it has to be WURCS the validator accepts without even a
+	 * warning, and the importer must read it back as the same bridge - the previous output could
+	 * not be re-imported at all.
 	 */
 	@Test
 	public void everyBridgeTypeExportsToReadableWurcs() throws Exception {
@@ -142,8 +155,8 @@ public class BridgeSubstituentWURCSTest {
 			WURCSValidator validator = new WURCSValidator();
 			validator.start(wurcs);
 			WURCSValidationReport report = validator.getReport();
-			if (report.hasError()) {
-				broken.add(name + ": " + report.getErrors());
+			if (report.hasError() || report.hasWarning()) {
+				broken.add(name + ": " + report.getErrors() + report.getWarnings());
 				continue;
 			}
 
