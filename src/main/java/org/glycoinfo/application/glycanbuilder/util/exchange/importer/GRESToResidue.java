@@ -85,28 +85,20 @@ public class GRESToResidue {
 	
 	private char makeRingSize(MSCORE _mscore) {
 		int anomPos = _mscore.getAnomericPosition();
-		LinkedList<BRIDGE> bridge = _mscore.getDivalentSubstituents();
-		
+
+		// 3 : anomeric position -> WURCS=2.0/1,1,0/[h2a1221h-3x_3-8]/1/
 		if(anomPos == 0 || anomPos == -1 || anomPos == 3) return '?';
-		if(bridge.isEmpty()) return '?';
-		
-		int endPos = -1;
-		
-		for(BRIDGE a : bridge) {
-			if(a.getMAP().equals("") && a.getStartPositions().contains(anomPos)) {
-				endPos = a.getEndPositions().get(0);
-			}
-		}
-		
+
+		// Picking the last bridge that started at the anomeric carbon read a 1,6-anhydro as the
+		// ring, and the residue lost its ring size along with the bridge.
+		BRIDGE ring = RingBridge.find(_mscore);
+		if(ring == null) return '?';
+
 		//1-4, 2-5 is franose
 		//1-5, 2-6 is pyranose
-		// 3 : anomeric position -> WURCS=2.0/1,1,0/[h2a1221h-3x_3-8]/1/
-		if(this.anomPosition > 1) {
-			endPos = endPos - this.anomPosition + 1;
-		}
-		
-		if(endPos == 4) return 'f';
-		if(endPos == 5) return 'p';
+		int span = RingBridge.span(ring, anomPos);
+		if(span == 4) return 'f';
+		if(span == 5) return 'p';
 		return '?';
 	}
 	

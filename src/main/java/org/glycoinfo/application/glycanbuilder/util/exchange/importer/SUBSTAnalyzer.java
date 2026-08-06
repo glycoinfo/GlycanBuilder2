@@ -52,9 +52,11 @@ public class SUBSTAnalyzer {
 		}
 		//End of TODO
 		
+		// Only the ring is written without being a substituent. Skipping every bridge that starts at
+		// the anomeric carbon also discarded a 1,6-anhydro, which genuinely starts there.
+		BRIDGE ring = RingBridge.find(_gres.getMS().getCoreStructure());
 		for(BRIDGE bridge : _gres.getMS().getCoreStructure().getDivalentSubstituents()) {
-			if(bridge.getStartPositions().contains(_gres.getMS().getCoreStructure().getAnomericPosition()))
-				continue;
+			if(bridge == ring) continue;
 			this.analyzeBRIDGE(bridge, _residue);
 		}
 		
