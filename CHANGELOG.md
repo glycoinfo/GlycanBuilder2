@@ -1,4 +1,14 @@
 ## Change log
+### 1.28.0  (20260807)
+* Fixed bridge substituents within one monosaccharide disappearing from WURCS export
+  * 4,6-pyruvate, anhydro, and "Both" type bridges used within a single residue
+  * An ether bridge is written as its linkage positions alone, without "*O*"
+* Fixed (S)/(R)/(X)-pyruvate collapsing to the same stereo notation on WURCS export
+* Held substituent and bridge MAP codes in residue_types and cross_linked_substituent_types
+  as an optional last column
+* Normalized MAP codes on WURCS export, accepting either spelling on import
+* Removed the GlyContainer conversion path, which the WURCS parser no longer used
+
 ### 1.27.0  (20260806)
 * Updated README.md to add installer info
 * Fixed error when root is alditol or open-chain
