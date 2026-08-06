@@ -207,16 +207,17 @@ public class ResidueToModification {
 			return;
 		}
 
-		// "*1...*2" pins which end of the MAP each linkage attaches to; which end is the parent's
-		// is the same question getMAPCodeDouble() answers, so the orientation is taken from there
+		// the ends have to be known first: which one the parent attaches to is read from them
+		this.headAtom = this.atomNextToStar(templateMAP, true);
+		this.tailAtom = this.atomNextToStar(templateMAP, false);
+
+		// "*1...*2" pins which end of the MAP each linkage attaches to
 		if(templateMAP.contains("*1") && templateMAP.contains("*2")) {
 			Boolean isSwap = this.resolveSwap();
 			this.parentMAPPosition = (isSwap != null && isSwap) ? 2 : 1;
 			this.childMAPPosition = (isSwap != null && isSwap) ? 1 : 2;
 		}
 
-		this.headAtom = this.atomNextToStar(templateMAP, true);
-		this.tailAtom = this.atomNextToStar(templateMAP, false);
 		this.map = templateMAP;
 	}
 
@@ -252,6 +253,13 @@ public class ResidueToModification {
 	
 	/** Which end of a divalent MAP the parent linkage attaches to; null when the MAP is unordered. */
 	private Boolean resolveSwap() {
+		// A bridge's own MAP says which way round it goes: a sugar does not attach through the
+		// nitrogen end when the other end is something else, and that is the only asymmetry among
+		// the bridges - N and the succinates have the same atom at both ends, and a triphosphate
+		// reaches the sugar through an oxygen either way.
+		if(this.crossTemplate != null)
+			return ("N".equals(this.headAtom) && !"N".equals(this.tailAtom)) ? Boolean.TRUE : null;
+
 		Boolean isSwap = (this.subType2MAP == null) ? null : this.subType2MAP.isSwapCarbonPositions();
 
 		if(isSwap == null && this.parentLinkageType != this.childLinkageType) {
