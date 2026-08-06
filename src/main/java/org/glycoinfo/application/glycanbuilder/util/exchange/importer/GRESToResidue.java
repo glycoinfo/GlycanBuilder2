@@ -57,8 +57,8 @@ public class GRESToResidue {
 		ResidueType newType = ResidueDictionary.findResidueType(trivialName);
 		Residue residue = new Residue(newType);
 
-		// generate monosaccharide legend
-		if(NonSymbolicResidueDictionary.hasResidueType(trivialName)) {
+		// generate monosaccharide legend, when one could be built for this residue
+		if(NonSymbolicResidueDictionary.hasResidueType(trivialName) && trinConv.getIUPACNotation() != null) {
 			residue.getType().changeDescription(trinConv.getIUPACNotation());
 		}
 

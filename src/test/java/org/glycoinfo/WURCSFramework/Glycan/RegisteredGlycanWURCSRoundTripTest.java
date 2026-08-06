@@ -89,6 +89,18 @@ public class RegisteredGlycanWURCSRoundTripTest {
 		assertRoundTrip("WURCS=2.0/1,1,0/[Aadxxxxxm-2x_2-6_5*N_7*N]/1/");
 	}
 
+	/**
+	 * A nonulosonate's acid on carbon 1 is part of what the residue is, and so is a deoxy marker on
+	 * its last carbon. Read as modifications they were built as residues of their own, and importing
+	 * one of these threw before it got that far, for want of an IUPAC name.
+	 */
+	@Test
+	public void dideoxynonulosonatesSurvive() throws Exception {
+		assertRoundTrip("WURCS=2.0/1,1,0/[Aad21122m-2x_2-6_5*N_7*N]/1/");   // Leg
+		assertRoundTrip("WURCS=2.0/1,1,0/[Aad22111m-2x_2-6_5*N_7*N]/1/");   // Pse
+		assertRoundTrip("WURCS=2.0/1,1,0/[Aad11122m-2x_2-6_5*N_7*N]/1/");   // 4eLeg
+	}
+
 	private void assertRoundTrip(String _wurcs) throws Exception {
 		WURCS2Parser parser = new WURCS2Parser();
 		Glycan glycan = parser.readGlycan(_wurcs, new MassOptions());

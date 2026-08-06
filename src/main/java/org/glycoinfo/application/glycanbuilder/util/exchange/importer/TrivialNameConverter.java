@@ -31,8 +31,14 @@ public class TrivialNameConverter {
         return this.trivialName;
     }
 
+    /**
+     * The IUPAC name of this residue, or null when one could not be built - the converter behind it
+     * does not cover every residue this builder can draw, and a missing name is not a reason to
+     * refuse the structure.
+     */
     public String getIUPACNotation () {
         String ret = this.fullName;
+        if (ret == null) return null;
 
         ret = ret.replaceAll(AnomericStateDescriptor.ALPHA.getIUPACAnomericState(), "\u03B1");
         ret = ret.replaceAll(AnomericStateDescriptor.BETA.getIUPACAnomericState(), "\u03B2");
@@ -163,5 +169,22 @@ public class TrivialNameConverter {
                 break;
             }
         }
+
+        this.dropImpliedAcid();
+    }
+
+    /**
+     * The acid on carbon 1 is part of what a nonulosonate is, and the residue this builder holds
+     * already carries it. Kept as a modification it is built as a residue of its own, and the
+     * structure can no longer be written back out - which happened to Pse but not to Leg, since
+     * the two are recognised by different entries upstream.
+     */
+    private void dropImpliedAcid () {
+        if (!this.modifications.contains("1*A")) return;
+        if (!ResidueDictionary.hasResidueType(this.trivialName)) return;
+
+        String superclass = ResidueDictionary.findResidueType(this.trivialName).getSuperclass();
+        if (superclass.endsWith("nonulosonate") || superclass.equals("Nonulosonate"))
+            this.modifications.remove("1*A");
     }
 }
