@@ -73,6 +73,8 @@ public class ResidueType {
 	protected boolean can_redend;
 	protected boolean can_parent;
 	protected String  description;
+	/** WURCS MAP code of a substituent or bridge, empty when the type has none. */
+	protected String  map = "";
 
 	protected Molecule molecule;
 
@@ -116,8 +118,10 @@ public class ResidueType {
 	  */
 	 public ResidueType(String init) throws Exception {
 		 LinkedList<String> tokens = TextUtils.tokenize(init,"\t");
-		 if( tokens.size()!=24) throw new Exception("Invalid string format: " + init);
-		
+		 // The MAP is an optional last column: substituents and bridges carry one, everything else
+		 // (and any dictionary written before the column existed) simply stops at the description.
+		 if( tokens.size()!=24 && tokens.size()!=25 ) throw new Exception("Invalid string format: " + init);
+
 		 name            = tokens.get(0);
 		 superclass      = tokens.get(1);
 		 composition_class = tokens.get(2);
@@ -142,6 +146,7 @@ public class ResidueType {
 		 can_redend      = parseBoolean(tokens.get(21));
 		 can_parent      = parseBoolean(tokens.get(22));
 		 description     = tokens.get(23);
+		 map             = (tokens.size()==25) ? tokens.get(24) : "";
 		 res_mass_main   = 0.;
 		 res_mass_avg    = 0.;
 		 
@@ -1071,6 +1076,14 @@ public class ResidueType {
 	 
 	 public void changeDescription(String a_sNotation) {
 		 this.description = a_sNotation;
+	 }
+
+	 /**
+       Return the WURCS MAP code of this residue type, or an empty string when it has none.
+       Only substituents and bridge substituents carry one.
+	  */
+	 public String getMAP() {
+		 return map;
 	 }
 
 	 /**

@@ -1,18 +1,18 @@
-%Name	SuperClass	Class	Composition	Synonim	IUPAC	AnomC	Chir	Ring	IsSacc	IsCleav	Labile	BarOrdr	NoMe	DropMe	NoAc	DropAc	noLinks	LinkPos	ChargesPos	Alditol RedEnd 	Parent	Description
-N		Bridge	Both	N1H3		-	N		1	?	?	yes	no	no	0	2	no	2	no	1	-	-	no	no	yes	Amino
-NS		Bridge	Both	H3N1O3S1	-	NS		1	?	?	yes	no	no	0	1	no	1	no	1	-	-	no	no	yes	N-Sulfate
-Suc		Bridge	Both	C4H6O4		-	Sub		1	?	?	yes	no	no	0	1	no	1	no	1	-	-	no	no	yes	Succinate
-SH		Bridge	Inter	H2S1		-	thio	1	?	?	yes	no	no	0	1	no	1	no	1	-	-	no	no	yes	Thio
-S		Bridge	Inter	H2S1O4		-	S		1	?	?	yes	yes	yes	0	1	no	1	no	1	-	1	no	no	yes	Sulfate
-P		Bridge	Inter	H3P1O4		-	P		1	?	?	yes	yes	yes	0	3	no	1	no	1	-	1	no	no	yes	Phosphate
-PyrP	Bridge	Inter	H4P2O7		-	PyrP	1	?	?	yes	no	no	0	1	no	1	no	1	-	-	no	no	yes	Pyrophosphate
-Tri-P	Bridge	Inter	H5O10P3		-	Tri-P	1	?	?	yes	no	no	0	1	no	1	no	1	-	-	no	no	yes	Triphosphate
-PEtn	Bridge	Inter	C2H8NO4P	-	PEtn	1	?	?	yes	no	no	0	2	no	1	no	1	-	-	no	no	yes	Phosphoethanolamine
-PPEtn	Bridge	Inter	C2H9NO7P2	-	PPEtn	1	?	?	yes	no	no	0	2	no	1	no	1	-	-	no	no	yes	Diphosphoethanolamine
-Py		Bridge	Intra	C3H5O4		-	Pyr		2	?	?	yes	no	no	0	1	no	1	no	1	-	-	no	no	yes	Pyruvate
-(S)Py	Bridge	Intra	C3H5O4		-	(S)Pyr	2	?	?	yes	no	no	0	1	no	1	no	1	-	-	no	no	yes	[S]Pyruvate
-(R)Py	Bridge	Intra	C3H5O4		-	(R)Pyr	2	?	?	yes	no	no	0	1	no	1	no	1	-	-	no	no	yes	[R]Pyruvate
-Anhydro	Bridge	Intra	H2O1		-	Anhydro	?	?	?	yes	no	no	0	1	no	1	no	1	-	-	no	no	yes	Anhydro
+%Name	SuperClass	Class	Composition	Synonim	IUPAC	AnomC	Chir	Ring	IsSacc	IsCleav	Labile	BarOrdr	NoMe	DropMe	NoAc	DropAc	noLinks	LinkPos	ChargesPos	Alditol RedEnd 	Parent	Description	MAP
+N		Bridge	Both	N1H3		-	N		1	?	?	yes	no	no	0	2	no	2	no	1	-	-	no	no	yes	Amino	*N*
+NS		Bridge	Both	H3N1O3S1	-	NS		1	?	?	yes	no	no	0	1	no	1	no	1	-	-	no	no	yes	N-Sulfate	*NS*/3=O/3=O
+Suc		Bridge	Both	C4H6O4		-	Sub		1	?	?	yes	no	no	0	1	no	1	no	1	-	-	no	no	yes	Succinate	*OCCCCO*/6=O/3=O
+SH		Bridge	Inter	H2S1		-	thio	1	?	?	yes	no	no	0	1	no	1	no	1	-	-	no	no	yes	Thio	*S*
+S		Bridge	Inter	H2S1O4		-	S		1	?	?	yes	yes	yes	0	1	no	1	no	1	-	1	no	no	yes	Sulfate	*OSO*/3=O/3=O
+P		Bridge	Inter	H3P1O4		-	P		1	?	?	yes	yes	yes	0	3	no	1	no	1	-	1	no	no	yes	Phosphate	*OPO*/3O/3=O
+PyrP	Bridge	Inter	H4P2O7		-	PyrP	1	?	?	yes	no	no	0	1	no	1	no	1	-	-	no	no	yes	Pyrophosphate	*OPOPO*/5O/5=O/3O/3=O
+Tri-P	Bridge	Inter	H5O10P3		-	Tri-P	1	?	?	yes	no	no	0	1	no	1	no	1	-	-	no	no	yes	Triphosphate	*OP^XOP^XOP^X*/7O/7=O/5O/5=O/3O/3=O
+PEtn	Bridge	Inter	C2H8NO4P	-	PEtn	1	?	?	yes	no	no	0	2	no	1	no	1	-	-	no	no	yes	Phosphoethanolamine	*1NCCOP^XO*2/6O/6=O
+PPEtn	Bridge	Inter	C2H9NO7P2	-	PPEtn	1	?	?	yes	no	no	0	2	no	1	no	1	-	-	no	no	yes	Diphosphoethanolamine	*NCCOP^XOP^X*/8O/8=O/6O/6=O
+Py		Bridge	Intra	C3H5O4		-	Pyr		2	?	?	yes	no	no	0	1	no	1	no	1	-	-	no	no	yes	Pyruvate	*OC^XO*/3CO/6=O/3C
+(S)Py	Bridge	Intra	C3H5O4		-	(S)Pyr	2	?	?	yes	no	no	0	1	no	1	no	1	-	-	no	no	yes	[S]Pyruvate	*OC^SO*/3CO/6=O/3C
+(R)Py	Bridge	Intra	C3H5O4		-	(R)Pyr	2	?	?	yes	no	no	0	1	no	1	no	1	-	-	no	no	yes	[R]Pyruvate	*OC^RO*/3CO/6=O/3C
+Anhydro	Bridge	Intra	H2O1		-	Anhydro	?	?	?	yes	no	no	0	1	no	1	no	1	-	-	no	no	yes	Anhydro	*O*
 %ETHANOLAMINE_b
 %IMINO_b
 %PYROPHOSPHATE_b

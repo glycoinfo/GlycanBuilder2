@@ -68,10 +68,30 @@ public class BridgeSubstituentWURCSTest {
 		assertRoundTrip("WURCS=2.0/1,2,1/[a2122h-1x_1-5]/1-1/a6-b1*OPO*/3O/3=O");
 	}
 
-	/** The "n2"/"n1" say which end of the MAP each side attaches to; they must not swap. */
+	/**
+	 * The "n2"/"n1" say which end of the MAP each side attaches to, and must not swap. The MAP
+	 * itself comes back normalized - the {@code ^X} on the phosphorus is what a validator asks to
+	 * have dropped - while the star indices it refers to are left alone.
+	 */
 	@Test
 	public void interPhosphoethanolamineKeepsItsStarIndices() throws Exception {
-		assertRoundTrip("WURCS=2.0/1,2,1/[a2122h-1x_1-5]/1-1/a6n2-b1n1*1NCCOP^XO*2/6O/6=O");
+		WURCS2Parser parser = new WURCS2Parser();
+		Glycan glycan = parser.readGlycan(
+				"WURCS=2.0/1,2,1/[a2122h-1x_1-5]/1-1/a6n2-b1n1*1NCCOP^XO*2/6O/6=O", new MassOptions());
+
+		assertEquals("WURCS=2.0/1,2,1/[a2122h-1x_1-5]/1-1/a6n2-b1n1*1NCCOPO*2/6O/6=O",
+				parser.writeGlycan(glycan));
+	}
+
+	/** A phosphate ester written either way reads back as the same structure. */
+	@Test
+	public void bothSpellingsOfAPhosphateReadTheSame() throws Exception {
+		WURCS2Parser parser = new WURCS2Parser();
+		String normalized = "WURCS=2.0/1,1,0/[a2122h-1x_1-5_3*OPOCCN/3O/3=O]/1/";
+
+		assertEquals(normalized, parser.writeGlycan(parser.readGlycan(normalized, new MassOptions())));
+		assertEquals(normalized, parser.writeGlycan(parser.readGlycan(
+				"WURCS=2.0/1,1,0/[a2122h-1x_1-5_3*OP^XOCCN/3O/3=O]/1/", new MassOptions())));
 	}
 
 	/** A structure with no bridge at all, as a guard on the surrounding conversion. */
