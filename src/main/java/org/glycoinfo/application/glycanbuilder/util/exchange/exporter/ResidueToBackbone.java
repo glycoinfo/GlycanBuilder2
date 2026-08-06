@@ -53,7 +53,10 @@ public class ResidueToBackbone {
 			
 		String classNotation = (_residue.getType().getCompositionClass().equals("Sugar")) ? "sug" : _residue.getType().getCompositionClass();
 		Superclass superClass = Superclass.forName(classNotation.toLowerCase());
-		if (_residue.getType().getName().equals("Assigned")) superClass = Superclass.SUG;
+		// a residue standing in for one that has not been assigned yet has no skeleton to write, and
+		// the empty RES it used to produce - WURCS=2.0/1,1,0/[]/1/ - is not readable by anything
+		if (_residue.getType().getName().equals("Assigned"))
+			throw new Exception (_residue.getTypeName() + " can not be converted to SkeletonCode.");
 
 		int carbon = superClass.getCAtomCount();
 		
@@ -70,7 +73,7 @@ public class ResidueToBackbone {
 		this.anomSymbol = residueAnalyzer.getAnomericSymbol();
 		this.configuration = residueAnalyzer.getConfiguration();
 		String skeletonCode = residueAnalyzer.getSkeletonCode();
-		
+
 		for(String map : residueAnalyzer.getUnknownMAPs()) {
 			this.unknownModPos.add( new Modification(map));
 		}
