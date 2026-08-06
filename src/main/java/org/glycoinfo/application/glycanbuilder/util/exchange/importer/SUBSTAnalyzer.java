@@ -24,6 +24,8 @@ import org.glycoinfo.application.glycanbuilder.util.exchange.WURCSToGlycanExcept
 
 import java.util.ArrayList;
 import java.util.LinkedList;
+import org.eurocarbdb.application.glycanbuilder.ResidueType;
+import org.glycoinfo.application.glycanbuilder.dataset.SubstituentMAPDictionary;
 
 public class SUBSTAnalyzer {
 
@@ -35,6 +37,29 @@ public class SUBSTAnalyzer {
 	
 	public SUBSTAnalyzer() {
 		 this.modifications = new ArrayList<>();
+	}
+
+	/**
+	 * Attaches a substituent named by this builder's own MAP table, for the ones the converter's
+	 * table has no template for.
+	 * @param _subst Substituent as it appears in the WURCS.
+	 * @param _residue Residue it hangs off.
+	 * @param _ms Monosaccharide being read, for the linkage type.
+	 */
+	private void attachSubstituentFromOwnDictionary(SUBST _subst, Residue _residue, MS _ms) throws Exception {
+		ResidueType substituentType = SubstituentMAPDictionary.findResidueTypeByMAP(_subst.getMAP());
+		if(substituentType == null)
+			throw new Exception("This MAP is not support in the GlycanBuilder2:" + _subst.getMAP());
+
+		Linkage linkage = new Linkage();
+		linkage.setLinkagePositions(this.makePosition(_subst.getPositions()));
+		linkage.setParentLinkageType(checkLinkageTypeOfMAP(_subst, _ms));
+		linkage.setChildLinkageType(LinkageType.NONMONOSACCHARID);
+		this.extractProbabilityAnnotation(_subst, _ms, linkage);
+
+		Residue substituent = ResidueDictionary.newResidue(substituentType.getName());
+		substituent.setParentLinkage(linkage);
+		_residue.addChild(substituent, substituent.getParentLinkage().getBonds());
 	}
 
 	public void start(GRES _gres, Residue _residue) throws Exception {
@@ -107,8 +132,11 @@ public class SUBSTAnalyzer {
 		mapAnalyzer.start(_subst.getMAP());
 		BaseSubstituentTemplate subTemp = mapAnalyzer.getSingleTemplate();
 
-		if(subTemp == null)
-			throw new Exception("This MAP is not support in the GlycanBuilder2:" + _subst.getMAP());
+		if(subTemp == null) {
+			// our own table knows substituents the converter's does not - an ethyl, say
+			this.attachSubstituentFromOwnDictionary(_subst, _residue, _ms);
+			return;
+		}
 
 		char[] positions = this.makePosition(_subst.getPositions());
 		String subNotation = positions[0] + "*" + subTemp.getIUPACnotation();

@@ -7,6 +7,7 @@ import org.glycoinfo.GlycanFormatconverter.Glycan.Monosaccharide;
 import org.glycoinfo.WURCSFramework.wurcs.sequence2.BRIDGE;
 import org.glycoinfo.WURCSFramework.wurcs.sequence2.GRES;
 import org.glycoinfo.WURCSFramework.wurcs.sequence2.MSCORE;
+import org.glycoinfo.application.glycanbuilder.dataset.MonosaccharideMSDictionary;
 import org.glycoinfo.application.glycanbuilder.dataset.NonSymbolicResidueDictionary;
 
 import org.glycoinfo.application.glycanbuilder.util.exchange.WURCSToGlycanException;
@@ -50,16 +51,33 @@ public class GRESToResidue {
 		this.anomSymbol = mscore.getAnomericSymbol();
 		this.ringSize = makeRingSize(mscore);
 
-		TrivialNameConverter trinConv = new TrivialNameConverter();
-		trinConv.start(_gres);
-		String trivialName = trinConv.getTrivialName().replace("5", "");
+		// This builder's own dictionary answers first: it knows every residue the exporter can
+		// write, which is more than the naming converter covers - a substituent it does not know,
+		// a skeleton it cannot read, or a bridge across the anomeric carbon each made it throw.
+		MonosaccharideMSDictionary.Match match =
+				MonosaccharideMSDictionary.match(_gres.getMS().getString());
+
+		String trivialName;
+		char configuration;
+		TrivialNameConverter trinConv = null;
+
+		if(match != null) {
+			trivialName = match.getResidueType().getName();
+			configuration = match.getResidueType().getChirality();
+		} else {
+			trinConv = new TrivialNameConverter();
+			trinConv.start(_gres);
+			trivialName = trinConv.getTrivialName().replace("5", "");
+			configuration = getConfiguration(((Monosaccharide) trinConv.getNode()).getStereos());
+		}
 
 		ResidueType newType = ResidueDictionary.findResidueType(trivialName);
 		Residue residue = new Residue(newType);
 
 		// generate monosaccharide legend, when one could be built for this residue
-		if(NonSymbolicResidueDictionary.hasResidueType(trivialName) && trinConv.getIUPACNotation() != null) {
-			residue.getType().changeDescription(trinConv.getIUPACNotation());
+		if(NonSymbolicResidueDictionary.hasResidueType(trivialName)) {
+			String legend = this.makeLegend(_gres, trinConv);
+			if(legend != null) residue.getType().changeDescription(legend);
 		}
 
 		if(!_gres.getMS().getString().contains("<Q>")  && residue.getTypeName().equals("Sugar"))
@@ -71,12 +89,34 @@ public class GRESToResidue {
 	
 		residue.setAnomericCarbon(this.checkAnomerPosition());
 		residue.setAnomericState(this.checkAnomerSymbol());
-		residue.setChirality(getConfiguration(((Monosaccharide) trinConv.getNode()).getStereos()));
+		residue.setChirality(configuration);
 		residue.setRingSize(residue.isAlditol() ? 'o' : this.ringSize);
-		
-		// add modificaiton
-		this.modifications = trinConv.getModifications();
+
+		// the skeleton is matched whole, so a recognised residue leaves no core modification behind
+		this.modifications = (trinConv == null) ? new ArrayList<String>() : trinConv.getModifications();
 		this.residue = residue;
+	}
+
+	/**
+	 * The IUPAC name shown as a legend under residues drawn without a symbol. It comes from a
+	 * converter that does not cover every residue this builder can draw, so one it cannot name goes
+	 * without a legend rather than taking the structure down.
+	 * @param _gres Residue being read.
+	 * @param _trivialNameConverter Converter already run for this residue, or null.
+	 * @return Returns the legend, or null when none could be built.
+	 */
+	private String makeLegend(GRES _gres, TrivialNameConverter _trivialNameConverter) {
+		try {
+			TrivialNameConverter converter = _trivialNameConverter;
+			if(converter == null) {
+				converter = new TrivialNameConverter();
+				converter.start(_gres);
+			}
+
+			return converter.getIUPACNotation();
+		} catch (Exception cannotBeNamed) {
+			return null;
+		}
 	}
 	
 	private boolean isSticky(String _trivialName) {

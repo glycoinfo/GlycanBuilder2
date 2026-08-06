@@ -101,6 +101,18 @@ public class RegisteredGlycanWURCSRoundTripTest {
 		assertRoundTrip("WURCS=2.0/1,1,0/[Aad11122m-2x_2-6_5*N_7*N]/1/");   // 4eLeg
 	}
 
+	/**
+	 * The three that the old naming could not read: a substituent with no template of its own, a
+	 * skeleton the converter could not resolve, and a bridge across the anomeric carbon, which
+	 * makes a second ring it refuses to model. All three are answered from our own dictionaries.
+	 */
+	@Test
+	public void readsWhatTheNamingConverterCouldNot() throws Exception {
+		assertRoundTrip("WURCS=2.0/1,1,0/[a2122h-1x_1-5_3*OCC]/1/");   // 3-O-ethyl
+		assertRoundTrip("WURCS=2.0/1,1,0/[adxxxm-1x_1-5]/1/");         // ddHex
+		assertRoundTrip("WURCS=2.0/1,1,0/[a2122h-1x_1-5_1-6]/1/");     // 1,6-anhydro
+	}
+
 	private void assertRoundTrip(String _wurcs) throws Exception {
 		WURCS2Parser parser = new WURCS2Parser();
 		Glycan glycan = parser.readGlycan(_wurcs, new MassOptions());
