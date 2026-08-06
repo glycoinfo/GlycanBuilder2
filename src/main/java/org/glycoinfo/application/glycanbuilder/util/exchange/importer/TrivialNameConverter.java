@@ -5,6 +5,7 @@ import org.glycoinfo.GlycanFormatconverter.io.IUPAC.IUPACNotationConverter;
 import org.glycoinfo.GlycanFormatconverter.io.IUPAC.extended.ExtendedConverter;
 import org.glycoinfo.GlycanFormatconverter.util.TrivialName.ModifiedMonosaccharideDescriptor;
 import org.glycoinfo.GlycanFormatconverter.util.exchange.WURCSGraphToGlyContainer.WURCSGraphToGlyContainer;
+import org.eurocarbdb.application.glycanbuilder.dataset.ResidueDictionary;
 import org.glycoinfo.WURCSFramework.util.WURCSException;
 import org.glycoinfo.WURCSFramework.util.WURCSFactory;
 import org.glycoinfo.WURCSFramework.wurcs.graph.WURCSGraph;
@@ -143,11 +144,23 @@ public class TrivialNameConverter {
         }
     }
 
+    /**
+     * A deoxy marker on the terminal carbon belongs to the residue's name rather than standing as a
+     * modification of its own: Hex becomes dHex, HexNAc dHexNAc, and a nonulosonate - which the
+     * naming already counts as deoxy once - becomes ddNon. Left in the modification list the marker
+     * is built as a residue of its own, and the structure can then no longer be written back out.
+     */
     public void modifyTrivialName () {
-        if (this.modifications.contains("6*m")) {
-            if (this.trivialName.equals("Hex")) {
-                this.trivialName = "dHex";
-                this.modifications.remove("6*m");
+        for (String modification : new ArrayList<String>(this.modifications)) {
+            if (!modification.endsWith("*m")) continue;
+
+            for (String prefix : new String[] {"d", "dd"}) {
+                String deoxyName = prefix + this.trivialName;
+                if (!ResidueDictionary.hasResidueType(deoxyName)) continue;
+
+                this.trivialName = deoxyName;
+                this.modifications.remove(modification);
+                break;
             }
         }
     }

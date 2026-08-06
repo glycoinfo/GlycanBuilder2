@@ -78,6 +78,17 @@ public class RegisteredGlycanWURCSRoundTripTest {
 				+ "_a?|b?|c?|d?|e?|f?|g?|h?|i?|j?|k?|l?}*OCC/3=O");
 	}
 
+	/**
+	 * A deoxy marker on the terminal carbon is part of the residue's name. Read as a modification
+	 * instead, it became a residue of its own, and the structure could not be written back out.
+	 */
+	@Test
+	public void deoxyResiduesOfUnknownStereochemistrySurvive() throws Exception {
+		assertRoundTrip("WURCS=2.0/1,1,0/[axxxxm-1x_1-5]/1/");
+		assertRoundTrip("WURCS=2.0/1,1,0/[axxxxm-1x_1-5_2*NCC/3=O]/1/");
+		assertRoundTrip("WURCS=2.0/1,1,0/[Aadxxxxxm-2x_2-6_5*N_7*N]/1/");
+	}
+
 	private void assertRoundTrip(String _wurcs) throws Exception {
 		WURCS2Parser parser = new WURCS2Parser();
 		Glycan glycan = parser.readGlycan(_wurcs, new MassOptions());
