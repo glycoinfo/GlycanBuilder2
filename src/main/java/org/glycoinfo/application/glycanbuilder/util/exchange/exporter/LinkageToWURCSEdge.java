@@ -161,7 +161,11 @@ public class LinkageToWURCSEdge {
 	}
 	
 	protected void setChild(Residue _childRES) {
-		if(_childRES.isSubstituent()) {
+		// a bridge within one monosaccharide is a leaf, and is written as that residue's
+		// divalent substituent rather than as the child of a glycosidic linkage
+		boolean isIntraBridge = _childRES.isBridge() && _childRES.getChildrenLinkages().isEmpty();
+
+		if(_childRES.isSubstituent() || isIntraBridge) {
 			this.substituent = _childRES;
 		}else {
 			this.childRes = _childRES;

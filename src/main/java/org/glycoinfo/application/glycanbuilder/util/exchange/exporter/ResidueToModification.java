@@ -18,11 +18,17 @@ import java.util.Set;
 
 public class ResidueToModification {
 
-	// substituents whose upstream glycanformatconverter template/MAP table is missing
-	// or unreliable (e.g. Py/(S)Py/(R)Py all collapse to the same stereo notation) -
-	// WURCS2 export is deliberately unsupported for these until that table is fixed
+	// substituents with no usable template in glycanformatconverter at all - WURCS2 export
+	// stays unsupported for these. The pyruvates used to be listed here too, because their
+	// MAP was re-derived from SubstituentTypeToMAP, which cannot tell (S) from (R) (all three
+	// share the glycoCT notation "pyruvate", and its S entry carries ^R); bridge MAPs are now
+	// taken from BaseCrossLinkedTemplate, which keeps the stereo, so they work again.
 	private static final Set<String> WURCS2_UNSUPPORTED_SUBSTITUENTS = new HashSet<>(Arrays.asList(
-			"Pyr", "Ino", "Py", "(S)Py", "(R)Py"));
+			"Pyr", "Ino"));
+
+	// a plain ether bridge carries no chemistry of its own: WURCS writes it as the two linkage
+	// positions alone, e.g. [a2122h-1x_1-5_4-6], so "*O*" must not be emitted as a MAP
+	private static final String ETHER_BRIDGE_MAP = "*O*";
 
 	private Residue subtituent;
 	private Linkage childLinkage = null;
@@ -38,8 +44,11 @@ public class ResidueToModification {
 
 	private LinkageType parentLinkageType;
 	private LinkageType childLinkageType;
-	
+
 	private String notationGCT = "";
+
+	/** the cross-linked template, when this residue is a bridge; null otherwise */
+	private BaseCrossLinkedTemplate crossTemplate = null;
 	
 	public String getMAPCode() {
 		return this.map;
@@ -73,10 +82,17 @@ public class ResidueToModification {
 		if (WURCS2_UNSUPPORTED_SUBSTITUENTS.contains(_substituent.getTypeName()))
 			throw new Exception("WURCS2 export is not supported for substituent \"" + _substituent.getTypeName() + "\"");
 
-		SubstituentInterface subTemp = BaseSubstituentTemplate.forIUPACNotationWithIgnore(_substituent.getTypeName());
+		SubstituentInterface subTemp = _substituent.isBridge() ?
+				null : BaseSubstituentTemplate.forIUPACNotationWithIgnore(_substituent.getTypeName());
 		if (subTemp == null) {
-			subTemp = BaseCrossLinkedTemplate.forIUPACNotationWithIgnore(_substituent.getTypeName());
+			BaseCrossLinkedTemplate crossTemp =
+					BaseCrossLinkedTemplate.forIUPACNotationWithIgnore(_substituent.getTypeName());
+			this.crossTemplate = crossTemp;
+			subTemp = crossTemp;
 		}
+		if (subTemp == null)
+			throw new Exception("No substituent template for \"" + _substituent.getTypeName() + "\"");
+
 		this.notationGCT = subTemp.getglycoCTnotation();
 	}
 	
@@ -99,7 +115,15 @@ public class ResidueToModification {
 		
 		if(this.parentLinkageType == LinkageType.UNKNOWN)
 			this.parentLinkageType = LinkageType.H_AT_OH;
-		
+
+		// A bridge's template MAP is already the finished code: it carries its own linking atoms
+		// (*OPO* for a phosphate, *N* for an imino bridge) and its own stereo (*OC^SO* vs *OC^RO*).
+		// Re-deriving it from the glycoCT notation loses both, so it is used verbatim here.
+		if(this.crossTemplate != null) {
+			this.applyCrossLinkedTemplate();
+			return;
+		}
+
 		String mapDouble = this.subType2MAP.getMAPDouble();
 		if(mapDouble != null && mapDouble.equals("") &&
 				_substituent.getParentLinkage().getBonds().size() > 1) return;
@@ -108,7 +132,46 @@ public class ResidueToModification {
 				!_substituent.getType().getSuperclass().equals("Bridge")) ?
 				this.getMAPCodeSingle() : this.getMAPCodeDouble();
 	}
-	
+
+	/**
+	 * Takes the MAP of a bridge substituent straight from its cross-linked template, which already
+	 * spells out the linking atoms and the stereo. A plain ether bridge ({@value #ETHER_BRIDGE_MAP})
+	 * has no MAP in WURCS - the two linkage positions alone say everything - so it yields "".
+	 */
+	private void applyCrossLinkedTemplate() {
+		String templateMAP = this.crossTemplate.getMAP();
+
+		if(templateMAP == null || templateMAP.equals("") || templateMAP.equals(ETHER_BRIDGE_MAP)) {
+			this.map = "";
+			return;
+		}
+
+		// "*1...*2" pins which end of the MAP each linkage attaches to; which end is the parent's
+		// is the same question getMAPCodeDouble() answers, so the orientation is taken from there
+		if(templateMAP.contains("*1") && templateMAP.contains("*2")) {
+			Boolean isSwap = this.resolveSwap();
+			this.parentMAPPosition = (isSwap != null && isSwap) ? 2 : 1;
+			this.childMAPPosition = (isSwap != null && isSwap) ? 1 : 2;
+		}
+
+		this.headAtom = this.atomNextToStar(templateMAP, true);
+		this.tailAtom = this.atomNextToStar(templateMAP, false);
+		this.map = templateMAP;
+	}
+
+	/** The atom a MAP starts or ends with, ignoring the "*" and any star index. */
+	private String atomNextToStar(String _map, boolean _isHead) {
+		String stripped = _map.split("/")[0].replaceAll("\\*[12]?", " ").trim();
+		if(stripped.isEmpty()) return "";
+
+		if(_isHead)
+			return stripped.startsWith("Cl") || stripped.startsWith("Br") ?
+					stripped.substring(0, 2) : stripped.substring(0, 1);
+
+		return stripped.substring(stripped.length() - 1);
+	}
+
+
 	public String getMAPCodeSingle() {
 		String mapSingle = this.subType2MAP.getMAPSingle();
 		boolean isBond = (mapSingle.startsWith("C") && !mapSingle.equals("CO") && !mapSingle.equals("Cl"))  ||
@@ -126,17 +189,25 @@ public class ResidueToModification {
 		return "*" + mapSingle;
 	}
 	
-	public String getMAPCodeDouble() {
-		String mapDouble = this.subType2MAP.getMAPDouble();
+	/** Which end of a divalent MAP the parent linkage attaches to; null when the MAP is unordered. */
+	private Boolean resolveSwap() {
 		Boolean isSwap = this.subType2MAP.isSwapCarbonPositions();
-		boolean hasOrder = false;
-		
+
 		if(isSwap == null && this.parentLinkageType != this.childLinkageType) {
 			if(this.parentLinkageType == LinkageType.H_AT_OH)
 				isSwap = false;
 			else if (this.childLinkageType == LinkageType.H_AT_OH)
 				isSwap = true;
 		}
+
+		return isSwap;
+	}
+
+	public String getMAPCodeDouble() {
+		String mapDouble = this.subType2MAP.getMAPDouble();
+		Boolean isSwap = this.resolveSwap();
+		boolean hasOrder = false;
+
 		if(isSwap != null) {
 			this.parentMAPPosition = 1;
 			this.childMAPPosition = 2;
