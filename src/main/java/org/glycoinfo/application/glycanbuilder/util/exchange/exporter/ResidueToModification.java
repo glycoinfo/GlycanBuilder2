@@ -100,20 +100,20 @@ public class ResidueToModification {
 	public void start(Residue _substituent) throws Exception {
 		this.subtituent = _substituent;
 		this.subType2MAP = SubstituentTypeToMAP.forName(this.notationGCT);
-		
+
 		this.headAtom = this.subType2MAP.getHeadAtom();
 		this.tailAtom = this.subType2MAP.getTailAtom();
-		
+
 		if(this.subtituent.getParentLinkage() != null)
 			this.parentLinkage = this.subtituent.getParentLinkage();
 		if(this.parentLinkage == null)
 			throw new Exception("Substituent should have parent linkage");
 		if(!this.subtituent.getChildrenLinkages().isEmpty())
 			this.childLinkage = this.subtituent.getChildrenLinkages().get(0);
-		
+
 		this.parentLinkageType = this.parentLinkage.getParentLinkageType();
 		this.childLinkageType = this.parentLinkage.getChildLinkageType();
-		
+
 		if(this.parentLinkageType == LinkageType.UNKNOWN)
 			this.parentLinkageType = LinkageType.H_AT_OH;
 
@@ -125,6 +125,10 @@ public class ResidueToModification {
 			this.normalizeMAP();
 			return;
 		}
+
+		// The dictionary records what each substituent's MAP is, so a substituent attached at one
+		// position is written from that rather than assembled again from its notation.
+		if(this.applyOwnMAP()) return;
 
 		String mapDouble = this.subType2MAP.getMAPDouble();
 		if(mapDouble != null && mapDouble.equals("") &&
@@ -168,6 +172,26 @@ public class ResidueToModification {
 
 	private boolean hasStarIndices(String _map) {
 		return _map.contains("*1") && _map.contains("*2");
+	}
+
+	/**
+	 * Writes the MAP the dictionary records for this substituent, when it has one and hangs off a
+	 * single position.
+	 * @return Returns true when the MAP was written from the dictionary.
+	 */
+	private boolean applyOwnMAP() {
+		if(this.parentLinkage.getBonds().size() != 1) return false;
+		if(this.subtituent.getType().isBridge()) return false;
+
+		String ownMAP = this.subtituent.getType().getMAP();
+		if(ownMAP == null || ownMAP.isEmpty()) return false;
+
+		this.headAtom = this.atomNextToStar(ownMAP, true);
+		this.tailAtom = this.atomNextToStar(ownMAP, false);
+		this.map = ownMAP;
+		this.normalizeMAP();
+
+		return true;
 	}
 
 	/**
@@ -228,7 +252,7 @@ public class ResidueToModification {
 	
 	/** Which end of a divalent MAP the parent linkage attaches to; null when the MAP is unordered. */
 	private Boolean resolveSwap() {
-		Boolean isSwap = this.subType2MAP.isSwapCarbonPositions();
+		Boolean isSwap = (this.subType2MAP == null) ? null : this.subType2MAP.isSwapCarbonPositions();
 
 		if(isSwap == null && this.parentLinkageType != this.childLinkageType) {
 			if(this.parentLinkageType == LinkageType.H_AT_OH)
