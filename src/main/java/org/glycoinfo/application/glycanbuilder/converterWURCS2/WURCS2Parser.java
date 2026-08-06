@@ -5,11 +5,9 @@ import org.eurocarbdb.application.glycanbuilder.converter.GlycanParser;
 import org.eurocarbdb.application.glycanbuilder.logutility.LogUtils;
 import org.eurocarbdb.application.glycanbuilder.massutil.MassOptions;
 import org.eurocarbdb.application.glycanbuilder.renderutil.BBoxManager;
-import org.glycoinfo.GlycanFormatconverter.io.WURCS.WURCSImporter;
 import org.glycoinfo.WURCSFramework.util.WURCSFactory;
 import org.glycoinfo.application.glycanbuilder.util.exchange.exporter.GlycanToWURCSGraph;
 import org.glycoinfo.application.glycanbuilder.util.exchange.importer.WURCSSequence2ToGlycan;
-import org.glycoinfo.application.glycanbuilder.util.exchange.importer.glycontainer2glycan.GlyContainer2Glycan;
 
 public class WURCS2Parser implements GlycanParser{
 	
@@ -46,11 +44,6 @@ public class WURCS2Parser implements GlycanParser{
 		WURCSSequence2ToGlycan seq22glycan = new WURCSSequence2ToGlycan();
 		seq22glycan.start(wf, mass_opt);
 		return seq22glycan.getGlycan();
-		
-		//WURCSImporter wi = new WURCSImporter();
-		//GlyContainer2Glycan gc2g = new GlyContainer2Glycan();
-		//Glycan ret = gc2g.start(wi.start(str), mass_opt);
-		//return ret;
 	}
 
 	@Override
