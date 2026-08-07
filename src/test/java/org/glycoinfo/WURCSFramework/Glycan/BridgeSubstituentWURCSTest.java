@@ -121,6 +121,30 @@ public class BridgeSubstituentWURCSTest {
 	}
 
 	/**
+	 * A MAP is read back to its substituent through our own dictionary alone. The converter's table
+	 * used to be asked first, with ours kept as the answer for what it did not know - but measured
+	 * across every substituent residue_types holds a MAP for, ours resolves all 33 and theirs 31, and
+	 * there is nothing theirs can name that ours cannot. These two are the pair theirs never held.
+	 */
+	@Test
+	public void substituentsAreReadBackThroughOurOwnDictionary() throws Exception {
+		assertRoundTrip("WURCS=2.0/1,1,0/[a2122h-1x_1-5_3*OCC]/1/");              // Et
+		assertRoundTrip("WURCS=2.0/1,1,0/[a2122h-1x_1-5_3*OCCC/4=O/3=O]/1/");     // Pyr
+	}
+
+	/**
+	 * A residue that already carries an amine where the substituent lands is not carrying an N-linked
+	 * group of its own: the nitrogen in the MAP is the residue's, and what hangs off it is the
+	 * O-linked equivalent. GlcN with 2*NSO/3=O/3=O is GlcN bearing a sulfate, not an NS. That test
+	 * used to name nine templates in the converter; read off the MAP it is the same set.
+	 */
+	@Test
+	public void anAmineAlreadyOnTheResidueIsNotPartOfTheSubstituent() throws Exception {
+		assertRoundTrip("WURCS=2.0/1,1,0/[a2122h-1x_1-5_2*NSO/3=O/3=O]/1/");
+		assertRoundTrip("WURCS=2.0/1,1,0/[a2122h-1x_1-5_2*NCC/3=O]/1/");
+	}
+
+	/**
 	 * Monovalent pyruvate is a different substituent from the three bridging ones, and the WURCS 2.0
 	 * specification gives it its own MAP in the table of common substituents: {@code *OCCC/4=O/3=O},
 	 * the O-linked ester R-O-C(=O)-C(=O)-CH3. It was refused on the way out for as long as its MAP

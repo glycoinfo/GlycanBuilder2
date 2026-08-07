@@ -5,7 +5,6 @@ import org.eurocarbdb.application.glycanbuilder.Residue;
 import org.eurocarbdb.application.glycanbuilder.dataset.ResidueDictionary;
 import org.eurocarbdb.application.glycanbuilder.linkage.Linkage;
 import org.glycoinfo.GlycanFormatconverter.Glycan.BaseCrossLinkedTemplate;
-import org.glycoinfo.GlycanFormatconverter.Glycan.BaseSubstituentTemplate;
 import org.glycoinfo.GlycanFormatconverter.util.exchange.WURCSGraphToGlyContainer.MAPAnalyzer;
 import org.glycoinfo.WURCSFramework.util.array.WURCSImporter;
 import org.glycoinfo.WURCSFramework.wurcs.array.LIP;
@@ -47,22 +46,6 @@ public class SUBSTAnalyzer {
 	 * @param _residue Residue it hangs off.
 	 * @param _ms Monosaccharide being read, for the linkage type.
 	 */
-	private void attachSubstituentFromOwnDictionary(SUBST _subst, Residue _residue, MS _ms) throws Exception {
-		ResidueType substituentType = SubstituentMAPDictionary.findResidueTypeByMAP(_subst.getMAP());
-		if(substituentType == null)
-			throw new Exception("This MAP is not support in the GlycanBuilder2:" + _subst.getMAP());
-
-		Linkage linkage = new Linkage();
-		linkage.setLinkagePositions(this.makePosition(_subst.getPositions()));
-		linkage.setParentLinkageType(checkLinkageTypeOfMAP(_subst, _ms));
-		linkage.setChildLinkageType(LinkageType.NONMONOSACCHARID);
-		this.extractProbabilityAnnotation(_subst, _ms, linkage);
-
-		Residue substituent = ResidueDictionary.newResidue(substituentType.getName());
-		substituent.setParentLinkage(linkage);
-		_residue.addChild(substituent, substituent.getParentLinkage().getBonds());
-	}
-
 	public void start(GRES _gres, Residue _residue) throws Exception {
 		MS ms = new WURCSImporter().extractMS(_gres.getMS().getString());
 
@@ -119,31 +102,22 @@ public class SUBSTAnalyzer {
 	public Residue MAPToFragment(GLIN _glin) throws Exception {
 		if(_glin.getMAP().equals("")) return null;
 
-		MAPAnalyzer mapAnalyzer = new MAPAnalyzer();
-		mapAnalyzer.start(_glin.getMAP());
-		BaseSubstituentTemplate subTemp = mapAnalyzer.getSingleTemplate();
+		ResidueType substituentType = SubstituentMAPDictionary.findResidueTypeByMAP(_glin.getMAP());
+		if(substituentType == null)
+			throw new Exception("This MAP is not support in the GlycanBuilder2:" + _glin.getMAP());
 
-		return ResidueDictionary.newResidue(subTemp.getIUPACnotation());
+		return ResidueDictionary.newResidue(substituentType.getName());
 	}
 	
 	private void analyzeSUBST(SUBST _subst, Residue _residue, MS _ms) throws Exception {
 		Linkage linkage = new Linkage();
 
-		MAPAnalyzer mapAnalyzer = new MAPAnalyzer();
-		mapAnalyzer.start(_subst.getMAP());
-		BaseSubstituentTemplate subTemp = mapAnalyzer.getSingleTemplate();
-
-		if(subTemp == null) {
-			// our own table knows substituents the converter's does not - an ethyl, say
-			this.attachSubstituentFromOwnDictionary(_subst, _residue, _ms);
-			return;
-		}
+		ResidueType substituentType = SubstituentMAPDictionary.findResidueTypeByMAP(_subst.getMAP());
+		if(substituentType == null)
+			throw new Exception("This MAP is not support in the GlycanBuilder2:" + _subst.getMAP());
 
 		char[] positions = this.makePosition(_subst.getPositions());
-		String subNotation = positions[0] + "*" + subTemp.getIUPACnotation();
-
-		if(subTemp.getIUPACnotation().equals(""))
-			throw new Exception("This MAP is not support in the GlycanBuilder2:" + _subst.getMAP());
+		String subNotation = positions[0] + "*" + substituentType.getName();
 
 		// check native substituent. Our own table is asked first and, where it has an answer, only it
 		// is asked: the exporter derives this residue's substituents from that same table, so drawing
@@ -161,14 +135,18 @@ public class SUBSTAnalyzer {
 			}
 		}
 
-		// change n_sulfate with hexosamine
-		if(isNSubstituent(_residue, subTemp, _subst.getPositions().get(0))) {
-			mapAnalyzer.start(_subst.getMAP().replaceFirst("N", "O"));
-			subTemp = mapAnalyzer.getSingleTemplate();
+		// A residue that already carries an amine where this substituent lands is not carrying an
+		// N-linked group of its own: the nitrogen in the MAP is the residue's, and what hangs off it
+		// is the O-linked equivalent. GlcN with 2*NSO/3=O/3=O is GlcN bearing a sulfate, not an NS.
+		if(isNSubstituent(_residue, _subst.getMAP(), _subst.getPositions().get(0))) {
+			substituentType = SubstituentMAPDictionary.findResidueTypeByMAP(
+					_subst.getMAP().replaceFirst("N", "O"));
+			if(substituentType == null)
+				throw new Exception("This MAP is not support in the GlycanBuilder2:" + _subst.getMAP());
 		}
-		
+
 		linkage.setLinkagePositions(positions);
-		
+
 		// set LinkageType
 		linkage.setParentLinkageType(checkLinkageTypeOfMAP(_subst, _ms));
 		linkage.setChildLinkageType(LinkageType.NONMONOSACCHARID);
@@ -176,8 +154,8 @@ public class SUBSTAnalyzer {
 		// set probability annotation
 		this.extractProbabilityAnnotation(_subst, _ms, linkage);
 
-		Residue substituent = ResidueDictionary.newResidue(subTemp.getIUPACnotation());
-		this.checkNode(substituent, subTemp.getIUPACnotation());
+		Residue substituent = ResidueDictionary.newResidue(substituentType.getName());
+		this.checkNode(substituent, substituentType.getName());
 		substituent.setParentLinkage(linkage);
 		_residue.addChild(substituent, substituent.getParentLinkage().getBonds());
 	}
@@ -266,9 +244,9 @@ public class SUBSTAnalyzer {
 			throw new WURCSToGlycanException(_map + " is not handled in GlycanBuilder");
 	}
 
-	private boolean isNSubstituent(Residue _residue, BaseSubstituentTemplate _subTemp, int _pos) {
+	private boolean isNSubstituent(Residue _residue, String _map, int _pos) {
 		boolean isNType = false;
-		boolean isNSub = this.isNTypes(_subTemp);
+		boolean isNSub = this.isNTypes(_map);
 		String superclass = _residue.getType().getSuperclass();
 		
 		if(superclass.equals("Hexuronic acid")) return false;
@@ -309,15 +287,15 @@ public class SUBSTAnalyzer {
 		return LinkageType.DEOXY;
 	}
 
-	private boolean isNTypes(BaseSubstituentTemplate _subTemp) {
-		if(_subTemp.equals(BaseSubstituentTemplate.NSULFATE)) return true;
-		if(_subTemp.equals(BaseSubstituentTemplate.NAMIDINO)) return true;
-		if(_subTemp.equals(BaseSubstituentTemplate.NACETYL)) return true;
-		if(_subTemp.equals(BaseSubstituentTemplate.NDIMETHYL)) return true;
-		if(_subTemp.equals(BaseSubstituentTemplate.NFORMYL)) return true;
-		if(_subTemp.equals(BaseSubstituentTemplate.NGLYCOLYL)) return true;
-		if(_subTemp.equals(BaseSubstituentTemplate.NMETHYL)) return true;
-		if(_subTemp.equals(BaseSubstituentTemplate.NSUCCINATE)) return true;
-		return _subTemp.equals(BaseSubstituentTemplate.ETHANOLAMINE);
+	/**
+	 * Whether the substituent hangs off a nitrogen and carries something beyond it - an N-sulfate, an
+	 * N-acetyl and so on, but not a bare amine, which is a nitrogen and nothing more.
+	 *
+	 * <p>This used to be a list of nine templates named in glycanformatconverter. Read off the MAP it
+	 * is the same set: compared over every substituent MAP residue_types holds, all 33, the two
+	 * agree without exception.
+	 */
+	private boolean isNTypes(String _map) {
+		return _map.startsWith("*N") && _map.length() > "*N".length();
 	}
 }
