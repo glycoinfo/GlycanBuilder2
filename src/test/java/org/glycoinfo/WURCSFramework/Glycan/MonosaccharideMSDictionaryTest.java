@@ -87,6 +87,38 @@ public class MonosaccharideMSDictionaryTest {
 		assertResidue("Lyx", "a112h-1x_1-5");   // D
 	}
 
+	/**
+	 * A residue is written in more than one form, and all of them have to be recognised. The index
+	 * used to hold only the first - a residue with a ring and a determined anomeric carbon - and the
+	 * others went to a name lookup elsewhere. They are not rare: in a corpus of two hundred structures
+	 * one residue in five arrived in one of these forms.
+	 */
+	@Test
+	public void everyFormOfAResidueIsRecognised() {
+		assertResidue("Glc", "a2122h-1x_1-5");   // ring
+		assertResidue("Glc", "u2122h");          // anomeric carbon undetermined
+		assertResidue("Glc", "h2122h");          // alditol
+		assertResidue("Glc", "o2122h");          // open chain
+	}
+
+	/**
+	 * An MS with a ring reads {@code a2122h-1x_1-5_2*NCC/3=O}, and the {@code 1-5} is the one segment
+	 * that is not a group. A residue written without a ring has no such segment, so its groups begin
+	 * one place earlier - and reading them from the wrong place lost the substituents of every residue
+	 * written that way, which turned a GlcNAc into a Glc.
+	 */
+	@Test
+	public void theGroupsOfAResidueWithNoRingAreStillFound() {
+		assertResidue("GlcNAc", "u2122h_2*NCC/3=O");
+		assertResidue("NeuAc", "AUd21122h_5*NCC/3=O");
+
+		MonosaccharideMSDictionary.Match sulfated =
+				MonosaccharideMSDictionary.match("u2122h_2*NCC/3=O_6*OSO/3=O/3=O");
+		assertNotNull(sulfated);
+		assertEquals("GlcNAc", sulfated.getResidueType().getName());
+		assertEquals("6*OSO/3=O/3=O", sulfated.getAttachedGroups().get(0));
+	}
+
 	/** The substituents a residue owns are part of what names it. */
 	@Test
 	public void namesAResidueTogetherWithItsOwnSubstituents() {
