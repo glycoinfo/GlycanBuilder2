@@ -72,6 +72,8 @@ public class Residue {
 	private final ArrayList<String> modifications = new ArrayList<>();
 	
 	// cleavage
+	private String legend = null;
+
 	private Residue cleaved_residue = null;
 
 	// positioning
@@ -1617,6 +1619,24 @@ public class Residue {
 	/*
        Create a new residue that is a copy of the current one.
 	 */
+	/**
+	 * How this residue is named in the legend drawn beside a structure, which is the residue's own
+	 * name for itself when it has one, and otherwise what its type is called.
+	 *
+	 * <p>A residue drawn without a symbol is identified only by that legend, and what it should say
+	 * depends on the residue rather than on its type: two structures can hold the same type of
+	 * residue - the same 4-deoxy hexose - as an alpha in one and a beta in the other. Writing it onto
+	 * the type instead, which every residue of that name shares, made the second overwrite the first
+	 * and destroyed the type's own description along the way.
+	 */
+	public String getLegend() {
+		return (this.legend != null) ? this.legend : this.type.getDescription();
+	}
+
+	public void setLegend(String a_sLegend) {
+		this.legend = a_sLegend;
+	}
+
 	public Residue cloneResidue() {
 		Residue ret = new Residue(this.type);
 
@@ -1624,6 +1644,7 @@ public class Residue {
 		ret.anomeric_carbon = this.anomeric_carbon;
 		ret.chirality = this.chirality;
 		ret.ring_size = this.ring_size;
+		ret.legend = this.legend;
 
 		ret.cleaved_residue = (this.cleaved_residue!=null) ?this.cleaved_residue.cloneResidue() :null;
 

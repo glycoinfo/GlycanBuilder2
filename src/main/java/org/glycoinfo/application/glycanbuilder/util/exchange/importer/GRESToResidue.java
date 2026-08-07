@@ -74,10 +74,12 @@ public class GRESToResidue {
 		ResidueType newType = ResidueDictionary.findResidueType(trivialName);
 		Residue residue = new Residue(newType);
 
-		// generate monosaccharide legend, when one could be built for this residue
+		// The legend names this residue in the box drawn beside the structure, for a residue with no
+		// symbol of its own. It belongs to the residue: writing it onto the type, which every residue
+		// of that name shares, meant reading a second structure changed what the first one said.
 		if(NonSymbolicResidueDictionary.hasResidueType(trivialName)) {
 			String legend = this.makeLegend(_gres, trinConv);
-			if(legend != null) residue.getType().changeDescription(legend);
+			if(legend != null) residue.setLegend(legend);
 		}
 
 		if(!_gres.getMS().getString().contains("<Q>")  && residue.getTypeName().equals("Sugar"))
