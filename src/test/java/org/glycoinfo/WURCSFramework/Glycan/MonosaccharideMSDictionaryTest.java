@@ -18,6 +18,7 @@ import org.eurocarbdb.application.glycanbuilder.renderutil.GlycanRendererAWT;
 import org.glycoinfo.WURCSFramework.util.WURCSFactory;
 import org.glycoinfo.application.glycanbuilder.converterWURCS2.LinkageTypeOptimizer;
 import org.glycoinfo.application.glycanbuilder.dataset.MonosaccharideMSDictionary;
+import org.glycoinfo.application.glycanbuilder.dataset.NativeMonosaccharideDictionary;
 import org.glycoinfo.application.glycanbuilder.util.exchange.exporter.GlycanToWURCSGraph;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -39,6 +40,36 @@ public class MonosaccharideMSDictionaryTest {
 		assertResidue("Glc", "a2122h-1x_1-5");
 		assertResidue("Gal", "a2112h-1b_1-5");
 		assertResidue("Man", "a1122h-1a_1-5");
+	}
+
+	/**
+	 * A residue's stereo is one recorded string, written for the D form, and the other configurations
+	 * follow from it: L swaps every digit, because an enantiomer inverts every centre, and an unknown
+	 * configuration maps 1 to 3 and 2 to 4, the relative form that says how the carbons stand in
+	 * relation to each other without saying which way round the molecule is.
+	 *
+	 * <p>D-glucose is 2122, so L-glucose is 1211 and a glucose of unspecified configuration is 4344.
+	 */
+	@Test
+	public void theOtherConfigurationsFollowFromTheRecordedOne() {
+		NativeMonosaccharideDictionary.Entry glc = NativeMonosaccharideDictionary.forResidueName("Glc");
+
+		assertEquals("2122", glc.getStereo('D'));
+		assertEquals("1211", glc.getStereo('L'));
+		assertEquals("4344", glc.getStereo('?'));
+	}
+
+	/**
+	 * A name that fixes both of its stereo blocks has nothing left for a configuration to change. The
+	 * nonulosonates are named for two of them - Neu is D-glycero-D-galacto - and so are the heptoses.
+	 */
+	@Test
+	public void aNameThatFixesBothBlocksIgnoresTheConfiguration() {
+		NativeMonosaccharideDictionary.Entry neu = NativeMonosaccharideDictionary.forResidueName("Neu");
+
+		assertEquals("21122", neu.getStereo('D'));
+		assertEquals("21122", neu.getStereo('L'));
+		assertEquals("21122", neu.getStereo('?'));
 	}
 
 	/**

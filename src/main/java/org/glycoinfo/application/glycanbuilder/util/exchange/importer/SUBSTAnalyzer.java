@@ -17,9 +17,7 @@ import org.glycoinfo.WURCSFramework.wurcs.sequence2.GLIN;
 import org.glycoinfo.WURCSFramework.wurcs.sequence2.GRES;
 import org.glycoinfo.WURCSFramework.wurcs.sequence2.SUBST;
 import org.glycoinfo.application.glycanbuilder.dataset.CrossLinkedSubstituentDictionary;
-import org.glycoinfo.application.glycanbuilder.dataset.NativeSubstituentDictionary;
-import org.glycoinfo.GlycanFormatconverter.util.TrivialName.TrivialNameDictionary;
-import org.glycoinfo.GlycanFormatconverter.util.TrivialName.ModifiedMonosaccharideDescriptor;
+import org.glycoinfo.application.glycanbuilder.dataset.NativeMonosaccharideDictionary;
 import org.glycoinfo.application.glycanbuilder.util.exchange.WURCSToGlycanException;
 
 import java.util.ArrayList;
@@ -119,21 +117,11 @@ public class SUBSTAnalyzer {
 		char[] positions = this.makePosition(_subst.getPositions());
 		String subNotation = positions[0] + "*" + substituentType.getName();
 
-		// check native substituent. Our own table is asked first and, where it has an answer, only it
-		// is asked: the exporter derives this residue's substituents from that same table, so drawing
-		// one it already owns would write it out twice.
-		if(NativeSubstituentDictionary.forResidueName(_residue.getTypeName()) != null) {
-			if(NativeSubstituentDictionary.owns(_residue.getTypeName(), subNotation)) return;
-		} else {
-			TrivialNameDictionary trivDict = TrivialNameDictionary.forThreeLetterCode(_residue.getTypeName());
-			ModifiedMonosaccharideDescriptor modDesc = ModifiedMonosaccharideDescriptor.forTrivialName(_residue.getTypeName());
-			if(trivDict != null) {
-				if(trivDict.getSubstituents().contains(subNotation)) return;
-			}
-			if(modDesc != null) {
-				if(modDesc.getSubstituents().contains(subNotation)) return;
-			}
-		}
+		// A substituent the residue's name already owns must not be drawn as well: the exporter takes
+		// it from the same table, so drawing it would write it out twice.
+		NativeMonosaccharideDictionary.Entry entry =
+				NativeMonosaccharideDictionary.forResidueName(_residue.getTypeName());
+		if(entry != null && entry.owns(subNotation)) return;
 
 		// A residue that already carries an amine where this substituent lands is not carrying an
 		// N-linked group of its own: the nitrogen in the MAP is the residue's, and what hangs off it
@@ -192,22 +180,20 @@ public class SUBSTAnalyzer {
 	}
 		
 	private void analyzeModificaitons(Residue _residue) throws Exception {
-		TrivialNameDictionary trivDict = TrivialNameDictionary.forThreeLetterCode(_residue.getTypeName());
-		ModifiedMonosaccharideDescriptor modDesc = ModifiedMonosaccharideDescriptor.forTrivialName(_residue.getTypeName());
+		NativeMonosaccharideDictionary.Entry entry =
+				NativeMonosaccharideDictionary.forResidueName(_residue.getTypeName());
 
 		for(String mod : this.modifications) {
 			Linkage linkage = new Linkage();
 			String[] subNotations = mod.split("\\*");
 
-			if(trivDict != null) {
+			// a modification the residue's name already implies is recorded on the residue and not
+			// built as a residue of its own - the exporter puts it back from the same table
+			if(entry != null) {
 				_residue.addModification(mod);
-				if(trivDict.getModifications().contains(mod)) continue;
+				if(entry.getModifications().contains(mod)) continue;
 			}
-			if(modDesc != null) {
-				_residue.addModification(mod);
-				if(modDesc.getModifications().contains(mod)) continue;
-			}
-			
+
 			if(subNotations[0].contains(",")) {
 				char[] positions = new char[subNotations[0].length()];
 				for(int i = 0; i < subNotations[0].length(); i++) {

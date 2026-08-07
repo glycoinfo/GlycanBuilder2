@@ -3,12 +3,10 @@ package org.glycoinfo.application.glycanbuilder.util.exchange.exporter;
 import org.eurocarbdb.application.glycanbuilder.Glycan;
 import org.eurocarbdb.application.glycanbuilder.Residue;
 import org.eurocarbdb.application.glycanbuilder.dataset.ResidueDictionary;
-import org.glycoinfo.application.glycanbuilder.dataset.NativeSubstituentDictionary;
+import org.glycoinfo.application.glycanbuilder.dataset.NativeMonosaccharideDictionary;
 import org.eurocarbdb.application.glycanbuilder.linkage.Bond;
 import org.eurocarbdb.application.glycanbuilder.linkage.Linkage;
 //import org.glycoinfo.WURCSFramework.util.oldUtil.TrivialNameDescriptor;
-import org.glycoinfo.GlycanFormatconverter.util.TrivialName.TrivialNameDictionary;
-import org.glycoinfo.GlycanFormatconverter.util.TrivialName.ModifiedMonosaccharideDescriptor;
 import org.glycoinfo.glycanbuilder.util.visitor.GlycanVisitor;
 
 import java.util.ArrayList;
@@ -220,24 +218,11 @@ public class GlycanVisitorAnalyzeForWURCSGraph implements GlycanVisitor {
 	}
 
 	private void extractNativeSubstituent(Residue _residue) {
-		TrivialNameDictionary trivDict = TrivialNameDictionary.forThreeLetterCode(_residue.getTypeName());
-		ModifiedMonosaccharideDescriptor modDict = ModifiedMonosaccharideDescriptor.forTrivialName(_residue.getTypeName());
+		NativeMonosaccharideDictionary.Entry entry =
+				NativeMonosaccharideDictionary.forResidueName(_residue.getType().getName());
+		if (entry == null) return;
 
-		String subNotation = "";
-
-		if (_residue.getType().getName().equals("dHexNAc"))
-			modDict = ModifiedMonosaccharideDescriptor.HEXNAC;
-		if (trivDict != null) subNotation = trivDict.getSubstituents();
-		if (modDict != null) subNotation = modDict.getSubstituents();
-
-		if (_residue.getType().getName().equals("ddNon")) {
-			subNotation = "5*N_7*N";
-		}
-
-		// our own table answers for the residues the two above get wrong - see the dictionary
-		String ownSubstituents = NativeSubstituentDictionary.forResidueName(_residue.getType().getName());
-		if (ownSubstituents != null) subNotation = ownSubstituents;
-
+		String subNotation = entry.getSubstituents();
 		if (subNotation.equals("")) return;
 
 		for(String unit : subNotation.split("_")) {
