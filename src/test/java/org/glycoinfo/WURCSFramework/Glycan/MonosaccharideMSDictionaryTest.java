@@ -41,6 +41,21 @@ public class MonosaccharideMSDictionaryTest {
 		assertResidue("Man", "a1122h-1a_1-5");
 	}
 
+	/**
+	 * The index holds each residue in the configuration residue_types makes its default, and SNFG
+	 * Note 4 states what those defaults are: L for Ara, and D for the other three pentoses. Lyx was
+	 * declared L and so answered to a221h, its mirror image, while the symbol drawn for it is the one
+	 * SNFG defines for D-Lyx. That 112 is D-lyxo is confirmed from the other direction by Tag, which
+	 * is D-lyxo-hex-2-ulose and writes ha112h.
+	 */
+	@Test
+	public void thePentosesAreIndexedInTheConfigurationSnfgMakesDefault() {
+		assertResidue("Ara", "a211h-1x_1-5");   // L
+		assertResidue("Xyl", "a212h-1x_1-5");   // D
+		assertResidue("Rib", "a222h-1x_1-5");   // D
+		assertResidue("Lyx", "a112h-1x_1-5");   // D
+	}
+
 	/** The substituents a residue owns are part of what names it. */
 	@Test
 	public void namesAResidueTogetherWithItsOwnSubstituents() {

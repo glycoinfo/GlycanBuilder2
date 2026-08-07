@@ -145,6 +145,23 @@ public class RegisteredGlycanWURCSRoundTripTest {
 	}
 
 	/**
+	 * A residue carries its own configuration, so both mirror images of every pentose have to survive
+	 * the round trip - only one of the two is the default the index holds, and the other is answered
+	 * further along. Changing which one is the default must not cost us the other.
+	 */
+	@Test
+	public void bothConfigurationsOfEveryPentoseSurvive() throws Exception {
+		assertRoundTrip("WURCS=2.0/1,1,0/[a112h-1x_1-5]/1/");   // D-Lyx
+		assertRoundTrip("WURCS=2.0/1,1,0/[a221h-1x_1-5]/1/");   // L-Lyx
+		assertRoundTrip("WURCS=2.0/1,1,0/[a212h-1x_1-5]/1/");   // D-Xyl
+		assertRoundTrip("WURCS=2.0/1,1,0/[a121h-1x_1-5]/1/");   // L-Xyl
+		assertRoundTrip("WURCS=2.0/1,1,0/[a122h-1x_1-5]/1/");   // D-Ara
+		assertRoundTrip("WURCS=2.0/1,1,0/[a211h-1x_1-5]/1/");   // L-Ara
+		assertRoundTrip("WURCS=2.0/1,1,0/[a222h-1x_1-5]/1/");   // D-Rib
+		assertRoundTrip("WURCS=2.0/1,1,0/[a111h-1x_1-5]/1/");   // L-Rib
+	}
+
+	/**
 	 * SNFG Table 1 names eight hexuronates and residue_types held seven of them - TalA was declared
 	 * in the symbol files but never as a residue, so it could not be drawn or read. Its skeleton is
 	 * Tal's with a carboxyl on the last carbon, the same relation the other seven have to their

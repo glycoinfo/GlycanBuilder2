@@ -6,7 +6,7 @@ Pen	Pentose	Pen	C5H10O5	-	Pen$	1	?	p	yes	yes	no	0	4	no	4	no	4	2,3,4,5	-	no	no	ye
 Ara	Pentose	Pen	C5H10O5	-	Ara$	1	L	p	yes	yes	no	0	4	no	4	no	4	2,3,4,5	-	no	no	yes	Arabinose
 Rib	Pentose	Pen	C5H10O5	-	Rib$	1	D	p	yes	yes	no	0	4	no	4	no	4	2,3,4,5	-	no	no	yes	Ribose
 Xyl	Pentose	Pen	C5H10O5	-	Xyl$	1	D	p	yes	yes	no	1	4	no	4	no	4	2,3,4,5	-	no	no	yes	Xylose
-Lyx	Pentose	Pen	C5H10O5	-	Lyx$	1	L	p	yes	yes	no	0	4	no	4	no	4	2,3,4,5	-	no	no	yes	Lyxose
+Lyx	Pentose	Pen	C5H10O5	-	Lyx$	1	D	p	yes	yes	no	0	4	no	4	no	4	2,3,4,5	-	no	no	yes	Lyxose
 %
 % 6-Deoxyhexose
 dHex	Deoxyhexose	Hex	C6H12O5	-	6-deoxy-Hex$	1	?	p	yes	yes	no	0	4	no	4	no	4	2,3,4,5,6	-	no	no	yes	Deoxy-hexose
