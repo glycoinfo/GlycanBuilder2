@@ -213,12 +213,23 @@ public class ResidueAnalyzer {
 			return modDesc.getStereos();
 		}
 
+		// A residue named with more than one configurational prefix - "L-gro-D-manHep" - names each
+		// of its stereo blocks in turn, and the base type table already spells such names with the
+		// blocks joined by "_": Neu is dgro_dgal. Rewriting the drawn name into that form lets it
+		// take the path the nonulosonates already take. This has to come before the deoxy strip
+		// below, which would otherwise read the D of "D-gro-" as a deoxy marker.
+		String blocks = configurationalBlocks(name);
+		if (blocks != null) return blocks;
+
 		// for di-deoxy
 		if (name.startsWith("dd")) {
 			return name.substring(2, name.length());
 		}
 
-		// for deoxy
+		// for deoxy. Letting what is left run on through the reductions below would make dHexA reach
+		// the same "hex" that HexA does, and it would then write the same axxxxA - the deoxy carbon
+		// is nowhere in the residue's definition, so there is no position to put a "d" at, and the
+		// two residues would become indistinguishable. Refusing to write it is the lesser fault.
 		if (name.startsWith("d")) {
 			return name.substring(1, name.length());
 		}
@@ -233,6 +244,30 @@ public class ResidueAnalyzer {
 		}
 
 		return name;
+	}
+
+	/**
+	 * The stereo blocks of a name that carries more than one configurational prefix, joined by "_" in
+	 * the order the name gives them - "l-gro-d-manhep" becomes "lgro_dman". Returns null when the
+	 * name is not of that shape, which is every residue named after a single parent sugar.
+	 *
+	 * <p>A name lists its prefixes from the highest-numbered carbon down, and
+	 * {@link #convertBasetypesToStereoCode} builds its string by prepending, so reading the units
+	 * left to right puts each block's carbons where they belong: L-glycero-D-manno-heptose comes out
+	 * 1122 for the manno carbons 2 to 5 and 1 for the glycero carbon 6.
+	 */
+	private String configurationalBlocks(String _name) {
+		Matcher matBlocks = Pattern.compile("^((?:[dlx]-[a-z]{3}-)+[dlx]-[a-z]{3})").matcher(_name);
+		if (!matBlocks.find()) return null;
+
+		String[] parts = matBlocks.group(1).split("-");
+		StringBuilder blocks = new StringBuilder();
+		for (int i = 0; i < parts.length; i += 2) {
+			if (blocks.length() > 0) blocks.append("_");
+			blocks.append(parts[i]).append(parts[i + 1]);
+		}
+
+		return blocks.toString();
 	}
 
 	private String convertBasetypesToStereoCode(ArrayList<BaseType> a_aBaseTypes) throws WURCSExchangeException {

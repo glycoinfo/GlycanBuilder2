@@ -145,6 +145,24 @@ public class RegisteredGlycanWURCSRoundTripTest {
 	}
 
 	/**
+	 * The two manno-heptoses are named with two configurational prefixes rather than one, and the
+	 * exporter could not resolve such a name: it asked the base type table for "l-gro-d-man", which
+	 * no table holds, and for the other one the leading D was read as a deoxy marker instead. The
+	 * table already spells compound names with the blocks joined by "_", which is how the
+	 * nonulosonates reach it - Neu is dgro_dgal - so the drawn names are rewritten into that form.
+	 *
+	 * <p>PubChem settles what the result should be. CID 21120522 and CID 53681436 both name the ring
+	 * (3S,4S,5S,6R), which is exactly what CID 18950 gives for D-mannose, so the ring carbons carry
+	 * D-manno - the 1122 of a1122h. The two differ only in the side chain, (1S) against (1R), which
+	 * is the glycero carbon 6, and that is the only place these two strings differ.
+	 */
+	@Test
+	public void theTwoMannoHeptosesDifferOnlyAtTheirGlyceroCarbon() throws Exception {
+		assertRoundTrip("WURCS=2.0/1,1,0/[a11221h-1x_1-5]/1/");   // L-glycero-D-manno
+		assertRoundTrip("WURCS=2.0/1,1,0/[a11222h-1x_1-5]/1/");   // D-glycero-D-manno
+	}
+
+	/**
 	 * A residue carries its own configuration, so both mirror images of every pentose have to survive
 	 * the round trip - only one of the two is the default the index holds, and the other is answered
 	 * further along. Changing which one is the default must not cost us the other.
