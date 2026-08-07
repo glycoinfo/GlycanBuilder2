@@ -5,6 +5,7 @@ import org.glycoinfo.GlycanFormatconverter.io.IUPAC.IUPACNotationConverter;
 import org.glycoinfo.GlycanFormatconverter.io.IUPAC.extended.ExtendedConverter;
 import org.glycoinfo.GlycanFormatconverter.util.TrivialName.ModifiedMonosaccharideDescriptor;
 import org.glycoinfo.GlycanFormatconverter.util.exchange.WURCSGraphToGlyContainer.WURCSGraphToGlyContainer;
+import org.eurocarbdb.application.glycanbuilder.dataset.ResidueDictionary;
 import org.glycoinfo.WURCSFramework.util.WURCSException;
 import org.glycoinfo.WURCSFramework.util.WURCSFactory;
 import org.glycoinfo.WURCSFramework.wurcs.graph.WURCSGraph;
@@ -30,8 +31,14 @@ public class TrivialNameConverter {
         return this.trivialName;
     }
 
+    /**
+     * The IUPAC name of this residue, or null when one could not be built - the converter behind it
+     * does not cover every residue this builder can draw, and a missing name is not a reason to
+     * refuse the structure.
+     */
     public String getIUPACNotation () {
         String ret = this.fullName;
+        if (ret == null) return null;
 
         ret = ret.replaceAll(AnomericStateDescriptor.ALPHA.getIUPACAnomericState(), "\u03B1");
         ret = ret.replaceAll(AnomericStateDescriptor.BETA.getIUPACAnomericState(), "\u03B2");
@@ -143,12 +150,41 @@ public class TrivialNameConverter {
         }
     }
 
+    /**
+     * A deoxy marker on the terminal carbon belongs to the residue's name rather than standing as a
+     * modification of its own: Hex becomes dHex, HexNAc dHexNAc, and a nonulosonate - which the
+     * naming already counts as deoxy once - becomes ddNon. Left in the modification list the marker
+     * is built as a residue of its own, and the structure can then no longer be written back out.
+     */
     public void modifyTrivialName () {
-        if (this.modifications.contains("6*m")) {
-            if (this.trivialName.equals("Hex")) {
-                this.trivialName = "dHex";
-                this.modifications.remove("6*m");
+        for (String modification : new ArrayList<String>(this.modifications)) {
+            if (!modification.endsWith("*m")) continue;
+
+            for (String prefix : new String[] {"d", "dd"}) {
+                String deoxyName = prefix + this.trivialName;
+                if (!ResidueDictionary.hasResidueType(deoxyName)) continue;
+
+                this.trivialName = deoxyName;
+                this.modifications.remove(modification);
+                break;
             }
         }
+
+        this.dropImpliedAcid();
+    }
+
+    /**
+     * The acid on carbon 1 is part of what a nonulosonate is, and the residue this builder holds
+     * already carries it. Kept as a modification it is built as a residue of its own, and the
+     * structure can no longer be written back out - which happened to Pse but not to Leg, since
+     * the two are recognised by different entries upstream.
+     */
+    private void dropImpliedAcid () {
+        if (!this.modifications.contains("1*A")) return;
+        if (!ResidueDictionary.hasResidueType(this.trivialName)) return;
+
+        String superclass = ResidueDictionary.findResidueType(this.trivialName).getSuperclass();
+        if (superclass.endsWith("nonulosonate") || superclass.equals("Nonulosonate"))
+            this.modifications.remove("1*A");
     }
 }

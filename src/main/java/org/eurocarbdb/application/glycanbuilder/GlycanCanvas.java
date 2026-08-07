@@ -25,6 +25,7 @@ import org.eurocarbdb.application.glycanbuilder.dataset.ResidueDictionary;
 import org.eurocarbdb.application.glycanbuilder.dataset.TerminalDictionary;
 import org.eurocarbdb.application.glycanbuilder.linkage.Bond;
 import org.eurocarbdb.application.glycanbuilder.linkage.Linkage;
+import org.eurocarbdb.application.glycanbuilder.logutility.LogUtils;
 import org.eurocarbdb.application.glycanbuilder.renderutil.*;
 import org.eurocarbdb.application.glycanbuilder.util.*;
 import org.glycoinfo.application.glycanbuilder.dataset.CrossLinkedSubstituentDictionary;
@@ -3515,7 +3516,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 				theDoc.addStructure(a_oComposition);
 			}
 		} catch (Exception e) {
-			e.getMessage();
+			LogUtils.report(e);
 		}
 	}
 
@@ -3568,30 +3569,55 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 			OutputStringDialog dig = new OutputStringDialog(this.theParent);
 			dig.setVisible(true);
 			if(!dig.isCanceled()) {
-				if(this.getSelectedStructures().isEmpty())
-					this.theDoc.exportFromStructure(this.theDoc.getStructures(), dig.getFormat());
-				else
-					this.theDoc.exportFromStructure(this.getSelectedStructures(), dig.getFormat());			
+				Collection<Glycan> exported = this.getSelectedStructures().isEmpty()
+						? this.theDoc.getStructures() : this.getSelectedStructures();
+				if( this.theDoc.exportFromStructure(exported, dig.getFormat()) )
+					warnAboutExportFailures(exported, dig.getFormat());
 			}
-			
+
 			if(this.theDoc.getString().size() > 0)	{
 				JDialog dialog = new JDialog(this.theParent, "Encode string", true);
 				dialog.setSize(300, 80);
 				dialog.setResizable(true);
 				dialog.setLocationRelativeTo(this);
-				
+
 				StringBuilder str = new StringBuilder();
 				for(String s : this.theDoc.getString()) str.append(s + "\n");
-				
+
 				dialog.add(new JScrollPane(new JTextArea(str.toString())));
 				dialog.setVisible(true);
 				this.theDoc.clearString();
 			}
 		} catch (Exception e) {
-			e.getMessage();
+			LogUtils.report(e);
 		}
 	}
-	
+
+	/**
+	   Warn if some structures produced no output on the export just performed
+	   (e.g. compositions exported to a format that can't represent them yet),
+	   so a blank entry in the encoded string doesn't go unnoticed.
+	 */
+	private void warnAboutExportFailures(Collection<Glycan> exported, String format) {
+		ArrayList<Glycan> failures = theDoc.getLastExportFailures();
+		if( failures.isEmpty() ) return;
+
+		StringBuilder positions = new StringBuilder();
+		int index = 0;
+		for( Glycan g : exported ) {
+			index++;
+			if( failures.contains(g) ) {
+				if( positions.length()>0 ) positions.append(", ");
+				positions.append(index);
+			}
+		}
+
+		JOptionPane.showMessageDialog(theParent,
+				failures.size() + " of " + exported.size() + " structure(s) could not be exported to " + format
+						+ " and were left blank (position(s): " + positions + ").",
+				"Export incomplete", JOptionPane.WARNING_MESSAGE);
+	}
+
 	/**
 	 * Add a new structure from a terminal motif
 	 * 

@@ -65,6 +65,11 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	private LinkedList<Glycan> structures = new LinkedList<Glycan>();
 	private LinkedList<String> lst_encode = new LinkedList<String>();
 
+	// structures that produced no output on the most recent exportTo() - some formats
+	// (e.g. compositions to WURCS2) can't represent every structure and silently write
+	// nothing for those, so callers need this to warn rather than leave it unnoticed
+	private ArrayList<Glycan> lastExportFailures = new ArrayList<Glycan>();
+
 	// ----------------
 
 	/**
@@ -84,6 +89,14 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 
 	public LinkedList<String> getString() {
 		return this.lst_encode;
+	}
+
+	/**
+	 * Structures that produced no output on the most recent {@link #exportTo}, e.g.
+	 * compositions exported to a format that can't represent them yet.
+	 */
+	public ArrayList<Glycan> getLastExportFailures() {
+		return this.lastExportFailures;
 	}
 
 	public void clearString() {
@@ -1326,6 +1339,10 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 			str_encode = toString(a_lstGlycan, parser);
 			if (str_encode.equals("")) throw new Exception("Invalid output string");
 
+			this.lastExportFailures = new ArrayList<Glycan>();
+			for (Glycan g : a_lstGlycan)
+				if (parser.writeGlycan(g).equals("")) this.lastExportFailures.add(g);
+
 			for (String s : str_encode.split(";")) this.lst_encode.addLast(s);
 			return true;
 		} catch (Exception e) {
@@ -1366,6 +1383,10 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 			GlycanParser parser = GlycanParserFactory.getParser(format);
 			String str = toString(parser);
 			if (str == null) throw new Exception("Invalid output string");
+
+			this.lastExportFailures = new ArrayList<Glycan>();
+			for (Glycan g : structures)
+				if (parser.writeGlycan(g).equals("")) this.lastExportFailures.add(g);
 
 			// write to file
 			bw.write(str, 0, str.length());

@@ -1,4 +1,4 @@
-%Name	SuperClass      Class	Composition	Synonim	IUPAC	AnomC	Chir	Ring	IsSacc	IsCleav	Labile	BarOrdr	NoMe	DropMe	NoAc	DropAc	noLinks	LinkPos	ChargesPos	Alditol RedEnd 	Parent	Description
+%Name	SuperClass      Class	Composition	Synonim	IUPAC	AnomC	Chir	Ring	IsSacc	IsCleav	Labile	BarOrdr	NoMe	DropMe	NoAc	DropAc	noLinks	LinkPos	ChargesPos	Alditol RedEnd 	Parent	Description	MAP
 %
 % SACCHARIDES 
 % Pentose	
@@ -92,9 +92,9 @@ FucNAc	DeoxyhexNAc	Hex	C8H15N1O5	-	Fuc$2NAc	1	L	p	yes	yes	no	0	5	no	4	no	4	2,3,4
 %
 % Acidic sugars
 Unknown			Unknown	Non	C9H18O9		-	Non$			1	?	?	yes	yes	no	0	5	no	3	no	5	2,3,4,5,6,7,8,9	-	no	no	yes	Unknown
-Mur				Unknown	Hex	C11H19N1O8	-	Mur$			1	D	p	yes	yes	no	0	5	no	3	no	5	2,3,4,5,6,N		3	no	no	yes	Muramic Acid
+Mur				Unknown	Hex	C9H17N1O7	-	Mur$			1	D	p	yes	yes	no	0	5	no	3	no	5	2,3,4,5,6,N		3	no	no	yes	Muramic Acid
 MurNAc			Unknown	Hex	C11H19N1O8	-	Mur$2NAc		1	D	p	yes	yes	no	0	5	no	3	no	5	3,4,5,6,N	3		no	no	yes	N-Acetylmuramic acid
-MurNGc			Unknown	Hex	C11H19N1O8	-	Mur$2NGc		1	D	p	yes	yes	no	0	5	no	3	no	5	3,4,5,6,N	3		no	no	yes	N-Glycolylmuramic acid
+MurNGc			Unknown	Hex	C11H19N1O9	-	Mur$2NGc		1	D	p	yes	yes	no	0	5	no	3	no	5	3,4,5,6,N	3		no	no	yes	N-Glycolylmuramic acid
 Kdo				Unknown	Oct	C8H14O8		-	Kdo$			2	D	p	yes	yes	no	0	6	no	5	no	6	1,4,5,6,7,8		1	no	no	yes	Ketodeoxyoctonic acid (KDO)
 L-gro-D-manHep	Unknown	Hep	C7H14O7		-	L-gro-D-manHep$	1	L	p	yes	yes	no	0	5	no	3	no	5	2,3,4,5,6,7		-	no	no	yes	L-glycero-D-manno-Heptose
 D-gro-D-manHep	Unknown	Hep	C7H14O7		-	D-gro-D-manHep$	1	D	p	yes	yes	no	0	5	no	3	no	5	2,3,4,5,6,7		-	no	no	yes	D-glycero-D-manno-Heptose
@@ -132,39 +132,39 @@ FMC		Reducing end	FMC		C15H14N2O2	-	fmc		?	?	?	no	no	no	0	4	no	2	no	1	-	-	yes	ye
 DH		Reducing end	DH		C12H15N3O2S	-	dh		?	?	?	no	no	no	0	4	no	2	no	1	-	-	yes	yes	no	Dansylhydrazine
 %
 % SUBSTITUENTS
-Me		Substituent	O-type		C1H4		-	OMe				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Methyl
-Ac		Substituent	O-type		C2H4O2		-	OAc				1	?	?	no	no	no	0	1	no	1	no	0	-	-	no	no	yes	Acetate
-Et		Substituent	O-type		C2H6O1		-	Et				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Ethyl
-NAc		Substituent	N-type		C2H5O1N1	-	NAc				1	?	?	no	no	no	0	2	no	1	no	1	-	-	no	no	yes	N-Acetate
-P		Substituent	P/S-type	H3P1O4		-	P				1	?	?	no	yes	yes	0	3	no	1	no	1	-	1	no	no	yes	Phosphate
-S		Substituent	P/S-type	H2S1O4		-	S				1	?	?	no	yes	yes	0	1	no	1	no	1	-	1	no	no	yes	Sulfate
+Me		Substituent	O-type		C1H4		-	OMe				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Methyl	*OC
+Ac		Substituent	O-type		C2H4O2		-	OAc				1	?	?	no	no	no	0	1	no	1	no	0	-	-	no	no	yes	Acetate	*OCC/3=O
+Et		Substituent	O-type		C2H6O1		-	Et				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Ethyl	*OCC
+NAc		Substituent	N-type		C2H5O1N1	-	NAc				1	?	?	no	no	no	0	2	no	1	no	1	-	-	no	no	yes	N-Acetate	*NCC/3=O
+P		Substituent	P/S-type	H3P1O4		-	P				1	?	?	no	yes	yes	0	3	no	1	no	1	-	1	no	no	yes	Phosphate	*OPO/3O/3=O
+S		Substituent	P/S-type	H2S1O4		-	S				1	?	?	no	yes	yes	0	1	no	1	no	1	-	1	no	no	yes	Sulfate	*OSO/3=O/3=O
 Pyr		Substituent	O-type		C3H4O3		-	Pyr				1	?	?	no	no	no	0	1	no	1	yes	1	-	-	no	no	yes	Pyruvate
-PMe		Substituent	P/S-type	C1H5P1O4	-	PMe				1	?	?	no	yes	yes	0	2	no	1	no	1	-	1	no	no	yes	Methyl-phosphate
-PCho	Substituent	P/S-type	C5H14NO4P	-	PC				1	?	?	no	no	no	0	2	no	1	no	1	-	-	no	no	yes	Phosphocholine
-PPEtn	Substituent	P/S-type	C2H9NO7P2	-	PPEtn			1	?	?	no	no	no	0	2	no	1	no	1	-	-	no	no	yes	Diphosphoethanolamine
-PEtn	Substituent	P/S-type	C2H8NO4P	-	PEtn			1	?	?	no	no	no	0	2	no	1	no	1	-	-	no	no	yes	Phosphoethanolamine
-N		Substituent	N-type		N1H3		-	N				1	?	?	no	no	no	0	2	no	2	no	1	-	-	no	no	yes	Amino
-Gc		Substituent	O-type		C2H4O3		-	OGc				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Glycolyl
-NGc		Substituent	N-type		C2H5N1O2	-	NGc				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	N-glycolyl
-NS		Substituent	N-type		H3N1O3S1	-	NS				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	N-sulfate
-NFo		Substituent	N-type		C1H3N1O1	-	NFo				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	N-formyl
-NAm		Substituent	N-type		C1H5N3		-	NAm				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	N-amidino
-NMe		Substituent	N-type		C1H5N1		-	NMe				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Methanamine
-NSuc	Substituent	N-type		C4H7N1O3	-	NSuc			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	N-succinate
-Fo		Substituent	O-type		C1H2O2		-	OFo				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Formyl
-Am		Substituent	O-type		C1H4N2O1	-	OAm				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Amidino
-Suc		Substituent	O-type		C4H6O4		-	Sub				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Succinate
-NDiMe	Substituent	N-type		C2H6N1		-	N-DiMe			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	N-dimethyl
-PyrP	Substituent	P/S-type	H4P2O7		-	PyrP			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Pyrophosphate
-Tri-P	Substituent	P/S-type	H5O10P3		-	Tri-P			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Triphosphate
-F		Substituent	Deoxy-type	H1F1		-	Fluoro			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Fluoro
-I		Substituent	Deoxy-type	H1I1		-	Iodo			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Iodo
-Br		Substituent	Deoxy-type	H1Br1		-	Bromo			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Bromo
-Cl		Substituent	Deoxy-type	H1Cl1		-	Chloro			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Chloro
-SH		Substituent	Deoxy-type	H2S1		-	thio			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Thio
-(S)Lac	Substituent	O-type		C3H6O3		-	(s)-lactate		1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	S-lactate
-(R)Lac	Substituent	O-type		C3H6O3		-	(r)-lactate		1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	R-lactate
-(X)Lac	Substituent	O-type		C3H6O3		-	(x)-lactate		1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	X-lactate
+PMe		Substituent	P/S-type	C1H5P1O4	-	PMe				1	?	?	no	yes	yes	0	2	no	1	no	1	-	1	no	no	yes	Methyl-phosphate	*OPOC/3O/3=O
+PCho	Substituent	P/S-type	C5H14NO4P	-	PC				1	?	?	no	no	no	0	2	no	1	no	1	-	-	no	no	yes	Phosphocholine	*OP^XOCCNC/7C/7C/3O/3=O
+PPEtn	Substituent	P/S-type	C2H9NO7P2	-	PPEtn			1	?	?	no	no	no	0	2	no	1	no	1	-	-	no	no	yes	Diphosphoethanolamine	*OP^XOP^XOCCN/5O/5=O/3O/3=O
+PEtn	Substituent	P/S-type	C2H8NO4P	-	PEtn			1	?	?	no	no	no	0	2	no	1	no	1	-	-	no	no	yes	Phosphoethanolamine	*OP^XOCCN/3O/3=O
+N		Substituent	N-type		N1H3		-	N				1	?	?	no	no	no	0	2	no	2	no	1	-	-	no	no	yes	Amino	*N
+Gc		Substituent	O-type		C2H4O3		-	OGc				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Glycolyl	*OCCO/3=O
+NGc		Substituent	N-type		C2H5N1O2	-	NGc				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	N-glycolyl	*NCCO/3=O
+NS		Substituent	N-type		H3N1O3S1	-	NS				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	N-sulfate	*NSO/3=O/3=O
+NFo		Substituent	N-type		C1H3N1O1	-	NFo				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	N-formyl	*NC=O
+NAm		Substituent	N-type		C1H5N3		-	NAm				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	N-amidino	*NCN/3=N
+NMe		Substituent	N-type		C1H5N1		-	NMe				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Methanamine	*NC
+NSuc	Substituent	N-type		C4H7N1O3	-	NSuc			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	N-succinate	*NCCCCO/6=O/3=O
+Fo		Substituent	O-type		C1H2O2		-	OFo				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Formyl	*OC=O
+Am		Substituent	O-type		C1H4N2O1	-	OAm				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Amidino	*OCN/3=N
+Suc		Substituent	O-type		C4H6O4		-	Sub				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Succinate	*OCCCCO/6=O/3=O
+NDiMe	Substituent	N-type		C2H6N1		-	N-DiMe			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	N-dimethyl	*NC/2C
+PyrP	Substituent	P/S-type	H4P2O7		-	PyrP			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Pyrophosphate	*OP^XOPO/5O/5=O/3O/3=O
+Tri-P	Substituent	P/S-type	H5O10P3		-	Tri-P			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Triphosphate	*OP^XOP^XOPO/7O/7=O/5O/5=O/3O/3=O
+F		Substituent	Deoxy-type	H1F1		-	Fluoro			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Fluoro	*F
+I		Substituent	Deoxy-type	H1I1		-	Iodo			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Iodo	*I
+Br		Substituent	Deoxy-type	H1Br1		-	Bromo			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Bromo	*Br
+Cl		Substituent	Deoxy-type	H1Cl1		-	Chloro			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Chloro	*Cl
+SH		Substituent	Deoxy-type	H2S1		-	thio			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Thio	*S
+(S)Lac	Substituent	O-type		C3H6O3		-	(s)-lactate		1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	S-lactate	*OCC^SC/4O/3=O
+(R)Lac	Substituent	O-type		C3H6O3		-	(r)-lactate		1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	R-lactate	*OCC^RC/4O/3=O
+(X)Lac	Substituent	O-type		C3H6O3		-	(x)-lactate		1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	X-lactate	*OCC^XC/4O/3=O
 Ino		Substituent	O-type		C6H12O6		-	Ino				1	?	?	no	yes	no	0	6	no	6	no	1	-	-	no	no	yes	Inositol
 %Ino		Substituent	O-type		C6H12O6	-	Ino				?	?	?	no	yes	no	0	6	no	6	no	1	-	-	no	no	yes	Inositol
 %162.0528	162.1424

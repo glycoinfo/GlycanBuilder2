@@ -182,11 +182,17 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 		if( mass_opt!=null ) 
 			mass_options.setValues(mass_opt);
 
-		if( !mass_options.getReducingEndType().isFreeReducingEnd() ) 
-			setReducingEndType(mass_options.getReducingEndType());    
-		else 
+		if( isComposition() )
+			// a composition's root never gets a child (saccharides attach to the
+			// bracket instead), so applying a non-free reducing end here would
+			// crash trying to update a child that doesn't exist - compositions
+			// can only ever have a free reducing end
+			mass_options.setReducingEndType(ResidueType.createFreeReducingEnd());
+		else if( !mass_options.getReducingEndType().isFreeReducingEnd() )
+			setReducingEndType(mass_options.getReducingEndType());
+		else
 			mass_options.synchronize(this);
-	}    
+	}
 
 	/**
        Create an empty glycan object representing a composition.

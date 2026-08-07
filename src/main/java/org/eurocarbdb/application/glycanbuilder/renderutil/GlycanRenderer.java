@@ -14,8 +14,6 @@ import org.eurocarbdb.application.glycanbuilder.dataset.ResiduePlacementDictiona
 import org.eurocarbdb.application.glycanbuilder.linkage.Linkage;
 import org.eurocarbdb.application.glycanbuilder.linkage.LinkageStyleDictionary;
 import org.eurocarbdb.application.glycanbuilder.util.GraphicOptions;
-import org.glycoinfo.WURCSFramework.util.residuecontainer.LinkageBlock;
-import org.glycoinfo.WURCSFramework.util.residuecontainer.ResidueContainer;
 
 public interface GlycanRenderer {
 	public abstract void setRenderMode(GlycanRendererMode mode);
