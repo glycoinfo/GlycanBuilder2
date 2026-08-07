@@ -58,10 +58,8 @@ public class MonosaccharideMSDictionary {
 	public static Match match(String _ms) {
 		if (_ms == null || _ms.isEmpty()) return null;
 
-		List<String> parts = new ArrayList<String>(Arrays.asList(_ms.split("_")));
-		String skeleton = parts.get(0).split("-")[0];
-		List<String> groups = (parts.size() > 2) ?
-				new ArrayList<String>(parts.subList(2, parts.size())) : new ArrayList<String>();
+		String skeleton = skeletonOf(_ms);
+		List<String> groups = groupsOf(_ms);
 
 		for (int owned = groups.size(); owned >= 0; owned--) {
 			ResidueType residueType = findResidueType(describe(skeleton, groups.subList(0, owned)));
@@ -71,6 +69,27 @@ public class MonosaccharideMSDictionary {
 		}
 
 		return null;
+	}
+
+	/** The skeleton code of an MS, which is whatever precedes the anomeric information. */
+	private static String skeletonOf(String _ms) {
+		return _ms.split("_")[0].split("-")[0];
+	}
+
+	/**
+	 * The groups written after the residue itself.
+	 *
+	 * <p>An MS with a ring reads {@code a2122h-1x_1-5_2*NCC/3=O}, and the ring - {@code 1-5} - is the
+	 * one segment that is not a group. A residue with no ring has no such segment at all, so the
+	 * groups begin one place earlier: {@code u2122h_2*NCC/3=O}. Assuming the ring was always there
+	 * lost the substituents of every residue written without one.
+	 */
+	private static List<String> groupsOf(String _ms) {
+		List<String> parts = new ArrayList<String>(Arrays.asList(_ms.split("_")));
+		int first = (parts.size() > 1 && parts.get(1).matches("[0-9?]+-[0-9?]+")) ? 2 : 1;
+
+		return (parts.size() > first) ?
+				new ArrayList<String>(parts.subList(first, parts.size())) : new ArrayList<String>();
 	}
 
 	/** What a residue and the groups it owns are written as. */
@@ -97,24 +116,47 @@ public class MonosaccharideMSDictionary {
 		for (ResidueType type : ResidueDictionary.allResidues()) {
 			if (!type.isSaccharide() || type.isBridge()) continue;
 
-			String ms = writeAlone(type);
-			if (ms == null) continue;
+			for (Form form : Form.values()) {
+				String ms = writeAlone(type, form);
+				if (ms == null) continue;
 
-			List<String> parts = new ArrayList<String>(Arrays.asList(ms.split("_")));
-			String skeleton = parts.get(0).split("-")[0];
-			List<String> own = (parts.size() > 2) ? parts.subList(2, parts.size()) : new ArrayList<String>();
-
-			index.put(describe(skeleton, own), type.getName());
+				// the ring form is written first and keeps the key if two forms ever collide
+				String description = describe(skeletonOf(ms), groupsOf(ms));
+				if (!index.containsKey(description)) index.put(description, type.getName());
+			}
 		}
 
 		descriptionToResidue = index;
 	}
 
-	/** How this residue is written when it stands on its own, or null when it cannot be written. */
-	private static String writeAlone(ResidueType _type) {
+	/**
+	 * The forms one residue can be written in. Indexing only the first left the rest to a name lookup
+	 * elsewhere, and they are not rare: in a corpus of two hundred structures one residue in five
+	 * arrived without a determined anomeric carbon, as an alditol, or as an open chain.
+	 */
+	private enum Form {
+		/** with a ring and a determined anomeric carbon - {@code a2122h-1x_1-5} */
+		RING,
+		/** ring and anomeric carbon both undetermined - {@code u2122h} */
+		UNDETERMINED,
+		/** reduced, so no anomeric carbon to determine - {@code h2122h} */
+		ALDITOL,
+		/** open chain - {@code o2122h} */
+		ALDEHYDE
+	}
+
+	/** How this residue is written standing on its own in that form, or null when it cannot be. */
+	private static String writeAlone(ResidueType _type, Form _form) {
 		try {
 			Residue root = ResidueDictionary.createReducingEnd("freeEnd");
-			root.addChild(ResidueDictionary.newResidue(_type.getName()));
+			Residue residue = ResidueDictionary.newResidue(_type.getName());
+			if (_form == Form.UNDETERMINED) {
+				residue.setAnomericCarbon('?');
+				residue.setRingSize('?');
+			}
+			residue.setAlditol(_form == Form.ALDITOL);
+			residue.setAldehyde(_form == Form.ALDEHYDE);
+			root.addChild(residue);
 
 			Glycan glycan = new Glycan(root, false, new MassOptions());
 			new LinkageTypeOptimizer().start(glycan);

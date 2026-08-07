@@ -130,6 +130,14 @@ public class GlycanToWURCSGraph {
 			this.makeLinkage(backbone, wurcsEdges, coreMOD);
 		}
 	
+		for(java.util.Map.Entry<Integer, String> ownMAP : res2back.getOwnMAPs().entrySet()) {
+			WURCSEdge wurcsEdge = new WURCSEdge();
+			wurcsEdge.addLinkage(new LinkagePosition(ownMAP.getKey(), DirectionDescriptor.N, 0));
+			LinkedList<WURCSEdge> wurcsEdges = new LinkedList<WURCSEdge>();
+			wurcsEdges.add(wurcsEdge);
+			this.makeLinkage(backbone, wurcsEdges, new Modification(ownMAP.getValue()));
+		}
+
 		if(backbone.getAnomericPosition() == 0) return;
 		if (backbone.hasUnknownLength()) return;
 
