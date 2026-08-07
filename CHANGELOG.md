@@ -1,5 +1,5 @@
 ## Change log
-### 1.28.1  (2026xxxx)
+### Unreleased
 * Fixed the application failing to start on Linux distributions that no longer ship GTK2
 * Removed the DJNativeSwing and SWT dependencies, which the application never used
   * The native interface was opened and pumped without any native component being created
