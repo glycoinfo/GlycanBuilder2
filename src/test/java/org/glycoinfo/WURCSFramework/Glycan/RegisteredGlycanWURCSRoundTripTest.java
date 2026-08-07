@@ -128,6 +128,22 @@ public class RegisteredGlycanWURCSRoundTripTest {
 		assertRoundTrip("WURCS=2.0/1,1,0/[a2122m-1x_1-5_2*N_4*N]/1/");                            // Bac
 	}
 
+	/**
+	 * Dha is 3-deoxy-D-lyxo-hept-2-ulosaric acid, and residue_types described it with no anomeric
+	 * carbon, configuration or ring, so the skeleton came out indeterminate and did not read back as
+	 * itself. All three are stated by the sources: SNFG Note 4 lists Dha among the residues whose D
+	 * is implicit in the name and makes pyranose the default, and PubChem CID 15608515 names it
+	 * (4R,5R,6S)-2,4,5-trihydroxyoxane-2,6-dicarboxylic acid - an oxane, so a six-membered ring
+	 * spanning C2 to C6, with the anomeric carbon at C2 carrying both OH and COOH.
+	 *
+	 * <p>The 112 in the middle is D-lyxo, the same trio Tag carries as D-lyxo-hex-2-ulose (ha112h),
+	 * and the carboxyl at either end is what makes it a ulosaric rather than a ulosonic acid.
+	 */
+	@Test
+	public void dhaConvertsOnceItHasAnAnomericCarbonAndRing() throws Exception {
+		assertRoundTrip("WURCS=2.0/1,1,0/[Aad112A-2x_2-6]/1/");
+	}
+
 	private void assertRoundTrip(String _wurcs) throws Exception {
 		WURCS2Parser parser = new WURCS2Parser();
 		Glycan glycan = parser.readGlycan(_wurcs, new MassOptions());
