@@ -8,6 +8,8 @@
   as an optional last column
 * Normalized MAP codes on WURCS export, accepting either spelling on import
 * Removed the GlyContainer conversion path, which the WURCS parser no longer used
+* Fixed Mur and MurNGc molecular compositions
+* Added warning when WURCS Composition is exported
 
 ### 1.27.0  (20260806)
 * Updated README.md to add installer info
