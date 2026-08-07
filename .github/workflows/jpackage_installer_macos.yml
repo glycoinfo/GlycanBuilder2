@@ -145,7 +145,8 @@ jobs:
           --apple-id "$APPLE_ID" \
           --password "$APPLE_APP_PASSWORD" \
           --team-id "$APPLE_TEAM_ID" \
-          --wait
+          --wait \
+          --timeout 7200
         xcrun stapler staple "$fname"
       shell: bash
 
