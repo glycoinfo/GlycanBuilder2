@@ -18,6 +18,7 @@ import org.glycoinfo.WURCSFramework.wurcs.sequence2.GLIN;
 import org.glycoinfo.WURCSFramework.wurcs.sequence2.GRES;
 import org.glycoinfo.WURCSFramework.wurcs.sequence2.SUBST;
 import org.glycoinfo.application.glycanbuilder.dataset.CrossLinkedSubstituentDictionary;
+import org.glycoinfo.application.glycanbuilder.dataset.NativeSubstituentDictionary;
 import org.glycoinfo.GlycanFormatconverter.util.TrivialName.TrivialNameDictionary;
 import org.glycoinfo.GlycanFormatconverter.util.TrivialName.ModifiedMonosaccharideDescriptor;
 import org.glycoinfo.application.glycanbuilder.util.exchange.WURCSToGlycanException;
@@ -144,14 +145,20 @@ public class SUBSTAnalyzer {
 		if(subTemp.getIUPACnotation().equals(""))
 			throw new Exception("This MAP is not support in the GlycanBuilder2:" + _subst.getMAP());
 
-		// check native substituent
-		TrivialNameDictionary trivDict = TrivialNameDictionary.forThreeLetterCode(_residue.getTypeName());
-		ModifiedMonosaccharideDescriptor modDesc = ModifiedMonosaccharideDescriptor.forTrivialName(_residue.getTypeName());
-		if(trivDict != null) {
-			if(trivDict.getSubstituents().contains(subNotation)) return;
-		}
-		if(modDesc != null) {
-			if(modDesc.getSubstituents().contains(subNotation)) return;
+		// check native substituent. Our own table is asked first and, where it has an answer, only it
+		// is asked: the exporter derives this residue's substituents from that same table, so drawing
+		// one it already owns would write it out twice.
+		if(NativeSubstituentDictionary.forResidueName(_residue.getTypeName()) != null) {
+			if(NativeSubstituentDictionary.owns(_residue.getTypeName(), subNotation)) return;
+		} else {
+			TrivialNameDictionary trivDict = TrivialNameDictionary.forThreeLetterCode(_residue.getTypeName());
+			ModifiedMonosaccharideDescriptor modDesc = ModifiedMonosaccharideDescriptor.forTrivialName(_residue.getTypeName());
+			if(trivDict != null) {
+				if(trivDict.getSubstituents().contains(subNotation)) return;
+			}
+			if(modDesc != null) {
+				if(modDesc.getSubstituents().contains(subNotation)) return;
+			}
 		}
 
 		// change n_sulfate with hexosamine

@@ -145,6 +145,25 @@ public class RegisteredGlycanWURCSRoundTripTest {
 	}
 
 	/**
+	 * All three muramic acids, which used to be two. Which substituents a residue owns by its name is
+	 * answered by two separate tables outside this project, and they disagree: MurNAc and MurNGc are
+	 * answered by one, which calls the group on carbon 3 "(R)Lac" - a substituent we hold - while
+	 * plain Mur is answered by the other, which calls the same group "(R)CE", a name nothing here
+	 * holds, and leaves out the 2-amino besides. Both are now answered from our own table.
+	 *
+	 * <p>PubChem confirms all three. CID 441038 gives muramic acid as
+	 * (2R)-2-[(3R,4R,5S,6R)-3-amino-2,5-dihydroxy-6-(hydroxymethyl)oxan-4-yl]oxypropanoic acid: the
+	 * amino sits on the sugar's C2 and the lactyl ether on its C3, which is what the 2*N and the
+	 * 3*OCC^RC say. The other two carry an acetyl or a glycolyl on that same nitrogen.
+	 */
+	@Test
+	public void allThreeMuramicAcidsConvert() throws Exception {
+		assertRoundTrip("WURCS=2.0/1,1,0/[a2122h-1x_1-5_2*N_3*OCC^RC/4O/3=O]/1/");                 // Mur
+		assertRoundTrip("WURCS=2.0/1,1,0/[a2122h-1x_1-5_2*NCC/3=O_3*OCC^RC/4O/3=O]/1/");          // MurNAc
+		assertRoundTrip("WURCS=2.0/1,1,0/[a2122h-1x_1-5_2*NCCO/3=O_3*OCC^RC/4O/3=O]/1/");         // MurNGc
+	}
+
+	/**
 	 * The two manno-heptoses are named with two configurational prefixes rather than one, and the
 	 * exporter could not resolve such a name: it asked the base type table for "l-gro-d-man", which
 	 * no table holds, and for the other one the leading D was read as a deoxy marker instead. The
