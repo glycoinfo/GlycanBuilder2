@@ -110,16 +110,16 @@ public class GlycanRendererAWT extends AbstractGlycanRenderer {
 		HashMap<String, Integer> nodeIndex = new HashMap<>();
 		int id = 1;
 		for(Residue residue : structure.getAllResidues()) {
-			if (residue.getType().getDescription().equals("no glycosidic linkages")) continue;
+			if (residue.getLegend().equals("no glycosidic linkages")) continue;
 			if(!residue.isSaccharide() || residue.getType().getSuperclass().equals("Bridge")) continue;
 			if(theGraphicOptions.NOTATION.equals(GraphicOptions.NOTATION_SNFG)) {
 				if(!theResidueStyleDictionary.containsResidue(residue)) {
-					if(!nodeIndex.containsKey(residue.getType().getDescription())) {
-						nodeIndex.put(residue.getType().getDescription(), id);
+					if(!nodeIndex.containsKey(residue.getLegend())) {
+						nodeIndex.put(residue.getLegend(), id);
 						id++;
 					}
-					if(nodeIndex.containsKey(residue.getType().getDescription())) {
-						residue.setID(nodeIndex.get(residue.getType().getDescription()));
+					if(nodeIndex.containsKey(residue.getLegend())) {
+						residue.setID(nodeIndex.get(residue.getLegend()));
 					}
 				}				
 			} else {
@@ -141,12 +141,12 @@ public class GlycanRendererAWT extends AbstractGlycanRenderer {
 		StringBuilder legend = new StringBuilder();
 		for(Residue residue : structure.getAllResidues()) {
 			if(!residue.isSaccharide() || residue.getType().getSuperclass().equals("Bridge")) continue;
-			if (residue.getType().getDescription().equals("no glycosidic linkages")) {
-				nodeIndex.put(0, residue.getType().getDescription());
+			if (residue.getLegend().equals("no glycosidic linkages")) {
+				nodeIndex.put(0, residue.getLegend());
 				continue;
 			}
-			if(!theResidueStyleDictionary.containsResidue(residue) && !nodeIndex.containsValue(residue.getType().getDescription())) {
-				nodeIndex.put(id, residue.getType().getDescription());
+			if(!theResidueStyleDictionary.containsResidue(residue) && !nodeIndex.containsValue(residue.getLegend())) {
+				nodeIndex.put(id, residue.getLegend());
 				id++;
 			}
  		}
