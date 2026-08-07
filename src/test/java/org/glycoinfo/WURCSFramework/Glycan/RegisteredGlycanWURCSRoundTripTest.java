@@ -144,6 +144,24 @@ public class RegisteredGlycanWURCSRoundTripTest {
 		assertRoundTrip("WURCS=2.0/1,1,0/[Aad112A-2x_2-6]/1/");
 	}
 
+	/**
+	 * SNFG Table 1 names eight hexuronates and residue_types held seven of them - TalA was declared
+	 * in the symbol files but never as a residue, so it could not be drawn or read. Its skeleton is
+	 * Tal's with a carboxyl on the last carbon, the same relation the other seven have to their
+	 * parent hexose.
+	 */
+	@Test
+	public void allEightHexuronatesConvert() throws Exception {
+		assertRoundTrip("WURCS=2.0/1,1,0/[a2122A-1x_1-5]/1/");   // GlcA
+		assertRoundTrip("WURCS=2.0/1,1,0/[a1122A-1x_1-5]/1/");   // ManA
+		assertRoundTrip("WURCS=2.0/1,1,0/[a2112A-1x_1-5]/1/");   // GalA
+		assertRoundTrip("WURCS=2.0/1,1,0/[a2212A-1x_1-5]/1/");   // GulA
+		assertRoundTrip("WURCS=2.0/1,1,0/[a2111A-1x_1-5]/1/");   // AltA
+		assertRoundTrip("WURCS=2.0/1,1,0/[a2222A-1x_1-5]/1/");   // AllA
+		assertRoundTrip("WURCS=2.0/1,1,0/[a1112A-1x_1-5]/1/");   // TalA
+		assertRoundTrip("WURCS=2.0/1,1,0/[a2121A-1x_1-5]/1/");   // IdoA
+	}
+
 	private void assertRoundTrip(String _wurcs) throws Exception {
 		WURCS2Parser parser = new WURCS2Parser();
 		Glycan glycan = parser.readGlycan(_wurcs, new MassOptions());

@@ -69,6 +69,7 @@ ManA	Hexuronate	Hex	C6H10O7	-	Man$A	1	D	p	yes	yes	no	0	5	no	4	no	5	2,3,4,5,6	6	n
 AltA	Hexuronate	Hex	C6H10O7	-	Alt$A	1	L	p	yes	yes	no	0	5	no	4	no	5	2,3,4,5,6	6	no	no	yes	Altronic Acid
 GulA	Hexuronate	Hex	C6H10O7	-	Gul$A	1	D	p	yes	yes	no	0	5	no	4	no	5	2,3,4,5,6	6	no	no	yes	Guluronic Acid
 AllA	Hexuronate	Hex	C6H10O7	-	All$A	1	D	p	yes	yes	no	0	5	no	4	no	5	2,3,4,5,6	6	no	no	yes	Allonic Acid
+TalA	Hexuronate	Hex	C6H10O7	-	Tal$A	1	D	p	yes	yes	no	0	5	no	4	no	5	2,3,4,5,6	6	no	no	yes	Taluronic Acid
 %
 % 2-N-Acetylhexosamine
 HexNAc	HexNAc	Hex	C8H15N1O6	-	Hex$2NAc		1	?	p	yes	yes	no	0	5	no	4	no	4	3,4,5,6	-	no	no	yes	N-acetylhexosamine
