@@ -32,8 +32,8 @@ import org.glycoinfo.application.glycanbuilder.util.exchange.exporter.GlycanToWU
  */
 public class MonosaccharideMSDictionary {
 
-	/** skeleton code and own substituents -> residue name */
-	private static Map<String, String> descriptionToResidue = null;
+	/** skeleton code and own substituents -> the residue it names, in the configuration it names it */
+	private static Map<String, Named> descriptionToResidue = null;
 
 	/**
 	 * The residue a monosaccharide description names, ignoring anything attached to it beyond the
@@ -42,10 +42,14 @@ public class MonosaccharideMSDictionary {
 	 * @return Returns the residue type, or null when this builder writes no such residue.
 	 */
 	public static ResidueType findResidueType(String _description) {
+		Named named = findNamed(_description);
+		return (named == null) ? null : ResidueDictionary.findResidueType(named.name);
+	}
+
+	private static Named findNamed(String _description) {
 		if (_description == null || _description.isEmpty()) return null;
 
-		String name = getIndex().get(_description);
-		return (name == null) ? null : ResidueDictionary.findResidueType(name);
+		return getIndex().get(_description);
 	}
 
 	/**
@@ -62,10 +66,14 @@ public class MonosaccharideMSDictionary {
 		List<String> groups = groupsOf(_ms);
 
 		for (int owned = groups.size(); owned >= 0; owned--) {
-			ResidueType residueType = findResidueType(describe(skeleton, groups.subList(0, owned)));
+			Named named = findNamed(describe(skeleton, groups.subList(0, owned)));
+			if (named == null) continue;
+
+			ResidueType residueType = ResidueDictionary.findResidueType(named.name);
 			if (residueType == null) continue;
 
-			return new Match(residueType, new LinkedList<String>(groups.subList(owned, groups.size())));
+			return new Match(residueType, named.configuration,
+					new LinkedList<String>(groups.subList(owned, groups.size())));
 		}
 
 		return null;
@@ -105,29 +113,92 @@ public class MonosaccharideMSDictionary {
 		descriptionToResidue = null;
 	}
 
-	private static synchronized Map<String, String> getIndex() {
+	private static synchronized Map<String, Named> getIndex() {
 		if (descriptionToResidue == null) build();
 		return descriptionToResidue;
 	}
 
 	private static void build() {
-		Map<String, String> index = new HashMap<String, String>();
+		Map<String, Named> index = new HashMap<String, Named>();
+
+		indexOwnConfiguration(index);
+		indexOtherConfigurations(index);
+
+		descriptionToResidue = index;
+	}
+
+	/**
+	 * Each residue as its own definition has it. The ring form names a description outright; the other
+	 * forms take what is still free, and a description two residues both write names neither of them -
+	 * reducing a sugar removes its anomeric centre and distinct sugars become one compound, D-glucitol
+	 * and L-gulitol being the same molecule, as are D-arabinitol and D-lyxitol. Answering one of the
+	 * two would be answering wrongly half the time.
+	 */
+	private static void indexOwnConfiguration(Map<String, Named> _index) {
+		Map<String, String> alsoWrittenBy = new HashMap<String, String>();
 
 		for (ResidueType type : ResidueDictionary.allResidues()) {
 			if (!type.isSaccharide() || type.isBridge()) continue;
 
 			for (Form form : Form.values()) {
-				String ms = writeAlone(type, form);
+				String ms = writeAlone(type, form, (char) 0);
 				if (ms == null) continue;
 
-				// the ring form is written first and keeps the key if two forms ever collide
 				String description = describe(skeletonOf(ms), groupsOf(ms));
-				if (!index.containsKey(description)) index.put(description, type.getName());
+				String claimed = alsoWrittenBy.put(description, type.getName());
+
+				if (form == Form.RING) _index.put(description, new Named(type.getName(), type.getChirality()));
+				else if (claimed == null) _index.put(description, new Named(type.getName(), type.getChirality()));
+				else if (!claimed.equals(type.getName())) _index.remove(description);
 			}
 		}
-
-		descriptionToResidue = index;
 	}
+
+	/**
+	 * Then the configurations a residue can be drawn in instead of its own, which only fill what is
+	 * still free. They never displace what the pass above established, nor remove it: D-glucitol is
+	 * what Glc writes by default and what Gul reaches only as an L, and the first of those is the
+	 * answer. Two of these colliding with each other still names neither.
+	 */
+	private static void indexOtherConfigurations(Map<String, Named> _index) {
+		Map<String, String> alsoWrittenBy = new HashMap<String, String>();
+
+		for (ResidueType type : ResidueDictionary.allResidues()) {
+			if (!type.isSaccharide() || type.isBridge()) continue;
+
+			for (Form form : Form.values()) {
+				for (char configuration : OTHER_CONFIGURATIONS) {
+					String ms = writeAlone(type, form, configuration);
+					if (ms == null) continue;
+
+					String description = describe(skeletonOf(ms), groupsOf(ms));
+					if (_index.containsKey(description)) continue;
+
+					String claimed = alsoWrittenBy.put(description, type.getName());
+					if (claimed == null) _index.put(description, new Named(type.getName(), configuration));
+					else if (!claimed.equals(type.getName())) _index.remove(description);
+				}
+			}
+		}
+	}
+
+	/** A residue name together with the configuration the description was written in. */
+	private static class Named {
+		private final String name;
+		private final char configuration;
+
+		Named(String _name, char _configuration) {
+			this.name = _name;
+			this.configuration = _configuration;
+		}
+	}
+
+	/**
+	 * The configurations a residue can be drawn in besides its own. One drawn this way writes a
+	 * different skeleton - 6dTal is a1112m by default and a2221m as an L - and taking the
+	 * configuration from the residue type afterwards would read the second back as the first.
+	 */
+	private static final char[] OTHER_CONFIGURATIONS = { 'D', 'L' };
 
 	/**
 	 * The forms one residue can be written in. Indexing only the first left the rest to a name lookup
@@ -145,8 +216,8 @@ public class MonosaccharideMSDictionary {
 		ALDEHYDE
 	}
 
-	/** How this residue is written standing on its own in that form, or null when it cannot be. */
-	private static String writeAlone(ResidueType _type, Form _form) {
+	/** How this residue is written standing on its own like that, or null when it cannot be. */
+	private static String writeAlone(ResidueType _type, Form _form, char _configuration) {
 		try {
 			Residue root = ResidueDictionary.createReducingEnd("freeEnd");
 			Residue residue = ResidueDictionary.newResidue(_type.getName());
@@ -154,6 +225,7 @@ public class MonosaccharideMSDictionary {
 				residue.setAnomericCarbon('?');
 				residue.setRingSize('?');
 			}
+			if (_configuration != 0) residue.setChirality(_configuration);
 			residue.setAlditol(_form == Form.ALDITOL);
 			residue.setAldehyde(_form == Form.ALDEHYDE);
 			root.addChild(residue);
@@ -174,15 +246,25 @@ public class MonosaccharideMSDictionary {
 	/** A monosaccharide description split into the residue it names and what is attached to it. */
 	public static class Match {
 		private final ResidueType residueType;
+		private final char configuration;
 		private final LinkedList<String> attachedGroups;
 
-		Match(ResidueType _residueType, LinkedList<String> _attachedGroups) {
+		Match(ResidueType _residueType, char _configuration, LinkedList<String> _attachedGroups) {
 			this.residueType = _residueType;
+			this.configuration = _configuration;
 			this.attachedGroups = _attachedGroups;
 		}
 
 		public ResidueType getResidueType() {
 			return this.residueType;
+		}
+
+		/**
+		 * The configuration this description was written in, which is not always the one the residue
+		 * type gives by default - 6dTal writes a1112m as a D and a2221m as an L, and both name 6dTal.
+		 */
+		public char getConfiguration() {
+			return this.configuration;
 		}
 
 		/** The groups left over, each written as WURCS writes it: "6*OSO/3=O/3=O", "4-6", ... */
