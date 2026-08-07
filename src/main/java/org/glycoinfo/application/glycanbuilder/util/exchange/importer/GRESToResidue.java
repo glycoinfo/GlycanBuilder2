@@ -63,7 +63,9 @@ public class GRESToResidue {
 
 		if(match != null) {
 			trivialName = match.getResidueType().getName();
-			configuration = match.getResidueType().getChirality();
+			// from the description rather than from the type: the same residue writes a different
+			// skeleton in each configuration, and only the description says which one this is
+			configuration = match.getConfiguration();
 		} else {
 			trinConv = new TrivialNameConverter();
 			trinConv.start(_gres);

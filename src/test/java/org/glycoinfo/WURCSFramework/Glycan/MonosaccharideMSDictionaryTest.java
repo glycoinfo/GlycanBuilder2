@@ -119,6 +119,34 @@ public class MonosaccharideMSDictionaryTest {
 		assertEquals("6*OSO/3=O/3=O", sulfated.getAttachedGroups().get(0));
 	}
 
+	/**
+	 * A residue drawn in the configuration that is not its own writes a different skeleton, and the
+	 * description says which one it is. Reading the configuration off the residue type instead - the
+	 * default it happens to carry - turned 6dTal drawn as an L back into the D on the way out.
+	 */
+	@Test
+	public void theConfigurationComesFromTheDescription() {
+		MonosaccharideMSDictionary.Match asWritten = MonosaccharideMSDictionary.match("a1112m-1x_1-5");
+		assertEquals("6dTal", asWritten.getResidueType().getName());
+		assertEquals('D', asWritten.getConfiguration());
+
+		MonosaccharideMSDictionary.Match mirrored = MonosaccharideMSDictionary.match("a2221m-1x_1-5");
+		assertEquals("6dTal", mirrored.getResidueType().getName());
+		assertEquals('L', mirrored.getConfiguration());
+	}
+
+	/**
+	 * Reducing a sugar removes its anomeric centre, and distinct sugars become one compound -
+	 * D-glucitol and L-gulitol are the same molecule. The residue that writes it in its own
+	 * configuration is the answer, rather than the one that has to be drawn as its mirror image to
+	 * reach it. Both name the same thing, so the description survives either way.
+	 */
+	@Test
+	public void anAlditolIsNamedByTheResidueThatWritesItByDefault() {
+		assertResidue("Glc", "h2122h");
+		assertResidue("Ara", "h221h");
+	}
+
 	/** The substituents a residue owns are part of what names it. */
 	@Test
 	public void namesAResidueTogetherWithItsOwnSubstituents() {

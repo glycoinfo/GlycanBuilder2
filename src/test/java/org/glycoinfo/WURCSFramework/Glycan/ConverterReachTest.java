@@ -25,7 +25,7 @@ import org.junit.Test;
  * <p>A monosaccharide is normally recognised from this builder's own index. What that index does not
  * hold falls through to a naming converter in glycanformatconverter, and that fallback used to carry
  * one residue in five - it held only the ring form of each residue, so an undetermined anomeric
- * carbon, an alditol or an open chain all missed. Over this corpus it now carries 7 residues of 127.
+ * carbon, an alditol or an open chain all missed. Over this corpus it now carries 6 residues of 127.
  *
  * <p>Keeping it there is a decision rather than an accident, so it is held by this test. The symptom
  * of losing it is quiet: a residue gets named by an outside table instead of ours, and nothing looks
@@ -36,16 +36,12 @@ import org.junit.Test;
 public class ConverterReachTest {
 
 	/**
-	 * The descriptions the index does not hold. Four are residues this builder has no entry for at
-	 * all, rather than forms it failed to recognise. The fifth, a2221m, is one it does hold - 6dTal
-	 * drawn as an L - and it misses because the index records each residue in its own configuration
-	 * only. Closing that means carrying the configuration in the index rather than taking it from the
-	 * residue type, which is tracked separately.
+	 * The descriptions the index does not hold, each a residue this builder has no entry for at all
+	 * rather than a form or a configuration it failed to recognise.
 	 */
 	private static final List<String> NOT_OURS = Arrays.asList(
 			"a21EEA-1a_1-5_2*OSO/3=O/3=O",   // a hexuronate with an unsaturation
 			"a21d2h-1a_1-5",                 // a 4-deoxy hexose
-			"a2221m-1x_1-5",                 // 6dTal drawn as an L
 			"hxh",                           // glycerol
 			"o2h");                          // glyceraldehyde
 
@@ -72,7 +68,7 @@ public class ConverterReachTest {
 		}
 
 		assertEquals("residues read from the corpus", 127, residues);
-		assertEquals("residues the index could not name, which go to the converter", 7, unmatched);
+		assertEquals("residues the index could not name, which go to the converter", 6, unmatched);
 		assertEquals("which descriptions they were", NOT_OURS, new ArrayList<String>(descriptions));
 	}
 
