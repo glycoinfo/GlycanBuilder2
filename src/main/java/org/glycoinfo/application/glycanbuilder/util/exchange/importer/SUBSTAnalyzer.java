@@ -110,17 +110,23 @@ public class SUBSTAnalyzer {
 	private void analyzeSUBST(SUBST _subst, Residue _residue, MS _ms) throws Exception {
 		Linkage linkage = new Linkage();
 
+		char[] positions = this.makePosition(_subst.getPositions());
+		NativeMonosaccharideDictionary.Entry entry =
+				NativeMonosaccharideDictionary.forResidueName(_residue.getTypeName());
+
+		// A group the name owns as a bare MAP is part of the residue and has no substituent behind it
+		// - apiose's hydroxymethyl branch. Asking for one would fail, so ask before resolving.
+		if(entry != null && entry.getOwnMAPs().contains(positions[0] + "*" + _subst.getMAP().substring(1)))
+			return;
+
 		ResidueType substituentType = SubstituentMAPDictionary.findResidueTypeByMAP(_subst.getMAP());
 		if(substituentType == null)
 			throw new Exception("This MAP is not support in the GlycanBuilder2:" + _subst.getMAP());
 
-		char[] positions = this.makePosition(_subst.getPositions());
 		String subNotation = positions[0] + "*" + substituentType.getName();
 
 		// A substituent the residue's name already owns must not be drawn as well: the exporter takes
 		// it from the same table, so drawing it would write it out twice.
-		NativeMonosaccharideDictionary.Entry entry =
-				NativeMonosaccharideDictionary.forResidueName(_residue.getTypeName());
 		if(entry != null && entry.owns(subNotation)) return;
 
 		// A residue that already carries an amine where this substituent lands is not carrying an

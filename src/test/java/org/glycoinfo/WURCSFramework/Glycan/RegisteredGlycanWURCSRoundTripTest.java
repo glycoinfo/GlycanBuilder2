@@ -164,6 +164,24 @@ public class RegisteredGlycanWURCSRoundTripTest {
 	}
 
 	/**
+	 * Apiose, whose C3 carries a hydroxymethyl branch. A SkeletonCode is a straight chain, so a carbon
+	 * branch has nowhere to go in it - the branch is a MAP, {@code 3*CO}, the same shape the
+	 * specification gives for a C-linked methyl, and C3 takes one of the descriptors that carry no
+	 * hydrogen because it has none left to give.
+	 *
+	 * <p>The string is the registry's. GlyTouCan holds a26h-1b_1-4_3*CO in a dozen and more
+	 * structures, always beside Rha, Xyl, Ara and GalA - plant apiogalacturonan, which is where apiose
+	 * occurs. G47751LL is the smallest of them and is the second case here, so this is checked against
+	 * a real registered structure rather than one of ours. PubChem CID 12306753 agrees: L-apiose is
+	 * (3R,4R)-4-(hydroxymethyl)oxolane-2,3,4-triol, and the two descriptors are R at both centres.
+	 */
+	@Test
+	public void apioseCarriesItsBranchAsAMap() throws Exception {
+		assertRoundTrip("WURCS=2.0/1,1,0/[a26h-1x_1-4_3*CO]/1/");
+		assertRoundTrip("WURCS=2.0/2,2,1/[a2122h-1b_1-5][a26h-1b_1-4_3*CO]/1-2/a3-b1");   // G47751LL
+	}
+
+	/**
 	 * The two manno-heptoses are named with two configurational prefixes rather than one, and the
 	 * exporter could not resolve such a name: it asked the base type table for "l-gro-d-man", which
 	 * no table holds, and for the other one the leading D was read as a deoxy marker instead. The

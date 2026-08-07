@@ -44,14 +44,21 @@ public class NativeMonosaccharideDictionary {
 		private final char isomer;
 		private final String substituents;
 		private final String modifications;
+		private final String ownMAPs;
 
 		private Entry(String _stereo, boolean _followsConfiguration, char _isomer,
 				String _substituents, String _modifications) {
+			this(_stereo, _followsConfiguration, _isomer, _substituents, _modifications, "");
+		}
+
+		private Entry(String _stereo, boolean _followsConfiguration, char _isomer,
+				String _substituents, String _modifications, String _ownMAPs) {
 			this.stereo = _stereo;
 			this.followsConfiguration = _followsConfiguration;
 			this.isomer = _isomer;
 			this.substituents = _substituents;
 			this.modifications = _modifications;
+			this.ownMAPs = _ownMAPs;
 		}
 
 		/**
@@ -89,6 +96,20 @@ public class NativeMonosaccharideDictionary {
 			return !this.substituents.isEmpty() && this.substituents.contains(_substituentNotation);
 		}
 
+		/**
+		 * Groups the name owns that are written as a MAP rather than as a substituent of their own, as
+		 * "3*CO", or "" when there are none.
+		 *
+		 * <p>Apiose is the one that needs this. Its C3 carries a hydroxymethyl branch, and a carbon
+		 * branch has nowhere to go in a SkeletonCode, which is a straight chain - it goes in a MAP, the
+		 * same shape the specification gives for a C-linked methyl, {@code *C}. There is no substituent
+		 * residue behind it and there should not be: inventing one would put a C-linked hydroxymethyl
+		 * in the substituent menu, which is not a thing anyone draws.
+		 */
+		public String getOwnMAPs() {
+			return this.ownMAPs;
+		}
+
 		private static String map(String _stereo, char _from1, char _to1, char _from2, char _to2) {
 			StringBuilder mapped = new StringBuilder(_stereo.length());
 			for (char digit : _stereo.toCharArray())
@@ -116,7 +137,7 @@ public class NativeMonosaccharideDictionary {
 		residues.put("AltA",           new Entry("1222",  true,  'L', "",               ""));
 		residues.put("AltN",           new Entry("1222",  true,  'L', "2*N",            ""));
 		residues.put("AltNAc",         new Entry("1222",  true,  'L', "2*NAc",          ""));
-		residues.put("Api",            new Entry("11",    false, 'L', "3*MeOH",         "3*6"));
+		residues.put("Api",            new Entry("26",    false, 'L', "",               "", "3*CO"));
 		residues.put("Ara",            new Entry("122",   true,  'L', "",               ""));
 		residues.put("Bac",            new Entry("2122",  true,  'D', "2*N_4*N",        "6*m"));
 		residues.put("Col",            new Entry("121",   false, 'L', "",               "3*d_6*m"));

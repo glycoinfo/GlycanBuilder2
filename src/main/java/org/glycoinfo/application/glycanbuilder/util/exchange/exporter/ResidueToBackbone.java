@@ -1,10 +1,13 @@
 package org.glycoinfo.application.glycanbuilder.util.exchange.exporter;
 
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.Map;
 
 import org.eurocarbdb.MolecularFramework.sugar.*;
 import org.eurocarbdb.application.glycanbuilder.Residue;
+import org.glycoinfo.application.glycanbuilder.dataset.NativeMonosaccharideDictionary;
 import org.eurocarbdb.application.glycanbuilder.linkage.Linkage;
 import org.glycoinfo.WURCSFramework.wurcs.graph.Backbone;
 import org.glycoinfo.WURCSFramework.util.property.AtomicProperties;
@@ -24,6 +27,7 @@ public class ResidueToBackbone {
 	private boolean a_bIsRootOfFragment = false;
 
 	private LinkedList<Modification> unknownModPos = new LinkedList<Modification>();
+	private Map<Integer, String> ownMAPs = new LinkedHashMap<Integer, String>();
 	
 	public Residue getResidue() {
 		return this.residue;
@@ -35,6 +39,15 @@ public class ResidueToBackbone {
 	
 	public LinkedList<Modification> getCoreModifications() {
 		return this.unknownModPos;
+	}
+
+	/**
+	 * Groups this residue owns by its name that are written as a MAP on a named carbon, keyed on that
+	 * carbon. Apiose's hydroxymethyl branch is the one: a carbon branch has nowhere to go in a
+	 * SkeletonCode, which is a straight chain, so it is written as {@code 3*CO} instead.
+	 */
+	public Map<Integer, String> getOwnMAPs() {
+		return this.ownMAPs;
 	}
 	
 	public void setRootOfFramgents() {
@@ -83,6 +96,16 @@ public class ResidueToBackbone {
 
 		for(String map : residueAnalyzer.getUnknownMAPs()) {
 			this.unknownModPos.add( new Modification(map));
+		}
+
+		// groups the residue's name owns that go out as a MAP on a named carbon - apiose's branch
+		NativeMonosaccharideDictionary.Entry entry =
+				NativeMonosaccharideDictionary.forResidueName(_residue.getTypeName());
+		if (entry != null && !entry.getOwnMAPs().isEmpty()) {
+			for (String unit : entry.getOwnMAPs().split("_")) {
+				String[] positionAndMAP = unit.split("\\*", 2);
+				this.ownMAPs.put(Integer.valueOf(positionAndMAP[0]), "*" + positionAndMAP[1]);
+			}
 		}
 		
 		// check unknown anomeric position
