@@ -54,11 +54,7 @@ mvn clean -P make-fat-jar package
 
 Run the JAR:
 ```
-# Windows / Linux
 java -jar ./target/glycanbuilder2-jar-with-dependencies.jar
-
-# macOS
-java -XstartOnFirstThread -jar ./target/glycanbuilder2-jar-with-dependencies.jar
 ```
 
 ## Usage
