@@ -5,6 +5,8 @@
   * The native interface was opened and pumped without any native component being created
   * Opening it forked a second JVM and pulled in a platform SWT build and its matching GTK
 * Removed the platform SWT profiles that existed only to supply those dependencies
+* Stopped passing -XstartOnFirstThread on macOS, which SWT needed and Swing cannot start under
+  * The macOS installer built an app that opened no window
 
 ### 1.28.0  (20260807)
 * Fixed bridge substituents within one monosaccharide disappearing from WURCS export
