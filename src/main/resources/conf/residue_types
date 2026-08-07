@@ -139,7 +139,7 @@ Et		Substituent	O-type		C2H6O1		-	Et				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	y
 NAc		Substituent	N-type		C2H5O1N1	-	NAc				1	?	?	no	no	no	0	2	no	1	no	1	-	-	no	no	yes	N-Acetate	*NCC/3=O
 P		Substituent	P/S-type	H3P1O4		-	P				1	?	?	no	yes	yes	0	3	no	1	no	1	-	1	no	no	yes	Phosphate	*OPO/3O/3=O
 S		Substituent	P/S-type	H2S1O4		-	S				1	?	?	no	yes	yes	0	1	no	1	no	1	-	1	no	no	yes	Sulfate	*OSO/3=O/3=O
-Pyr		Substituent	O-type		C3H4O3		-	Pyr				1	?	?	no	no	no	0	1	no	1	yes	1	-	-	no	no	yes	Pyruvate
+Pyr		Substituent	O-type		C3H4O3		-	Pyr				1	?	?	no	no	no	0	1	no	1	yes	1	-	-	no	no	yes	Pyruvate	*OCCC/4=O/3=O
 PMe		Substituent	P/S-type	C1H5P1O4	-	PMe				1	?	?	no	yes	yes	0	2	no	1	no	1	-	1	no	no	yes	Methyl-phosphate	*OPOC/3O/3=O
 PCho	Substituent	P/S-type	C5H14NO4P	-	PC				1	?	?	no	no	no	0	2	no	1	no	1	-	-	no	no	yes	Phosphocholine	*OP^XOCCNC/7C/7C/3O/3=O
 PPEtn	Substituent	P/S-type	C2H9NO7P2	-	PPEtn			1	?	?	no	no	no	0	2	no	1	no	1	-	-	no	no	yes	Diphosphoethanolamine	*OP^XOP^XOCCN/5O/5=O/3O/3=O

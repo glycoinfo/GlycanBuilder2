@@ -120,6 +120,18 @@ public class BridgeSubstituentWURCSTest {
 		assertEquals("WURCS=2.0/1,1,0/[a2122h-1x_1-5_4-6*OC^RO*/3CO/6=O/3C]/1/", intraBridgeOnGlc("(R)Py"));
 	}
 
+	/**
+	 * Monovalent pyruvate is a different substituent from the three bridging ones, and the WURCS 2.0
+	 * specification gives it its own MAP in the table of common substituents: {@code *OCCC/4=O/3=O},
+	 * the O-linked ester R-O-C(=O)-C(=O)-CH3. It was refused on the way out for as long as its MAP
+	 * had to be derived from a name no table held.
+	 */
+	@Test
+	public void monovalentPyruvateIsWrittenAsTheSpecificationHasIt() throws Exception {
+		assertEquals("WURCS=2.0/1,1,0/[a2122h-1x_1-5_3*OCCC/4=O/3=O]/1/", substituentOnGlc("Pyr", '3'));
+		assertRoundTrip("WURCS=2.0/1,1,0/[a2122h-1x_1-5_3*OCCC/4=O/3=O]/1/");
+	}
+
 	/** "Both" types are reachable as intra bridges too, and keep their own linking atoms. */
 	@Test
 	public void bothTypeBridgesKeepTheirLinkingAtoms() throws Exception {
@@ -179,6 +191,16 @@ public class BridgeSubstituentWURCSTest {
 		WURCSValidator validator = new WURCSValidator();
 		validator.start(_wurcs);
 		assertFalse("validator rejected " + _wurcs, validator.getReport().hasError());
+	}
+
+	/** freeEnd - Glc, with the named substituent on one position of that Glc. */
+	private String substituentOnGlc(String _name, char _position) throws Exception {
+		Residue root = ResidueDictionary.createReducingEnd("freeEnd");
+		Residue glc = ResidueDictionary.newResidue("Glc");
+		root.addChild(glc);
+		glc.addChild(ResidueDictionary.newResidue(_name), _position);
+
+		return new WURCS2Parser().writeGlycan(new Glycan(root, false, new MassOptions()));
 	}
 
 	/** freeEnd - Glc, with the named bridge spanning positions 4 and 6 of that Glc. */
