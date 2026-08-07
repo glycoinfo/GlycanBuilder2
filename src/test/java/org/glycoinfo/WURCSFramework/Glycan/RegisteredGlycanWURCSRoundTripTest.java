@@ -113,6 +113,21 @@ public class RegisteredGlycanWURCSRoundTripTest {
 		assertRoundTrip("WURCS=2.0/1,1,0/[a2122h-1x_1-5_1-6]/1/");     // 1,6-anhydro
 	}
 
+	/**
+	 * Residues grouped under "Unknown" used to be refused as a class on the way out, though several
+	 * describe themselves well enough to write. These four are checked against PubChem and the SNFG
+	 * table: Kdo carries the same 1122 stereo as D-mannose, as 3-deoxy-D-manno-oct-2-ulosonic acid
+	 * should; the muramic acids carry an (R) carboxyethyl at position 3; and Bac reads as
+	 * 2,4-diamino-2,4,6-trideoxy-D-glucose.
+	 */
+	@Test
+	public void residuesGroupedUnderUnknownStillConvert() throws Exception {
+		assertRoundTrip("WURCS=2.0/1,1,0/[Aad1122h-2x_2-6]/1/");                                  // Kdo
+		assertRoundTrip("WURCS=2.0/1,1,0/[a2122h-1x_1-5_2*NCC/3=O_3*OCC^RC/4O/3=O]/1/");          // MurNAc
+		assertRoundTrip("WURCS=2.0/1,1,0/[a2122h-1x_1-5_2*NCCO/3=O_3*OCC^RC/4O/3=O]/1/");         // MurNGc
+		assertRoundTrip("WURCS=2.0/1,1,0/[a2122m-1x_1-5_2*N_4*N]/1/");                            // Bac
+	}
+
 	private void assertRoundTrip(String _wurcs) throws Exception {
 		WURCS2Parser parser = new WURCS2Parser();
 		Glycan glycan = parser.readGlycan(_wurcs, new MassOptions());

@@ -42,9 +42,16 @@ public class ResidueToBackbone {
 	}
 	
 	public void start(Residue _residue) throws Exception {
-		if (_residue.getType().getSuperclass().equals("Unknown")) {
-			throw new Exception (_residue.getTypeName() + " can not be converted to SkeletonCode.");
-		}
+		// The residues grouped under "Unknown" used to be refused here as a class, but several of
+		// them describe themselves well enough to write: Kdo, MurNAc, MurNGc and Bac all convert and
+		// read back. The ones that cannot fail further along, where the reason is specific to them.
+		//
+		// What a residue does need is a configuration and a ring. Without both, the skeleton comes
+		// out indeterminate at the anomeric carbon and does not read back as itself - Dha is
+		// written this way in residue_types and is the only saccharide it applies to.
+		if (_residue.getType().getChirality() == '?' && _residue.getType().getRingSize() == '?')
+			throw new Exception (_residue.getTypeName()
+					+ " has neither a configuration nor a ring, so it has no skeleton to write.");
 
 		this.residue = _residue;
 		this.anomPosition = checkAnomericSymbolCharactor(_residue.getAnomericCarbon());
