@@ -28,7 +28,6 @@ import javax.swing.border.*;
 import org.eurocarbdb.application.glycanbuilder.converter.GlycanParserFactory;
 import org.eurocarbdb.application.glycanbuilder.util.ActionManager;
 import org.eurocarbdb.application.glycanbuilder.util.MouseUtils;
-import chrriis.dj.nativeswing.swtimpl.NativeInterface;
 
 import org.eurocarbdb.application.glycanbuilder.dataset.CoreDictionary;
 import org.eurocarbdb.application.glycanbuilder.fileutil.ExtensionFileFilter;
@@ -187,8 +186,6 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
 		theWorkspace.setChanged(false);
 
 		updateActions();
-
-		NativeInterface.open();
 
 		JFrame.setDefaultLookAndFeelDecorated(true);
 		JDialog.setDefaultLookAndFeelDecorated(true);
@@ -977,9 +974,8 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
        Run the application. Open the application frame
 	 * @throws MalformedURLException 
 	 */
-	public static void main(String[] args) throws MalformedURLException {    
+	public static void main(String[] args) throws MalformedURLException {
 		new GlycanBuilder().setVisible(true);
-		NativeInterface.runEventPump();
-	}   
+	}
 }
 

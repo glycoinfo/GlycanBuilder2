@@ -128,7 +128,6 @@ jobs:
           --vendor "The Noguchi Institute - Glycoinformatics Lab." \
           --description "A tool for drawing and editing glycans intuitively" \
           --copyright "Copyright © 2026 The Noguchi Institute" \
-          --java-options "-XstartOnFirstThread" \
           --mac-sign \
           --mac-signing-key-user-name "${{ steps.signing.outputs.IDENTITY }}"
       shell: bash

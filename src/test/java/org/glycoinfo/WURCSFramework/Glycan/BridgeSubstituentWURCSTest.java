@@ -120,6 +120,42 @@ public class BridgeSubstituentWURCSTest {
 		assertEquals("WURCS=2.0/1,1,0/[a2122h-1x_1-5_4-6*OC^RO*/3CO/6=O/3C]/1/", intraBridgeOnGlc("(R)Py"));
 	}
 
+	/**
+	 * A MAP is read back to its substituent through our own dictionary alone. The converter's table
+	 * used to be asked first, with ours kept as the answer for what it did not know - but measured
+	 * across every substituent residue_types holds a MAP for, ours resolves all 33 and theirs 31, and
+	 * there is nothing theirs can name that ours cannot. These two are the pair theirs never held.
+	 */
+	@Test
+	public void substituentsAreReadBackThroughOurOwnDictionary() throws Exception {
+		assertRoundTrip("WURCS=2.0/1,1,0/[a2122h-1x_1-5_3*OCC]/1/");              // Et
+		assertRoundTrip("WURCS=2.0/1,1,0/[a2122h-1x_1-5_3*OCCC/4=O/3=O]/1/");     // Pyr
+	}
+
+	/**
+	 * A residue that already carries an amine where the substituent lands is not carrying an N-linked
+	 * group of its own: the nitrogen in the MAP is the residue's, and what hangs off it is the
+	 * O-linked equivalent. GlcN with 2*NSO/3=O/3=O is GlcN bearing a sulfate, not an NS. That test
+	 * used to name nine templates in the converter; read off the MAP it is the same set.
+	 */
+	@Test
+	public void anAmineAlreadyOnTheResidueIsNotPartOfTheSubstituent() throws Exception {
+		assertRoundTrip("WURCS=2.0/1,1,0/[a2122h-1x_1-5_2*NSO/3=O/3=O]/1/");
+		assertRoundTrip("WURCS=2.0/1,1,0/[a2122h-1x_1-5_2*NCC/3=O]/1/");
+	}
+
+	/**
+	 * Monovalent pyruvate is a different substituent from the three bridging ones, and the WURCS 2.0
+	 * specification gives it its own MAP in the table of common substituents: {@code *OCCC/4=O/3=O},
+	 * the O-linked ester R-O-C(=O)-C(=O)-CH3. It was refused on the way out for as long as its MAP
+	 * had to be derived from a name no table held.
+	 */
+	@Test
+	public void monovalentPyruvateIsWrittenAsTheSpecificationHasIt() throws Exception {
+		assertEquals("WURCS=2.0/1,1,0/[a2122h-1x_1-5_3*OCCC/4=O/3=O]/1/", substituentOnGlc("Pyr", '3'));
+		assertRoundTrip("WURCS=2.0/1,1,0/[a2122h-1x_1-5_3*OCCC/4=O/3=O]/1/");
+	}
+
 	/** "Both" types are reachable as intra bridges too, and keep their own linking atoms. */
 	@Test
 	public void bothTypeBridgesKeepTheirLinkingAtoms() throws Exception {
@@ -179,6 +215,16 @@ public class BridgeSubstituentWURCSTest {
 		WURCSValidator validator = new WURCSValidator();
 		validator.start(_wurcs);
 		assertFalse("validator rejected " + _wurcs, validator.getReport().hasError());
+	}
+
+	/** freeEnd - Glc, with the named substituent on one position of that Glc. */
+	private String substituentOnGlc(String _name, char _position) throws Exception {
+		Residue root = ResidueDictionary.createReducingEnd("freeEnd");
+		Residue glc = ResidueDictionary.newResidue("Glc");
+		root.addChild(glc);
+		glc.addChild(ResidueDictionary.newResidue(_name), _position);
+
+		return new WURCS2Parser().writeGlycan(new Glycan(root, false, new MassOptions()));
 	}
 
 	/** freeEnd - Glc, with the named bridge spanning positions 4 and 6 of that Glc. */

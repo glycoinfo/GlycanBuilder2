@@ -1,4 +1,32 @@
 ## Change log
+### 1.29.0  (20260808)
+* Wrote eleven residues that no WURCS string could be produced for
+  * Kdo, Mur, MurNAc, MurNGc, Bac, Dha, Api, and both manno-heptoses
+  * Residues that could not be written now say which residue and why, instead of failing silently
+  * dHexA is still refused: its definition records no carbon for the deoxy the name claims
+* Added TalA, the one hexuronate SNFG names that had a symbol here but no residue
+* Wrote monovalent pyruvate, using the MAP the WURCS 2.0 specification defines for it
+* Changed the default configuration of Lyx from L to D
+  * SNFG and PubChem both give the symbol as D-Lyxose, and the symbol drawn for it already meant D
+  * A structure saved before this keeps its meaning: GWS records the configuration explicitly
+* Corrected Dha, which had no anomeric carbon, configuration or ring recorded, and Api, which was
+  recorded as a pyranose where it is the one furanose SNFG makes an exception of
+* Read WURCS through this project's own dictionaries rather than a converter's tables
+  * A residue is now recognised in every form it is written in, not only with a ring - an
+    undetermined anomeric carbon, an alditol and an open chain were all going unrecognised
+  * A residue drawn in the configuration that is not its default is read back as itself
+  * Substituents on a residue written without a ring are no longer lost
+* Fixed the legend under a residue drawn without a symbol overwriting its residue type
+  * Reading one structure changed what another said, and the type's own description - the one the
+    menus show - was replaced for the rest of the session
+* Fixed the application failing to start on Linux distributions that no longer ship GTK2
+* Removed the DJNativeSwing and SWT dependencies, which the application never used
+  * The native interface was opened and pumped without any native component being created
+  * Opening it forked a second JVM and pulled in a platform SWT build and its matching GTK
+* Removed the platform SWT profiles that existed only to supply those dependencies
+* Stopped passing -XstartOnFirstThread on macOS, which SWT needed and Swing cannot start under
+  * The macOS installer built an app that opened no window
+
 ### 1.28.0  (20260807)
 * Fixed bridge substituents within one monosaccharide disappearing from WURCS export
   * 4,6-pyruvate, anhydro, and "Both" type bridges used within a single residue

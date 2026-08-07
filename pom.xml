@@ -8,7 +8,7 @@
 
 	<groupId>org.eurocarbdb.glycanbuilder</groupId>
 	<artifactId>glycanbuilder2</artifactId>
-	<version>1.28.0</version>
+	<version>1.29.0</version>
 	<packaging>jar</packaging>
 
 	<properties>
@@ -193,16 +193,6 @@
 		</dependency>
 		<dependency>
 			<groupId>org.glycoinfo.eurocarbdb.depends</groupId>
-			<artifactId>DJNativeSwing-SWT</artifactId>
-			<version>0.2</version>
-		</dependency>
-		<dependency>
-			<groupId>org.glycoinfo.eurocarbdb.depends</groupId>
-			<artifactId>DJNativeSwing</artifactId>
-			<version>0.1</version>
-		</dependency>
-		<dependency>
-			<groupId>org.glycoinfo.eurocarbdb.depends</groupId>
 			<artifactId>flamingo-tst</artifactId>
 			<version>0.1</version>
 		</dependency>
@@ -253,144 +243,7 @@
 		</dependency>
 	</dependencies>
 
-	<!-- platform -->
 	<profiles>
-		<profile>
-			<id>windows_x86</id>
-			<activation>
-				<os>
-					<family>windows</family>
-					<arch>x86</arch>
-				</os>
-			</activation>
-			<dependencies>
-				<dependency>
-					<groupId>org.eclipse.swt</groupId>
-					<artifactId>org.eclipse.swt.win32.win32.x86</artifactId>
-					<version>4.3</version>
-				</dependency>
-			</dependencies>
-		</profile>
-
-		<profile>
-			<id>windows_x86_64</id>
-			<activation>
-				<os>
-					<family>windows</family>
-					<arch>amd64</arch>
-				</os>
-			</activation>
-			<dependencies>
-				<dependency>
-					<groupId>org.eclipse.swt</groupId>
-					<artifactId>org.eclipse.swt.win32.win32.x86_64</artifactId>
-					<version>4.3</version>
-				</dependency>
-			</dependencies>
-		</profile>
-
-		<profile>
-			<id>carbon_macosx</id>
-			<activation>
-				<os>
-					<family>mac</family>
-					<arch>x86</arch>
-				</os>
-			</activation>
-			<dependencies>
-				<dependency>
-					<groupId>org.eclipse.swt.carbon</groupId>
-					<artifactId>macosx</artifactId>
-					<version>3.3.0-v3346</version>
-				</dependency>
-			</dependencies>
-		</profile>
-
-		<profile>
-			<id>cocoa_macosx</id>
-			<activation>
-				<os>
-					<family>mac</family>
-					<arch>x86</arch>
-				</os>
-			</activation>
-			<dependencies>
-				<dependency>
-					<groupId>org.eclipse.swt</groupId>
-					<artifactId>org.eclipse.swt.cocoa.macosx</artifactId>
-					<version>4.3</version>
-				</dependency>
-			</dependencies>
-		</profile>
-
-		<profile>
-			<id>cocoa_macosx_x86_64</id>
-			<activation>
-				<os>
-					<family>mac</family>
-					<arch>x86_64</arch>
-				</os>
-			</activation>
-			<dependencies>
-				<dependency>
-					<groupId>org.eclipse.swt</groupId>
-					<artifactId>org.eclipse.swt.cocoa.macosx.x86_64</artifactId>
-					<version>4.3</version>
-				</dependency>
-			</dependencies>
-		</profile>
-
-		<profile>
-			<id>macosx_arm64</id>
-			<activation>
-				<os>
-					<family>mac</family>
-					<arch>aarch64</arch>
-				</os>
-			</activation>
-			<dependencies>
-				<dependency>
-						<groupId>org.eclipse.platform</groupId>
-						<artifactId>org.eclipse.swt.cocoa.macosx.aarch64</artifactId>
-						<version>3.125.0</version>
-				</dependency>
-			</dependencies>
-		</profile>
-
-		<profile>
-			<id>gtk_linux_x86</id>
-			<activation>
-				<os>
-					<name>Linux</name>
-					<arch>x86</arch>
-				</os>
-			</activation>
-			<dependencies>
-				<dependency>
-					<groupId>org.eclipse.swt</groupId>
-					<artifactId>org.eclipse.swt.gtk.linux.x86</artifactId>
-					<version>4.3</version>
-				</dependency>
-			</dependencies>
-		</profile>
-
-		<profile>
-			<id>gtk_linux_x86_64</id>
-			<activation>
-				<os>
-					<name>Linux</name>
-					<arch>amd64</arch>
-				</os>
-			</activation>
-			<dependencies>
-				<dependency>
-					<groupId>org.eclipse.swt</groupId>
-					<artifactId>org.eclipse.swt.gtk.linux.x86_64</artifactId>
-					<version>4.3</version>
-				</dependency>
-			</dependencies>
-		</profile>
-
 		<profile>
 			<id>make-fat-jar</id>
 			<build>

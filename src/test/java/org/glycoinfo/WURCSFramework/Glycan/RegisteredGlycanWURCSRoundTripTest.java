@@ -113,6 +113,127 @@ public class RegisteredGlycanWURCSRoundTripTest {
 		assertRoundTrip("WURCS=2.0/1,1,0/[a2122h-1x_1-5_1-6]/1/");     // 1,6-anhydro
 	}
 
+	/**
+	 * Residues grouped under "Unknown" used to be refused as a class on the way out, though several
+	 * describe themselves well enough to write. These four are checked against PubChem and the SNFG
+	 * table: Kdo carries the same 1122 stereo as D-mannose, as 3-deoxy-D-manno-oct-2-ulosonic acid
+	 * should; the muramic acids carry an (R) carboxyethyl at position 3; and Bac reads as
+	 * 2,4-diamino-2,4,6-trideoxy-D-glucose.
+	 */
+	@Test
+	public void residuesGroupedUnderUnknownStillConvert() throws Exception {
+		assertRoundTrip("WURCS=2.0/1,1,0/[Aad1122h-2x_2-6]/1/");                                  // Kdo
+		assertRoundTrip("WURCS=2.0/1,1,0/[a2122h-1x_1-5_2*NCC/3=O_3*OCC^RC/4O/3=O]/1/");          // MurNAc
+		assertRoundTrip("WURCS=2.0/1,1,0/[a2122h-1x_1-5_2*NCCO/3=O_3*OCC^RC/4O/3=O]/1/");         // MurNGc
+		assertRoundTrip("WURCS=2.0/1,1,0/[a2122m-1x_1-5_2*N_4*N]/1/");                            // Bac
+	}
+
+	/**
+	 * Dha is 3-deoxy-D-lyxo-hept-2-ulosaric acid, and residue_types described it with no anomeric
+	 * carbon, configuration or ring, so the skeleton came out indeterminate and did not read back as
+	 * itself. All three are stated by the sources: SNFG Note 4 lists Dha among the residues whose D
+	 * is implicit in the name and makes pyranose the default, and PubChem CID 15608515 names it
+	 * (4R,5R,6S)-2,4,5-trihydroxyoxane-2,6-dicarboxylic acid - an oxane, so a six-membered ring
+	 * spanning C2 to C6, with the anomeric carbon at C2 carrying both OH and COOH.
+	 *
+	 * <p>The 112 in the middle is D-lyxo, the same trio Tag carries as D-lyxo-hex-2-ulose (ha112h),
+	 * and the carboxyl at either end is what makes it a ulosaric rather than a ulosonic acid.
+	 */
+	@Test
+	public void dhaConvertsOnceItHasAnAnomericCarbonAndRing() throws Exception {
+		assertRoundTrip("WURCS=2.0/1,1,0/[Aad112A-2x_2-6]/1/");
+	}
+
+	/**
+	 * All three muramic acids, which used to be two. Which substituents a residue owns by its name is
+	 * answered by two separate tables outside this project, and they disagree: MurNAc and MurNGc are
+	 * answered by one, which calls the group on carbon 3 "(R)Lac" - a substituent we hold - while
+	 * plain Mur is answered by the other, which calls the same group "(R)CE", a name nothing here
+	 * holds, and leaves out the 2-amino besides. Both are now answered from our own table.
+	 *
+	 * <p>PubChem confirms all three. CID 441038 gives muramic acid as
+	 * (2R)-2-[(3R,4R,5S,6R)-3-amino-2,5-dihydroxy-6-(hydroxymethyl)oxan-4-yl]oxypropanoic acid: the
+	 * amino sits on the sugar's C2 and the lactyl ether on its C3, which is what the 2*N and the
+	 * 3*OCC^RC say. The other two carry an acetyl or a glycolyl on that same nitrogen.
+	 */
+	@Test
+	public void allThreeMuramicAcidsConvert() throws Exception {
+		assertRoundTrip("WURCS=2.0/1,1,0/[a2122h-1x_1-5_2*N_3*OCC^RC/4O/3=O]/1/");                 // Mur
+		assertRoundTrip("WURCS=2.0/1,1,0/[a2122h-1x_1-5_2*NCC/3=O_3*OCC^RC/4O/3=O]/1/");          // MurNAc
+		assertRoundTrip("WURCS=2.0/1,1,0/[a2122h-1x_1-5_2*NCCO/3=O_3*OCC^RC/4O/3=O]/1/");         // MurNGc
+	}
+
+	/**
+	 * Apiose, whose C3 carries a hydroxymethyl branch. A SkeletonCode is a straight chain, so a carbon
+	 * branch has nowhere to go in it - the branch is a MAP, {@code 3*CO}, the same shape the
+	 * specification gives for a C-linked methyl, and C3 takes one of the descriptors that carry no
+	 * hydrogen because it has none left to give.
+	 *
+	 * <p>The string is the registry's. GlyTouCan holds a26h-1b_1-4_3*CO in a dozen and more
+	 * structures, always beside Rha, Xyl, Ara and GalA - plant apiogalacturonan, which is where apiose
+	 * occurs. G47751LL is the smallest of them and is the second case here, so this is checked against
+	 * a real registered structure rather than one of ours. PubChem CID 12306753 agrees: L-apiose is
+	 * (3R,4R)-4-(hydroxymethyl)oxolane-2,3,4-triol, and the two descriptors are R at both centres.
+	 */
+	@Test
+	public void apioseCarriesItsBranchAsAMap() throws Exception {
+		assertRoundTrip("WURCS=2.0/1,1,0/[a26h-1x_1-4_3*CO]/1/");
+		assertRoundTrip("WURCS=2.0/2,2,1/[a2122h-1b_1-5][a26h-1b_1-4_3*CO]/1-2/a3-b1");   // G47751LL
+	}
+
+	/**
+	 * The two manno-heptoses are named with two configurational prefixes rather than one, and the
+	 * exporter could not resolve such a name: it asked the base type table for "l-gro-d-man", which
+	 * no table holds, and for the other one the leading D was read as a deoxy marker instead. The
+	 * table already spells compound names with the blocks joined by "_", which is how the
+	 * nonulosonates reach it - Neu is dgro_dgal - so the drawn names are rewritten into that form.
+	 *
+	 * <p>PubChem settles what the result should be. CID 21120522 and CID 53681436 both name the ring
+	 * (3S,4S,5S,6R), which is exactly what CID 18950 gives for D-mannose, so the ring carbons carry
+	 * D-manno - the 1122 of a1122h. The two differ only in the side chain, (1S) against (1R), which
+	 * is the glycero carbon 6, and that is the only place these two strings differ.
+	 */
+	@Test
+	public void theTwoMannoHeptosesDifferOnlyAtTheirGlyceroCarbon() throws Exception {
+		assertRoundTrip("WURCS=2.0/1,1,0/[a11221h-1x_1-5]/1/");   // L-glycero-D-manno
+		assertRoundTrip("WURCS=2.0/1,1,0/[a11222h-1x_1-5]/1/");   // D-glycero-D-manno
+	}
+
+	/**
+	 * A residue carries its own configuration, so both mirror images of every pentose have to survive
+	 * the round trip - only one of the two is the default the index holds, and the other is answered
+	 * further along. Changing which one is the default must not cost us the other.
+	 */
+	@Test
+	public void bothConfigurationsOfEveryPentoseSurvive() throws Exception {
+		assertRoundTrip("WURCS=2.0/1,1,0/[a112h-1x_1-5]/1/");   // D-Lyx
+		assertRoundTrip("WURCS=2.0/1,1,0/[a221h-1x_1-5]/1/");   // L-Lyx
+		assertRoundTrip("WURCS=2.0/1,1,0/[a212h-1x_1-5]/1/");   // D-Xyl
+		assertRoundTrip("WURCS=2.0/1,1,0/[a121h-1x_1-5]/1/");   // L-Xyl
+		assertRoundTrip("WURCS=2.0/1,1,0/[a122h-1x_1-5]/1/");   // D-Ara
+		assertRoundTrip("WURCS=2.0/1,1,0/[a211h-1x_1-5]/1/");   // L-Ara
+		assertRoundTrip("WURCS=2.0/1,1,0/[a222h-1x_1-5]/1/");   // D-Rib
+		assertRoundTrip("WURCS=2.0/1,1,0/[a111h-1x_1-5]/1/");   // L-Rib
+	}
+
+	/**
+	 * SNFG Table 1 names eight hexuronates and residue_types held seven of them - TalA was declared
+	 * in the symbol files but never as a residue, so it could not be drawn or read. Its skeleton is
+	 * Tal's with a carboxyl on the last carbon, the same relation the other seven have to their
+	 * parent hexose.
+	 */
+	@Test
+	public void allEightHexuronatesConvert() throws Exception {
+		assertRoundTrip("WURCS=2.0/1,1,0/[a2122A-1x_1-5]/1/");   // GlcA
+		assertRoundTrip("WURCS=2.0/1,1,0/[a1122A-1x_1-5]/1/");   // ManA
+		assertRoundTrip("WURCS=2.0/1,1,0/[a2112A-1x_1-5]/1/");   // GalA
+		assertRoundTrip("WURCS=2.0/1,1,0/[a2212A-1x_1-5]/1/");   // GulA
+		assertRoundTrip("WURCS=2.0/1,1,0/[a2111A-1x_1-5]/1/");   // AltA
+		assertRoundTrip("WURCS=2.0/1,1,0/[a2222A-1x_1-5]/1/");   // AllA
+		assertRoundTrip("WURCS=2.0/1,1,0/[a1112A-1x_1-5]/1/");   // TalA
+		assertRoundTrip("WURCS=2.0/1,1,0/[a2121A-1x_1-5]/1/");   // IdoA
+	}
+
 	private void assertRoundTrip(String _wurcs) throws Exception {
 		WURCS2Parser parser = new WURCS2Parser();
 		Glycan glycan = parser.readGlycan(_wurcs, new MassOptions());

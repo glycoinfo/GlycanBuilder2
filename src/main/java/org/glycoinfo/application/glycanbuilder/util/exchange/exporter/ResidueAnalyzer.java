@@ -5,15 +5,12 @@ import org.eurocarbdb.MolecularFramework.sugar.GlycoconjugateException;
 import org.eurocarbdb.MolecularFramework.sugar.ModificationType;
 import org.eurocarbdb.MolecularFramework.sugar.Superclass;
 import org.eurocarbdb.application.glycanbuilder.Residue;
+import org.glycoinfo.application.glycanbuilder.dataset.NativeMonosaccharideDictionary;
 import org.glycoinfo.WURCSFramework.util.exchange.*;
-import org.glycoinfo.GlycanFormatconverter.util.TrivialName.TrivialNameDictionary;
-import org.glycoinfo.GlycanFormatconverter.util.TrivialName.ModifiedMonosaccharideDescriptor;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.TreeMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 public class ResidueAnalyzer {
 
@@ -29,8 +26,6 @@ public class ResidueAnalyzer {
 	private LinkedList<Integer> anomList = new LinkedList();
 	private TreeMap<Integer, Character> pos2char = new TreeMap();
 	private LinkedList<String> unknownMAPs = new LinkedList();
-
-	private TrivialNameDictionary trivDict;
 
 	public int getAnomericPosition() {
 		return this.anomPos;
@@ -101,7 +96,7 @@ public class ResidueAnalyzer {
 				this.pos2char.put(anomPosLocal, 'a');
 		}
 
-		StringBuilder stereo = new StringBuilder(this.convertBasetypesToStereoCode(defineBaseTypeFromResidue(_residue)));
+		StringBuilder stereo = new StringBuilder(this.stereoOfResidue(_residue));
 		int j = 0;
 		for(int i = 2; i < this.backbone; i++) {
 			if(this.pos2char.containsKey(i)) continue;
@@ -129,21 +124,12 @@ public class ResidueAnalyzer {
 			modifications.add(modification);
 		}
 
-		// extract native modification from residue
-		// group1: core name
-		// group2: ring size
-		// group3: substituent with position
-		// group4: substituent (notation)
-		// Galp2NAc -> Gal, p, 2NAc, NAc
-		String typeName = _residue.getTypeName();
-		Matcher matCore = Pattern.compile("[A-Z][a-z]{2}(N|NAc|[GA]c|A)$").matcher(typeName);
-		if (matCore.find()) {
-			typeName = typeName.replace(matCore.group(1), "");
-		}
-		TrivialNameDictionary trivDict = TrivialNameDictionary.forThreeLetterCode(typeName);
-		if (trivDict != null) {
-			this.trivDict = trivDict;
-			for (String unit : trivDict.getModifications().split("_")) {
+		// what the residue's name says about its carbons - the acid, the ketone and the deoxy that
+		// make it a nonulosonate, the 6*m that makes it a deoxyhexose
+		NativeMonosaccharideDictionary.Entry entry =
+				NativeMonosaccharideDictionary.forResidueName(_residue.getTypeName());
+		if (entry != null && !entry.getModifications().isEmpty()) {
+			for (String unit : entry.getModifications().split("_")) {
 				modifications.add(unit);
 			}
 		}
@@ -171,89 +157,9 @@ public class ResidueAnalyzer {
 		return modifications;
 	}
 
-	private ArrayList<BaseType> defineBaseTypeFromResidue(Residue _residue) throws Exception {
-		ArrayList<BaseType> baseTypes = new ArrayList();
-		String sugarName = this.checkMonosaccharideName(_residue);
-		Superclass superclass = Superclass.forName(sugarName);
-		char isomer = this.isomer == '?' ? 'x' : this.isomer;
 
-		if(superclass != null) return baseTypes;
 
-		if (sugarName.contains("_")) {
-			for (String unit : sugarName.split("_")) {
-				baseTypes.add(BaseType.forName(unit.toLowerCase()));
-			}
-		} else {
-			if (sugarName.length() == 3) {
-				if(isomer == '?') sugarName = 'x' + sugarName;
-				else sugarName = isomer + sugarName;
-			}
 
-			baseTypes.add(BaseType.forName(sugarName.toLowerCase()));
-		}
-
-		return baseTypes;
-	}
-
-	private String checkMonosaccharideName(Residue _residue) throws Exception {
-		String name = _residue.getTypeName().toLowerCase();
-
-		if (this.trivDict != null) {
-			return this.trivDict.getStereos();
-		}
-
-		ModifiedMonosaccharideDescriptor modDesc = ModifiedMonosaccharideDescriptor.forTrivialName(name);
-		if (modDesc != null) {
-			return modDesc.getStereos();
-		}
-
-		// for hexnac
-		if (name.toLowerCase().equals("hexnac") || name.toLowerCase().equals("dhexnac")) {
-			modDesc = ModifiedMonosaccharideDescriptor.HEXNAC;
-			return modDesc.getStereos();
-		}
-
-		// for di-deoxy
-		if (name.startsWith("dd")) {
-			return name.substring(2, name.length());
-		}
-
-		// for deoxy
-		if (name.startsWith("d")) {
-			return name.substring(1, name.length());
-		}
-
-		String size = _residue.getType().getCompositionClass();
-		Superclass superclass = Superclass.forName(size);
-		if(!name.equals(superclass.getName())) {
-			if(name.contains(superclass.getName() + "a"))
-				name = name.replace(size.toLowerCase() + "a", "");
-			if(!name.startsWith("d") && name.contains(superclass.getName()))
-				name = name.replace(size.toLowerCase(), "");
-		}
-
-		return name;
-	}
-
-	private String convertBasetypesToStereoCode(ArrayList<BaseType> a_aBaseTypes) throws WURCSExchangeException {
-		String a_sStereoCode = "";
-		LinkedList<String> a_lDL = new LinkedList<String>();
-
-		for(BaseType bs : a_aBaseTypes) {
-			String code = bs.getStereoCode();
-			if(bs.absoluteConfigurationUnknown()) {
-				code = RelativeConfiguration.stereoCodeOf(bs.getName());
-			}
-			if ( code.endsWith("1") ) a_lDL.add("L");
-			if ( code.endsWith("2") ) a_lDL.add("D");
-			a_sStereoCode = code + a_sStereoCode;
-		}
-
-		String dl = "X";
-		if(a_lDL.size() > 0) dl = a_lDL.getLast();
-		this.isomer = dl.charAt(0);
-		return a_sStereoCode;
-	}
 
 	private void convertSingleModificationToCarbonDescriptor(String a_sModification) {
 		if(a_sModification.contains(",")) return;
@@ -316,5 +222,24 @@ public class ResidueAnalyzer {
 
 		this.anomList = new LinkedList<Integer>();
 		this.pos2char = new TreeMap<Integer, Character>();
+	}
+
+	/**
+	 * The stereo digits for this residue's backbone carbons, from our own dictionary.
+	 *
+	 * <p>This used to be three steps: turn the residue's name into a parent sugar's name, look that
+	 * up in MolecularFramework's base types, and read a stereo code off whichever of the D, L or X
+	 * forms the configuration selected. The dictionary records the digits directly instead, and
+	 * derives the other configurations from them.
+	 */
+	private String stereoOfResidue(Residue _residue) throws Exception {
+		NativeMonosaccharideDictionary.Entry entry =
+				NativeMonosaccharideDictionary.forResidueName(_residue.getTypeName());
+		if (entry == null)
+			throw new WURCSExchangeException(_residue.getTypeName()
+					+ " has no stereo recorded for it, so it has no skeleton to write.");
+
+		this.isomer = entry.getIsomer();
+		return entry.getStereo(_residue.getChirality());
 	}
 }

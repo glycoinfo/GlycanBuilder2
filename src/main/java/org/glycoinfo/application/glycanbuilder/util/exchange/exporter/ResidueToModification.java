@@ -15,13 +15,16 @@ import java.util.Set;
 
 public class ResidueToModification {
 
-	// substituents with no usable template in glycanformatconverter at all - WURCS2 export
-	// stays unsupported for these. The pyruvates used to be listed here too, because their
-	// MAP was re-derived from SubstituentTypeToMAP, which cannot tell (S) from (R) (all three
-	// share the glycoCT notation "pyruvate", and its S entry carries ^R); bridge MAPs are now
-	// taken from BaseCrossLinkedTemplate, which keeps the stereo, so they work again.
+	// Inositol is a ring of its own rather than a chain hanging off the backbone, so writing it
+	// needs the cyclic MAP form ("$n"), which we do not build yet. The pyruvates were listed here
+	// too while their MAPs were re-derived from a name: the bridging ones because
+	// SubstituentTypeToMAP cannot tell (S) from (R) (all three share the glycoCT notation
+	// "pyruvate", and its S entry carries ^R), and monovalent Pyr because it had no template at
+	// all. Both now read their MAP from a table - the bridges from BaseCrossLinkedTemplate, Pyr
+	// from the MAP column of residue_types, which holds the string the WURCS 2.0 specification
+	// gives for pyruvate - so only inositol is left.
 	private static final Set<String> WURCS2_UNSUPPORTED_SUBSTITUENTS = new HashSet<>(Arrays.asList(
-			"Pyr", "Ino"));
+			"Ino"));
 
 	// a plain ether bridge carries no chemistry of its own: WURCS writes it as the two linkage
 	// positions alone, e.g. [a2122h-1x_1-5_4-6], so "*O*" must not be emitted as a MAP

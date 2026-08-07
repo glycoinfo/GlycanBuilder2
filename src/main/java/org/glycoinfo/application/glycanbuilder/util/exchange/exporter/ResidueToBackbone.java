@@ -1,10 +1,13 @@
 package org.glycoinfo.application.glycanbuilder.util.exchange.exporter;
 
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.Map;
 
 import org.eurocarbdb.MolecularFramework.sugar.*;
 import org.eurocarbdb.application.glycanbuilder.Residue;
+import org.glycoinfo.application.glycanbuilder.dataset.NativeMonosaccharideDictionary;
 import org.eurocarbdb.application.glycanbuilder.linkage.Linkage;
 import org.glycoinfo.WURCSFramework.wurcs.graph.Backbone;
 import org.glycoinfo.WURCSFramework.util.property.AtomicProperties;
@@ -24,6 +27,7 @@ public class ResidueToBackbone {
 	private boolean a_bIsRootOfFragment = false;
 
 	private LinkedList<Modification> unknownModPos = new LinkedList<Modification>();
+	private Map<Integer, String> ownMAPs = new LinkedHashMap<Integer, String>();
 	
 	public Residue getResidue() {
 		return this.residue;
@@ -36,15 +40,31 @@ public class ResidueToBackbone {
 	public LinkedList<Modification> getCoreModifications() {
 		return this.unknownModPos;
 	}
+
+	/**
+	 * Groups this residue owns by its name that are written as a MAP on a named carbon, keyed on that
+	 * carbon. Apiose's hydroxymethyl branch is the one: a carbon branch has nowhere to go in a
+	 * SkeletonCode, which is a straight chain, so it is written as {@code 3*CO} instead.
+	 */
+	public Map<Integer, String> getOwnMAPs() {
+		return this.ownMAPs;
+	}
 	
 	public void setRootOfFramgents() {
 		this.a_bIsRootOfFragment = true;
 	}
 	
 	public void start(Residue _residue) throws Exception {
-		if (_residue.getType().getSuperclass().equals("Unknown")) {
-			throw new Exception (_residue.getTypeName() + " can not be converted to SkeletonCode.");
-		}
+		// The residues grouped under "Unknown" used to be refused here as a class, but several of
+		// them describe themselves well enough to write: Kdo, MurNAc, MurNGc and Bac all convert and
+		// read back. The ones that cannot fail further along, where the reason is specific to them.
+		//
+		// What a residue does need is a configuration and a ring. Without both, the skeleton comes
+		// out indeterminate at the anomeric carbon and does not read back as itself - Dha is
+		// written this way in residue_types and is the only saccharide it applies to.
+		if (_residue.getType().getChirality() == '?' && _residue.getType().getRingSize() == '?')
+			throw new Exception (_residue.getTypeName()
+					+ " has neither a configuration nor a ring, so it has no skeleton to write.");
 
 		this.residue = _residue;
 		this.anomPosition = checkAnomericSymbolCharactor(_residue.getAnomericCarbon());
@@ -76,6 +96,16 @@ public class ResidueToBackbone {
 
 		for(String map : residueAnalyzer.getUnknownMAPs()) {
 			this.unknownModPos.add( new Modification(map));
+		}
+
+		// groups the residue's name owns that go out as a MAP on a named carbon - apiose's branch
+		NativeMonosaccharideDictionary.Entry entry =
+				NativeMonosaccharideDictionary.forResidueName(_residue.getTypeName());
+		if (entry != null && !entry.getOwnMAPs().isEmpty()) {
+			for (String unit : entry.getOwnMAPs().split("_")) {
+				String[] positionAndMAP = unit.split("\\*", 2);
+				this.ownMAPs.put(Integer.valueOf(positionAndMAP[0]), "*" + positionAndMAP[1]);
+			}
 		}
 		
 		// check unknown anomeric position

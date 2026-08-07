@@ -73,7 +73,7 @@ public class KCFParser implements GlycanParser {
 		gmind_types.put("P", "?1D-Api,p");
 		gmind_types.put("E", "?2D-Fru,f");
 		
-		gmind_types.put("LYX", "?1L-Lyx,p");
+		gmind_types.put("LYX", "?1D-Lyx,p");
 		gmind_types.put("QUI", "?1D-Qui,p");
 		gmind_types.put("DTAL", "?1D-dTal,p");
 		gmind_types.put("BAC", "?1D-Bac,p");
@@ -133,7 +133,7 @@ public class KCFParser implements GlycanParser {
 		gmind_codes.put("Api", new SU("P", 'D', 'p'));
 		gmind_codes.put("Fru", new SU("E", 'D', 'f'));
 		
-		gmind_codes.put("Lyx", new SU("LYX", 'L', 'p'));
+		gmind_codes.put("Lyx", new SU("LYX", 'D', 'p'));
 		gmind_codes.put("Qui", new SU("QUI", 'D', 'p'));
 		gmind_codes.put("dTal", new SU("DTAL", 'D', 'p'));
 		gmind_codes.put("Bac", new SU("BAC", 'D', 'p'));
