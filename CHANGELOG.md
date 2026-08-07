@@ -1,4 +1,11 @@
 ## Change log
+### 1.28.1  (2026xxxx)
+* Fixed the application failing to start on Linux distributions that no longer ship GTK2
+* Removed the DJNativeSwing and SWT dependencies, which the application never used
+  * The native interface was opened and pumped without any native component being created
+  * Opening it forked a second JVM and pulled in a platform SWT build and its matching GTK
+* Removed the platform SWT profiles that existed only to supply those dependencies
+
 ### 1.28.0  (20260807)
 * Fixed bridge substituents within one monosaccharide disappearing from WURCS export
   * 4,6-pyruvate, anhydro, and "Both" type bridges used within a single residue
