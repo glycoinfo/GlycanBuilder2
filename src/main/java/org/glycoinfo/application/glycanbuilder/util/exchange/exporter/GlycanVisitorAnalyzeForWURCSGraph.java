@@ -73,12 +73,30 @@ public class GlycanVisitorAnalyzeForWURCSGraph implements GlycanVisitor {
 		return a_aLinkages;
 	}
 	
+	/**
+	 * A bridge substituent between two monosaccharides carries the acceptor as its child, and is
+	 * written from the glycosidic linkage it sits on ({@link LinkageToWURCSEdge#setParent}), so it
+	 * must not be walked as a residue in its own right.
+	 */
+	private boolean isInterBridge(Residue a_oResidue) {
+		return a_oResidue.isBridge() && !a_oResidue.getChildrenLinkages().isEmpty();
+	}
+
+	/**
+	 * A bridge within a single monosaccharide (4,6-pyruvate, 1,6-anhydro, ...) is a leaf whose
+	 * parent linkage holds both bonds. It has no linkage of its own to be written from, so it is
+	 * treated like a divalent substituent instead.
+	 */
+	private boolean isIntraBridge(Residue a_oResidue) {
+		return a_oResidue.isBridge() && a_oResidue.getChildrenLinkages().isEmpty();
+	}
+
 	@Override
 	public void visit(Residue a_oResidue) {
 		if(a_oResidue.isStartRepetition() || a_oResidue.isEndCyclic() || a_oResidue.isStartCyclic() ||
-				a_oResidue.getType().getSuperclass().equals("Bridge") || this.isContain(a_oResidue.getParentLinkage())) return;
-		
-		if(a_oResidue.isSubstituent()) {
+				this.isInterBridge(a_oResidue) || this.isContain(a_oResidue.getParentLinkage())) return;
+
+		if(a_oResidue.isSubstituent() || this.isIntraBridge(a_oResidue)) {
 			if(a_oResidue.hasParent()) {
 				if(isProbability(a_oResidue.getParentLinkage()) || a_oResidue.getParent().isBracket())
 					this.a_aRootOfFragments.add(a_oResidue);
@@ -112,10 +130,10 @@ public class GlycanVisitorAnalyzeForWURCSGraph implements GlycanVisitor {
 		
 		Residue a_oChild = a_oLinkage.getChildResidue();
 		
-		if(a_oChild.isEndCyclic() || a_oChild.isComposition() || 
-				a_oChild.getType().getSuperclass().equals("Bridge") || this.isContain(a_oLinkage)) return;
-		
-		if(a_oChild.isSubstituent() && !a_oChild.getParent().isBracket() && !isProbability(a_oLinkage)) {
+		if(a_oChild.isEndCyclic() || a_oChild.isComposition() ||
+				this.isInterBridge(a_oChild) || this.isContain(a_oLinkage)) return;
+
+		if((a_oChild.isSubstituent() || this.isIntraBridge(a_oChild)) && !a_oChild.getParent().isBracket() && !isProbability(a_oLinkage)) {
 			this.a_aModificationLinkages.add(a_oLinkage);
 		}else if(a_oChild.isEndRepetition()) {
 			this.a_mLinkageToRepRes.put(a_oLinkage, a_oChild);
@@ -153,10 +171,14 @@ public class GlycanVisitorAnalyzeForWURCSGraph implements GlycanVisitor {
 				}
 			}
 			
-			if(a_oChild.isSaccharide() && a_oChild.getParent().isSaccharide() && !isProbability(a_oLinkage)) {
+			// bridge types are flagged as saccharides in cross_linked_substituent_types, but an
+			// intra bridge's two bonds are the two ends of one modification, not two glycosidic
+			// linkages - splitting them here would emit the positions a second time
+			if(a_oChild.isSaccharide() && a_oChild.getParent().isSaccharide() && !isProbability(a_oLinkage)
+					&& !this.isIntraBridge(a_oChild)) {
 				// resolve divalent linkages
 				for(Bond bond : a_oLinkage.getBonds()) {
-					this.a_aGlycosidicLinkages.add(new Linkage(a_oParent, a_oChild, bond.getParentPositions()));					
+					this.a_aGlycosidicLinkages.add(new Linkage(a_oParent, a_oChild, bond.getParentPositions()));
 				}
 			}
 			if(a_oLinkage.getParentResidue().isBracket() && a_oChild.isSaccharide())

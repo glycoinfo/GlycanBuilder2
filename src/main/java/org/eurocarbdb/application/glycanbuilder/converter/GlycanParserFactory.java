@@ -27,9 +27,7 @@ import org.eurocarbdb.application.glycanbuilder.converterGlycoCT.MolecularFramew
 import org.eurocarbdb.application.glycanbuilder.converterGlycoMinds.GlycoMindsParser;
 import org.eurocarbdb.application.glycanbuilder.converterLINUCS.LinucsParser;
 import org.eurocarbdb.application.glycanbuilder.converterGWS.GWSParser;
-import org.glycoinfo.application.glycanbuilder.converterWURCS1.WURCSParser;
 import org.glycoinfo.application.glycanbuilder.converterWURCS2.WURCS2Parser;
-import org.glycoinfo.application.glycanbuilder.converterWURCS2.WURCS2ParserViaCT;
 
 /**
    Factory class used to create instances of parsers for glycan
@@ -63,7 +61,6 @@ public class GlycanParserFactory {
 		ret.put("gwlinucs","Linucs");
 		ret.put("wurcs2", "WURCS Encoding");
 //		ret.put("rings","KCF Encoding");
-//		ret.put("wurcs1","WURCS1.0 Encoding");
 //		ret.put("wurcs2","WURCS2.0 Encoding");
 		return ret;
 	}
@@ -79,8 +76,6 @@ public class GlycanParserFactory {
 		ret.put("glycominds","Glycominds");
 		ret.put("wurcs2", "WURCS Encoding");
 //		ret.put("rings","KCF Encoding");
-//		ret.put("wurcs1","WURCS1.0 Encoding");
-//		ret.put("wurcs2 via GlycoCT","WURCS2.0 Encoding(with GlycoCT)");
 //		ret.put("wurcs2","WURCS2.0 Encoding");
 		return ret;
 	}
@@ -97,8 +92,6 @@ public class GlycanParserFactory {
 		ret.put("gwlinucs","Linucs");
 		ret.put("wurcs2","WURCS Encoding");
 //		ret.put("rings","KCF");
-		//ret.put("wurcs1", "WURCS1.0");
-		//ret.put("wurcs2 via GlycoCT","WURCS2.0(with GlycoCT)");
 		//ret.put("wurcs2","WURCS2.0");
 		return ret;
 	}
@@ -160,12 +153,8 @@ public class GlycanParserFactory {
 			return new WURCS2Parser();
 //		else if( format.compareToIgnoreCase("rings")==0 ) 
 //			return new KCFParser();
-//		else if( format.compareToIgnoreCase("wurcs1")==0 )
-//			return new WURCSParser();
 //		else if( format.compareToIgnoreCase("wurcs2")==0 )
 //			return new WURCS2Parser();
-//		else if( format.compareToIgnoreCase("wurcs2 via GlycoCT") == 0 )
-//			return new WURCS2ParserViaCT();
 		
 		throw new Exception("Unsupported format-"+format+"-");
 	}

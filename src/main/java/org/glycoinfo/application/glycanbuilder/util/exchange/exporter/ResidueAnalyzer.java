@@ -5,7 +5,6 @@ import org.eurocarbdb.MolecularFramework.sugar.GlycoconjugateException;
 import org.eurocarbdb.MolecularFramework.sugar.ModificationType;
 import org.eurocarbdb.MolecularFramework.sugar.Superclass;
 import org.eurocarbdb.application.glycanbuilder.Residue;
-import org.glycoinfo.GlycanFormatconverter.util.exchange.SugarToWURCSGraph.BaseTypeForRelativeConfiguration;
 import org.glycoinfo.WURCSFramework.util.exchange.*;
 import org.glycoinfo.GlycanFormatconverter.util.TrivialName.TrivialNameDictionary;
 import org.glycoinfo.GlycanFormatconverter.util.TrivialName.ModifiedMonosaccharideDescriptor;
@@ -243,7 +242,7 @@ public class ResidueAnalyzer {
 		for(BaseType bs : a_aBaseTypes) {
 			String code = bs.getStereoCode();
 			if(bs.absoluteConfigurationUnknown()) {
-				code = BaseTypeForRelativeConfiguration.forName(bs.getName()).getStereoCode();
+				code = RelativeConfiguration.stereoCodeOf(bs.getName());
 			}
 			if ( code.endsWith("1") ) a_lDL.add("L");
 			if ( code.endsWith("2") ) a_lDL.add("D");

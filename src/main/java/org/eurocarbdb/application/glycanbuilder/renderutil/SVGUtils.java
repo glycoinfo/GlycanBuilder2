@@ -32,7 +32,6 @@ import org.eurocarbdb.application.glycanbuilder.DefaultPaintable;
 import org.eurocarbdb.application.glycanbuilder.Glycan;
 import org.eurocarbdb.application.glycanbuilder.logutility.LogUtils;
 import org.eurocarbdb.application.glycanbuilder.util.GraphicUtils;
-import org.glycoinfo.WURCSFramework.util.residuecontainer.ResidueContainer;
 
 /**
    Utility class containing functions to export glycan structures and
