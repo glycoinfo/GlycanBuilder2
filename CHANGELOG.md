@@ -1,4 +1,27 @@
 ## Change log
+### 1.30.0  (20260808)
+* Wrote a labelled reducing end as itself, where every label wrote what a free reducing end wrote
+  * PA, 2AB, AA and the other eight are reductive aminations, so each leaves its sugar acyclic -
+    only the alditol marker was recorded as doing so
+  * A 2AB glycan weighed 120 Da more than a free one and produced the same WURCS, so two
+    structures registered as one
+  * Which reducing ends reduce is asked of the residue type rather than listed
+* Kept the ring form and the alditol and aldehyde flags saying one thing
+  * Setting the ring form now sets the flags the exporters actually read, so a caller that is not
+    the desktop canvas no longer leaves a residue that says it is acyclic and writes as a ring
+  * A saved alditol came back a ring, and undo, which goes through GWS, quietly un-reduced
+    whatever it touched
+* Stored the open-chain form in GWS, which its ring codes did not include
+  * A structure drawn as an open chain could be saved and then not opened
+* Drew a labelled reducing end on an acyclic sugar
+  * An acyclic sugar suppressed the reducing-end symbol whatever it was, which hid every label
+    once labels were correctly recorded as making their sugar acyclic
+  * A plain alditol still draws none: the sugar's own marker says it
+* Fixed Ctrl+Left navigating down, which it has done since the first commit
+* Fixed cloning a structure built through the API rather than parsed
+  * It has no bracket, which the clone reached through regardless - taking computeMass(String)
+    with it, since that clones before changing the isotope
+
 ### 1.29.0  (20260808)
 * Wrote eleven residues that no WURCS string could be produced for
   * Kdo, Mur, MurNAc, MurNGc, Bac, Dha, Api, and both manno-heptoses
