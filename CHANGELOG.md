@@ -1,4 +1,29 @@
 ## Change log
+### 1.32.0  (20260809)
+* Wrote structures with bridges to GlycoCT, which had exported as an empty string
+  * The bridge went to the namescheme converter decorated like a sugar - "?-P", which nothing
+    could resolve - and undecorated it resolved to a substituent whose exchange table only knows
+    the single-attachment form
+  * Bridges are now typed substituent nodes in GlycoCT's own vocabulary, both attachments at 1,
+    and the sugar's side of each bond typed by the atom the bridge attaches through - oxygen
+    keeps the sugar's OH (o), nitrogen and sulfur replace it (d)
+  * P, S, SH, N, Suc and PyrP round-trip through the GlycoCT reader; NS, PEtn and PPEtn attach
+    through two different atoms whose sides the model does not record, so they still refuse
+    rather than guess
+* Refused a cyclic structure graph with a sentence, not a StackOverflowError
+  * A WURCS with two connections between the same residues - G11127BT's bridge plus a direct
+    bond - became a genuine cycle, and the first tree walk to touch it descended forever
+  * The importer refuses the cycle before the document sees it, and the GWS writer guards
+    itself against any cyclic graph arriving another way
+* Failed in WURCS terms, not in Java's
+  * A conversion failure was a raw NullPointerException or StringIndexOutOfBounds, naming
+    nothing; it is now a WURCSToGlycanException saying what failed on which sequence, with the
+    original chained underneath - failures that already speak pass through untouched
+  * Fourteen printStackTrace calls in the conversion and model classes go through LogUtils now,
+    so they answer to the logging configuration
+* Moved FOP off CVE-2017-5661 (an XXE in its readers) to 2.2, with the batik 1.9 family it was
+  built against - bumping fop alone fails at runtime on the first PDF export, so PDF, PS and EPS
+  are now each transcoded in a test and checked for the magic bytes of the format they claim to be
 ### 1.31.0  (20260809)
 * Read the alditol back from the reducing end's type when loading GWS
   * Every .gws file saved before 1.30.0 records a reduced end with the ring letter still "p", and
