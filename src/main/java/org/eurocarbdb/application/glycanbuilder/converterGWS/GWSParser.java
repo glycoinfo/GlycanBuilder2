@@ -250,6 +250,19 @@ public class GWSParser implements GlycanParser {
 	}
 
 	static public String writeSubtree(Residue r, boolean ordered, BBoxManager bboxManager ) {
+		return writeSubtree(r, ordered, bboxManager,
+				java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<Residue, Boolean>()));
+	}
+
+	static private String writeSubtree(Residue r, boolean ordered, BBoxManager bboxManager,
+			java.util.Set<Residue> visited) {
+		// The walk below assumes a tree. Hand it a cyclic graph - which a faulty import can build -
+		// and it used to descend forever, dying as a StackOverflowError far from the cause (#125).
+		// GWS has no spelling for a residue that is its own ancestor, so this says so instead.
+		if (!visited.add(r))
+			throw new IllegalArgumentException("the structure contains a cycle"
+					+ " (a residue reachable from itself), which GWS cannot write");
+
 		//------------
 		// write typ
 		String str = writeResidueType(r);    
@@ -275,7 +288,8 @@ public class GWSParser implements GlycanParser {
 
 		ArrayList<String> str_children = new ArrayList();
 		for( Linkage l : r.getChildrenLinkages() )
-			str_children.add(writeSubtree(l,ordered, bboxManager));
+			str_children.add("--" + toStringLinkage(l)
+					+ writeSubtree(l.getChildResidue(), ordered, bboxManager, visited));
 
 		if( ordered ) 
 			Collections.sort(str_children);    
