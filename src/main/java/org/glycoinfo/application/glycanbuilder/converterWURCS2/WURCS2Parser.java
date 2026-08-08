@@ -1,6 +1,8 @@
 package org.glycoinfo.application.glycanbuilder.converterWURCS2;
 
 import org.eurocarbdb.application.glycanbuilder.Glycan;
+import org.eurocarbdb.application.glycanbuilder.Residue;
+import org.glycoinfo.application.glycanbuilder.util.exchange.WURCSToGlycanException;
 import org.eurocarbdb.application.glycanbuilder.converter.GlycanParser;
 import org.eurocarbdb.application.glycanbuilder.logutility.LogUtils;
 import org.eurocarbdb.application.glycanbuilder.massutil.MassOptions;
@@ -50,9 +52,62 @@ public class WURCS2Parser implements GlycanParser{
 		// whatever spelling the MAPs arrived in, hand the conversion the one it recognises
 		this.rewriteMAPs(graph, false);
 
-		WURCSSequence2ToGlycan seq22glycan = new WURCSSequence2ToGlycan();
-		seq22glycan.start(new WURCSFactory(graph), mass_opt);
-		return seq22glycan.getGlycan();
+		Glycan glycan;
+		try {
+			WURCSSequence2ToGlycan seq22glycan = new WURCSSequence2ToGlycan();
+			seq22glycan.start(new WURCSFactory(graph), mass_opt);
+			glycan = seq22glycan.getGlycan();
+		} catch (RuntimeException undescribed) {
+			// The conversion's own failures come out as raw NullPointerExceptions and
+			// StringIndexOutOfBounds - "String index out of range: 8" for a substituent placed at
+			// position 9 of a hexose, say - which name nothing and read as crashes rather than as
+			// answers (#123). This is the one door every WURCS enters through, so the translation
+			// happens here: what kind of failure, on which sequence, with the original underneath
+			// for whoever needs the trace.
+			throw new WURCSToGlycanException("could not convert this WURCS to a structure ("
+					+ undescribed.getClass().getSimpleName()
+					+ (undescribed.getMessage() != null ? ": " + undescribed.getMessage() : "")
+					+ "): " + shortenedForError(str), undescribed);
+		}
+
+		// A WURCS with two connections between the same pair of residues - a bridge plus a direct
+		// bond, as in G11127BT - comes out of the conversion as a genuine cycle in what every
+		// walker downstream assumes is a tree. The first of them to touch it then descends
+		// forever, and the report is a StackOverflowError far from the cause (#125). Refusing here
+		// with a sentence keeps the document untouched and gives the caller something it can
+		// actually catch; drawing such structures needs a representation for the second
+		// connection, which is its own piece of work.
+		refuseCycles(glycan.getRoot(), java.util.Collections.newSetFromMap(
+				new java.util.IdentityHashMap<Residue, Boolean>()));
+
+		return glycan;
+	}
+
+	/**
+	 * The sequence, cut to fit an error message.
+	 * @param sequence The WURCS being read.
+	 * @return Returns at most eighty characters of it.
+	 */
+	private static String shortenedForError(String sequence) {
+		String flat = sequence.strip();
+
+		return flat.length() > 80 ? flat.substring(0, 80) + "..." : flat;
+	}
+
+	/**
+	 * Walks the residue tree and throws where it finds itself again.
+	 * @param residue Residue to walk from.
+	 * @param visited Every residue already walked, by identity.
+	 * @throws Exception If the tree has a cycle in it.
+	 */
+	private static void refuseCycles(Residue residue, java.util.Set<Residue> visited) throws Exception {
+		if (residue == null) return;
+		if (!visited.add(residue))
+			throw new Exception("this WURCS makes two connections between the same residues"
+					+ " (a ring through a bridge), which cannot be represented yet");
+
+		for (org.eurocarbdb.application.glycanbuilder.linkage.Linkage linkage : residue.getChildrenLinkages())
+			refuseCycles(linkage.getChildResidue(), visited);
 	}
 
 	/**

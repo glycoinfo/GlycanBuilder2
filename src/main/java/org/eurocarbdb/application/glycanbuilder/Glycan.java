@@ -2049,7 +2049,7 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 			return new GlycoCTParser(false).fromGlycoCT(str,new MassOptions());
 		}
 		catch(Exception e) {
-			e.printStackTrace();
+			LogUtils.report(e);
 			LogUtils.report(e);
 			return null;
 		}
@@ -2080,7 +2080,7 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 			return new GlycoCTCondensedParser(false).fromGlycoCTCondensed(str,new MassOptions());
 		}
 		catch(Exception e) {
-			e.printStackTrace();
+			LogUtils.report(e);
 			LogUtils.report(e);
 			return null;
 		}
@@ -2099,7 +2099,7 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 			return new GlycoCTCondensedParser(tolerate_unknown).fromGlycoCTCondensed(str,new MassOptions());
 		}
 		catch(Exception e) {
-			e.printStackTrace();
+			LogUtils.report(e);
 			LogUtils.report(e);
 			return null;
 		}

@@ -8,7 +8,7 @@
 
 	<groupId>org.eurocarbdb.glycanbuilder</groupId>
 	<artifactId>glycanbuilder2</artifactId>
-	<version>1.31.0</version>
+	<version>1.32.0</version>
 	<packaging>jar</packaging>
 
 	<properties>
@@ -144,6 +144,55 @@
 		</plugins>
 	</build>
 
+	<!-- fop 2.2 (the first release past CVE-2017-5661) ships the batik 1.9 family, while the
+	     flamingo ribbon drags in batik-transcoder 1.7 - and a 1.7 transcoder in front of 1.9 jars
+	     fails at runtime with NoClassDefFoundError on the first PDF/PS/EPS export. One batik, the
+	     one fop was built against. TranscoderSmokeTest is what holds this true at runtime. -->
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.apache.xmlgraphics</groupId>
+				<artifactId>batik-transcoder</artifactId>
+				<version>1.9</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.xmlgraphics</groupId>
+				<artifactId>batik-swing</artifactId>
+				<version>1.9</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.xmlgraphics</groupId>
+				<artifactId>batik-dom</artifactId>
+				<version>1.9</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.xmlgraphics</groupId>
+				<artifactId>batik-svggen</artifactId>
+				<version>1.9</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.xmlgraphics</groupId>
+				<artifactId>batik-util</artifactId>
+				<version>1.9</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.xmlgraphics</groupId>
+				<artifactId>batik-xml</artifactId>
+				<version>1.9</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.xmlgraphics</groupId>
+				<artifactId>batik-css</artifactId>
+				<version>1.9</version>
+			</dependency>
+			<dependency>
+				<groupId>org.apache.xmlgraphics</groupId>
+				<artifactId>batik-gui-util</artifactId>
+				<version>1.9</version>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+
 	<dependencies>
 		<dependency>
 			<groupId>org.glycoinfo</groupId>
@@ -163,7 +212,10 @@
 		<dependency>
 			<groupId>org.apache.xmlgraphics</groupId>
 			<artifactId>fop</artifactId>
-			<version>2.0</version>
+			<!-- 2.2 is the first release past CVE-2017-5661 (XXE in the FO/area-tree readers).
+			     Kept at the minimum that clears the advisory rather than the newest, since this is
+			     a security revision and not an upgrade. -->
+			<version>2.2</version>
 		</dependency>
 		<dependency>
 			<groupId>jdom</groupId>

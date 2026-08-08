@@ -1,5 +1,6 @@
 package org.glycoinfo.application.glycanbuilder.util.exchange.importer;
 
+import org.eurocarbdb.application.glycanbuilder.logutility.LogUtils;
 import org.eurocarbdb.application.glycanbuilder.Residue;
 import org.eurocarbdb.application.glycanbuilder.linkage.Linkage;
 import org.glycoinfo.WURCSFramework.util.WURCSDataConverter;
@@ -200,7 +201,7 @@ public class GLINToLinkage {
 				linkage = new Linkage(null, a_oSUB, a_caPositions);
 				this.acceptorLinkages.add(linkage);
 			} catch (Exception e) {
-				e.printStackTrace();
+				LogUtils.report(e);
 			}
 		}
 
@@ -242,7 +243,7 @@ public class GLINToLinkage {
 				Linkage linkage = new Linkage(this.acceptorRES, bridge, a_caPositions);
 				this.acceptorLinkages.add(linkage);
 			} catch (Exception e) {
-				e.printStackTrace();
+				LogUtils.report(e);
 			}
 		}
 
@@ -284,7 +285,7 @@ public class GLINToLinkage {
 				Linkage linkage = new Linkage(this.acceptorRES, bridge, a_caPositions);
 				this.acceptorLinkages.add(linkage);
 			} catch (Exception e) {
-				e.printStackTrace();
+				LogUtils.report(e);
 			}
 		}
 
@@ -343,7 +344,7 @@ public class GLINToLinkage {
 				this.endSideRepLinkage = new Linkage(null, a_oSUB, a_cdPositions);
 				this.endSideRepLinkage.setAnomericCarbon(a_cdPositions[0]);
 			} catch (Exception e) {
-				e.printStackTrace();
+				LogUtils.report(e);
 			}
 		}
 
