@@ -7,6 +7,11 @@ on:
   #pull_request:
   #  branches: [ main ]
   workflow_call:
+    inputs:
+      ref:
+        description: 'Tag, branch or commit to build. Defaults to the branch the run was started on.'
+        required: false
+        type: string
 
 env:
   JAVA_VERSION: '21'
@@ -29,6 +34,10 @@ jobs:
     - name: Checkout repository
       uses: actions/checkout@v4
       with:
+        # The release names a tag, so the installer has to be built from that tag rather than from
+        # whatever the branch has reached since. Empty falls back to the default ref, which is what
+        # this did before.
+        ref: ${{ inputs.ref }}
         fetch-depth: 0
 
     - name: Set up JDK ${{ env.JAVA_VERSION }}

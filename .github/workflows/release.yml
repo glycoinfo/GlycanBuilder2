@@ -7,6 +7,11 @@ on:
   #pull_request:
   #  branches: [ main ]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Version tag to release, e.g. v1.30.0. Must already exist.'
+        required: true
+        type: string
 
 env:
   GH_TOKEN: ${{ github.token }}
@@ -14,16 +19,24 @@ env:
 jobs:
   build-installer-linux:
     uses: ./.github/workflows/jpackage_installer_linux.yml
+    with:
+      ref: ${{ inputs.tag }}
 
   build-installer-macos:
     uses: ./.github/workflows/jpackage_installer_macos.yml
+    with:
+      ref: ${{ inputs.tag }}
     secrets: inherit
 
   build-installer-windows:
     uses: ./.github/workflows/jpackage_installer_windows.yml
+    with:
+      ref: ${{ inputs.tag }}
 
   build-installer-rpm:
     uses: ./.github/workflows/jpackage_installer_rpm.yml
+    with:
+      ref: ${{ inputs.tag }}
 
   release:
     needs: [build-installer-linux, build-installer-macos, build-installer-windows, build-installer-rpm]
@@ -44,7 +57,10 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          name: Release ${{ github.ref_name }}
+          # Started from the Actions tab, github.ref is the branch and not a tag, so the action has
+          # no tag to infer and stops with "GitHub Releases requires a tag". The tag is named here.
+          tag_name: ${{ inputs.tag }}
+          name: Release ${{ inputs.tag }}
           draft: false
           prerelease: true
           generate_release_notes: true
