@@ -1,6 +1,7 @@
 package org.glycoinfo.application.glycanbuilder.converterWURCS2;
 
 import org.eurocarbdb.application.glycanbuilder.Glycan;
+import org.eurocarbdb.application.glycanbuilder.Residue;
 import org.eurocarbdb.application.glycanbuilder.converter.GlycanParser;
 import org.eurocarbdb.application.glycanbuilder.logutility.LogUtils;
 import org.eurocarbdb.application.glycanbuilder.massutil.MassOptions;
@@ -52,7 +53,35 @@ public class WURCS2Parser implements GlycanParser{
 
 		WURCSSequence2ToGlycan seq22glycan = new WURCSSequence2ToGlycan();
 		seq22glycan.start(new WURCSFactory(graph), mass_opt);
-		return seq22glycan.getGlycan();
+		Glycan glycan = seq22glycan.getGlycan();
+
+		// A WURCS with two connections between the same pair of residues - a bridge plus a direct
+		// bond, as in G11127BT - comes out of the conversion as a genuine cycle in what every
+		// walker downstream assumes is a tree. The first of them to touch it then descends
+		// forever, and the report is a StackOverflowError far from the cause (#125). Refusing here
+		// with a sentence keeps the document untouched and gives the caller something it can
+		// actually catch; drawing such structures needs a representation for the second
+		// connection, which is its own piece of work.
+		refuseCycles(glycan.getRoot(), java.util.Collections.newSetFromMap(
+				new java.util.IdentityHashMap<Residue, Boolean>()));
+
+		return glycan;
+	}
+
+	/**
+	 * Walks the residue tree and throws where it finds itself again.
+	 * @param residue Residue to walk from.
+	 * @param visited Every residue already walked, by identity.
+	 * @throws Exception If the tree has a cycle in it.
+	 */
+	private static void refuseCycles(Residue residue, java.util.Set<Residue> visited) throws Exception {
+		if (residue == null) return;
+		if (!visited.add(residue))
+			throw new Exception("this WURCS makes two connections between the same residues"
+					+ " (a ring through a bridge), which cannot be represented yet");
+
+		for (org.eurocarbdb.application.glycanbuilder.linkage.Linkage linkage : residue.getChildrenLinkages())
+			refuseCycles(linkage.getChildResidue(), visited);
 	}
 
 	/**
