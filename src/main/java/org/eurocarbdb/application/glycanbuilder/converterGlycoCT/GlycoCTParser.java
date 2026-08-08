@@ -661,7 +661,16 @@ public class GlycoCTParser implements GlycanParser {
 			char[] p_poss = b.getParentPositions();
 			for (int i = 0; i < p_poss.length; i++)
 				nm_link.addParentLinkage(toIntPosition(p_poss[i]));
-			nm_link.addChildLinkage(toIntPosition(b.getChildPosition()));
+
+			// A substituent attaches through its one position, so its side of the bond is 1 by
+			// definition. The bond often records it as unknown, and writing that out as "-1"
+			// produces GlycoCT the validators reject - "for this substituent sulfate linkage pos
+			// must be 1" - which is how the GAG templates failed GlyTouCan's graphic search (#45).
+			int c_pos = toIntPosition(b.getChildPosition());
+			if (c_pos == -1 && link.getChildResidue() != null
+					&& link.getChildResidue().isSubstituent())
+				c_pos = 1;
+			nm_link.addChildLinkage(c_pos);
 
 			//Append linkage type added by e15d5605 20191223
 			nm_link.setParentLinkageType(link.getParentLinkageType());
