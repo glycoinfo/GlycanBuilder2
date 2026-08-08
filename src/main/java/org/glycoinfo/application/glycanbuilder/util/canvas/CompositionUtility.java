@@ -1,5 +1,6 @@
 package org.glycoinfo.application.glycanbuilder.util.canvas;
 
+import org.eurocarbdb.application.glycanbuilder.logutility.LogUtils;
 import java.util.LinkedList;
 
 import javax.swing.JOptionPane;
@@ -86,7 +87,7 @@ public class CompositionUtility {
 				if(a_sSuperClass.equals("Substituent")) a_aResidues.add(a_oRES);
 			} catch (Exception e) {
 				// TODO 自動生成された catch ブロック
-				e.printStackTrace();
+				LogUtils.report(e);
 			}
 		}
 			

@@ -112,7 +112,7 @@ public class MassUtils {
 			
 			h2po4_ion = new Molecule("H2PO4-");
 		} catch (Exception e) {
-			e.printStackTrace();
+			LogUtils.report(e);
 			System.exit(-1);
 		}
 	}

@@ -1,5 +1,6 @@
 package org.glycoinfo.application.glycanbuilder.converterWURCS2;
 
+import org.eurocarbdb.application.glycanbuilder.logutility.LogUtils;
 import org.eurocarbdb.MolecularFramework.sugar.LinkageType;
 import org.eurocarbdb.application.glycanbuilder.Glycan;
 import org.eurocarbdb.application.glycanbuilder.Residue;
@@ -21,7 +22,7 @@ public class LinkageTypeOptimizer {
                     acceptorLinkage.setParentLinkageType(lTypeOnChild);
                     acceptorLinkage.setChildLinkageType(LinkageType.NONMONOSACCHARID);
                 } catch (Exception e) {
-                    e.printStackTrace();
+                    LogUtils.report(e);
                 }
             }
 
@@ -40,7 +41,7 @@ public class LinkageTypeOptimizer {
                         acceptorLinkage.setParentLinkageType(LinkageType.H_AT_OH);
                         acceptorLinkage.setChildLinkageType(LinkageType.H_AT_OH);
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        LogUtils.report(e);
                     }
                 }
 
@@ -50,7 +51,7 @@ public class LinkageTypeOptimizer {
                         acceptorLinkage.setParentLinkageType(LinkageType.H_AT_OH);
                         acceptorLinkage.setChildLinkageType(LinkageType.H_AT_OH);
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        LogUtils.report(e);
                     }
                 }
 

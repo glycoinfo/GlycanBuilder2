@@ -20,6 +20,7 @@
 
 package org.eurocarbdb.application.glycanbuilder;
 
+import org.eurocarbdb.application.glycanbuilder.logutility.LogUtils;
 import java.util.*;
 import java.awt.*;
 
@@ -1357,7 +1358,7 @@ public class Residue {
 				link.setParentLinkageType(child.getParentLinkage().getParentLinkageType());
 				link.setChildLinkageType(child.getParentLinkage().getChildLinkageType());
 			} catch (Exception e) {
-				e.printStackTrace();
+				LogUtils.report(e);
 			}
 		}
 		
