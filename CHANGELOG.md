@@ -1,4 +1,22 @@
 ## Change log
+### 1.31.0  (20260809)
+* Read the alditol back from the reducing end's type when loading GWS
+  * Every .gws file saved before 1.30.0 records a reduced end with the ring letter still "p", and
+    loading one turned the alditol into a ring again: the WURCS reverted from h2122h to a cyclic
+    residue, two hydrogens lighter, with nothing said
+  * The rule is setReducingEndType's own, applied on the way in; files that already say "o", free
+    reducing ends and structures with no sugar under the root are left exactly as they are
+* Gave the generic deoxy-HexNAc its missing oxygen
+  * The dictionary said C8H15NO4 where the deoxy form of HexNAc is C8H15NO5, so the generic weighed
+    189.1001 against FucNAc, RhaNAc and QuiNAc at 205.0950 - one oxygen, subtracted twice
+  * A structure drawn with the generic was quietly 15.9949 lighter than the same structure drawn
+    with any specific residue it stands for
+* Attached a substituent's side of its bond at 1 in GlycoCT
+  * The exporter wrote whatever the bond recorded, which for the GAG templates was unknown, so
+    gagheparin exported lines like 1:1d(2+-1)2n and GlyTouCan's graphic search rejected the
+    structure: "for this substituent sulfate linkage pos must be 1"
+  * Substituents only, and only where the bond says unknown - a sugar's attachment really can be
+    unknown, and every core template is now held by test to export no "-1" substituent attachment
 ### 1.30.0  (20260808)
 * Wrote a labelled reducing end as itself, where every label wrote what a free reducing end wrote
   * PA, 2AB, AA and the other eight are reductive aminations, so each leaves its sugar acyclic -
