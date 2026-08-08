@@ -88,13 +88,13 @@ public class GRESToResidue {
 			throw new WURCSToGlycanException(_gres.getMS().getString() + " is not handled in GlycanBuilder");
 		
 		residue.setWasSticky(isSticky(trivialName));
-		residue.setAlditol(this.isAlditol());
-		residue.setAldehyde(this.isAldehyde());
-	
+
 		residue.setAnomericCarbon(this.checkAnomerPosition());
 		residue.setAnomericState(this.checkAnomerSymbol());
 		residue.setChirality(configuration);
-		residue.setRingSize(residue.isAlditol() ? 'o' : this.ringSize);
+		// The ring letter carries the acyclic forms now, and setting it sets the flags that go with
+		// them - so the two are set together here rather than either being able to undo the other.
+		residue.setRingSize(this.isAlditol() ? 'o' : this.isAldehyde() ? 'a' : this.ringSize);
 
 		// the skeleton is matched whole, so a recognised residue leaves no core modification behind
 		this.modifications = (trinConv == null) ? new ArrayList<String>() : trinConv.getModifications();

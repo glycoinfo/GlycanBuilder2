@@ -4268,7 +4268,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		if(a_enumAction.equals(CanvasActionDescriptor.MOVECW)) onMoveCW();
 		if(a_enumAction.equals(CanvasActionDescriptor.NAVUP)) onNavigateUp();
 		if(a_enumAction.equals(CanvasActionDescriptor.NAVDOWN)) onNavigateDown();
-		if(a_enumAction.equals(CanvasActionDescriptor.NAVLEFT)) onNavigateDown();
+		if(a_enumAction.equals(CanvasActionDescriptor.NAVLEFT)) onNavigateLeft();
 		if(a_enumAction.equals(CanvasActionDescriptor.NAVRIGHT)) onNavigateRight();
 		if(a_enumAction.equals(CanvasActionDescriptor.EXPLODE)) explode();
 		if(a_enumAction.equals(CanvasActionDescriptor.IMPLODE)) implode();

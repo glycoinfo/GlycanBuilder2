@@ -94,13 +94,30 @@ public class GlycanUtils {
 
 		if(a_oRoot.isSaccharide() && isFacingAnom(a_oRoot)) ret = false;
 		if(a_oRoot.isStartCyclic()) ret = false;
+		// In SNFG an acyclic sugar carries its own marker, so a free or reduced reducing end has
+		// nothing left to draw beside it. A label does: it names what the sample was tagged with,
+		// and it is most of the difference in mass. Since every label reduces its sugar - each is a
+		// reductive amination - suppressing all acyclic sugars suppressed every label with them.
 		if(theGraphicOptions.NOTATION.equals(GraphicOptions.NOTATION_SNFG)) {
-			if(a_oRoot.isAlditol() || a_oRoot.isAldehyde()) return false;
+			if((a_oRoot.isAlditol() || a_oRoot.isAldehyde())
+					&& !isLabelledReducingEnd(a_oGlycan.getRoot())) return false;
 		}
 		
 		return ret;
 	}
 	
+	/**
+	 * Whether the reducing end is one that names a label rather than one of the two plain states.
+	 * @param a_oRedEnd Reducing end residue of the structure.
+	 */
+	private static boolean isLabelledReducingEnd(Residue a_oRedEnd) {
+		if(a_oRedEnd == null || a_oRedEnd.getType() == null) return false;
+
+		String name = a_oRedEnd.getTypeName();
+		return !"freeEnd".equals(name) && !"redEnd".equals(name)
+				&& a_oRedEnd.getType().canBeReducingEnd();
+	}
+
 	/**local utility*/
 	private void getCoreResidue(Residue _residue) {
 		if(_residue != null && !_residue.isReducingEnd()) this.a_aResidues.addLast(_residue);

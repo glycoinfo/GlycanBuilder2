@@ -58,7 +58,9 @@ public class GWSParser implements GlycanParser {
 
 		String start_repeat_str = "\\[";
 		String end_repeat_str = "](?:_(-?[0-9]+))?+(?:\\^(-?[0-9]+))?+";
-		String residue_str = "([abo?][1-9N?])?+([DL]-)?+([a-zA-z0-9_#=.]+)(?:,([?opf]))?+";
+		// Ring forms: pyranose, furanose, alditol and the open chain, which a residue can be set to
+		// through setRingSize and which this used to write without being able to read back.
+		String residue_str = "([abo?][1-9N?])?+([DL]-)?+([a-zA-z0-9_#=.]+)(?:,([?opfa]))?+";
 		String cleaved_str = "/([a-zA-z0-9_#]+)";
 		String place_str = "@(-?[0-9]+s?)";
 		String cord_str="<bounding_box>([0-9]+),([0-9]+),([0-9]+),([0-9]+)</bounding_box>";
