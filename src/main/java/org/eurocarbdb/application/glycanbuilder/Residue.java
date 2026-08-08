@@ -362,11 +362,21 @@ public class Residue {
 	}
 
 	/*
-       Set the ring size as [p - pyranose, f - furanose, o - open, ? -
-       unspecified]
+       Set the ring size as [p - pyranose, f - furanose, o - alditol, a - open
+       chain, ? - unspecified].
+
+       The two acyclic forms are also carried as flags, which is what the
+       exporters read: a Glc flagged alditol writes [h2122h] and one flagged
+       aldehyde writes [o2122h], where the ring letter alone reaches neither.
+       Setting them here keeps the one fact in one state, so that a caller
+       which sets only the ring size - the GWS parser, and any front end that
+       is not GlycanCanvas - does not leave a residue that says it is acyclic
+       and writes as a ring.
 	 */
 	public void setRingSize(char _ring_size) {
 		ring_size = _ring_size;
+		alditol = (_ring_size == 'o');
+		a_bIsAldehyde = (_ring_size == 'a');
 	}
 
 	/*

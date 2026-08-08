@@ -172,6 +172,11 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 				root_residues.addLast(linkage.getChildResidue());
 
 			if( !current.isSaccharide() ) continue;
+			// A structure built through the API rather than parsed has no bracket, and there is
+			// nothing to attach to its children when there are none. Reaching through it regardless
+			// made every clone of such a structure throw - which took computeMass(String) with it,
+			// since that clones before it changes the isotope.
+			if( bracket==null ) continue;
 			for( Linkage linkage : bracket.getChildrenLinkages() )
 				linkage.getChildResidue().addParentOfFragment(current);
 		}
@@ -401,17 +406,16 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 		//if( redend!=null && redend.isReducingEnd() && !redend.isCleavage() && !redend.getTypeName().equals(new_type.getName()) ) {
 		redend.setType(new_type);
 
-		//20211215, S.TSUCHIYA add
-		if (redend.getTypeName().equals("redEnd")) {
-			redend.getChildAt(0).setAlditol(true);
+		// Every reducing end that reduces its sugar leaves it acyclic - the alditol marker, and each
+		// of the labels, which are reductive aminations. Their masses say so: a label adds its own
+		// mass, less the water of the condensation, plus the 2H of the reduction. ResidueType
+		// records which they are, so this asks rather than naming redEnd alone - which had a 2AB
+		// writing the same WURCS as a free reducing end while weighing 120 Da more.
+		if (new_type.makesAlditol()) {
 			redend.getChildAt(0).setAnomericState('?');
 			redend.getChildAt(0).setRingSize('o');
-		}
-		if (!redend.getTypeName().equals("redEnd")) {
-			redend.getChildAt(0).setAlditol(false);
-			if (redend.getChildAt(0).getRingSize() == 'o') {
-				redend.getChildAt(0).setRingSize(redend.getChildAt(0).getType().getRingSize());
-			}
+		} else if (redend.getChildAt(0).getRingSize() == 'o') {
+			redend.getChildAt(0).setRingSize(redend.getChildAt(0).getType().getRingSize());
 		}
 
 		//20211215, S.TSUCHIYA comment out
