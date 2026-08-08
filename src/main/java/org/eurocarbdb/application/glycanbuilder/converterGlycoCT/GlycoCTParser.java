@@ -244,6 +244,17 @@ public class GlycoCTParser implements GlycanParser {
 			// create repeat unit
 			nm_current = toSugarUnitRepeat(current, bboxManager);
 			parent = current.findEndRepetition();
+		} else if ("Bridge".equals(current.getType().getSuperclass())
+				&& glycoCTNameOfBridge(current.getTypeName()) != null) {
+			// A bridge is a substituent with two attachments. Sent through the namescheme
+			// converter it dies one way or another: decorated it becomes "?-P", which nothing can
+			// resolve, and bare it resolves to a substituent whose exchange table only describes
+			// the single-attachment form, so the second linkage throws. The node is therefore
+			// created already typed, in GlycoCT's own vocabulary, and the namespace visitor
+			// passes it through untouched (#27).
+			nm_current = new Substituent(
+					SubstituentType.forName(glycoCTNameOfBridge(current.getTypeName())));
+			parent = current;
 		} else {
 			// translate current residue
 			UnvalidatedGlycoNode toadd = new UnvalidatedGlycoNode();
@@ -527,7 +538,11 @@ public class GlycoCTParser implements GlycanParser {
 			char anomeric_carbon, char anomeric_state, char chirality,
 			char ring_size) {
 		String iupac_name = type.getIupacName();
-		if (type.isSaccharide()) {
+		// A bridge is dictionary-flagged as a saccharide, but its name must go to the namescheme
+		// converter bare, exactly like a simple substituent's: the saccharide decorations below
+		// turned P into "?-P", which nothing could resolve, and the whole export came back empty
+		// for any structure with a phosphate bridge in it (#27).
+		if (type.isSaccharide() && !"Bridge".equals(type.getSuperclass())) {
 			// add chirality
 			if (type.hasChirality())
 				iupac_name = chirality + "-" + iupac_name;
@@ -652,6 +667,55 @@ public class GlycoCTParser implements GlycanParser {
 		return null;
 	}
 
+	/**
+	 * The GlycoCT substituent name of a bridge, or null for one GlycoCT has no word for.
+	 *
+	 * <p>Every entry of the cross-linked dictionary, named in {@code SubstituentType}'s own
+	 * vocabulary. An unmapped bridge falls back to the old path and fails as it always did, rather
+	 * than exporting under a guessed name.</p>
+	 *
+	 * @param bridgeName The GlycanBuilder2 type name, e.g. "P".
+	 * @return Returns the GlycoCT name, e.g. "phosphate", or null.
+	 */
+	static String glycoCTNameOfBridge(String bridgeName) {
+		switch (bridgeName) {
+			case "N": return "amino";
+			case "Suc": return "succinate";
+			case "SH": return "thio";
+			case "S": return "sulfate";
+			case "P": return "phosphate";
+			case "PyrP": return "pyrophosphate";
+			case "Tri-P": return "triphosphate";
+			case "Py": return "pyruvate";
+			case "(S)Py": return "(s)-pyruvate";
+			case "(R)Py": return "(r)-pyruvate";
+			case "Anhydro": return "anhydro";
+			// NS, PEtn and PPEtn attach through two different atoms (N on one side, S or O on the
+			// other), and nothing here records which sugar got which side - so they keep the old
+			// failing path rather than exporting with a guessed linkage type.
+			default: return null;
+		}
+	}
+
+	/**
+	 * The linkage type of the sugar's side of a bridge's bond, from the atom the bridge attaches
+	 * through: oxygen keeps the sugar's OH ({@code o}), nitrogen and sulfur replace it ({@code d}).
+	 * Only bridges whose two attachments go through the same atom are mapped at all, so one answer
+	 * serves both edges.
+	 *
+	 * @param bridgeName The GlycanBuilder2 type name, e.g. "P".
+	 * @return Returns the sugar-side linkage type.
+	 */
+	static org.eurocarbdb.MolecularFramework.sugar.LinkageType sugarSideLinkageTypeOfBridge(String bridgeName) {
+		switch (bridgeName) {
+			case "N":
+			case "SH":
+				return org.eurocarbdb.MolecularFramework.sugar.LinkageType.DEOXY;
+			default:
+				return org.eurocarbdb.MolecularFramework.sugar.LinkageType.H_AT_OH;
+		}
+	}
+
 	private GlycoEdge toSugar(Linkage link) throws Exception {
 
 		GlycoEdge nm_edge = new GlycoEdge();
@@ -659,22 +723,50 @@ public class GlycoCTParser implements GlycanParser {
 			org.eurocarbdb.MolecularFramework.sugar.Linkage nm_link = new org.eurocarbdb.MolecularFramework.sugar.Linkage();
 
 			char[] p_poss = b.getParentPositions();
-			for (int i = 0; i < p_poss.length; i++)
-				nm_link.addParentLinkage(toIntPosition(p_poss[i]));
+			boolean parentIsAttachment = link.getParentResidue() != null
+					&& (link.getParentResidue().isSubstituent()
+							|| "Bridge".equals(link.getParentResidue().getType().getSuperclass()));
+			for (int i = 0; i < p_poss.length; i++) {
+				int p_pos = toIntPosition(p_poss[i]);
+				if (p_pos == -1 && parentIsAttachment) p_pos = 1;
+				nm_link.addParentLinkage(p_pos);
+			}
 
 			// A substituent attaches through its one position, so its side of the bond is 1 by
 			// definition. The bond often records it as unknown, and writing that out as "-1"
 			// produces GlycoCT the validators reject - "for this substituent sulfate linkage pos
 			// must be 1" - which is how the GAG templates failed GlyTouCan's graphic search (#45).
+			// A bridge is the same thing with two attachments, so both of its edges get the same
+			// repair: the child side of the edge into it, and the parent side of the edge out of
+			// it (#27).
 			int c_pos = toIntPosition(b.getChildPosition());
 			if (c_pos == -1 && link.getChildResidue() != null
-					&& link.getChildResidue().isSubstituent())
+					&& (link.getChildResidue().isSubstituent()
+							|| "Bridge".equals(link.getChildResidue().getType().getSuperclass())))
 				c_pos = 1;
 			nm_link.addChildLinkage(c_pos);
 
 			//Append linkage type added by e15d5605 20191223
 			nm_link.setParentLinkageType(link.getParentLinkageType());
 			nm_link.setChildLinkageType(link.getChildLinkageType());
+
+			// A bridge's edges carry no usable linkage types - the model leaves them unvalidated
+			// (#4), and unlike a simple substituent nothing downstream repairs them, because the
+			// typed node skips the namescheme converter. Said here instead: the substituent's own
+			// side is a non-monosaccharide attachment, and the sugar's side follows the atom the
+			// bridge attaches through (#27).
+			Residue childResidue = link.getChildResidue();
+			if (childResidue != null && "Bridge".equals(childResidue.getType().getSuperclass())
+					&& glycoCTNameOfBridge(childResidue.getTypeName()) != null) {
+				nm_link.setParentLinkageType(sugarSideLinkageTypeOfBridge(childResidue.getTypeName()));
+				nm_link.setChildLinkageType(org.eurocarbdb.MolecularFramework.sugar.LinkageType.NONMONOSACCHARID);
+			}
+			Residue parentResidue = link.getParentResidue();
+			if (parentResidue != null && "Bridge".equals(parentResidue.getType().getSuperclass())
+					&& glycoCTNameOfBridge(parentResidue.getTypeName()) != null) {
+				nm_link.setParentLinkageType(org.eurocarbdb.MolecularFramework.sugar.LinkageType.NONMONOSACCHARID);
+				nm_link.setChildLinkageType(sugarSideLinkageTypeOfBridge(parentResidue.getTypeName()));
+			}
 
 			nm_edge.addGlycosidicLinkage(nm_link);
 		}
