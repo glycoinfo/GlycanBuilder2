@@ -134,7 +134,7 @@ public abstract class BaseDocument {
 			return FileUtils.themeManager.getImageIcon("basedoc",ICON_SIZE.L2);
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			e.printStackTrace();
+			LogUtils.report(e);
 		}
 		return null;
     }
