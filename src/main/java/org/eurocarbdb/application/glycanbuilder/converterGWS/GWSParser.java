@@ -190,6 +190,22 @@ public class GWSParser implements GlycanParser {
 					false,mass_opt);        
 		}    
 
+		// The reducing end's type implies the sugar's form: redEnd and every reductive-amination
+		// label reduce their sugar, leaving it acyclic. A file saved since the ring letter began
+		// carrying that fact says ",o" and needs nothing here; one saved before 1.30.0 - or written
+		// by hand - says ",p", and reading it back turned the alditol into a ring again, quietly:
+		// the WURCS reverted from [h2122h] to a cyclic residue and the mass lost the reduction's
+		// two hydrogens (#133). This is setReducingEndType's own rule, applied on the way in.
+		Residue root = ret.getRoot();
+		if( root!=null && root.isReducingEnd() && !root.isCleavage()
+				&& root.getNoChildren()>0 && root.getType().makesAlditol() ) {
+			Residue sugar = root.getChildAt(0);
+			if( sugar.isSaccharide() && !sugar.isAlditol() ) {
+				sugar.setAnomericState('?');
+				sugar.setRingSize('o');
+			}
+		}
+
 		return ret;
 	}
 

@@ -84,7 +84,7 @@ GulNAc	HexNAc	Hex	C8H15N1O6	-	Gul$2NAc		1	D	p	yes	yes	no	0	5	no	4	no	4	3,4,5,6	-
 %BacNAc	HexNAc	Hex	C10H18N2O5	-	Bac$2NAc4NAc	1	D	p	yes	yes	no	0	4	no	2	no	3	1,3,5		-	no	no	yes	N-acetylbacillosamine
 %
 %DeoxyhexNAc
-dHexNAc	DeoxyhexNAc	Hex	C8H15N1O4	-	6-deoxy-Hex$2NAc	1	D	p	yes	yes	no	0	5	no	4	no	4	2,3,4,5,6	-	no	no	yes	DeoxyhexNAc
+dHexNAc	DeoxyhexNAc	Hex	C8H15N1O5	-	6-deoxy-Hex$2NAc	1	D	p	yes	yes	no	0	5	no	4	no	4	2,3,4,5,6	-	no	no	yes	DeoxyhexNAc
 RhaNAc	DeoxyhexNAc	Hex	C8H15N1O5	-	Rha$2NAc	1	L	p	yes	yes	no	0	5	no	4	no	4	2,3,4,5,6	-	no	no	yes	N-acetylrhamnosamine
 QuiNAc	DeoxyhexNAc	Hex	C8H15N1O5	-	Qui$2NAc	1	D	p	yes	yes	no	0	5	no	4	no	4	2,3,4,5,6	-	no	no	yes	N-acetylquinovosamine
 FucNAc	DeoxyhexNAc	Hex	C8H15N1O5	-	Fuc$2NAc	1	L	p	yes	yes	no	0	5	no	4	no	4	2,3,4,5,6	-	no	no	yes	N-acetylfucosamine
