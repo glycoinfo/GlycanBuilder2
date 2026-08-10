@@ -363,10 +363,13 @@ public class GlycoCTParser implements GlycanParser {
 		if (sugar.getRootNodes().size() == 0)
 			return new Glycan(null, false, default_mass_opt);
 
-		// parse from the root
+		// parse from the root, keeping which residue each node became: the undetermined subtrees
+		// below name the nodes they may hang from, and without the map there is no way back from
+		// one of those names to the residue it is (#62).
 		GlycoNode gn_root = sugar.getRootNodes().iterator().next();
+		HashMap<GlycoNode, Residue> residueOfNode = new HashMap<GlycoNode, Residue>();
 		Residue root = fromSugar(gn_root, converter, tolerate_unknown_residues,
-				null);
+				residueOfNode);
 
 		if (root != null && !root.isReducingEnd()) {
 			if (root.isAlditol()) {
@@ -395,6 +398,18 @@ public class GlycoCTParser implements GlycanParser {
 					tolerate_unknown_residues, null);
 			Vector<Bond> bonds = fromSugar(antenna.getConnection());
 			ret.addAntenna(toadd, bonds);
+
+			// Carry over which residues this antenna may hang from. GlycoCT states them (the UND
+			// section's ParentIDs) and this dropped them, so an antenna read from GlycoCT knew of
+			// no parents while the same glycan read from WURCS did - and the renderer asks exactly
+			// that when it decides whether to draw a link towards the bracket, so one sequence was
+			// drawn with the link and the other without (#62).
+			for (GlycoNode parentNode : antenna.getParents()) {
+				Residue parentResidue = residueOfNode.get(parentNode);
+				if (parentResidue != null) {
+					toadd.addParentOfFragment(parentResidue);
+				}
+			}
 		}
 
 		// The same pass the other two readers run, so a structure carries the same bonds whichever
