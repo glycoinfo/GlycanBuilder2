@@ -72,6 +72,9 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
+				<!-- The version this build had been resolving to. Without it Maven picks whatever
+				     the machine happens to offer, so two checkouts can run a different plugin. -->
+				<version>3.1.0</version>
 				<executions>
 					<execution>
 						<goals>
@@ -95,9 +98,18 @@
 			</plugin>
 
 			<plugin>
-				<!-- explicitly define maven-deploy-plugin after other to force exec 
-					order -->
+				<!-- Declared once. It used to be declared twice - once to bind the deploy goal
+				     "after other to force exec order", once to carry the version and the
+				     repository - and Maven warned that a plugin must be declared only once,
+				     saying such a build might not be accepted by later versions. Order within a
+				     phase follows the order the plugins are declared in, which this single
+				     declaration keeps: before site-maven-plugin, whose site goal is bound to the
+				     same phase and publishes what this writes. -->
 				<artifactId>maven-deploy-plugin</artifactId>
+				<version>2.8.2</version>
+				<configuration>
+					<altDeploymentRepository>internal.repo::default::file://${project.build.directory}/mvn-repo</altDeploymentRepository>
+				</configuration>
 				<executions>
 					<execution>
 						<id>deploy</id>
@@ -107,14 +119,6 @@
 						</goals>
 					</execution>
 				</executions>
-			</plugin>
-
-			<plugin>
-				<artifactId>maven-deploy-plugin</artifactId>
-				<version>2.8.2</version>
-				<configuration>
-					<altDeploymentRepository>internal.repo::default::file://${project.build.directory}/mvn-repo</altDeploymentRepository>
-				</configuration>
 			</plugin>
 
 			<plugin>
@@ -222,7 +226,11 @@
 			<version>2.11</version>
 		</dependency>
 		<dependency>
-			<groupId>jdom</groupId>
+			<!-- org.jdom, not the pre-relocation jdom:jdom this asked for: Maven followed the
+			     relocation to exactly this artifact and said so on every build. Naming it directly
+			     resolves the same jar and spares consumers a coordinate they have to know about
+			     to manage the version. -->
+			<groupId>org.jdom</groupId>
 			<artifactId>jdom</artifactId>
 			<version>1.1</version>
 		</dependency>
