@@ -1,4 +1,48 @@
 ## Change log
+### 1.34.0  (20260810)
+* Gave an antenna one parent when reading WURCS, so it is no longer drawn outside its own
+  picture (#71)
+  * An antenna names the residues it may hang from and is drawn from the bracket; G42735RP names
+    three and the reader, having no way to choose, linked the residue to the first and then made
+    it a child of the bracket as well - two parents at once, which no tree can hold
+  * Everything that walks the structure then met it twice: the renderer laid the sialic acid out
+    under the bracket and translated it a second time along with the other parent's subtree,
+    leaving it outside the box the renderer had reported and cut off by the edge of the image
+  * The writers said it twice too - G42735RP went in as 7,13,12 and came back out of WURCS as
+    8,14,13+, with a NeuAc carrying its N-acetyl twice
+  * Measured on the 107 WURCS strings in the test sources: only G42735RP differs
+* Read an antenna written the other way round by role (#150)
+  * WURCS writes the two sides of a linkage in whichever order puts the residue linking through
+    its anomeric carbon on the donor side; G42735RP says m1-f?|i?|k?, position 1 on a residue
+    whose anomeric carbon is 2, and is parsed the other way round
+  * Read as though the sides meant the usual thing, the antenna's own 1 was taken for the
+    position on each candidate: the structure was drawn as 1-linked to its galactoses and written
+    back as m2-f1|i1|k1, stating a definite position where the sequence said it was unknown
+  * The same reading left a candidate residue with two parents, dropping it from the structure,
+    and could hand LinkageConnector a null acceptor - G00955WX written that way did not import
+  * G42735RP now draws byte for byte the picture its well-formed twin draws
+* Drew a composition whether or not the reducing-end marker is shown (#153)
+  * A composition has no residue privileged as the reducing end, and the renderer laid it out
+    from the residue past that marker - nothing at all - so asking for one without the marker
+    gave a blank 1x1 image, or a NullPointerException from the legend measuring a box that had
+    never been computed
+  * Whether the marker is drawn is a display preference; whether the composition is drawn no
+    longer follows it
+* Moved batik to 1.19 and fop to 2.11, together (#144)
+  * batik 1.9 carries the SSRF and remote-class-loading run fixed later in the 1.x line -
+    CVE-2019-17566, CVE-2020-11987 and the 2022 group including CVE-2022-44729 - and both
+    libraries travel to every consumer
+  * They cannot move apart: fop is built against one batik family and mixing them fails at
+    runtime rather than at build time, so the pair comes from fop-parent's own batik.version
+  * Verified past the test suite: the desktop application starts on the new pair, and
+    glycanbuilder2web builds, runs and exports every format the library offers - PDF, PS, EPS,
+    PNG, JPG, BMP, SVG
+* Declared each plugin once, and each version
+  * maven-deploy-plugin was declared twice and exec-maven-plugin had no version, both of which
+    Maven warned about on every build, the first adding that future versions might no longer
+    accept such a build; jdom was asked for by its pre-relocation coordinates
+  * The effective pom and the resolved dependency list are unchanged - the build simply stopped
+    warning
 ### 1.33.0  (20260810)
 * Wrote the configuration where the user may write, so the application starts on Windows (#10)
   * A first run saved it to the path it had just tried to read it from - normally the bundled
