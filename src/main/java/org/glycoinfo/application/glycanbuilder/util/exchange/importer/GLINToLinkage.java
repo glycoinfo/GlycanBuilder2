@@ -147,7 +147,7 @@ public class GLINToLinkage {
 					if(this.isFacingBetweenAnomer(acceptorGLIN) || !acceptorGLIN.getMAP().equals("") || this.isLinkageWithUnknown(acceptorGLIN))
 						this.analyzeGLINforChild(acceptorGLIN);
 					else if(this.isReverse)
-						this.analyzeGLINforParent(acceptorGLIN);
+						this.analyzeReverseAntennaGLIN(acceptorGLIN);
 					else
 						this.analyzeEndSideCyclic(acceptorGLIN);
 				}
@@ -207,6 +207,41 @@ public class GLINToLinkage {
 
 		// probability annotation
 		this.extractProbabilityAnnotation(_donorGLIN, linkage);
+	}
+
+	/**
+	 * Read the linkage of an antenna written the other way round.
+	 *
+	 * <p>An antenna - a subtree whose attachment point is undetermined - names the residues it
+	 * may hang from, and WURCS writes the two sides in whichever order puts the residue linking
+	 * through its anomeric carbon on the donor side. A sialic acid leaves from C2, so
+	 * {@code l2-a?|...|k?} is written antenna first as a donor and read by
+	 * {@link #analyzeGLINforParent}. G42735RP says {@code m1-f?|i?|k?} instead - position 1 on
+	 * a residue whose anomeric carbon is 2 - and the sequence is then parsed the other way
+	 * round, with the antenna as the acceptor and its candidates as donors. That is the case
+	 * {@link #setGRESs} calls a reverse antenna.</p>
+	 *
+	 * <p>The two sides mean the opposite of what {@link #analyzeGLINforParent} reads them as,
+	 * so it took the antenna's own 1 for the position on each candidate: the structure was
+	 * drawn as 1-linked to the galactoses and written back as {@code m2-f1|i1|k1}, stating a
+	 * definite position where the sequence had said it was unknown. Here the sides are read for
+	 * what they are - the acceptor side names the antenna, the donor side its candidates.</p>
+	 */
+	private void analyzeReverseAntennaGLIN(GLIN _acceptorGLIN) {
+		if(_acceptorGLIN.getDonor().size() < 2) {
+			// not an antenna after all: leave it to the reading that does not swap the sides
+			this.analyzeGLINforParent(_acceptorGLIN);
+			return;
+		}
+
+		char[] antennaPositions = this.makeLinkagePosiiton(_acceptorGLIN.getAcceptorPositions());
+		char[] candidatePositions = this.makeLinkagePosiiton(_acceptorGLIN.getDonorPositions());
+
+		Linkage linkage = new Linkage(null, this.acceptorRES, candidatePositions);
+		linkage.setAnomericCarbon(antennaPositions[0]);
+		this.acceptorLinkages.add(linkage);
+
+		this.extractProbabilityAnnotation(_acceptorGLIN, linkage);
 	}
 
 	/*
@@ -429,6 +464,11 @@ public class GLINToLinkage {
 
 		for(GLIN a_oDGLIN : _gres.getDonorGLINs()) {
 			if(a_oDGLIN.isRepeat()) continue;
+			// A reverse antenna is written with its candidates on the donor side, so this residue
+			// can be here only as one of them - the antenna is not its parent, and taking it for
+			// one leaves the residue with two and drops it from the structure. analyzeDonorGLIN
+			// passes over the same GLINs.
+			if(a_oDGLIN.getDonor().size() > 1) continue;
 			for(GRES a_oAGRES : a_oDGLIN.getAcceptor()) {
 				if(this.acceptorGRESs.contains(a_oAGRES)) continue;
 				if(_gres.getID() - a_oAGRES.getID() > 0) this.acceptorGRESs.add(a_oAGRES);

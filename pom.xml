@@ -8,7 +8,7 @@
 
 	<groupId>org.eurocarbdb.glycanbuilder</groupId>
 	<artifactId>glycanbuilder2</artifactId>
-	<version>1.33.0</version>
+	<version>1.34.0</version>
 	<packaging>jar</packaging>
 
 	<properties>
@@ -72,6 +72,9 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>exec-maven-plugin</artifactId>
+				<!-- The version this build had been resolving to. Without it Maven picks whatever
+				     the machine happens to offer, so two checkouts can run a different plugin. -->
+				<version>3.1.0</version>
 				<executions>
 					<execution>
 						<goals>
@@ -95,9 +98,18 @@
 			</plugin>
 
 			<plugin>
-				<!-- explicitly define maven-deploy-plugin after other to force exec 
-					order -->
+				<!-- Declared once. It used to be declared twice - once to bind the deploy goal
+				     "after other to force exec order", once to carry the version and the
+				     repository - and Maven warned that a plugin must be declared only once,
+				     saying such a build might not be accepted by later versions. Order within a
+				     phase follows the order the plugins are declared in, which this single
+				     declaration keeps: before site-maven-plugin, whose site goal is bound to the
+				     same phase and publishes what this writes. -->
 				<artifactId>maven-deploy-plugin</artifactId>
+				<version>2.8.2</version>
+				<configuration>
+					<altDeploymentRepository>internal.repo::default::file://${project.build.directory}/mvn-repo</altDeploymentRepository>
+				</configuration>
 				<executions>
 					<execution>
 						<id>deploy</id>
@@ -107,14 +119,6 @@
 						</goals>
 					</execution>
 				</executions>
-			</plugin>
-
-			<plugin>
-				<artifactId>maven-deploy-plugin</artifactId>
-				<version>2.8.2</version>
-				<configuration>
-					<altDeploymentRepository>internal.repo::default::file://${project.build.directory}/mvn-repo</altDeploymentRepository>
-				</configuration>
 			</plugin>
 
 			<plugin>
@@ -144,51 +148,53 @@
 		</plugins>
 	</build>
 
-	<!-- fop 2.2 (the first release past CVE-2017-5661) ships the batik 1.9 family, while the
-	     flamingo ribbon drags in batik-transcoder 1.7 - and a 1.7 transcoder in front of 1.9 jars
-	     fails at runtime with NoClassDefFoundError on the first PDF/PS/EPS export. One batik, the
-	     one fop was built against. TranscoderSmokeTest is what holds this true at runtime. -->
+	<!-- fop ships one batik family, while the flamingo ribbon drags in batik-transcoder 1.7 - and a
+	     1.7 transcoder in front of another family's jars fails at runtime with NoClassDefFoundError
+	     on the first PDF/PS/EPS export. One batik, the one fop was built against: 1.19 for fop 2.11,
+	     which is what fop-parent's batik.version says. TranscoderSmokeTest is what holds this true
+	     at runtime. These pins do not travel - dependencyManagement is not transitive - so a
+	     consumer that puts batik on its own classpath has to move in the same step (#144). -->
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
 				<groupId>org.apache.xmlgraphics</groupId>
 				<artifactId>batik-transcoder</artifactId>
-				<version>1.9</version>
+				<version>1.19</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.xmlgraphics</groupId>
 				<artifactId>batik-swing</artifactId>
-				<version>1.9</version>
+				<version>1.19</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.xmlgraphics</groupId>
 				<artifactId>batik-dom</artifactId>
-				<version>1.9</version>
+				<version>1.19</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.xmlgraphics</groupId>
 				<artifactId>batik-svggen</artifactId>
-				<version>1.9</version>
+				<version>1.19</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.xmlgraphics</groupId>
 				<artifactId>batik-util</artifactId>
-				<version>1.9</version>
+				<version>1.19</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.xmlgraphics</groupId>
 				<artifactId>batik-xml</artifactId>
-				<version>1.9</version>
+				<version>1.19</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.xmlgraphics</groupId>
 				<artifactId>batik-css</artifactId>
-				<version>1.9</version>
+				<version>1.19</version>
 			</dependency>
 			<dependency>
 				<groupId>org.apache.xmlgraphics</groupId>
 				<artifactId>batik-gui-util</artifactId>
-				<version>1.9</version>
+				<version>1.19</version>
 			</dependency>
 		</dependencies>
 	</dependencyManagement>
@@ -212,13 +218,19 @@
 		<dependency>
 			<groupId>org.apache.xmlgraphics</groupId>
 			<artifactId>fop</artifactId>
-			<!-- 2.2 is the first release past CVE-2017-5661 (XXE in the FO/area-tree readers).
-			     Kept at the minimum that clears the advisory rather than the newest, since this is
-			     a security revision and not an upgrade. -->
-			<version>2.2</version>
+			<!-- Past CVE-2017-5661 (XXE in the FO/area-tree readers), and built against batik 1.19,
+			     which clears the SSRF and remote-class-loading run that ended at 1.9 - CVE-2019-17566,
+			     CVE-2020-11987 and the 2022 group including CVE-2022-44729. fop cannot be moved
+			     without batik or the other way round; see the note above dependencyManagement. Both
+			     target Java 8, so no consumer changes JDK for this. -->
+			<version>2.11</version>
 		</dependency>
 		<dependency>
-			<groupId>jdom</groupId>
+			<!-- org.jdom, not the pre-relocation jdom:jdom this asked for: Maven followed the
+			     relocation to exactly this artifact and said so on every build. Naming it directly
+			     resolves the same jar and spares consumers a coordinate they have to know about
+			     to manage the version. -->
+			<groupId>org.jdom</groupId>
 			<artifactId>jdom</artifactId>
 			<version>1.1</version>
 		</dependency>

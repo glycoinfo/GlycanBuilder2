@@ -45,8 +45,14 @@ public class LinkageConnector {
 			donor.setParentLinkage(_glin2linkage.getStartSideRepLinkage());
 		}
 
-		if(_glin2linkage.getDonorGLINs().isEmpty()) {
+		if(_glin2linkage.getDonorGLINs().isEmpty() || this.acceptor == null) {
 			//　start-rep is root node
+			//
+			// Or there is no residue to attach this one to. A residue named among an antenna's
+			// candidates is a donor of that ambiguous linkage, so it can reach here looking as
+			// though it had a parent, while the reading found no acceptor for it - the reducing
+			// end of G00955WX does, if the antenna is written l1-a?|...|k?. It used to walk into
+			// isOutRepeating and fail on a null acceptor, and the sequence would not read at all.
 			this.analyzeBracketNotation (donor, null, _glin2linkage);
 			return;
 		}
