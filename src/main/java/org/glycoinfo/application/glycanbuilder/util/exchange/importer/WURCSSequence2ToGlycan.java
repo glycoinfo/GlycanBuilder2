@@ -59,6 +59,7 @@ public class WURCSSequence2ToGlycan {
 		// append ambiguous root
 		for(GRES gres : gres2frag.getRootOfFragments()) {
 			Residue fragRoot = this.gres2residue.get(gres);
+			this.detachFromNamedParent(fragRoot);
 			this.glycan.addAntenna(fragRoot, fragRoot.getParentLinkage().getBonds());
 		}
 
@@ -95,6 +96,34 @@ public class WURCSSequence2ToGlycan {
 
 			this.glycan.normalizeCompositionFlags();
 		}
+	}
+
+	/**
+	 * Take an antenna out of the tree it was provisionally linked into, so that the bracket
+	 * is its only parent.
+	 *
+	 * <p>A GRES whose attachment point is undetermined names several possible acceptors -
+	 * {@code m1-f?|i?|k?} in G42735RP. {@link #analyzeGLIN} has no way to choose between
+	 * them and links the residue to the first, then records every candidate with
+	 * {@link Residue#addParentOfFragment}; the same residue then becomes an antenna, a
+	 * child of the bracket. It ends up with two parents at once - a shape no tree can hold
+	 * - and everything that walks the structure meets it twice: the renderer lays it out
+	 * under the bracket and then translates it a second time along with the other parent's
+	 * subtree, which carries it clean out of the picture the renderer has sized, and the
+	 * writers put it in the sequence twice over (#71).</p>
+	 *
+	 * <p>The candidates are already recorded, so the provisional link has nothing left to
+	 * say. The linkage itself is put back on the residue after the parent lets go of it:
+	 * the bracket reads its positions and its linkage types when it adopts the residue.</p>
+	 */
+	private void detachFromNamedParent(Residue _fragRoot) {
+		if (_fragRoot == null) return;
+		Residue parent = _fragRoot.getParent();
+		if (parent == null) return;
+
+		Linkage provisional = _fragRoot.getParentLinkage();
+		parent.removeChild(_fragRoot);
+		_fragRoot.setParentLinkage(provisional);
 	}
 
 	private void analyzeGRES(GRES _gres) throws Exception {
