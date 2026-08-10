@@ -278,7 +278,12 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 	 */
 	protected boolean laysOutAglycon(Glycan structure, boolean show_redend) {
 		if (structure == null) return show_redend;
-		if (structure.isComposition()) return show_redend;
+		// A composition is laid out from its aglycon whether or not the aglycon is drawn: its
+		// residues all hang from the bracket, and the free end is the only thing the bracket can
+		// be placed against. Asking for the root past the free end gives nothing, and a
+		// composition asked for without the reducing-end marker came out as an empty picture
+		// (#153). Whether the marker is painted is a separate question - see paintsAglycon.
+		if (structure.isComposition()) return true;
 		return GlycanUtils.isShowRedEnd(structure, theGraphicOptions, true);
 	}
 

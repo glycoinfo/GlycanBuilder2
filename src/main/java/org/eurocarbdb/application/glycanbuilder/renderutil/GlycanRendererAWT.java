@@ -131,7 +131,10 @@ public class GlycanRendererAWT extends AbstractGlycanRenderer {
 	protected void displayLegend(Paintable paintable, Glycan structure, boolean show_redend, BBoxManager bboxManager) {
 		Graphics2D g2d = paintable.getGraphics2D();
 		Rectangle structure_all_bbox = bboxManager.getComplete(structure.getRoot(laysOutAglycon(structure, show_redend)));
-		
+		// nothing was laid out, so there is nowhere to put a legend. Measuring the box that was
+		// never computed threw a NullPointerException out of the middle of painting (#153, #123).
+		if (structure_all_bbox == null) return;
+
 		g2d.setColor(Color.black);
 		g2d.setFont(new Font(theGraphicOptions.MASS_TEXT_FONT_FACE, Font.PLAIN, 10));
 		
@@ -178,6 +181,8 @@ public class GlycanRendererAWT extends AbstractGlycanRenderer {
 		Graphics2D g2d=paintable.getGraphics2D();
 		Rectangle structure_all_bbox = bboxManager.getComplete(structure
 				.getRoot(laysOutAglycon(structure, show_redend)));
+		// as in displayLegend: nothing laid out, nowhere to put the mass (#153, #123)
+		if (structure_all_bbox == null) return;
 
 		g2d.setColor(Color.black);
 		g2d.setFont(new Font(theGraphicOptions.MASS_TEXT_FONT_FACE, Font.PLAIN,
