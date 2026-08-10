@@ -221,8 +221,14 @@ public class BuilderWorkspace extends BaseDocument implements BaseWorkspace,
 				loaded=false;
 			}else {
 				storeToConfiguration(true);
+				// Write where this user is allowed to write, not where the configuration was looked
+				// for. What is passed in is usually a bundled resource ("/config.xml"), and writing
+				// to it means writing to whatever that path resolves to on disk - the working
+				// directory of whatever launched the application. On Windows that can be
+				// C:\WINDOWS\system32, where the write is denied and the application does not start
+				// (#10).
 				if (config_file != null && create)
-					theConfiguration.save(config_file);
+					theConfiguration.save(getPersistentConfigFile());
 			}
 
 			// initialize dictionaries

@@ -1,4 +1,35 @@
 ## Change log
+### 1.33.0  (20260810)
+* Wrote the configuration where the user may write, so the application starts on Windows (#10)
+  * A first run saved it to the path it had just tried to read it from - normally the bundled
+    resource "/config.xml" - so the write went to whatever that name resolves to on disk: the
+    working directory of whatever launched the application, which from the Windows start menu is
+    C:\WINDOWS\system32, where it is denied and nothing starts
+  * It saves to the per-user location the workspace already knew about, creating the directory
+  * Opening a configuration that is neither a file nor a resource now answers no, instead of
+    falling back to src/main/resources/config.xml - a build-tree path absent from every
+    distributed jar, so the fallback could only ever throw on a first run
+* Gave a glycosidic bond its linkage types, on every route in (#4)
+  * The pass that works them out had no branch for an ordinary sugar-sugar bond at all, only for
+    substituents and bridges, so every glycosidic linkage stayed UNVALIDATED: the donor gives up
+    the OH at its anomeric centre (DEOXY), the acceptor keeps the oxygen (H_AT_OH)
+  * And it ran in one place, the WURCS writer, so a structure carried placeholders until the
+    moment it was written back - all three readers run it now, and GWS, WURCS and GlycoCT agree
+  * Nothing written out changes: seven structures were exported to all three formats before and
+    after, byte-identical, which is what stating a type in the model had to agree with
+* Kept an antenna's parents when reading GlycoCT, so a glycan is drawn the same whichever
+  sequence it arrived as (#62)
+  * GlycoCT states them in the UND section's ParentIDs and the reader dropped them, so an antenna
+    knew of no parents; the renderer asks exactly that when it decides whether to draw a link
+    towards the bracket, and G00955WX came out with the link from WURCS and without it from
+    GlycoCT
+  * Measured on G00955WX: eleven parents on both routes now, and the two SVGs identical
+* Said what has to be true of any layout, before changing one (groundwork for #58 and #71)
+  * Every residue lies within the bounding box the renderer reports, and no two share a spot -
+    properties that hold whatever the layout looks like, so an improvement passes them and a
+    mistake does not, where a frozen SVG would fail on both
+  * Nine structures hold them; G42735RP of #71 does not, and its test says so, failing the day
+    #71 is fixed
 ### 1.32.0  (20260809)
 * Wrote structures with bridges to GlycoCT, which had exported as an empty string
   * The bridge went to the namescheme converter decorated like a sugar - "?-P", which nothing

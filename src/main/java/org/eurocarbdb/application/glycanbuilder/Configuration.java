@@ -66,10 +66,13 @@ public class Configuration implements SAXUtils.SAXWriter {
             fis = new FileInputStream(file);
         }
 
+        // Neither a file nor a bundled resource: there is no configuration to read, which is an
+        // ordinary state on a first run. This used to fall back to "src/main/resources/config.xml",
+        // a path inside the build tree that cannot exist in a distributed jar, so the fallback only
+        // ever threw FileNotFoundException - turning "no configuration yet" into a reported error.
         if (fis == null) {
-            fis = new FileInputStream("src/main/resources/config.xml");
+            return false;
         }
-        //return false;
 
         // open document
         //InputStreamReader fis = new InputStreamReader(file_url.openStream());
@@ -97,7 +100,14 @@ public class Configuration implements SAXUtils.SAXWriter {
     try {
         if( filename==null )
         return false;
-        //File -> inner path -> default path
+
+        // Make the directory the file is asked to live in, so a caller may name a place of its own
+        // (the per-user configuration directory does not exist until something writes there).
+        File parent = new File(filename).getParentFile();
+        if (parent != null) {
+            parent.mkdirs();
+        }
+
         OutputStream fos = new FileOutputStream(filename);
 
         Document document = XMLUtils.newDocument();

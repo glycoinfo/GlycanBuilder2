@@ -20,6 +20,8 @@
 
 package org.eurocarbdb.application.glycanbuilder.converterGWS;
 
+import org.glycoinfo.application.glycanbuilder.converterWURCS2.LinkageTypeOptimizer;
+
 import java.awt.Rectangle;
 import java.util.*;
 import java.util.regex.*;
@@ -205,6 +207,13 @@ public class GWSParser implements GlycanParser {
 				sugar.setRingSize('o');
 			}
 		}
+
+		// Say what each bond is made of, rather than leaving every one of them UNVALIDATED (#4).
+		// A structure read from WURCS has its linkage types worked out; one read from GWS did not,
+		// so the same glycan carried different bonds depending on which format it arrived in, and
+		// anything that reads a linkage type - an exporter, a renderer - was reading a placeholder.
+		// The same pass the WURCS writer runs is applied here, on the way in.
+		new LinkageTypeOptimizer().start(ret);
 
 		return ret;
 	}
