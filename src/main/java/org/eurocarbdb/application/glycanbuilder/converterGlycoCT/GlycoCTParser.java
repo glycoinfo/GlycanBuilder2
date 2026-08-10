@@ -397,6 +397,11 @@ public class GlycoCTParser implements GlycanParser {
 			ret.addAntenna(toadd, bonds);
 		}
 
+		// The same pass the other two readers run, so a structure carries the same bonds whichever
+		// format it arrived in (#4). Reading GlycoCT and reading the WURCS for the same glycan used
+		// to give linkage types that did not agree, and the renderer asks them (#62).
+		new org.glycoinfo.application.glycanbuilder.converterWURCS2.LinkageTypeOptimizer().start(ret);
+
 		return ret;
 	}
 
