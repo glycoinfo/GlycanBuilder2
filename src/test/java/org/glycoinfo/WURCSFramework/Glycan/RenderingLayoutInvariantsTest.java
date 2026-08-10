@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 import java.awt.Rectangle;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.IdentityHashMap;
 import java.util.Map;
 
 import org.eurocarbdb.application.glycanbuilder.BuilderWorkspace;
@@ -119,12 +120,12 @@ public class RenderingLayoutInvariantsTest {
 	}
 
 	/**
-	 * G42735RP, the structure of #71, which breaks both properties today.
+	 * G42735RP, the structure of #71, which puts a residue outside its own picture.
 	 *
-	 * <p>Two residues - an antenna's sialic acid, at linkage position 1 - are placed on the same
-	 * spot, outside the bounding box the renderer reports, and so are cut off by the edge of the
-	 * image. They never reach the list the bracket layout aligns and measures, so nothing sizes the
-	 * picture to include them.</p>
+	 * <p>The antenna's sialic acid, at linkage position 1, is placed outside the bounding box the
+	 * renderer reports, and so is cut off by the edge of the image: its rectangle runs to x=542 and
+	 * y=199 where the box ends at 512 and 185. It never reaches the list the bracket layout aligns
+	 * and measures, so nothing sizes the picture to include it.</p>
 	 *
 	 * <p>This test states the fault rather than the fix, so that the fault cannot quietly get
 	 * worse. <b>When #71 is fixed this test will fail</b> - that is what it is for. Move the
@@ -139,8 +140,9 @@ public class RenderingLayoutInvariantsTest {
 				+ "/a4-b1_a6-l1_b4-c1_c3-d1_c6-g1_d2-e1_e4-f1_g2-h1_g6-j1_h4-i1_j4-k1"
 				+ "_m1-f?|i?|k?}");
 
-		assertEquals("#71 looks fixed: no residue falls outside the box any more", 2, outside(structure));
-		assertEquals("#71 looks fixed: no two residues share a spot any more", 1, sharedSpots(structure));
+		assertEquals("#71 looks fixed: no residue falls outside the box any more",
+				1, outside(structure));
+		assertEquals("the escape is one residue, drawn once", 0, sharedSpots(structure));
 	}
 
 	/** Everything drawn is inside the box, and no two symbols sit on the same spot. */
@@ -187,12 +189,13 @@ public class RenderingLayoutInvariantsTest {
 
 		Layout layout = new Layout();
 		layout.all = all;
-		int at = 0;
 		for (Residue residue : structure.getAllResidues()) {
 			Rectangle rectangle = boxes.getCurrent(residue);
-			// Keyed by order rather than by residue: the same residue can appear twice in the walk,
-			// and both appearances are drawn.
-			if (rectangle != null) layout.rectangles.put(at++, rectangle);
+			// Keyed by identity, because the walk can hand back the same residue twice - an
+			// antenna reachable from both the root and the bracket comes back on both. Counting
+			// those as two residues on one spot would report a drawing fault where there is only
+			// one residue, drawn once.
+			if (rectangle != null) layout.rectangles.put(residue, rectangle);
 		}
 		assertTrue("nothing was laid out at all", !layout.rectangles.isEmpty());
 
@@ -201,7 +204,7 @@ public class RenderingLayoutInvariantsTest {
 
 	private static final class Layout {
 		private Rectangle all;
-		private final Map<Integer, Rectangle> rectangles = new HashMap<Integer, Rectangle>();
+		private final Map<Residue, Rectangle> rectangles = new IdentityHashMap<Residue, Rectangle>();
 	}
 
 	private static Glycan gws(String sequence) throws Exception {
