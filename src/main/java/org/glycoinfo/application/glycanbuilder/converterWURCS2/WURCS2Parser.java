@@ -80,6 +80,12 @@ public class WURCS2Parser implements GlycanParser{
 		refuseCycles(glycan.getRoot(), java.util.Collections.newSetFromMap(
 				new java.util.IdentityHashMap<Residue, Boolean>()));
 
+		// Say what each bond is made of here, where the structure is built, rather than leaving it
+		// to whoever writes it out (#4). This pass used to run in writeGlycan alone, so a structure
+		// read from WURCS carried UNVALIDATED bonds until the moment it was written back to WURCS -
+		// and anything else that asked, a GlycoCT writer or a renderer, was asking a placeholder.
+		new LinkageTypeOptimizer().start(glycan);
+
 		return glycan;
 	}
 
