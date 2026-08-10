@@ -22,7 +22,7 @@ import org.junit.Test;
 /**
  * What has to be true of any layout, whatever it looks like.
  *
- * <p>The drawing issues left open - #58, #71, #29, #88 - all want changes in the middle of the
+ * <p>The drawing issues left open - #58, #29, #88 - all want changes in the middle of the
  * renderer, where a change meant to help one structure can quietly spoil another, and there was no
  * way to tell. Freezing the SVG of a set of structures would tell, but it would also fail on every
  * intentional improvement and say nothing about what went wrong: twelve kilobytes of path data
@@ -33,7 +33,7 @@ import org.junit.Test;
  *
  * <ul>
  *   <li>every residue lies within the bounding box the renderer reports - what is drawn outside it
- *       is clipped out of the image, which is how #71 shows itself;</li>
+ *       is clipped out of the image, which is how #71 showed itself;</li>
  *   <li>no two residues share a top-left corner - two symbols on the same spot are unreadable, and
  *       are a sign that one of them was never placed.</li>
  * </ul>
@@ -120,29 +120,21 @@ public class RenderingLayoutInvariantsTest {
 	}
 
 	/**
-	 * G42735RP, the structure of #71, which puts a residue outside its own picture.
+	 * G42735RP, the structure of #71, which used to put a residue outside its own picture.
 	 *
-	 * <p>The antenna's sialic acid, at linkage position 1, is placed outside the bounding box the
-	 * renderer reports, and so is cut off by the edge of the image: its rectangle runs to x=542 and
-	 * y=199 where the box ends at 512 and 185. It never reaches the list the bracket layout aligns
-	 * and measures, so nothing sizes the picture to include it.</p>
-	 *
-	 * <p>This test states the fault rather than the fix, so that the fault cannot quietly get
-	 * worse. <b>When #71 is fixed this test will fail</b> - that is what it is for. Move the
-	 * structure to a plain {@code assertLaidOutWithin} then, and delete this one.</p>
+	 * <p>The antenna's sialic acid, at linkage position 1, was laid out under the bracket and then
+	 * translated a second time along with the subtree it was also linked into, which left it at
+	 * x=520..542, y=177..199 where the box ended at 512 and 185 - outside the image, and so cut off
+	 * by its edge. It had two parents at once; it has one now, and lands inside the box.</p>
 	 */
 	@Test
-	public void theStructureOfIssue71IsStillDrawnOutsideItsOwnBox() throws Exception {
-		Glycan structure = wurcs(
+	public void theStructureOfIssue71IsLaidOutWithin() throws Exception {
+		assertLaidOutWithin(wurcs(
 				"WURCS=2.0/7,13,12/[a2122h-1x_1-5_2*NCC/3=O][a2122h-1b_1-5_2*NCC/3=O]"
 				+ "[a1122h-1b_1-5][a1122h-1a_1-5][a2112h-1b_1-5][a1221m-1a_1-5]"
 				+ "[Aad21122h-2a_2-6_5*NCC/3=O]/1-2-3-4-2-5-4-2-5-2-5-6-7"
 				+ "/a4-b1_a6-l1_b4-c1_c3-d1_c6-g1_d2-e1_e4-f1_g2-h1_g6-j1_h4-i1_j4-k1"
-				+ "_m1-f?|i?|k?}");
-
-		assertEquals("#71 looks fixed: no residue falls outside the box any more",
-				1, outside(structure));
-		assertEquals("the escape is one residue, drawn once", 0, sharedSpots(structure));
+				+ "_m1-f?|i?|k?}"));
 	}
 
 	/** Everything drawn is inside the box, and no two symbols sit on the same spot. */
@@ -191,10 +183,10 @@ public class RenderingLayoutInvariantsTest {
 		layout.all = all;
 		for (Residue residue : structure.getAllResidues()) {
 			Rectangle rectangle = boxes.getCurrent(residue);
-			// Keyed by identity, because the walk can hand back the same residue twice - an
-			// antenna reachable from both the root and the bracket comes back on both. Counting
-			// those as two residues on one spot would report a drawing fault where there is only
-			// one residue, drawn once.
+			// Keyed by identity, because the walk hands back a residue once per way it can be
+			// reached: an antenna linked into the tree as well as into the bracket comes back on
+			// both. Counting those as two residues on one spot would report a drawing fault where
+			// there is only one residue, drawn once - which is what #71 turned out to be.
 			if (rectangle != null) layout.rectangles.put(residue, rectangle);
 		}
 		assertTrue("nothing was laid out at all", !layout.rectangles.isEmpty());
