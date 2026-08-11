@@ -589,6 +589,31 @@ public class Residue {
 		return type.isBracket();
 	}
 
+	/**
+       The description the WURCS importer gives the marker it hangs off a
+       composition to record that no linkages are known.
+       @see #isCompositionMarker
+	 */
+	public static final String NO_GLYCOSIDIC_LINKAGES = "no glycosidic linkages";
+
+	/**
+       Return <code>true</code> if this residue is the label a composition
+       carries to say that no linkages among its members are known, rather
+       than a member of the composition itself.
+       <p>
+       {@code WURCSSequence2ToGlycan} attaches it when reading a composition.
+       It is not a residue of the glycan: it weighs nothing, it is not one of
+       the N members whose N-1 implicit bonds a composition's mass accounts
+       for, it is not drawn, and no notation has a spelling for it. Everything
+       that walks a structure has to leave it out, and each place that forgot
+       has been a fault of its own - the mass read one water and one
+       derivatization group light, and the GWS written for a composition could
+       not be read back.
+	 */
+	public boolean isCompositionMarker() {
+		return type != null && NO_GLYCOSIDIC_LINKAGES.equals(type.getDescription());
+	}
+
 	/*
        Return <code>true</code> if this residue is contained in a
        terminal structure linked to a bracket residue.
