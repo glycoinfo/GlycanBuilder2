@@ -295,16 +295,25 @@ public class GWSParser implements GlycanParser {
 		//-----------------
 		// write children
 
+		// A composition carries a marker saying that no linkages among its members are known. It
+		// is a label, not a residue, and GWS has no spelling for it: written out like a child it
+		// became "--?no glycosidic linkages", where the parser reads everything after "--?" as a
+		// linkage, meets a sentence and stops - so a composition's own GWS could not be read back
+		// (#162). It is left out here, as it is left out of the drawing and of the mass.
 		ArrayList<String> str_children = new ArrayList();
-		for( Linkage l : r.getChildrenLinkages() )
+		for( Linkage l : r.getChildrenLinkages() ) {
+			if( l.getChildResidue()!=null && l.getChildResidue().isCompositionMarker() )
+				continue;
 			str_children.add("--" + toStringLinkage(l)
 					+ writeSubtree(l.getChildResidue(), ordered, bboxManager, visited));
+		}
 
 		if( ordered ) 
 			Collections.sort(str_children);    
 
-		// add parenthesis    
-		for( int i=0; i<r.getChildrenLinkages().size()-1; i++ ) 
+		// add parenthesis - one fewer than the children actually written, which is not necessarily
+		// how many the residue has
+		for( int i=0; i<str_children.size()-1; i++ ) 
 			str += "(";       
 
 		// write children

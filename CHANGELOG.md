@@ -1,4 +1,23 @@
 ## Change log
+### 1.34.2  (20260812)
+* Wrote a composition's GWS so it can be read back (#162)
+  * A composition imported from WURCS wrote `--?no glycosidic linkages` where a linkage belongs -
+    the marker it carries to say that no linkages are known, written out as though it were a child.
+    The parser reads everything after `--?` as a linkage, met a sentence and stopped with
+    *invalid format for linkage: " glycosidic linkages"*, so a composition could not be moved
+    between the two formats the application itself uses
+  * The marker is left out of what is written, as it is left out of the drawing and of the mass.
+    The parenthesis count follows the children actually written rather than how many the residue
+    has, which stops being the same number once one is skipped
+  * Measured: a composition's GWS no longer carries the marker, parses back, and weighs the same
+    on the way back - 910.3278 for Hex3HexNAc2
+* Gave the marker a name of its own: `Residue#isCompositionMarker()`, with the description it
+  matches as `Residue.NO_GLYCOSIDIC_LINKAGES`
+  * The same string comparison had grown separately in the renderers (eight places) and the mass
+    calculation, and **each place that had not grown one was a fault** - the mass read a water and
+    a derivatization group light (1.34.1), and the writer could not be read back (this release).
+    All ten places now ask the residue
+
 ### 1.34.1  (20260812)
 * Stopped weighing a marker that is not a residue, so a composition read from WURCS weighs what
   the composition dialog says it does
