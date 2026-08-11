@@ -1,4 +1,26 @@
 ## Change log
+### 1.34.1  (20260812)
+* Stopped weighing a marker that is not a residue, so a composition read from WURCS weighs what
+  the composition dialog says it does
+  * `WURCSSequence2ToGlycan` hangs a synthetic "no glycosidic linkages" marker off a composition's
+    bracket to record that no linkages are known. The renderers have always skipped it -
+    `AbstractGlycanRenderer` tests for that description in four places - but `computeMass` had not
+    been told about it, and counted it twice
+  * Once among the bracket's members, where N members imply N-1 glycosidic bonds: six were assumed
+    where there are five, and one water too many came off. Measured, `childrenLinkages.size()` is 6
+    for Hex3HexNAc2
+  * Once as an ordinary residue, where it collected `(noSubstitutions - no_bonds) *
+    substitutionMass` for its single bond to the bracket - nothing underivatized, a whole methyl or
+    acetyl group otherwise, which is why the shortfall grew with derivatization
+  * Hex3HexNAc2 read **892.3172** where the composition dialog reads **910.3278**, the Man3GlcNAc2
+    figure. The two routes now agree to 1e-6 underivatized, permethylated, peracetylated and
+    per-deuteromethylated
+  * The arithmetic the 1.33.0 composition fix intended is unchanged: sum the members, take off N-1
+    waters for the bonds they imply. Only the counting is corrected
+  * Found while writing a mass-spectrometry example against glycanbuilder2web's MCP interface,
+    where WURCS is the only way a caller can express a composition (#160)
+* Wrote the release process down in the README, where the next person will look (#159)
+
 ### 1.34.0  (20260810)
 * Gave an antenna one parent when reading WURCS, so it is no longer drawn outside its own
   picture (#71)

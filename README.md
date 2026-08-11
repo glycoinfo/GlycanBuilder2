@@ -85,6 +85,51 @@ java -jar ./target/glycanbuilder2-jar-with-dependencies.jar
 
 Please see [CHANGELOG.md](CHANGELOG.md) for details.
 
+## Releasing
+
+The steps in order. The tag is the one to get right: the installer workflow matches on it, and a tag
+it cannot match is a release with no installers.
+
+**1. Branches.** `master` is never committed to directly and takes pull requests **from `develop`
+only**. Work is done on branches off `develop` and merged into `develop`.
+
+**2. Version.** On `develop`, in one commit, immediately before opening the pull request to `master`:
+raise the version in `pom.xml` and add the `CHANGELOG.md` entry together. **A branch merged into
+`develop` does not raise the version** — leave `pom.xml` alone there, or two branches in flight both
+claim the same number.
+
+**3. Merge** `develop` into `master` by pull request.
+
+**4. Tag** that merge commit `vMAJOR.MINOR.PATCH` — e.g. `v1.27.0`. The leading `v` and all three
+parts are required, because the GitHub Actions workflow reads them. GitHub or local, either is fine.
+
+**5. Deploy**, locally, from `master` at the versioned commit:
+
+```
+mvn deploy
+```
+
+This needs a GitHub PAT. Afterwards check the version is listed under
+[MavenRepository](https://github.com/glycoinfo/MavenRepository/tree/master/org/eurocarbdb/glycanbuilder/glycanbuilder2).
+
+**6. Installers.** Run [Release GlycanBuilder2](https://github.com/glycoinfo/GlycanBuilder2/actions/workflows/release.yml)
+from "Run workflow", giving it the tag from step 4.
+
+**7. Windows (manual).** The MSIX has to be submitted to the Microsoft Store by hand:
+
+1. Download the `glycanbuilder2-installer-windows` artifact from that workflow run and unzip it to
+   get `GlycanBuilder2.msix`.
+2. Sign in to Microsoft Partner Center with the project's store account. This needs two-factor
+   authentication, so it also needs whoever holds the authenticator — plan for that, since it is the
+   usual reason this step waits.
+3. Apps and games → **GlycanBuilder** → product update → **Packages**.
+4. Drag `GlycanBuilder2.msix` in and Save. The previous version's package is removed automatically.
+5. **Submit for certification**, then wait: the Store page updates itself once certification passes.
+
+**8. Release label.** The workflow leaves the release as a Pre-Release. On the
+[releases page](https://github.com/glycoinfo/GlycanBuilder2/releases), Edit it, choose **Latest**
+under "Release label", and Update release.
+
 ## Publications
 
 * [Shinichiro Tsuchiya, Nobuyuki P. Aoki, Daisuke Shinmachi, Masaaki Matsubara, Issaku Yamada, Kiyoko F. Aoki-Kinoshita, Hisashi Narimatsu,

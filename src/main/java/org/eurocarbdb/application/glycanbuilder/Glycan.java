@@ -1430,8 +1430,28 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 		}
 	}
 	
+	/**
+	   Whether a residue is the marker the WURCS importer attaches to a
+	   composition to say that no linkages are known, rather than a member of
+	   the composition itself. It carries no mass and must not be counted among
+	   the members: N members imply N-1 glycosidic bonds, and the marker is not
+	   one of them.
+	 */
+	private static boolean isCompositionMarker(Residue residue) {
+		return residue != null && residue.getType() != null
+				&& "no glycosidic linkages".equals(residue.getType().getDescription());
+	}
+
 	private double computeMass(Residue node, double multipler) {
 		if( node==null || node.getTypeName().equals("Sugar"))
+			return 0.;
+
+		// The "no glycosidic linkages" marker is a label the WURCS importer hangs off a
+		// composition to say that no linkages are known - not a residue of the glycan. It weighs
+		// nothing, but left to fall through it collects a derivatization adjustment for the one
+		// bond it has to the bracket, which is why every derivatized composition read one
+		// methyl/acetyl group light. The renderers skip it by the same test.
+		if( isCompositionMarker(node) )
 			return 0.;
 
 		// a composition has no distinguished reducing end of its own: the root
@@ -1493,7 +1513,15 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 				// data model contributes no mass of its own for a composition
 				// (see the top of this method), whatever its actual residue
 				// type happens to be, so there is nothing else to account for.
-				int no_members = node.getChildrenLinkages().size();
+				// The WURCS importer hangs a synthetic "no glycosidic linkages" marker off the
+				// bracket alongside the real members (see WURCSSequence2ToGlycan). It weighs
+				// nothing itself, but counting it as a member subtracts one water too many - so
+				// every composition imported from WURCS came out 18.0106 light, at any size. The
+				// renderers already skip it by the same test; the mass had not been told about it.
+				int no_members = 0;
+				for( int i=0; i<node.getNoChildren(); i++ )
+					if( !isCompositionMarker(node.getChildAt(i)) )
+						no_members++;
 				if( no_members>0 )
 					mass -= (no_members-1)*MassUtils.water.getMass();
 			}
