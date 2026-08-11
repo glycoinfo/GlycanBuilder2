@@ -499,7 +499,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 	private void addLegendMargin (Rectangle _bbox, Glycan _glycan) {
 		for (Residue res : _glycan.getAllResidues()) {
 			if (!res.getType().getSuperclass().equals("Assigned")) continue;
-			if (res.getType().getDescription().equals("no glycosidic linkages")) continue;
+			if (res.isCompositionMarker()) continue;
 			_bbox.height = _bbox.height + theGraphicOptions.MASS_TEXT_SPACE;
 		}
 	}
@@ -549,7 +549,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 			Residue child = link.getChildResidue();
 			Residue matching_child = (child.getCleavedResidue() != null) ? child.getCleavedResidue() : child;
 
-			if (child.getType().getDescription().equals("no glycosidic linkages")) continue;
+			if (child.isCompositionMarker()) continue;
 
 			ResiduePlacement default_placement = theResiduePlacementDictionary.getPlacement(current, link, matching_child, sticky);
 			onBorder.put(child, default_placement.isOnBorder());
@@ -572,7 +572,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		for (Iterator<Linkage> i = current.iterator(); i.hasNext();) {
 			Residue child = i.next().getChildResidue();
 
-			if (child.getType().getDescription().equals("no glycosidic linkages")) continue;
+			if (child.isCompositionMarker()) continue;
 
 			ResiduePlacement child_placement = bookManager.getPlacement(child);
 			ResAngle child_pos = bookManager.getPosition(child);
@@ -1261,7 +1261,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		TreeMap<String, Pair<Residue, Integer>> unique_antennae = new TreeMap<String, Pair<Residue, Integer>>();
 		for (int i = 0; i < bracket.getNoChildren(); i++) {
 			Residue child = bracket.getChildAt(i); // avoid concurrent
-			if (child.getType().getDescription().equals("no glycosidic linkages")) continue;
+			if (child.isCompositionMarker()) continue;
 			// modification of
 			// iterator!!
 			String child_str = (COLLAPSE_MULTIPLE_ANTENNAE) ? GWSParser.writeSubtree(child, false) : ("" + (id++));
@@ -1351,7 +1351,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		TreeMap<String, Pair<Residue, Integer>> unique_antennae = new TreeMap<>();
 		for (int i = 0; i < bracket.getNoChildren(); i++) {
 			Residue child = bracket.getChildAt(i); // avoid concurrent
-			if (child.getType().getDescription().equals("no glycosidic linkages")) {
+			if (child.isCompositionMarker()) {
 				isNoGlycosidicLinkages = true;
 				continue;
 			}
@@ -1445,7 +1445,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		TreeMap<String, Pair<Residue, Integer>> unique_antennae = new TreeMap<String, Pair<Residue, Integer>>();
 		for (int i = 0; i < bracket.getNoChildren(); i++) {
 			Residue child = bracket.getChildAt(i); // avoid concurrent
-			if (child.getType().getDescription().equals("no glycosidic linkages")) continue;
+			if (child.isCompositionMarker()) continue;
 			// modification of
 			// iterator!!
 			String child_str = (COLLAPSE_MULTIPLE_ANTENNAE) ? GWSParser.writeSubtree(child, false) : ("" + (id++));
@@ -1536,7 +1536,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		TreeMap<String, Pair<Residue, Integer>> unique_antennae = new TreeMap<String, Pair<Residue, Integer>>();
 		for (int i = 0; i < bracket.getNoChildren(); i++) {
 			Residue child = bracket.getChildAt(i); // avoid concurrent
-			if (child.getType().getDescription().equals("no glycosidic linkages")) continue;
+			if (child.isCompositionMarker()) continue;
 			// modification of
 			// iterator!!
 			String child_str = (COLLAPSE_MULTIPLE_ANTENNAE) ? GWSParser.writeSubtree(child, false) : ("" + (id++));
@@ -1635,7 +1635,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		for (Linkage link : bracket.getChildrenLinkages()) {
 			Residue child = link.getChildResidue();
 
-			if (child.getType().getDescription().equals("no glycosidic linkages")) continue;
+			if (child.isCompositionMarker()) continue;
 
 			int quantity = bboxManager.getLinkedResidues(child).size() + 1;
 
