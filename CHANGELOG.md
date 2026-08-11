@@ -1,4 +1,26 @@
 ## Change log
+### 1.34.3  (20260812)
+* Took the derivatization off a composition's implicit bonds, so a derivatized composition weighs
+  what the same glycan written with its linkages weighs (#165)
+  * A glycosidic bond consumes a hydroxyl that would otherwise carry a derivatization group. The
+    bracket's composition branch took the **water** off for the N-1 implicit bonds; nothing took the
+    matching derivatization off, and the members - attached to the bracket rather than to one
+    another - were derivatized as though they were free
+  * Underivatized the two routes had agreed since 1.34.1, which is why this went unseen.
+    Permethylated, Hex3HexNAc2 read **1190.6408** against **1148.5938**, three CH2 too many;
+    peracetylated, 1666.5179 against 1540.4863. Permethylation is the ordinary preparation in MS
+    glycomics, so this was the common case rather than a corner
+  * Measured for N = 2..7, straight and branched alike: the excess is N-2 groups, one fewer than the
+    N-1 whose water is subtracted - the remaining one is already accounted for, the root of a
+    composition returning before it adds its own adjustment
+  * That the linked figure is the right one is checkable independently: permethylated Man3GlcNAc2 as
+    [M+Na]+ is 1171.58 in the literature and 1171.5836 here, and adding one Hex must add exactly one
+    permethylated Hex residue, 204.0998 - which the linked series does and the composition series did
+    not, stepping by 218.1154. The test asserts the increment, so it holds without a remembered total
+  * Verified across every combination the mass options offer, composition against linked, all
+    agreeing to 1e-6: six derivatizations, seven ion adducts at one to three charges, four neutral
+    exchanges, and those crossed with each other
+
 ### 1.34.2  (20260812)
 * Wrote a composition's GWS so it can be read back (#162)
   * A composition imported from WURCS wrote `--?no glycosidic linkages` where a linkage belongs -

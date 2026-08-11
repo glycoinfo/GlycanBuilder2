@@ -1512,6 +1512,22 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 						no_members++;
 				if( no_members>0 )
 					mass -= (no_members-1)*MassUtils.water.getMass();
+
+				// A glycosidic bond also consumes a hydroxyl that would otherwise carry a
+				// derivatization group, and the members - each attached to the bracket rather than
+				// to one another - are derivatized as though they were free. Underivatized this
+				// costs nothing, which is why it went unseen; permethylated, a composition read
+				// higher than the same glycan written with its linkages, and permethylation is the
+				// ordinary preparation in MS glycomics.
+				//
+				// Measured against the linked structure of the same residues, for N = 2..7 and for
+				// branched as well as straight chains (mass does not depend on topology): the
+				// excess is N-2 groups, one fewer than the N-1 bonds whose water is taken off
+				// above. The remaining one is already accounted for in the walk - the root of a
+				// composition returns before it can add its own adjustment (see the top of this
+				// method) - so taking off N-1 here would overshoot by exactly that one.
+				if( no_members>1 )
+					mass -= (no_members-2)*substitutionMass();
 			}
 		}
 		else if( node.isCleavage() && !node.isRingFragment() ) {
