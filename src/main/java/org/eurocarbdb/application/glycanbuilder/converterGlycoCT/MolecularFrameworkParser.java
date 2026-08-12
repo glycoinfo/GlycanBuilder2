@@ -122,6 +122,10 @@ public class MolecularFrameworkParser extends GlycoCTParser {
     }
 
     public Glycan readGlycan(String buffer, MassOptions default_mass_options) throws Exception {
+    	// Three of the encodings reached from here - glycoct_xml, cabosml, glyde - are XML, and are
+    	// read by a parser that resolves external entities. See GlycoCTParser.refuseDoctype.
+    	refuseDoctype(buffer);
+
 		Sugar s = SugarImporterFactory.importSugar(buffer, encoding);
 		return fromSugar(s, default_mass_options);
     }

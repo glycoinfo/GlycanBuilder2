@@ -319,7 +319,36 @@ public class GlycoCTParser implements GlycanParser {
 	 */
 	public Glycan fromGlycoCT(String str, MassOptions default_mass_opt)
 			throws Exception {
+		refuseDoctype(str);
+
 		return fromSugar(importer.parse(str), default_mass_opt);
+	}
+
+	/**
+	 * Refuses a sequence that carries an XML document type declaration.
+	 *
+	 * <p>The XML formats MolecularFramework reads - GlycoCT XML, CabosML, Glyde II - are parsed by
+	 * JDOM's {@code SAXBuilder}, which resolves external entities as it comes to them. Measured: a
+	 * document declaring {@code <!ENTITY xx SYSTEM "file:///...">} makes the parser open that file
+	 * while reading, so whoever supplies a sequence decides what the process reads and what it
+	 * connects to. That is CVE-2021-33813, and there is no version of {@code org.jdom:jdom} in
+	 * which it is fixed - the fix is in {@code org.jdom:jdom2}, a different package these libraries
+	 * are not compiled against.
+	 *
+	 * <p>So the declaration is refused before the parser sees it. A DTD is the only way to declare
+	 * an entity, and the XML specification spells {@code <!DOCTYPE} exactly that way, so refusing it
+	 * leaves no other route to one. Nothing legitimate is lost: a glycan sequence has no use for a
+	 * document type, and none of the formats define one.
+	 *
+	 * @param str The sequence about to be parsed.
+	 * @throws Exception If it declares a document type.
+	 */
+	static void refuseDoctype(String str) throws Exception {
+		if (str != null && str.contains("<!DOCTYPE")) {
+			throw new Exception("This sequence declares an XML document type, which is refused: a "
+					+ "document type can declare entities that make the parser read files and open "
+					+ "connections while parsing. Remove the <!DOCTYPE declaration.");
+		}
 	}
 
 	/**
