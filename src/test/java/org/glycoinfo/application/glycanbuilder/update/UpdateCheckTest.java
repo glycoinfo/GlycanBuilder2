@@ -85,6 +85,32 @@ public class UpdateCheckTest {
 	}
 
 	/**
+	 * A failure says which failure it was.
+	 *
+	 * <p>Every failure used to be reported as "could not reach GitHub", and the first one that
+	 * actually happened was not that: the runtime image in the installers had no elliptic-curve
+	 * provider, so the TLS handshake was refused. GitHub was reached; the two could not agree on
+	 * encryption. Someone told "could not reach" goes and checks their network, which is working.
+	 */
+	@Test
+	public void aFailureSaysWhichFailureItWas() {
+		String tls = UpdateCheck.describe(
+				new javax.net.ssl.SSLHandshakeException("Received fatal alert: handshake_failure"));
+		assertTrue(tls, tls.contains("secure connection"));
+		assertTrue("it should say this is not a network problem: " + tls,
+				tls.contains("not a network problem"));
+
+		String dns = UpdateCheck.describe(new java.net.UnknownHostException("github.com"));
+		assertTrue(dns, dns.contains("Could not find GitHub"));
+
+		String slow = UpdateCheck.describe(new java.net.SocketTimeoutException("Read timed out"));
+		assertTrue(slow, slow.contains("did not answer in time"));
+
+		String other = UpdateCheck.describe(new java.io.IOException("something else"));
+		assertTrue(other, other.contains("something else"));
+	}
+
+	/**
 	 * Where a person is sent depends on how their copy was published.
 	 *
 	 * <p>Windows goes to the Microsoft Store, and this is the assertion worth having: the releases

@@ -1,4 +1,59 @@
 ## Change log
+### 1.35.1  (20260812)
+* **Check for Updates could not reach GitHub from an installed copy**, reporting a
+  `handshake_failure` while a browser on the same machine loaded the same page. The runtime image
+  the installers ship is built by `jlink` from a named list of modules, and `jdk.crypto.ec` was not
+  on it - so the runtime offered no elliptic-curve suites, GitHub accepts nothing else, and the TLS
+  handshake was refused before any request was sent. GitHub was reachable throughout; the two could
+  not agree on encryption
+  * Reproduced by removing the module on JDK 17 and 21.0.12 and confirmed absent on a full JDK,
+    which is why this was not seen while the feature was being written - it was only ever exercised
+    on a development JDK, never on the runtime that is actually shipped
+  * Added to all four installer builds, so macOS, Linux, RPM and Windows images can each speak TLS
+  * Anything else the installers do over HTTPS was affected the same way, not only the update check
+* A failure now says *which* failure it was. Everything was reported as being unable to reach
+  GitHub, which was wrong for the one that actually happened - someone told that checks a network
+  that is working. A refused handshake, an unresolvable host and a timeout are told apart, and the
+  handshake case says in as many words that it is not a network problem
+* The workflows run on Node 24. GitHub has deprecated the Node 20 action runtime and warns on every
+  run; the actions in use publish Node 24 majors, so each was moved to one
+
+### 1.35.0  (20260812)
+* Added **Help > Check for Updates**, so a macOS or Linux copy can find out that a newer one exists
+  * Windows has the Microsoft Store for this; macOS and Linux are installed from files people
+    download, and nothing told them
+  * **Nothing checks on its own.** No outbound call is made unless the menu item is chosen, so
+    startup is untouched - offline, behind a proxy, or with GitHub down, the application starts
+    exactly as before - and whether to talk to GitHub stays the user's choice
+  * It reads the redirect rather than the API: `api.github.com` allows 60 unauthenticated requests
+    an hour *per address*, and an institute behind one NAT is one address, while
+    `github.com/.../releases/latest` answers 302 to the tag's page and is not limited that way. It
+    also excludes pre-releases, which fits how this project releases - the workflow publishes as a
+    pre-release until someone marks it Latest, so no one is pointed at a release whose installers
+    are not built yet
+  * Where it sends people depends on where their builds are: **Windows** the Microsoft Store (the
+    releases carry no Windows installer at all), **macOS**
+    [glycanbuilder.glyconavi.org](https://glycanbuilder.glyconavi.org/en#download), **Linux** the
+    release's own assets, and anything else - a jar run directly, a build from source - the releases
+    page
+  * Versions are compared part by numeric part. As text "1.34.10" sorts before "1.34.9", so a text
+    comparison would stop reporting updates the moment a version reached double digits, quietly and
+    only then. What cannot be compared is not announced, and a check that could not reach GitHub
+    says so rather than reporting that the application is up to date
+  * Measured against the live service: 476 ms to answer, 136 ms to fail and say why with the network
+    blocked
+* **The About window showed the wrong icon.** It carried the 2021 "GB2" wordmark while the dock, the
+  installers and the Store showed the current one - two files that had drifted since the icons were
+  replaced. It references `icons/icon_large.png` now rather than carrying a copy: that is the file
+  jpackage builds every installer's icon from, so replacing it replaces this too
+* **The About window's links did nothing when clicked.** A `JEditorPane` reports a click and leaves
+  following it to whoever is listening, and nothing was: `addHyperlinkListener` is called nowhere in
+  this application. They open now, through the same code the update check uses - including its
+  fallback of showing the address where the desktop cannot open a browser
+* The paper is cited by its DOI, [10.1016/j.carres.2017.04.015](https://doi.org/10.1016/j.carres.2017.04.015),
+  rather than by a publisher URL - the identifier the article keeps wherever it is hosted. Confirmed
+  against CrossRef to be the same article: it resolves to the PII the direct link named
+
 ### 1.34.3  (20260812)
 * Took the derivatization off a composition's implicit bonds, so a derivatized composition weighs
   what the same glycan written with its linkages weighs (#165)
