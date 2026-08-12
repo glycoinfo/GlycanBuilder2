@@ -48,7 +48,11 @@ public class AboutLinksTest {
 
 		assertTrue(links.toString(), links.stream().anyMatch(l -> l.contains("snfg")));
 		assertTrue(links.toString(), links.stream().anyMatch(l -> l.contains("wurcs")));
-		assertTrue(links.toString(), links.stream().anyMatch(l -> l.contains("S0008621516305316")));
+		// Cited by DOI, not by publisher URL: the DOI is what the article keeps wherever it is
+		// hosted. Verified against CrossRef that it names this article - the PII it resolves to,
+		// S0008621516305316, is what the direct link used to point at.
+		assertTrue(links.toString(),
+				links.stream().anyMatch(l -> l.equals("https://doi.org/10.1016/j.carres.2017.04.015")));
 	}
 
 	/**
