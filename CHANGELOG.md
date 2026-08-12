@@ -1,4 +1,28 @@
 ## Change log
+### 1.35.2  (20260812)
+* **A sequence could make the parser go and fetch what it named.** Three of the formats the library
+  accepts are XML - `glycoct_xml`, `cabosml`, `glyde` - and JDOM's `SAXBuilder` reads them, resolving
+  external entities as it meets them. A document declaring an entity with a `SYSTEM` identifier
+  therefore had the process open whatever that pointed at, mid-parse (CVE-2021-33813)
+  * Measured through the public entry point: `importFromString(document, "glycoct_xml")` opened a
+    `file://` path the document chose, by way of `SugarImporterGlycoCT.parse` ->
+    `XMLEntityManager.startEntity` -> `FileURLConnection.getInputStream`. Whoever supplied a sequence
+    decided what was read and what was connected to - which anywhere sequences arrive from outside,
+    a server most of all, is the whole of it
+  * **There is no version to move to.** The advisory's fix is `org.jdom:jdom2:2.0.6.1`, and
+    MolecularFramework and resourcesdb are compiled against `org.jdom` - a different package - so the
+    coordinate in use has no patched version at all and a dependency bump cannot reach it. Getting
+    off it is filed as #175
+  * The document type declaration is refused before the parser sees it. A DTD is the only way to
+    declare an entity and the specification spells the declaration exactly one way, so this leaves no
+    other route to one
+  * **Reading and writing the XML formats is unaffected.** Only a document carrying a declaration is
+    refused, and the library's own output carries none: measured, GlycoCT XML and Glyde II both write
+    and read back unchanged, as does GlycoCT condensed. Nothing was added to the writing side
+  * The test asserts that nothing is fetched rather than that the read failed - a read can fail on its
+    own account long after the parser has been off to collect what it was pointed at. A server is put
+    on loopback where the document points and the assertion is that it is never called
+
 ### 1.35.1  (20260812)
 * **Check for Updates could not reach GitHub from an installed copy**, reporting a
   `handshake_failure` while a browser on the same machine loaded the same page. The runtime image
