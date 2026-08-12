@@ -25,6 +25,10 @@ import java.io.*;
 import javax.swing.*;
 import javax.swing.border.*;
 
+import javax.swing.event.HyperlinkEvent;
+
+import org.glycoinfo.application.glycanbuilder.update.UpdateCheck;
+
 import org.eurocarbdb.application.glycanbuilder.converter.GlycanParserFactory;
 import org.eurocarbdb.application.glycanbuilder.util.ActionManager;
 import org.eurocarbdb.application.glycanbuilder.util.MouseUtils;
@@ -297,6 +301,7 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
 
 		// help
 		theActionManager.add("about",FileUtils.themeManager.getImageIcon("about"),"About",KeyEvent.VK_B,"",this);
+		theActionManager.add("checkforupdates",FileUtils.themeManager.getImageIcon("about"),"Check for Updates",KeyEvent.VK_U,"",this);
 	}   
 
 	private void updateActions() {
@@ -426,6 +431,8 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
 		// help menu
 		JMenu help_menu = new JMenu("Help");
 		help_menu.setMnemonic(KeyEvent.VK_H);
+		help_menu.add(theActionManager.get("checkforupdates"));
+		help_menu.addSeparator();
 		help_menu.add(theActionManager.get("about"));
 		menubar.add(help_menu);    
 
@@ -876,6 +883,102 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
 	/**
        Show the about menu
 	 */
+	/**
+	 * Asks GitHub whether a newer release exists, because a user asked.
+	 *
+	 * <p>Nothing checks on its own: no outbound call is made unless this menu item is chosen. That
+	 * keeps startup untouched - offline, behind a proxy, or with GitHub down, the application starts
+	 * exactly as it did - and leaves the choice of whether to talk to GitHub with the person using
+	 * it.
+	 *
+	 * <p>The check runs on a worker thread, since it is a network call and the event thread is what
+	 * draws the window. Where it sends someone depends on the platform: Windows is published only
+	 * through the Microsoft Store, so that is where it points - the releases carry no Windows
+	 * installer at all.
+	 */
+	public void onCheckForUpdates() {
+		final java.awt.Cursor busy = java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR);
+		final java.awt.Cursor normal = java.awt.Cursor.getDefaultCursor();
+		setCursor(busy);
+
+		new SwingWorker<UpdateCheck.Result, Void>() {
+			@Override
+			protected UpdateCheck.Result doInBackground() {
+				return UpdateCheck.run();
+			}
+
+			@Override
+			protected void done() {
+				setCursor(normal);
+				try {
+					showUpdateCheckResult(get());
+				} catch (Exception theCheckItselfFailed) {
+					LogUtils.report(theCheckItselfFailed);
+				}
+			}
+		}.execute();
+	}
+
+	/**
+	 * Opens a link the user clicked in a rendered HTML pane.
+	 *
+	 * <p>A pane reports the click; it does not follow it. Only an activation is acted on - the same
+	 * event type also reports the pointer entering and leaving a link - and a link the pane could
+	 * not resolve to a URL is ignored rather than passed on as text.
+	 */
+	void onHyperlink(HyperlinkEvent event) {
+		if (event.getEventType() != HyperlinkEvent.EventType.ACTIVATED) return;
+		if (event.getURL() == null) return;
+
+		openInBrowser(event.getURL().toString());
+	}
+
+	private void showUpdateCheckResult(UpdateCheck.Result result) {
+		if (result.problem != null) {
+			JOptionPane.showMessageDialog(this,
+					result.problem + "\n\nYou are running version " + result.installed + ".",
+					"Could not check for updates", JOptionPane.WARNING_MESSAGE);
+			return;
+		}
+
+		if (!result.anUpdateIsAvailable()) {
+			JOptionPane.showMessageDialog(this,
+					"GlycanBuilder2 " + result.installed + " is the newest version.",
+					"No update available", JOptionPane.INFORMATION_MESSAGE);
+			return;
+		}
+
+		int answer = JOptionPane.showConfirmDialog(this,
+				"GlycanBuilder2 " + result.latest + " is available.\n"
+						+ "You are running " + result.installed + ".\n\n"
+						+ "Open the download page?",
+				"Update available", JOptionPane.YES_NO_OPTION, JOptionPane.INFORMATION_MESSAGE);
+		if (answer != JOptionPane.YES_OPTION) return;
+
+		openInBrowser(result.downloadPage);
+	}
+
+	/**
+	 * Opens a page in the user's browser, and says where to go by hand when it cannot.
+	 *
+	 * <p>{@code Desktop} is unavailable on some Linux desktops and in some sandboxes, so the address
+	 * is shown rather than the attempt failing silently.
+	 */
+	private void openInBrowser(String page) {
+		try {
+			if (java.awt.Desktop.isDesktopSupported()
+					&& java.awt.Desktop.getDesktop().isSupported(java.awt.Desktop.Action.BROWSE)) {
+				java.awt.Desktop.getDesktop().browse(java.net.URI.create(page));
+				return;
+			}
+		} catch (Exception couldNotOpen) {
+			LogUtils.report(couldNotOpen);
+		}
+
+		JOptionPane.showMessageDialog(this, "Open this address to download:\n" + page,
+				"Download", JOptionPane.INFORMATION_MESSAGE);
+	}
+
 	public void onAbout() {
 
 		try {
@@ -883,6 +986,12 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
 			JEditorPane html = new JEditorPane(this.getClass().getResource("/html/about_builder.html"));
 			html.setEditable(false);
 			html.setBorder(new EmptyBorder(0,20,20,20));
+
+			// The SNFG, WURCS and citation links did nothing when clicked: a JEditorPane reports a
+			// click and leaves opening it to whoever is listening, and nothing was. Nothing has ever
+			// registered a HyperlinkListener anywhere in this application - GlycanCanvas implements
+			// the interface with an empty method and is never added as one.
+			html.addHyperlinkListener(this::onHyperlink);
 
 			JScrollPane jscPane = new JScrollPane(html);
 
@@ -965,6 +1074,7 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
 		
 		// help
 		else if( action.equals("about") ) onAbout();
+		else if( action.equals("checkforupdates") ) onCheckForUpdates();
 		updateActions();
 	}
 
