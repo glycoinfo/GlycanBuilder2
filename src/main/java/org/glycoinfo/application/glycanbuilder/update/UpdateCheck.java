@@ -83,9 +83,37 @@ public final class UpdateCheck {
 
 			return new Result(installed, latest, downloadPage, null);
 		} catch (IOException couldNotAsk) {
-			return new Result(installed, null, downloadPage,
-					"Could not reach GitHub (" + couldNotAsk.getMessage() + ").");
+			return new Result(installed, null, downloadPage, describe(couldNotAsk));
 		}
+	}
+
+	/**
+	 * Says what went wrong in terms of what the user can do about it.
+	 *
+	 * <p>Everything used to be reported as "could not reach GitHub", which was wrong for the failure
+	 * that actually happened first: the runtime image shipped in the installers had no elliptic-curve
+	 * provider, so the TLS handshake was refused. GitHub was reachable - the connection got as far as
+	 * agreeing on nothing. Someone reading "could not reach" checks their network, which is fine, and
+	 * learns nothing.
+	 *
+	 * @param problem What the connection threw.
+	 * @return Returns a sentence naming the kind of failure.
+	 */
+	static String describe(IOException problem) {
+		if (problem instanceof javax.net.ssl.SSLException) {
+			return "Could not make a secure connection to GitHub (" + problem.getMessage() + "). "
+					+ "This is not a network problem: the connection was made and the encryption "
+					+ "could not be agreed on.";
+		}
+		if (problem instanceof java.net.UnknownHostException) {
+			return "Could not find GitHub (" + problem.getMessage()
+					+ "). Check the network connection.";
+		}
+		if (problem instanceof java.net.SocketTimeoutException) {
+			return "GitHub did not answer in time.";
+		}
+
+		return "Could not ask GitHub (" + problem.getMessage() + ").";
 	}
 
 	/**
