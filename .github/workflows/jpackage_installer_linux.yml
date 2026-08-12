@@ -20,7 +20,7 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         fetch-depth: 0
 
@@ -34,7 +34,7 @@ jobs:
         server-password: GITHUB_TOKEN
 
     - name: Cache Maven dependencies
-      uses: actions/cache@v4
+      uses: actions/cache@v5
       with:
         path: ~/.m2
         key: ${{ runner.os }}_m2_${{ hashFiles('**/pom.xml') }}
@@ -91,7 +91,7 @@ jobs:
       shell: bash
 
     - name: Upload installer artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: glycanbuilder2-installer-linux-debian
         path: installers/*
@@ -99,7 +99,7 @@ jobs:
 
     - name: Upload build logs on failure
       if: failure()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v6
       with:
         name: build-logs-linux-debian
         path: |
