@@ -1,4 +1,23 @@
 ## Change log
+### 1.35.1  (20260812)
+* **Check for Updates could not reach GitHub from an installed copy**, reporting a
+  `handshake_failure` while a browser on the same machine loaded the same page. The runtime image
+  the installers ship is built by `jlink` from a named list of modules, and `jdk.crypto.ec` was not
+  on it - so the runtime offered no elliptic-curve suites, GitHub accepts nothing else, and the TLS
+  handshake was refused before any request was sent. GitHub was reachable throughout; the two could
+  not agree on encryption
+  * Reproduced by removing the module on JDK 17 and 21.0.12 and confirmed absent on a full JDK,
+    which is why this was not seen while the feature was being written - it was only ever exercised
+    on a development JDK, never on the runtime that is actually shipped
+  * Added to all four installer builds, so macOS, Linux, RPM and Windows images can each speak TLS
+  * Anything else the installers do over HTTPS was affected the same way, not only the update check
+* A failure now says *which* failure it was. Everything was reported as being unable to reach
+  GitHub, which was wrong for the one that actually happened - someone told that checks a network
+  that is working. A refused handshake, an unresolvable host and a timeout are told apart, and the
+  handshake case says in as many words that it is not a network problem
+* The workflows run on Node 24. GitHub has deprecated the Node 20 action runtime and warns on every
+  run; the actions in use publish Node 24 majors, so each was moved to one
+
 ### 1.35.0  (20260812)
 * Added **Help > Check for Updates**, so a macOS or Linux copy can find out that a newer one exists
   * Windows has the Microsoft Store for this; macOS and Linux are installed from files people
