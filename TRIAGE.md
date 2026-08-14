@@ -62,8 +62,8 @@ remains, and the issue should say so rather than being closed.
 
 | # | Title | What is known |
 |---|---|---|
-| **#132** | `v_stripes`/`h_stripes` never painted: Tal/All, Tag/Psi, TalNAc/AllNAc identical in CFG | The style files name the fills in six places; the renderer has no case for either. Two different monosaccharides come out as the same picture, silently |
-| **#107** | Composition export to WURCS fails | Measured: throws `Invalid output string`, writes an empty file. `CompositionWURCSConverter` already produces composition WURCS and is what glycanbuilder2web calls; the exporter does not reach it |
+| ~~#132~~ | ~~`v_stripes`/`h_stripes` never painted~~ | **Done.** Three bars, clipped to the outline. The test asserts the drawn image and, separately, that the stripes exist — Tal is green and All is blue, so comparing the pair passes on colour alone |
+| ~~#107~~ | ~~Composition export to WURCS fails~~ | **Done.** `org.glycoinfo.application.glycanbuilder.composition` builds the composition as unlinked nodes and lets `WURCSFactory` canonicalize, which is what glycompconverter does. No new dependency; output pinned against that implementation's, residue by residue |
 | **#127** | `MassOptions.ISOTOPE` has no effect on `computeMass` | Measured: `AVG` gives the monoisotopic figure. The dialog offers a choice that does nothing |
 | **#185** | EPS/PS/PDF export writes 0 bytes silently | No error, no file worth having |
 | **#66** | WURCS export fails with `"_map" is null` on a heavily modified Fuc | |
