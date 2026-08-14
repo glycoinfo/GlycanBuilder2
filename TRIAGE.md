@@ -85,14 +85,30 @@ remains, and the issue should say so rather than being closed.
 ~~#88 (no right margin on a bridge)~~ — **done**: the cleared area was the glyphs' bounds cast to
 int, which truncates the origin one way and the width the other.
 
-**#29** (bisecting GlcNAc position) — measured: the placement dictionary sends both position 4 and
-position 6 to the same side (`lp=[4-9]` → 90), so a bisecting GlcNAc and the 6-antenna compete and one
-gives way. Adding it after drawing is not the cause. **The convention is settled**: branches are ordered by their linkage
-position, so 3 below, 4 between, 6 above (I. Yamada, 2026-08-14; recorded in
-`docs/linkage-positions-and-anomers.md`). Implementing it is wider than the dictionary, which matches
-one linkage at a time and cannot see its siblings — it needs candidate positions that admit a middle
-branch *and* `BookingManager` allocating in position order. Not attempted yet: it reaches every
-picture the application draws.
+**#29** (bisecting GlcNAc position) — **the rule and the expected numbers are both known; what is
+not known is where in the layout to apply them.**
+
+The convention: branches are drawn in the numeric order of their linkage positions, so a bisecting
+GlcNAc at 4 sits between the 3- and 6-antennae (I. Yamada, 2026-08-14). GlycoCraft states the same
+thing as an explicit rule and gives worked numbers —
+`/Users/yamada/git/gitlab/glycoinfo-dev/glycocraft/LAYOUT_ALGORITHM.md`, §4.5 Step 3 and §5:
+
+> DrawGlycan-SNFG ルール: acceptorPos=4 (例: bisecting GlcNAc) は y=0 に固定
+>
+> 最終配置: α1-6 Man at y=-70, bisecting GlcNAc at y=0, α1-3 Man at y=+70
+
+Measured here, on the same structure: 6-antenna y=82, β-Man y=82, 3-antenna y=134, bisecting y=30 —
+the bisecting sits above the 6-antenna instead of between the two.
+
+**Where it is not.** Every ordinary monosaccharide gets the same placement from
+`conf/residue_placements_snfg` — the catch-all `1 → 0`, straight out — and `BookingManager` puts them
+all in one bucket for angle 0. So the branch order is not decided there. Sorting the children by
+linkage position before the booking loop in `AbstractGlycanRenderer.assignPosition` was tried and
+changed nothing; it was reverted rather than left in place looking like a fix.
+
+**Where to look next**: `BBoxManager`, and its `alignLeftsOnTop` / `alignLeftsOnBottom` family, which
+is what turns one bucket of children into rows.
+
 
 #58 (G07957FT layout) · #20 (bracket not symmetric about the
 reducing end) · **#83** — the angle those two took was never used, and is gone; that does not establish the symbol is
@@ -147,3 +163,36 @@ failed in WURCS terms — and asking how to submit them. The last word is theirs
 about a week. Replying with how to send it costs a paragraph, and not replying costs the patches.
 
 Contribution questions are answered ahead of the queue, whatever band the code would fall in.
+
+---
+
+## Where this stands, for whoever picks it up next
+
+As of 2026-08-14, after 1.37.0.
+
+**Released**: P1 and P2 are done. 1.36.0 carried the composition WURCS export, the average mass and
+the striped fills; 1.37.0 carried the position rules, the transparent exports and the three
+document-loses-your-work bugs.
+
+**Open pull request**: #202, this file and the layout document. Nothing else is unmerged.
+
+**Waiting on somebody else**, and worth a look before starting anything new — several of these may be
+closable:
+
+| # | Waiting for |
+|---|---|
+| #17 | the reporter to confirm the import is what they meant, or close it |
+| #57 | which label shows 3 — and the round trip dropping `l1` → `l?` wants its own issue |
+| #58 | which part of the layout is wrong |
+| #66 | a retest on 1.36+ and the GWS; it does not reproduce here |
+| #83 | whether the symbol looks *rotated* or merely *placed differently* |
+| #185 | a retest on Windows; all five formats write here |
+| #16 | whether to split it per modification |
+| #189, #190 | the structure, as WURCS or GlycoCT |
+| #123 | the contributor said about a week, from 2026-08-14 |
+
+**Deliberately not started**: #175 (jdom2) and taking glycanbuilder2web to 1.37.0 are both on hold at
+the maintainer's request.
+
+**The reducing-end note in "Before ranking anything, verify it" is the trap most likely to waste your
+first hour.** It has caught two measurements so far.
