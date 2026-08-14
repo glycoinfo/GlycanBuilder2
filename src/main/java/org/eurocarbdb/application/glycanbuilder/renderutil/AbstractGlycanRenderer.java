@@ -15,6 +15,7 @@ import java.awt.Rectangle;
 import java.awt.image.BufferedImage;
 import java.text.DecimalFormat;
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -692,6 +693,61 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		return text.toString();
 	}
 
+	/**
+	 * The children of one region, in the numeric order of the positions they attach at.
+	 *
+	 * <p><b>Why the order matters.</b> Every ordinary monosaccharide is placed straight out by
+	 * {@code residue_placements_snfg} and {@code residue_placements_cfg} — the rules that pick a side
+	 * from the linkage position apply to substituents, and a saccharide child falls through to the
+	 * catch-all {@code 1 → 0}. So all the branches of one residue arrive in a single region and are
+	 * stacked in the order this list happens to be in, which until now was the order the children were
+	 * stored: whatever the sequence said, or the order somebody drew them in.
+	 *
+	 * <p>That is what #29 is. Drawing a biantennary core and then attaching a GlcNAc to the β-Man's 4
+	 * appended it to the list, so it was stacked last and came out at the far edge — above the
+	 * 6-antenna rather than between the two antennae. Measured on 1.37.0, default orientation: the
+	 * 6-antenna fell from y=30 to y=82 and the new GlcNAc took y=30.
+	 *
+	 * <p><b>The convention.</b> Branches are drawn in the numeric order of their linkage positions, so
+	 * a bisecting GlcNAc at 4 sits between the 3- and 6-antennae (I. Yamada, 2026-08-14). GlycoCraft's
+	 * {@code LAYOUT_ALGORITHM.md} states the same rule and gives worked coordinates: α1-6 Man above,
+	 * the bisecting GlcNAc level with its parent, α1-3 Man below.
+	 *
+	 * <p><b>Ascending, in every orientation.</b> The four orientations stack a region from opposite
+	 * ends — LR downwards, RL upwards, TB leftwards, BT rightwards — so the same ascending list lands
+	 * differently in each. Ascending is what each of them was already doing correctly for a plain
+	 * biantennary core, in the three orientations that had it right, so ordering by position fixes
+	 * where a middle branch goes without moving anything that was already where it belonged.
+	 *
+	 * <p>An unknown position sorts last and keeps the order it came in: there is nothing to compare it
+	 * with, and moving it would be a guess dressed as a rule.
+	 */
+	private LinkedList<Residue> inPositionOrder(LinkedList<Residue> children) {
+		if (children.size() < 2) return children;
+
+		// A stable sort, so children that cannot be compared stay as they were.
+		children.sort(Comparator.comparingInt(AbstractGlycanRenderer::linkagePositionOf));
+		return children;
+	}
+
+	/**
+	 * The position a residue attaches to its parent at, for ordering.
+	 *
+	 * @return Returns the position as a number, or {@link Integer#MAX_VALUE} when there is no single
+	 *         known position — no parent, an unknown position, or several candidates, none of which
+	 *         says where the branch belongs.
+	 */
+	private static int linkagePositionOf(Residue residue) {
+		Linkage link = residue.getParentLinkage();
+		if (link == null) return Integer.MAX_VALUE;
+
+		Collection<Character> positions = link.getParentPositions();
+		if (positions == null || positions.size() != 1) return Integer.MAX_VALUE;
+
+		char position = positions.iterator().next();
+		return Character.isDigit(position) ? Character.getNumericValue(position) : Integer.MAX_VALUE;
+	}
+
 	private void computeBoundingBoxes(Residue node, PositionManager posManager,
 									  BBoxManager bboxManager, boolean _isComposition) throws Exception {
 		if (node == null) return;
@@ -762,7 +818,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		}
 
 		// position 0 (right)
-		LinkedList<Residue> region_0 = posManager.getChildrenAtPosition(node, new ResAngle(0));
+		LinkedList<Residue> region_0 = inPositionOrder(posManager.getChildrenAtPosition(node, new ResAngle(0)));
 		for (int i = 0; i < region_0.size(); i++) {
 			computeBoundingBoxes(region_0.get(i), posManager, bboxManager, _isComposition);
 			if (i > 0)
@@ -887,7 +943,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		}
 
 		// position 0 (left)
-		LinkedList<Residue> region_0 = posManager.getChildrenAtPosition(node, new ResAngle(0), false);
+		LinkedList<Residue> region_0 = inPositionOrder(posManager.getChildrenAtPosition(node, new ResAngle(0), false));
 		for (int i = 0; i < region_0.size(); i++) {
 			computeBoundingBoxes(region_0.get(i), posManager, bboxManager ,_isComposition);
 			if (i > 0)
@@ -1019,7 +1075,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		}
 
 		// position 0 (bottom)
-		LinkedList<Residue> region_0 = posManager.getChildrenAtPosition(node, new ResAngle(0));
+		LinkedList<Residue> region_0 = inPositionOrder(posManager.getChildrenAtPosition(node, new ResAngle(0)));
 		for (int i = 0; i < region_0.size(); i++) {
 			computeBoundingBoxes(region_0.get(i), posManager, bboxManager, _isComposition);
 			if (i > 0)
@@ -1145,7 +1201,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		}
 
 		// position 0 (top)
-		LinkedList<Residue> region_0 = posManager.getChildrenAtPosition(node, new ResAngle(0));
+		LinkedList<Residue> region_0 = inPositionOrder(posManager.getChildrenAtPosition(node, new ResAngle(0)));
 		for (int i = 0; i < region_0.size(); i++) {
 			computeBoundingBoxes(region_0.get(i), posManager, bboxManager, _isComposition);
 			if (i > 0)

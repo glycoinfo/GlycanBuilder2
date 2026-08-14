@@ -1283,9 +1283,10 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
        Compute the mass-to-charge ratio given the current mass settings.
 	 */
 	public double computeMZ() {
-		double mass = computeMass();		
-		return mass_options.ION_CLOUD.and(mass_options.NEUTRAL_EXCHANGES).computeMZ(mass);
-	}   
+		double mass = computeMass();
+		return mass_options.ION_CLOUD.and(mass_options.NEUTRAL_EXCHANGES)
+				.computeMZ(mass, weighedAsAverage());
+	}
 
 	/**
        Compute the chemical formula for this structure.
@@ -1367,7 +1368,7 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 	 * @return Returns whether {@code ISOTOPE} says average.
 	 */
 	private boolean weighedAsAverage() {
-		return mass_options != null && MassOptions.ISOTOPE_AVG.equals(mass_options.ISOTOPE);
+		return mass_options != null && mass_options.isAverage();
 	}
 
 	/** @return Returns a residue's mass, of the kind this structure is being weighed in. */

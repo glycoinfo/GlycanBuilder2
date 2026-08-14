@@ -244,7 +244,7 @@ public class ResidueRendererAWT extends AbstractResidueRenderer {
     		if( orientation.equals(0) || orientation.equals(180) ) {
     			Rectangle2D.Double text_rect = new Rectangle2D.Double(midx(cur_bbox)-text_bound.width/2,midy(cur_bbox)-text_bound.height/2,text_bound.width,text_bound.height);
     			if( shape==null || fill_shape==null ) 
-    				g2d.clearRect((int)text_rect.x,(int)text_rect.y,(int)text_rect.width,(int)text_rect.height);
+    				clearAround(g2d,text_rect);
     			g2d.drawString(text,(int)text_rect.x,(int)(text_rect.y+text_rect.height));
     		}
     		if(orientation.equals(-90) || orientation.equals(90)) {
@@ -257,12 +257,12 @@ public class ResidueRendererAWT extends AbstractResidueRenderer {
     			if(isSNFG || shape==null) {
     				Rectangle2D.Double text_rect = new Rectangle2D.Double(midx(cur_bbox)-text_bound.width/2,midy(cur_bbox)-text_bound.height/2,text_bound.width,text_bound.height);
         			if( shape==null || fill_shape==null )
-        				g2d.clearRect((int)text_rect.x,(int)text_rect.y,(int)text_rect.width,(int)text_rect.height);
+        				clearAround(g2d,text_rect);
         			g2d.drawString(text,(int)text_rect.x,(int)(text_rect.y+text_rect.height));
     			} else {
     				Rectangle2D.Double text_rect = new Rectangle2D.Double(midx(cur_bbox)-text_bound.height/2,midy(cur_bbox)-text_bound.width/2,text_bound.height,text_bound.width);
     				if( shape==null || fill_shape==null ) 
-    					g2d.clearRect((int)text_rect.x,(int)text_rect.y,(int)text_rect.width,(int)text_rect.height);        
+    					clearAround(g2d,text_rect);        
     				
     				g2d.rotate(-Math.PI/2.0); 
     				g2d.drawString(text,-(int)(text_rect.y+text_rect.height),(int)(text_rect.x+text_rect.width));
@@ -272,6 +272,8 @@ public class ResidueRendererAWT extends AbstractResidueRenderer {
 
     		g2d.setFont(old_font);
     	}
+
+
     	
     	boolean isShow = false;
     	if(node.isSaccharide()) isShow = GlycanUtils.isFacingAnom(node);
@@ -286,6 +288,41 @@ public class ResidueRendererAWT extends AbstractResidueRenderer {
 
     	g2d.setColor(Color.black);
     	//g2d.drawString(""+node.id,left(cur_bbox),bottom(cur_bbox));
+    }
+
+    /**
+       Clears a margin around a label so it does not run into what is behind it.
+
+       <p>The cleared area used to be the glyphs' own bounds, cast to int - which truncates the
+       origin one way and the width the other, so a label came out with about a pixel of room on its
+       left and none on its right. On a phosphate bridge the P then touched the edge of the linkage
+       and read as part of it (#88).</p>
+
+       <p>A pixel each side, and rounded rather than truncated, so the room is the same on both.</p>
+
+       @param g2d Where the label is being drawn.
+       @param text_rect The glyphs' bounds.
+    */
+    static private void clearAround(Graphics2D g2d, Rectangle2D.Double text_rect) {
+    	Rectangle room = clearanceAround(text_rect);
+    	g2d.clearRect(room.x,room.y,room.width,room.height);
+    }
+
+    /**
+       The area to clear for a label: its glyphs, and a pixel of room on every side.
+
+       @param text_rect The glyphs' bounds.
+       @return Returns the area, in whole pixels.
+    */
+    static public Rectangle clearanceAround(Rectangle2D.Double text_rect) {
+    	final int margin = 1;
+
+    	int x = (int)Math.floor(text_rect.x) - margin;
+    	int y = (int)Math.floor(text_rect.y) - margin;
+    	int right = (int)Math.ceil(text_rect.x + text_rect.width) + margin;
+    	int bottom = (int)Math.ceil(text_rect.y + text_rect.height) + margin;
+
+    	return new Rectangle(x,y,right-x,bottom-y);
     }
     
     private Graphics2D showAnomericState(Graphics2D g2d, Residue node, ResAngle orientation, Rectangle cur_bbox) {

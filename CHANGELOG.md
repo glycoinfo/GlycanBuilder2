@@ -1,4 +1,62 @@
 ## Change log
+### 1.38.0  (20260815)
+The tracker was re-checked against the code first, and the gap between them turned out to be the largest
+thing on the list: nine issues were marked fixed and still open, and two faults that had been measured
+were filed nowhere. Those were dealt with before any code was written, and the release is what came out
+of the reordering.
+* **An m/z weighs its adduct the way it weighed the structure** (#203). 1.36.0 brought the neutral mass
+  under `MassOptions.ISOTOPE` and stopped at the ions, so an average neutral mass could arrive carrying a
+  monoisotopic adduct - a figure that is neither, and plausible at every digit anyone would check
+  * `IonCloud` captured an adduct's mass when the ion was *set*, which is always the monoisotopic
+    figure, and `computeMZ` only added the total it had been handed. The adduct was decided before
+    anything knew which table the answer wanted
+  * **Nil for sodium, +0.135 per potassium, +0.484 per chloride, and negative for lithium**, since ⁷Li is
+    the monoisotopic mass while ⁶Li pulls the average below it. The test is written on potassium and
+    chloride for that reason: sodium has one stable isotope, so a sodiated m/z - the default - was right
+    by accident throughout, and a test on it would have passed before the fix. Sodium is in there as the
+    control that says so
+  * A charge added with an explicit mass, a neutral exchange, keeps the mass it was given. There is no
+    second figure for it and inventing one would be worse
+* **A repeat unit keeps the position it closes on** (#204). `l1-m3~n` was read in and written back as
+  `l?-m3~n`, while every other linkage in the sequence survived
+  * `?` is not a rounding of `1`. It is the sequence saying the position is unknown, about a position the
+    input had stated, so the export said less than the import did and said it in a form that looks
+    deliberate
+  * Dropped on the way in, and one line. `addChild` rebuilds a linkage from its bonds and ends by taking
+    the child's own anomeric carbon; the closing repeat marker is created fresh and has none, so the `?`
+    it was born with was written over the position that had just been worked out. The opening marker was
+    always given its position before being added - only the closing side was missing that, which is why
+    one end of a repeat survived and the other did not
+* **Branches are drawn in the numeric order of their linkage positions** (#29), so a bisecting GlcNAc at
+  4 sits between the 3- and 6-antennae rather than above both of them
+  * Every ordinary monosaccharide is placed straight out: the placement rules that pick a side from the
+    position apply to substituents - `(!cs)` reads "child is not a monosaccharide" - so a saccharide
+    child falls through to the catch-all, in the SNFG and CFG dictionaries alike. All of a residue's
+    branches therefore arrive in one region and were stacked in the order the children happened to be
+    stored. Attaching one to a finished core appended it, so it was stacked last, which is the far edge
+  * That is why the report is phrased as "if you add it after drawing": the same molecule imported from a
+    sequence drew correctly, because the sequence listed the children differently
+  * Ascending, in all four orientations - which is what three of the four were already doing for a plain
+    biantennary core, so a middle branch moves into place and nothing already right moves at all.
+    Measured, default orientation: 6-antenna at y=30, bisecting GlcNAc at y=82 level with its β-Man,
+    3-antenna at y=134, which is the arrangement DrawGlycan-SNFG gives
+  * An unknown position sorts last and keeps the order it came in. There is nothing to compare it with
+* **A failed export says so once** (#183). The export wrote every structure for the file and then wrote
+  them all again to find which had come out empty, and one failure is already two windows - the message,
+  then the stack - so the second pass produced a second pair
+  * **The sequence in the report no longer fails.** `WURCS=2.0/1,1,0/[A111h]/1/` writes back unchanged, so
+    those steps produce no dialogs at all now. The doubling was still there to be read, and would have
+    doubled the next failure, so it is fixed rather than closed as not-reproducible
+* **A bridge's label has the same room on every side** (#88). The area cleared behind it was the glyphs'
+  bounds cast to `int`, which truncates the origin one way and the width the other
+* **The CFG hat diamonds no longer take an angle they never used** (#83). Removing it does not answer
+  whether the symbol looks wrong, which is what the reporter was asked; it removes a parameter that
+  claimed to matter and did not
+* `TRIAGE.md` carries the order the work was taken in and why, and
+  `docs/linkage-positions-and-anomers.md` corrects what the placement dictionaries actually say - both
+  rules are about substituents, not saccharides. The earlier, wrong reading is recorded rather than
+  removed, because it is the kind of mistake that document exists to stop
+
 ### 1.37.0  (20260814)
 Everything at the top of the triage list, in both bands: a wrong answer nobody can see is wrong, and
 work that quietly disappears.
