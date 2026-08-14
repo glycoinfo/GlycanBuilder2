@@ -201,6 +201,59 @@ public class AFailedSaveKeepsTheDocumentDirtyTest {
 						.list().contains("glycanbuilder.test"));
 	}
 
+	/**
+	 * Saving to a symbolic link writes into what it points at, and leaves the link a link.
+	 *
+	 * <p>Opening a file for writing follows a link, so copying into the destination always did. Replacing
+	 * the destination does not: measured, a save to {@code link.gws} reported success, left a regular
+	 * file where the link had been, and left the {@code target.gws} it pointed at holding the previous
+	 * contents. The document the user believed they had saved was not the one on disk.
+	 */
+	@Test
+	public void savingThroughASymbolicLinkWritesIntoItsTarget() throws Exception {
+		java.nio.file.Path directory = java.nio.file.Files.createTempDirectory("glycanbuilder-link-");
+		java.nio.file.Path target = directory.resolve("target.gws");
+		java.nio.file.Path link = directory.resolve("link.gws");
+		java.nio.file.Files.write(target, "the previous save".getBytes(StandardCharsets.UTF_8));
+		try {
+			java.nio.file.Files.createSymbolicLink(link, target.getFileName());
+		} catch (Exception notSupportedHere) {
+			org.junit.Assume.assumeNoException(notSupportedHere);
+		}
+
+		Document document = dirtyDocument();
+		document.failOnWrite = false;
+		assertTrue("the save should have succeeded", document.save(link.toString()));
+
+		assertTrue("the link should still be a link", java.nio.file.Files.isSymbolicLink(link));
+		assertEquals("the file the link points at should hold the new contents",
+				"written", contents(target.toFile()));
+	}
+
+	/** And a chain of links resolves all the way, rather than one hop. */
+	@Test
+	public void savingThroughAChainOfLinksReachesTheEnd() throws Exception {
+		java.nio.file.Path directory = java.nio.file.Files.createTempDirectory("glycanbuilder-link-");
+		java.nio.file.Path target = directory.resolve("target.gws");
+		java.nio.file.Path middle = directory.resolve("middle.gws");
+		java.nio.file.Path link = directory.resolve("link.gws");
+		java.nio.file.Files.write(target, "the previous save".getBytes(StandardCharsets.UTF_8));
+		try {
+			java.nio.file.Files.createSymbolicLink(middle, target.getFileName());
+			java.nio.file.Files.createSymbolicLink(link, middle.getFileName());
+		} catch (Exception notSupportedHere) {
+			org.junit.Assume.assumeNoException(notSupportedHere);
+		}
+
+		Document document = dirtyDocument();
+		document.failOnWrite = false;
+		assertTrue(document.save(link.toString()));
+
+		assertTrue("both links should still be links", java.nio.file.Files.isSymbolicLink(link)
+				&& java.nio.file.Files.isSymbolicLink(middle));
+		assertEquals("written", contents(target.toFile()));
+	}
+
 	/** An existing good save is not truncated when the replacement cannot be serialized. */
 	@Test
 	public void aFailedSaveDoesNotDamageThePreviousFile() throws Exception {
