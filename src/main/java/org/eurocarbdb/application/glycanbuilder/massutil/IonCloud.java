@@ -92,11 +92,31 @@ public class IonCloud {
 	 *            the mass of the glycan molecule
 	 */
 	public double computeMZ(double mass) {
+		return computeMZ(mass, false);
+	}
+
+	/**
+	 * Compute the mass/charge value of a structure with a certain mass given the charges in this
+	 * object, weighing the adducts the same way the structure was weighed.
+	 *
+	 * <p>The adducts used to be whatever they were when the ion was <em>set</em>, which is always
+	 * the monoisotopic figure - so an average neutral mass arrived carrying a monoisotopic adduct,
+	 * and the m/z was neither (#203). It matters most for potassium and chloride, +0.135 and +0.484
+	 * per adduct, and is nil for sodium, which has one stable isotope and would let a test pass
+	 * while proving nothing.
+	 *
+	 * @param mass
+	 *            the mass of the glycan molecule
+	 * @param average
+	 *            whether the adducts are to be averaged too, as {@link MassOptions#isAverage} says
+	 */
+	public double computeMZ(double mass, boolean average) {
 		if (mass <= 0.)
 			return mass;
+		double ionsMass = getIonsMass(average);
 		if (ionsNum == 0)
-			return (mass + ionsTotalMass);
-		return (mass + ionsTotalMass) / ionsNum;
+			return (mass + ionsMass);
+		return (mass + ionsMass) / ionsNum;
 	}
 
 	/**
@@ -108,12 +128,27 @@ public class IonCloud {
 	 *            associated charges
 	 */
 	public double computeMass(double mz) {
+		return computeMass(mz, false);
+	}
+
+	/**
+	 * Compute the original mass of a structure with a certain mass/charge value given the charges in
+	 * this object, taking the adducts off in the same weighing they were put on in.
+	 *
+	 * @param mz
+	 *            the mass/charge value of the glycan molecule with the associated charges
+	 * @param average
+	 *            whether the adducts were averaged, as {@link MassOptions#isAverage} says
+	 * @see #computeMZ(double, boolean)
+	 */
+	public double computeMass(double mz, boolean average) {
 		if (mz <= 0.)
 			return mz;
+		double ionsMass = getIonsMass(average);
 		if (ionsNum == 0)
-			return (mz - ionsTotalMass);
+			return (mz - ionsMass);
 
-		return (mz * ionsNum - ionsTotalMass);
+		return (mz * ionsNum - ionsMass);
 	}
 
 	/**
@@ -216,55 +251,28 @@ public class IonCloud {
 	 * has been added
 	 */
 	public IonCloud and(String charge, int quantity) {
-		if (charge.equals(MassOptions.ION_H))
-			return this.and(charge, MassUtils.h_ion.getMass(), quantity);
-		else if (charge.equals(MassOptions.ION_LI))
-			return this.and(charge, MassUtils.li_ion.getMass(), quantity);
-		else if (charge.equals(MassOptions.ION_NA))
-			return this.and(charge, MassUtils.na_ion.getMass(), quantity);
-		else if (charge.equals(MassOptions.ION_K))
-			return this.and(charge, MassUtils.k_ion.getMass(), quantity);
-		else if (charge.equals(MassOptions.ION_CL))
-			return this.and(charge, MassUtils.cl_ion.getMass(), quantity);
-		else if (charge.equals(MassOptions.ION_H2PO4))
-			return this.and(charge, MassUtils.h2po4_ion.getMass(), quantity);
-		return this.clone();
+		Molecule adduct = moleculeFor(charge);
+		if (adduct == null)
+			return this.clone();
+		return this.and(charge, adduct.getMass(), quantity);
 	}
 
 	/**
 	 * Add a certain quantity of a new charge to this object
 	 */
 	public void add(String charge, int quantity) {
-		if (charge.equals(MassOptions.ION_H))
-			add(charge, MassUtils.h_ion.getMass(), quantity);
-		else if (charge.equals(MassOptions.ION_LI))
-			add(charge, MassUtils.li_ion.getMass(), quantity);
-		else if (charge.equals(MassOptions.ION_NA))
-			add(charge, MassUtils.na_ion.getMass(), quantity);
-		else if (charge.equals(MassOptions.ION_K))
-			add(charge, MassUtils.k_ion.getMass(), quantity);
-		else if (charge.equals(MassOptions.ION_CL))
-			add(charge, MassUtils.cl_ion.getMass(), quantity);
-		else if (charge.equals(MassOptions.ION_H2PO4))
-			add(charge, MassUtils.h2po4_ion.getMass(), quantity);
+		Molecule adduct = moleculeFor(charge);
+		if (adduct != null)
+			add(charge, adduct.getMass(), quantity);
 	}
 
 	/**
 	 * Set the quantity of a specific charge
 	 */
 	public void set(String charge, int quantity) {
-		if (charge.equals(MassOptions.ION_H))
-			set(charge, MassUtils.h_ion.getMass(), quantity);
-		else if (charge.equals(MassOptions.ION_LI))
-			set(charge, MassUtils.li_ion.getMass(), quantity);
-		else if (charge.equals(MassOptions.ION_NA))
-			set(charge, MassUtils.na_ion.getMass(), quantity);
-		else if (charge.equals(MassOptions.ION_K))
-			set(charge, MassUtils.k_ion.getMass(), quantity);
-		else if (charge.equals(MassOptions.ION_CL))
-			set(charge, MassUtils.cl_ion.getMass(), quantity);
-		else if (charge.equals(MassOptions.ION_H2PO4))
-			set(charge, MassUtils.h2po4_ion.getMass(), quantity);
+		Molecule adduct = moleculeFor(charge);
+		if (adduct != null)
+			set(charge, adduct.getMass(), quantity);
 	}
 
 	/**
@@ -451,6 +459,56 @@ public class IonCloud {
 	}
 
 	/**
+	 * The total mass of the charges in this object, weighed monoisotopically or on average.
+	 *
+	 * <p>Recomputed from the adducts rather than read off {@link #ionsTotalMass}, which is whatever
+	 * was passed when each ion was set and is therefore always monoisotopic for the six named
+	 * adducts (#203).
+	 *
+	 * <p>A charge added with an explicit mass - a neutral exchange, say - keeps the mass it was
+	 * given. There is no second figure to reach for, and inventing one would be worse than using the
+	 * one the caller supplied.
+	 *
+	 * @param average
+	 *            whether to take each known adduct's average mass rather than its monoisotopic one
+	 */
+	public double getIonsMass(boolean average) {
+		if (!average)
+			return ionsTotalMass;
+
+		double total = 0.;
+		for (Map.Entry<String, Integer> e : this.ions.entrySet()) {
+			Molecule adduct = moleculeFor(e.getKey());
+			double mass = (adduct != null) ? adduct.getAverageMass()
+					: ionNameToChargeMass.getOrDefault(e.getKey(), 0.);
+			total += e.getValue() * mass;
+		}
+		return total;
+	}
+
+	/**
+	 * The molecule for one of the named adducts, or <code>null</code> for a charge this class does
+	 * not know by name.
+	 *
+	 * <p>One place, because adding a seventh adduct used to mean finding six copies of this chain.
+	 */
+	private static Molecule moleculeFor(String charge_name) {
+		if (MassOptions.ION_H.equals(charge_name))
+			return MassUtils.h_ion;
+		if (MassOptions.ION_LI.equals(charge_name))
+			return MassUtils.li_ion;
+		if (MassOptions.ION_NA.equals(charge_name))
+			return MassUtils.na_ion;
+		if (MassOptions.ION_K.equals(charge_name))
+			return MassUtils.k_ion;
+		if (MassOptions.ION_CL.equals(charge_name))
+			return MassUtils.cl_ion;
+		if (MassOptions.ION_H2PO4.equals(charge_name))
+			return MassUtils.h2po4_ion;
+		return null;
+	}
+
+	/**
 	 * Return a map containing the identities and quantities of the charges in
 	 * this object
 	 */
@@ -465,21 +523,9 @@ public class IonCloud {
 	public Molecule getMolecule() throws Exception {
 		Molecule ret = new Molecule();
 		for (Map.Entry<String, Integer> e : this.ions.entrySet()) {
-			String charge = e.getKey();
-			int num = e.getValue();
-
-			if (charge.equals(MassOptions.ION_H))
-				ret.add(MassUtils.h_ion, num);
-			else if (charge.equals(MassOptions.ION_LI))
-				ret.add(MassUtils.li_ion, num);
-			else if (charge.equals(MassOptions.ION_NA))
-				ret.add(MassUtils.na_ion, num);
-			else if (charge.equals(MassOptions.ION_K))
-				ret.add(MassUtils.k_ion, num);
-			else if (charge.equals(MassOptions.ION_CL))
-				ret.add(MassUtils.cl_ion, num);
-			else if (charge.equals(MassOptions.ION_H2PO4))
-				ret.add(MassUtils.h2po4_ion, num);
+			Molecule adduct = moleculeFor(e.getKey());
+			if (adduct != null)
+				ret.add(adduct, e.getValue());
 		}
 		return ret;
 	}
