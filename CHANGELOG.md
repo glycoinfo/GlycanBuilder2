@@ -1,4 +1,55 @@
 ## Change log
+### 1.37.0  (20260814)
+Everything at the top of the triage list, in both bands: a wrong answer nobody can see is wrong, and
+work that quietly disappears.
+* **The same linkage position could be given to two children** - a Man with two branches both at 4,
+  which is not a molecule. It draws, and the WURCS export then writes nothing, which is how it was
+  usually noticed (#34)
+  * The linkage dialog had learned to filter its list in 2021 and the model had not, so a structure
+    drawn through the dialog obeyed rules a structure built any other way did not
+  * The rule is about the carbon rather than about what hangs off it: a methyl at 4 and a branch at 4
+    are the same claim on the same atom
+* **All the rules about which positions take a linkage are in the model now**, and the dialog shows
+  what they say rather than working it out again
+  * **The residue type's list** knows what the sugar is made of - GlcNAc omits 2 for its N-acetyl,
+    Xyl has no 6 - and whether a built-in substituent closes its position is a chemical judgement made
+    per residue rather than a rule to be derived. GlcA keeps 6 open, because a carboxyl can be
+    esterified. 47 of the 134 types declare no list at all, and no list means no constraint
+  * **The ring** occupies a position: 5 or 6 for a pyranose, 4 or 5 for a furanose, depending on where
+    the anomeric centre is. An open chain closes nothing
+  * **An alditol** has no ring and no anomeric centre, so its 1 is an ordinary hydroxyl and does take
+    a bond
+  * **A bridge is exempt, deliberately.** It may attach at the anomeric carbon, which no list offers,
+    and 1,6-anhydro does - enforcing the list against it stopped that structure round-tripping, which
+    is how the exemption was found
+  * `docs/linkage-positions-and-anomers.md` writes all of this down, chemistry and attribution
+    included, because reading the code says what it does rather than whether that is right
+* **An anomeric configuration is no longer drawn where there is no anomeric centre.** An alditol or an
+  open-chain form has nothing for α or β to describe; drawing one states something untrue, and drawing
+  "?" would say it is unknown when it is absent
+* **An exported picture brings no background with it** (#186, #188)
+  * PNG carries an alpha channel and the renderer could always paint without a background - the export
+    simply never asked, passing opaque for every format alike. BMP and JPEG keep theirs, having
+    nowhere to write transparency
+  * SVG was worse than one rectangle: the renderers clear behind text so it stays legible over a bond
+    line, and `clearRect` on an SVG surface paints the background colour rather than removing
+    anything, so every character carried its own white patch. Measured, white rectangles 9 to 0, with
+    the residues' colours held by a test of their own - the way to pass "no white" is to stop painting
+* **Three ways a document lost what was in it**
+  * Closing a saved file asked where to put it, the prompt calling Save As outright for a document
+    whose filename was in the title bar (#106)
+  * Merging a file in left the document counted as unchanged - `setFilename` clears the changed flag
+    as a side effect - so no asterisk appeared, Save stayed disabled, and closing threw the merge away
+    without asking. It took the merged file's name too, which would have made a later Save write over
+    a file nobody had edited (#178)
+  * An imported sequence inherited the reducing end last chosen in the dialog, which with "Remember
+    files after restarting" outlived the session: a WURCS that named no aglycone arrived carrying
+    somebody's -Asn from a previous sitting (#179)
+* **A failed vector export says so** rather than writing a 0-byte file (#185). The underlying failure
+  was reported on Windows and does not reproduce here, so this fixes the silence rather than the cause
+* #67, #150 and #158 were found already fixed while the list was being reproduced, and are closed with
+  the measurements. #66 does not reproduce either and awaits a retest
+
 ### 1.36.0  (20260814)
 The first pass of a triaged issue list, and the four things at the top of it. Reproducing the list
 first found three issues already fixed and still open (#67, #150, #158), now closed with the
