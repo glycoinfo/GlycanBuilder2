@@ -254,6 +254,67 @@ public class AFailedSaveKeepsTheDocumentDirtyTest {
 		assertEquals("written", contents(target.toFile()));
 	}
 
+	/**
+	 * A loop of links is refused, and both links are still links afterwards.
+	 *
+	 * <p>Bounding the search at thirty-two hops and then returning whatever it had stopped on made that
+	 * link the destination. Measured: a two-link cycle came back {@code saved=true} with one of the links
+	 * replaced by the saved file. Running out of hops is a refusal, not an answer.
+	 */
+	@Test
+	public void aLoopOfLinksIsRefused() throws Exception {
+		java.nio.file.Path directory = java.nio.file.Files.createTempDirectory("glycanbuilder-loop-");
+		java.nio.file.Path first = directory.resolve("first.gws");
+		java.nio.file.Path second = directory.resolve("second.gws");
+		try {
+			java.nio.file.Files.createSymbolicLink(first, second.getFileName());
+			java.nio.file.Files.createSymbolicLink(second, first.getFileName());
+		} catch (Exception notSupportedHere) {
+			org.junit.Assume.assumeNoException(notSupportedHere);
+		}
+
+		Document document = dirtyDocument();
+		document.failOnWrite = false;
+
+		assertFalse("a loop of links has no file at the end of it to save into",
+				document.save(first.toString()));
+		assertTrue("the first link should still be a link",
+				java.nio.file.Files.isSymbolicLink(first));
+		assertTrue("the second link should still be a link",
+				java.nio.file.Files.isSymbolicLink(second));
+		assertTrue("the document should remain dirty", document.hasChanged());
+	}
+
+	/** And so is a chain longer than the bound, with every link and the file at the end left alone. */
+	@Test
+	public void aChainLongerThanTheBoundIsRefused() throws Exception {
+		java.nio.file.Path directory = java.nio.file.Files.createTempDirectory("glycanbuilder-chain-");
+		java.nio.file.Path target = directory.resolve("target.gws");
+		java.nio.file.Files.write(target, "the previous save".getBytes(StandardCharsets.UTF_8));
+
+		java.nio.file.Path[] links = new java.nio.file.Path[33];
+		try {
+			for (int index = links.length - 1; index >= 0; index--) {
+				links[index] = directory.resolve("link-" + index + ".gws");
+				java.nio.file.Path next = (index == links.length - 1) ? target : links[index + 1];
+				java.nio.file.Files.createSymbolicLink(links[index], next.getFileName());
+			}
+		} catch (Exception notSupportedHere) {
+			org.junit.Assume.assumeNoException(notSupportedHere);
+		}
+
+		Document document = dirtyDocument();
+		document.failOnWrite = false;
+
+		assertFalse("a chain past the bound should be refused rather than cut short",
+				document.save(links[0].toString()));
+		for (java.nio.file.Path link : links)
+			assertTrue(link + " should still be a link", java.nio.file.Files.isSymbolicLink(link));
+		assertEquals("the file at the end of the chain should be untouched",
+				"the previous save", contents(target.toFile()));
+		assertTrue("the document should remain dirty", document.hasChanged());
+	}
+
 	/** An existing good save is not truncated when the replacement cannot be serialized. */
 	@Test
 	public void aFailedSaveDoesNotDamageThePreviousFile() throws Exception {

@@ -507,6 +507,15 @@ public abstract class BaseDocument {
         resolved = ((parent==null) ? target : parent.resolve(target)).toAbsolutePath().normalize();
     }
 
+    // Running out of hops is a refusal, not an answer. Returning the link we stopped on made it the
+    // destination, so a loop of links - or a chain longer than the bound - had one of its links replaced
+    // by the saved file while the real file kept the previous contents, and the save reported success.
+    // Measured: a two-link cycle came back saved=true with one link destroyed; a thirty-three link chain
+    // came back saved=true with an intermediate link replaced and the target untouched.
+    if( Files.isSymbolicLink(resolved) )
+        throw new IOException("cannot find what " + path
+                + " points at: more than 32 symbolic links to follow, or a loop of them");
+
     return resolved;
     }
 
