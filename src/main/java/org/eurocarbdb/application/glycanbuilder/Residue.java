@@ -1369,6 +1369,13 @@ public class Residue {
 			return true;
 		}
 
+		// a carbon carries one glycosidic bond, so a position another child already occupies is not
+		// one this child can be given (#34). Checked here as well as in canAddChild because this
+		// does not consult it - the two have grown apart, and adding is the path that makes the
+		// structure
+		if( positionAlreadyTaken(child,bonds) )
+			return false;
+
 		// check for available space
 		//if( (getNoLinkages()+bonds.size())<getMaxLinkages() )
 
@@ -1422,9 +1429,58 @@ public class Residue {
 		if( isLCleavage() && cleaved_residue.getTypeName().equals(child.getTypeName()) )
 			return true;
 
+		// a carbon carries one glycosidic bond, so a position another child already occupies is not
+		// one this child can be given (#34)
+		if( positionAlreadyTaken(child,bonds) )
+			return false;
+
 		// check for available space
-		//return ( (getNoLinkages()+bonds.size())<getMaxLinkages() ); 
+		//return ( (getNoLinkages()+bonds.size())<getMaxLinkages() );
 		return true;
+	}
+
+	/**
+	 * Whether any of these bonds would put a child where another child already is.
+	 *
+	 * <p>The position list offered when a linkage is edited was built from what the residue type
+	 * allows without asking what its other children had taken, so the same position could be given
+	 * twice - a Man with two branches both at 4, which is not a molecule. It draws, and the WURCS
+	 * export then writes nothing at all, which is how it was usually noticed.
+	 *
+	 * <p>Only a position that is actually stated counts. An unknown position - {@code '?'}, which is
+	 * most of what a structure read from a database carries - says nothing about what is where, so
+	 * two of those do not conflict; deciding they did would refuse structures that are perfectly
+	 * ordinary. A bond that names several positions at once is the same case: it is a statement of
+	 * "one of these", not of any one of them.
+	 *
+	 * @param child The residue about to be added, which is not counted against itself.
+	 * @param bonds The bonds it would be added by.
+	 * @return Returns whether one of them names a position another child already has.
+	 */
+	private boolean positionAlreadyTaken(Residue child, Collection<Bond> bonds) {
+		if( bonds==null )
+			return false;
+
+		for( Bond bond : bonds ) {
+			char[] positions = bond.getParentPositions();
+			if( positions==null || positions.length!=1 || positions[0]=='?' )
+				continue;
+
+			for( Linkage taken : children_linkages ) {
+				if( taken.getChildResidue()==child )
+					continue;
+
+				for( Bond takenBond : taken.getBonds() ) {
+					char[] takenPositions = takenBond.getParentPositions();
+					if( takenPositions==null || takenPositions.length!=1 )
+						continue;
+					if( takenPositions[0]==positions[0] )
+						return true;
+				}
+			}
+		}
+
+		return false;
 	}
 
 
