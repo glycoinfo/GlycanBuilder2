@@ -599,16 +599,40 @@ public class SVGUtils   {
     static public void export(OutputStream os, GlycanRendererAWT gr, Collection<Glycan> structures, boolean show_masses, boolean show_redend, double scale, String format,PositionManager posManager,BBoxManager bboxManager) throws Exception {
     if( format.equals("svg") )
         os.write(getVectorGraphics(gr,structures,show_masses,show_redend).getBytes());
-    else if( format.equals("pdf") )        
-        os.write(getPDFGraphics(gr,structures,show_masses,show_redend));
-    else if( format.equals("ps") )        
-        os.write(getPSGraphics(gr,structures,show_masses,show_redend));
+    else if( format.equals("pdf") )
+        os.write(orRefuse(getPDFGraphics(gr,structures,show_masses,show_redend), format));
+    else if( format.equals("ps") )
+        os.write(orRefuse(getPSGraphics(gr,structures,show_masses,show_redend), format));
     else if( format.equals("eps") )
-        os.write(getEPSGraphics(gr,structures,show_masses,show_redend));
-    else if( format.equals("bmp") || format.equals("png") || format.equals("jpg") )        
+        os.write(orRefuse(getEPSGraphics(gr,structures,show_masses,show_redend), format));
+    else if( format.equals("bmp") || format.equals("png") || format.equals("jpg") )
         javax.imageio.ImageIO.write(gr.getImage(structures,true,show_masses,show_redend,scale,posManager,bboxManager),format,os);
     else
-        throw new Exception("Unrecognized graphic format: " + format);    
+        throw new Exception("Unrecognized graphic format: " + format);
+    }
+
+    /**
+       The transcoded bytes, or an exception saying there are none.
+
+       <p>The transcoders report a failure by logging it and handing back null, and what was done
+       with that null was to write it: the file had already been created, so the export left a 0-byte
+       PDF or EPS behind and said nothing at all (#185). A caller has no way to tell that from a
+       structure that happens to weigh nothing.</p>
+
+       <p>Whatever went wrong is in the log. What this adds is that somebody is told there is
+       something to look for, at the moment they are looking at the file.</p>
+
+       @param transcoded What the transcoder produced, or null if it failed.
+       @param format The format asked for, for the message.
+       @return Returns the bytes.
+       @throws Exception If there are none.
+    */
+    static private byte[] orRefuse(byte[] transcoded, String format) throws Exception {
+    if( transcoded==null )
+        throw new Exception("Could not write this structure as " + format.toUpperCase()
+            + ". The conversion failed; the reason is in the application log.");
+
+    return transcoded;
     }
 
     /**
@@ -635,13 +659,13 @@ public class SVGUtils   {
     */
     static public void export(OutputStream os, Renderable renderable, String format) throws Exception {
     if( format.equals("svg") )
-        os.write(getTranscodedSVG(renderable,null));
-    else if( format.equals("pdf") )        
-        os.write(getTranscodedSVG(renderable, new org.apache.fop.svg.PDFTranscoder()));
-    else if( format.equals("ps") )        
-        os.write(getTranscodedSVG(renderable, new org.apache.fop.render.ps.PSTranscoder()));
+        os.write(orRefuse(getTranscodedSVG(renderable,null), format));
+    else if( format.equals("pdf") )
+        os.write(orRefuse(getTranscodedSVG(renderable, new org.apache.fop.svg.PDFTranscoder()), format));
+    else if( format.equals("ps") )
+        os.write(orRefuse(getTranscodedSVG(renderable, new org.apache.fop.render.ps.PSTranscoder()), format));
     else if( format.equals("eps") )
-        os.write(getTranscodedSVG(renderable, new org.apache.fop.render.ps.EPSTranscoder()));
+        os.write(orRefuse(getTranscodedSVG(renderable, new org.apache.fop.render.ps.EPSTranscoder()), format));
     else if( format.equals("bmp") || format.equals("png") || format.equals("jpg") )        
         javax.imageio.ImageIO.write(getImage(renderable),format,os);
     else

@@ -13,6 +13,7 @@ import org.glycoinfo.WURCSFramework.wurcs.graph.WURCSGraph;
 import org.glycoinfo.application.glycanbuilder.dataset.SubstituentMAPDictionary;
 import org.glycoinfo.application.glycanbuilder.util.exchange.exporter.GlycanToWURCSGraph;
 import org.glycoinfo.application.glycanbuilder.util.exchange.importer.WURCSSequence2ToGlycan;
+import org.glycoinfo.application.glycanbuilder.composition.GlycanComposition;
 
 public class WURCS2Parser implements GlycanParser{
 	
@@ -20,7 +21,26 @@ public class WURCS2Parser implements GlycanParser{
 	
 	public String writeGlycan(Glycan structure) {
 		if (structure.isFragment()) return "";
-    if (structure.isComposition()) return "";
+
+		// A composition is written as composition WURCS, which is a different encoding rather than a
+		// worse one: it says which residues are present and that nothing is known about what joins
+		// them, and it is what GlyTouCan and GlyCosmos match a composition against. This used to
+		// return nothing at all, so "export to WURCS" on a composition wrote an empty file and said
+		// why to nobody (#107).
+		if (structure.isComposition()) {
+			try {
+				String composition = GlycanComposition.toWURCS(structure);
+
+				return (composition == null) ? "" : composition;
+			} catch (Exception cannotBeWritten) {
+				// The same silence as before would be worse now that there is something to say, but
+				// this method has nowhere to throw: every caller treats an empty string as "this
+				// structure has no WURCS". Reported where the other converters report.
+				LogUtils.report(cannotBeWritten);
+
+				return "";
+			}
+		}
 
 		try{
 			LinkageTypeOptimizer linkOpt = new LinkageTypeOptimizer();
