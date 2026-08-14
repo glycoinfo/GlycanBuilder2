@@ -1338,6 +1338,35 @@ public class Residue {
        @return <code>true</code> if the operation was successful
 	 */
 	public boolean addChild(Residue child, Collection<Bond> bonds) {
+		return attachChild(child,bonds,true);
+	}
+
+	/**
+	 * Attach a child that is being copied from a structure that already holds it.
+	 *
+	 * <p>A copy makes no new claim about a molecule, so the rules that decide what <em>may</em> be
+	 * attached do not apply to it: the question was settled when the original was made. Copying through
+	 * {@link #addChild} instead meant that a structure the rules would now refuse lost a residue on the
+	 * way through - silently, since a clone has nowhere to report - and {@code Glycan.clone()} is
+	 * copy-and-paste, undo and redo (#211).
+	 *
+	 * <p>Measured on a Glc carrying two substituents at position 2: 1.35.2 and 1.36.0 copied both,
+	 * 1.37.0 and 1.38.0 copied one and said nothing.
+	 *
+	 * <p>The distinction is between validating a change and reproducing a fact. Reading a file has
+	 * always been on the second side of it - a document containing such a structure still opens - and
+	 * copying belongs there too.
+	 */
+	protected boolean copyChild(Residue child, Collection<Bond> bonds) {
+		return attachChild(child,bonds,false);
+	}
+
+	/**
+	 * @param checkPosition
+	 *            whether the position rules apply. False when copying, where the structure already
+	 *            exists and nothing is being claimed.
+	 */
+	private boolean attachChild(Residue child, Collection<Bond> bonds, boolean checkPosition) {
 		if( child==null )
 			return false;
 
@@ -1346,8 +1375,8 @@ public class Residue {
 			if( !child.hasChildren() )
 				return false;
 
-			Linkage link = child.children_linkages.get(0);     
-			return addChild(link.getChildResidue(),link.getBonds());
+			Linkage link = child.children_linkages.get(0);
+			return attachChild(link.getChildResidue(),link.getBonds(),checkPosition);
 		}
 
 		//TODO: Investigate this further, this stop structures with repeat units from being copied 
@@ -1361,7 +1390,7 @@ public class Residue {
 
 		// cannot add a reducing end
 		if( child.isReducingEnd() && !child.canHaveParent() )
-			return this.addChild(child.firstChild(),bonds);
+			return this.attachChild(child.firstChild(),bonds,checkPosition);
 
 		// add labile back to lcleavage
 		if( isLCleavage() && cleaved_residue.getTypeName().equals(child.getTypeName()) ) {
@@ -1373,7 +1402,7 @@ public class Residue {
 		// one this child can be given (#34). Checked here as well as in canAddChild because this
 		// does not consult it - the two have grown apart, and adding is the path that makes the
 		// structure
-		if( positionIsNotAvailable(child,bonds) )
+		if( checkPosition && positionIsNotAvailable(child,bonds) )
 			return false;
 
 		// check for available space
@@ -2012,7 +2041,7 @@ public class Residue {
 
 		// clone children
 		for( Linkage l : children_linkages ){
-			clone.addChild(l.getChildResidue().cloneSubtree(stop_el,stop,startRep),l.getBonds());
+			clone.copyChild(l.getChildResidue().cloneSubtree(stop_el,stop,startRep),l.getBonds());
 
 		}
 
@@ -2036,7 +2065,7 @@ public class Residue {
 
 		// clone children
 		for( Linkage l : children_linkages )
-			clone.addChild(l.getChildResidue().cloneSubtreeAdd(add_el,toadd,toadd_bonds,startRep),l.getBonds());  
+			clone.copyChild(l.getChildResidue().cloneSubtreeAdd(add_el,toadd,toadd_bonds,startRep),l.getBonds());  
 
 				// add child where necessary
 				if( this==add_el && toadd!=null ) {
