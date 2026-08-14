@@ -178,6 +178,17 @@ public class LinkageConnector {
 		a_oEndRep.setStartResidue(this.start);
 		a_oRES.setEndRepitionResidue(a_oEndRep);
 
+		/*
+		 * The marker has to carry the position the repeat closes on before it is added as a child
+		 * (#204). addChild rebuilds the linkage from the bonds and finishes by taking the child's own
+		 * anomeric carbon, which for a freshly created marker is '?' - so the position GLINToLinkage
+		 * had just worked out was read back over, and l1-m3~n was written out as l?-m3~n.
+		 *
+		 * makeEdgeWithStartBracket has always done this for the opening marker. Only this side was
+		 * missing it.
+		 */
+		a_oEndRep.setAnomericCarbon(a_oG2L.getEndSideRepLinkage().getAnomericCarbon());
+
 		// sugar->sub->EndRep
 		if(a_oG2L.getEndSideRepLinkage().getChildResidue() != null) {
 			a_oSUB = a_oG2L.getEndSideRepLinkage().getChildResidue();
