@@ -319,20 +319,25 @@ public abstract class BaseDocument {
        be parsed
        @see #read
      */
-    public boolean open(File file, boolean merge, boolean warning) 
+    public boolean open(File file, boolean merge, boolean warning)
     {
+    FileInputStream fis = null;
     try {
-        FileInputStream fis = new FileInputStream(file);
-        
+        fis = new FileInputStream(file);
+
         // read structure
         try {
         read(fis,merge);
         }
         catch(Exception e) {
-        	System.err.println("Got exception: "+e.getMessage());
-        init();
+        // What is already open is not the file's fault. This used to call init(), which cleared the
+        // current document before returning false - so a malformed file took the work that was on
+        // screen with it, and "Open additional document..." destroyed the document it was supposed
+        // to be adding to. GlycanDocument.fromString parses into a list of its own before it touches
+        // this document, so there is nothing half-read to tidy up after.
+        System.err.println("Got exception: "+e.getMessage());
         if( warning )
-            throw e;        
+            throw e;
         return false;
         }
 
@@ -359,8 +364,21 @@ public abstract class BaseDocument {
     catch( Exception e ) {
         LogUtils.report(e);
         return false;
-    }    
-    }    
+    }
+    finally {
+        // Closed either way. It used to be left to the garbage collector, so a failed open held the
+        // file open for as long as the collector took to notice - which on Windows is the difference
+        // between being able to delete or replace it and not.
+        if( fis!=null ) {
+            try {
+                fis.close();
+            }
+            catch( Exception cannotClose ) {
+                LogUtils.report(cannotClose);
+            }
+        }
+    }
+    }
 
     protected void read(InputStream is, boolean merge) throws Exception {
     	System.err.println("in read");
@@ -385,28 +403,40 @@ public abstract class BaseDocument {
      */
     public boolean save(String filename) {
 
+    // The document is told it has been saved only once it has been. setFilename sets was_saved and
+    // clears has_changed as a side effect, and calling it first meant that an unwritable destination,
+    // a full disk or a serialization failure returned false while leaving the document marked saved
+    // and clean - so the asterisk went away, Save went grey, and the next close let the work go
+    // without asking. The write is what decides; the bookkeeping follows it.
+    File tmpfile = null;
+
     try{
-    	setFilename(filename);
-    	
-        // write to tmp file
-        File tmpfile = File.createTempFile("gwb",null);
-        write(new FileOutputStream(tmpfile));
+        // write to tmp file, so nothing touches the destination until a whole document exists
+        tmpfile = File.createTempFile("gwb",null);
 
-        // copy to dest file and delete tmp file
+        FileOutputStream out = new FileOutputStream(tmpfile);
+        try {
+            write(out);
+        }
+        finally {
+            out.close();
+        }
+
+        // copy to dest file
         FileUtils.copy(tmpfile,new File(filename));
-        tmpfile.delete();
 
-        //
-        
-        
-        //
+        setFilename(filename);
         fireDocumentInit();
         return true;
     }
     catch( Exception e ) {
         LogUtils.report(e);
         return false;
-    }        
+    }
+    finally {
+        // Ours, and gone either way. It used to be left behind on every failing path.
+        if( tmpfile!=null ) tmpfile.delete();
+    }
     }
     
     /**
