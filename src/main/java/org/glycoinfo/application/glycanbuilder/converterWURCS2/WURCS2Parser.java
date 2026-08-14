@@ -64,6 +64,15 @@ public class WURCS2Parser implements GlycanParser{
 		if(str.equals("") || !str.contains("WURCS")) throw new Exception(str + " is wrong format");
 		mass_opt.setDerivatization("Und");
 		mass_opt.ION_CLOUD.set("Na", 0);
+
+		// The sequence says what its reducing end is, and where it says nothing it is a free end.
+		// The mass options handed in carry whatever was last chosen in the dialog, and with
+		// "Remember files after restarting" on that outlives the session - so a structure imported
+		// after a restart arrived carrying somebody's -Asn from a previous sitting, on a sequence
+		// that never mentioned one (#179). Cleared here for the same reason the derivatization and
+		// the ion cloud above are: what the sequence states is the answer, and what it does not
+		// state is a default rather than a leftover.
+		mass_opt.setReducingEndType(org.eurocarbdb.application.glycanbuilder.ResidueType.createFreeReducingEnd());
 		
 		str = str.trim();		
 		if(str.contains("\t")) str = str.substring(str.indexOf("\t") + 1);

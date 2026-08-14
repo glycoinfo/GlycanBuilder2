@@ -336,8 +336,23 @@ public abstract class BaseDocument {
         return false;
         }
 
-        // 
-        setFilename(file.getAbsolutePath());        
+        if( merge ) {
+            // Opening a second file *into* this one leaves a document that is neither file: it is
+            // what was here plus what arrived. So it keeps its own name - taking the merged file's
+            // would make a later Save write over a file the user did not edit - and it counts as
+            // changed, because it is (#178). It used to do neither: setFilename cleared the changed
+            // flag as a side effect, so the document came out marked saved, the asterisk never
+            // appeared, Save stayed disabled, and closing threw the merge away without asking.
+            //
+            // Changed rather than initialized: fireDocumentInit clears the flag itself, which is
+            // right for a document that has just become a file's contents and wrong for one that has
+            // just stopped being them.
+            fireDocumentChanged();
+
+            return true;
+        }
+
+        setFilename(file.getAbsolutePath());
         fireDocumentInit();
         return true;
     }
