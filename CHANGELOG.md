@@ -1,4 +1,55 @@
 ## Change log
+### 1.36.0  (20260814)
+The first pass of a triaged issue list, and the four things at the top of it. Reproducing the list
+first found three issues already fixed and still open (#67, #150, #158), now closed with the
+measurements, and one half fixed (#125).
+* **Two monosaccharides were drawn as the same symbol.** CFG tells Tal from All, Tag from Psi and
+  TalNAc from AllNAc by the pattern inside the symbol and by nothing else, and the renderer had a
+  case for neither `v_stripes` nor `h_stripes` - so the fill fell through every branch and nothing
+  was painted inside the outline (#132)
+  * Three bars with two gaps, clipped to the symbol's own outline, so a circle gets stripes with
+    circular ends and a square gets square ones
+  * The test asserts the drawn image rather than the shape returned - a fill that is right and then
+    clipped away is still a blank symbol - and asserts that the stripes exist *separately* from the
+    pair differing, since Tal is green and All is blue and a comparison of the two passes the moment
+    the colours do
+* **A composition can be exported to WURCS** (#107). It used to write an empty file: the ordinary
+  encoder cannot express a composition, there being no linkages to encode, and nothing was put in
+  its place
+  * Composition WURCS is that place - it names the residues and says nothing is known about what
+    joins them, and it is what GlyTouCan and GlyCosmos match a composition against
+  * **Nothing in this decides the order residues appear in.** For Hex₅HexNAc₄Neu5Ac₂dHex₁ the
+    canonical order is Neu5Ac, dHex, HexNAc, Hex - neither alphabetical, nor by count, nor the order
+    counted in. The composition is built as unconnected nodes and handed to the same
+    `SugarToWURCSGraph`/`WURCSFactory` path every other WURCS takes, and the normalizer decides. A
+    WURCS that is correct but not canonical matches nothing in a database and looks right while
+    failing, so re-deriving that ordering was avoided rather than attempted
+  * The approach [glycompconverter](https://gitlab.com/glycoinfo/glycompconverter) takes,
+    reimplemented against libraries this project already depends on - **no new dependency**. Split so
+    it can be lifted out later: `CompositionToWURCS` and `CompositionResidue` know nothing of
+    GlycanBuilder2, and `GlycanComposition` is the whole of what does
+  * The expected strings in the test are that implementation's, pinned residue by residue - twelve
+    of them, all matching
+* **`MassOptions.ISOTOPE` is read** (#127). It could be set to `AVG`, the Mass options dialog offered
+  it, and nothing looked at it: every mass came from the monoisotopic figure, while each residue had
+  carried its average mass alongside all along
+  * The choice now reaches the residues, the water taken off per bond, an alditol's hydrogens and the
+    derivatization. All of it or none: residues from the average table with methyls from the
+    monoisotopic one would give a figure that is neither, and plausible at every digit that matters
+  * Measured against literature rather than against itself - glucose 180.156, Man₃GlcNAc₂ 910.82 -
+    and the monoisotopic answers are unchanged, which is the half that matters more
+  * **Still monoisotopic: the ion adducts.** `IonCloud` fixes an ion's mass when the ion is set
+    rather than when the mass is computed, so an m/z built on an average neutral mass carries a
+    monoisotopic adduct
+* **A failed vector export says so** (#185). The transcoders report a failure by logging it and
+  returning null, and that null was written - so a PDF or EPS that could not be made arrived as a
+  0-byte file with no message, which looks like a successful export of an empty picture
+  * The failure itself was reported on Windows and does not reproduce here: with the pinned batik
+    1.19 and fop 2.11 all five formats write on macOS. This fixes the silence rather than the cause
+* `TRIAGE.md` records what to work on next and, more usefully, how that is decided - by what a wrong
+  answer costs the person receiving it, with silence outranking severity and a verified claim
+  outranking a plausible one
+
 ### 1.35.2  (20260812)
 * **A sequence could make the parser go and fetch what it named.** Three of the formats the library
   accepts are XML - `glycoct_xml`, `cabosml`, `glyde` - and JDOM's `SAXBuilder` reads them, resolving
