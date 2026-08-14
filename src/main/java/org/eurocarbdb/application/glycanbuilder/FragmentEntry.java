@@ -320,8 +320,10 @@ public class FragmentEntry implements Comparable<FragmentEntry>, SAXUtils.SAXWri
 			fragment.getMassOptions().ION_CLOUD = charges;
 			fragment.getMassOptions().NEUTRAL_EXCHANGES = exchanges;
 			structure = fragment.toString();
-			if( update_mz )
-				mz_ratio = charges.computeMZ(exchanges.getIonsMass() + mass);
+			if( update_mz ) {
+				boolean average = fragment.getMassOptions().isAverage();
+				mz_ratio = charges.computeMZ(exchanges.getIonsMass(average) + mass, average);
+			}
 		}
 	}
 
@@ -331,8 +333,9 @@ public class FragmentEntry implements Comparable<FragmentEntry>, SAXUtils.SAXWri
 	public void updateMass() {
 		IonCloud charges = fragment.getMassOptions().ION_CLOUD;
 		IonCloud exchanges = fragment.getMassOptions().NEUTRAL_EXCHANGES;
+		boolean average = fragment.getMassOptions().isAverage();
 		mass = fragment.computeMass();
-		mz_ratio = charges.computeMZ(exchanges.getIonsMass() + mass);
+		mz_ratio = charges.computeMZ(exchanges.getIonsMass(average) + mass, average);
 	}
 
 	/**

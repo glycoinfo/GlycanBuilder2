@@ -120,6 +120,19 @@ public class MassOptions {
 	}
 
 	/**
+	 * Whether masses are to be averaged rather than taken monoisotopically.
+	 *
+	 * <p>Asked here rather than compared to {@link #ISOTOPE_AVG} at each site that needs to know,
+	 * because there are several and they must agree: a neutral mass from the average table with an
+	 * adduct from the monoisotopic one gives a figure that is neither (#127, #203).
+	 *
+	 * @return Returns whether {@code ISOTOPE} says average.
+	 */
+	public boolean isAverage() {
+		return ISOTOPE_AVG.equals(ISOTOPE);
+	}
+
+	/**
 	 * Return the type of persubstitution applied to the structure.
 	 */
 	public String getDerivatization() {
