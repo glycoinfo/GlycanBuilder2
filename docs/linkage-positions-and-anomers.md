@@ -11,7 +11,8 @@ Where a rule is a judgement rather than a fact, it says so and says whose judgem
 ### The residue type's own list
 
 Each residue type declares the positions it will accept, and that list is the authority. It already
-accounts for what the sugar is made of:
+accounts for what the sugar is made of. A sample rather than the whole set — there are 134 types, and
+each row below stands for a kind:
 
 | Residue | Positions | Why |
 |---|---|---|
@@ -37,6 +38,11 @@ glycosidic bond or about a bridge, and nothing in the model draws that distincti
 
 *Confirmed by I. Yamada, 2026-08-14: "GlcA の 6 位は結合位置として提示すべきではない、という理解で合っ
 ていますか" — "いいえ、間違っています。エステル結合などの可能性があります。"*
+
+**47 of the 134 types declare no list at all** — reducing ends (freeEnd, redEnd, PA, 2AB, …) and
+substituents (Me, DH, …). No list means **no constraint**, not no positions: anything reading the
+list has to treat an empty one as "nothing to say" rather than "nothing allowed", or those 47 would
+accept nothing.
 
 ### The ring
 
@@ -87,16 +93,15 @@ the drawing should not confuse them.
 
 They should live in one place and be consulted from every other. As of 2026-08-14 they do not:
 
-| Rule | Where it is | Consulted by |
-|---|---|---|
-| the type's position list | `ResidueType.getLinkagePositions`, `isValidPosition` | the linkage dialog |
-| ring form and anomeric centre | `ResiduePropertiesDialog.createPositions` | that dialog alone |
-| what a sibling has taken | `Residue.canAddChild` / `addChild` | both, since 1.36.x |
+They live in `Residue.availableLinkagePositions` and `Residue.acceptsPosition`, and everything else
+asks. `addChild` and `canAddChild` enforce them; the linkage dialog shows what they say rather than
+working it out again.
 
-So a structure built through the dialog obeys rules the model does not enforce, and a structure built
-any other way — imported, scripted, or through another code path — obeys only the last of them. That
-is how a Man came to have two branches at position 4 (#34).
+Until this was done they were in three places and none of them was the model — the type's list, which
+only the dialog asked; the ring and anomeric rules, which only the dialog knew; and what a sibling
+had taken, which only the model knew. A structure drawn through the dialog obeyed rules that one
+built any other way did not, which is how a Man came to carry two branches at position 4 (#34).
 
-**The fix is to move the knowledge into the model** and have the dialog ask it, rather than the two
-each knowing a different part. Until that is done, a change to any of these rules has to be made in
-more than one place, and this file is the record of what they are.
+**A bridge is exempt, deliberately.** It is not an ordinary glycosidic bond and may attach at the
+anomeric carbon, so the type's list does not apply to it; only the sibling rule does.
+`acceptsPosition` takes the child for exactly that reason.

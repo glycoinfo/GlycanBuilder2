@@ -129,10 +129,38 @@ public class LinkageRendererAWT extends AbstractLinkageRenderer {
 		return a_bIsShow;
 	}
     
+    /**
+     * Whether there is an anomeric configuration here to draw at all.
+     *
+     * <p>α and β describe the configuration at an anomeric centre. A residue that has none - an
+     * alditol, or an open-chain form - has nothing for them to describe, and drawing one states
+     * something untrue about the molecule. Drawing "?" instead would say it is unknown, when it is
+     * not unknown but absent; the two are different and the picture should not confuse them.
+     *
+     * <p>See {@code docs/linkage-positions-and-anomers.md}.
+     *
+     * @param link The linkage about to be labelled.
+     * @return Returns whether to label it.
+     */
     private boolean checkAnomericPosition(Linkage link) {
     	if(link.getChildResidue().getAnomericState() == 'o') return false;
     	if(link.getParentResidue().isReducingEnd() && link.getChildResidue().isStartRepetition()) return false;
-    	
+    	if(!hasAnAnomericCentre(link.getChildResidue())) return false;
+
+    	return true;
+    }
+
+    /**
+     * @param residue The residue in question.
+     * @return Returns whether it has an anomeric centre for a configuration to be at.
+     */
+    private boolean hasAnAnomericCentre(org.eurocarbdb.application.glycanbuilder.Residue residue) {
+    	if(residue == null) return false;
+    	// A reduced sugar has no anomeric carbon: the ring is open and the centre is gone.
+    	if(residue.isAlditol()) return false;
+    	// Nor has an open chain, which is what an 'o' ring size says.
+    	if(residue.getRingSize() == 'o') return false;
+
     	return true;
     }
     
