@@ -456,45 +456,123 @@ public abstract class BaseDocument {
        a same-filesystem rename. The atomic option is used where the filesystem offers it; providers
        that do not support it still move the complete file rather than streaming over the old one.
      */
-    private static void replaceFile(Path source, Path destination) throws IOException {
-    carryOverPermissions(destination,source);
+    private static void replaceFile(Path source, Path destination) throws Exception {
+    if( accessControlCarriedOver(destination,source) ) {
+        try {
+            Files.move(source,destination,StandardCopyOption.ATOMIC_MOVE,
+                    StandardCopyOption.REPLACE_EXISTING);
+        }
+        catch( AtomicMoveNotSupportedException notAtomicHere ) {
+            Files.move(source,destination,StandardCopyOption.REPLACE_EXISTING);
+        }
+        return;
+    }
 
-    try {
-        Files.move(source,destination,StandardCopyOption.ATOMIC_MOVE,
-                StandardCopyOption.REPLACE_EXISTING);
-    }
-    catch( AtomicMoveNotSupportedException notAtomicHere ) {
-        Files.move(source,destination,StandardCopyOption.REPLACE_EXISTING);
-    }
+    // The replacement could not be made to say what the file it replaces says about who may read it,
+    // so it does not replace it: the finished bytes are written into the destination instead, which
+    // cannot change its access control because the file is never replaced.
+    //
+    // Atomicity is what that gives up, and it is worth less than quietly changing who can read
+    // somebody's work. Refusing the save outright was the other option and is worse: a user who can
+    // write a file they do not own - a group-writable file in a shared directory - would be unable to
+    // save at all, which is a new way to lose work in exchange for avoiding an old one.
+    FileUtils.copy(source.toFile(),destination.toFile());
     }
 
     /**
-       Give the replacement the permissions the file being replaced had.
+       Make the replacement say what the file it replaces says about who may read and write it.
 
-       A move puts a new file in place of the old one, so the saved file would otherwise carry the
-       temporary file's permissions - and a fresh temporary file is owner-only. Measured: a document
-       saved into a directory shared with colleagues went from rw-r--r-- to rw------- the first time it
-       was saved, so everyone but its owner lost access to work they had been reading. Copying into the
-       destination, which is what this replaced, had preserved them by never replacing the file.
+       A move puts a new file in place of the old one, so the saved document would otherwise carry the
+       temporary file's access control rather than the destination's - and a fresh temporary file is
+       owner-only. Measured: a destination at rw-r--r-- came back rw------- after one save, so in a
+       shared directory everyone but the owner lost work they had been reading.
 
-       Quiet where there is nothing to carry over: a destination that does not exist yet has no
-       permissions to keep, and a filesystem without POSIX permissions has none to read. Neither is a
-       reason to refuse a save.
+       Mode bits are not the whole of it, which is the second thing measured here. A fresh file takes
+       its group from the platform's rule - the directory's group on macOS, the creating process's on
+       Linux - rather than from the file being replaced, so a destination whose group had been set for a
+       team came back with a different one and the same mode. Extended attributes were dropped
+       altogether. Anything an ACL says would go the same way.
+
+       So all four are carried: mode, owner, group and the ACL, plus any user-defined attributes.
+       Owner and group are only set where they differ, so the ordinary case of saving one's own file
+       never asks for a privilege it does not need.
+
+       @return Returns whether the replacement now says everything the destination said. False means the
+               caller must not replace it.
      */
-    private static void carryOverPermissions(Path replacing, Path replacement) {
+    private static boolean accessControlCarriedOver(Path replacing, Path replacement) {
     try {
         if( !Files.exists(replacing) )
-            return;
-        if( !Files.getFileStore(replacing).supportsFileAttributeView(
-                java.nio.file.attribute.PosixFileAttributeView.class) )
-            return;
+            return true;    // nothing to carry over, and nothing to lose by replacing it
 
-        Files.setPosixFilePermissions(replacement,Files.getPosixFilePermissions(replacing));
+        carryOverPosix(replacing,replacement);
+        carryOverAcl(replacing,replacement);
+        carryOverUserAttributes(replacing,replacement);
+
+        return true;
     }
-    catch( Exception cannotCarryThemOver ) {
-        // The save is worth more than the permissions on it. Reported rather than swallowed, because
-        // a file that quietly changes who can read it is the fault this method exists to avoid.
-        LogUtils.report(cannotCarryThemOver);
+    catch( Exception cannotCarryItOver ) {
+        // Reported, and then the caller writes into the file rather than replacing it. A save that
+        // quietly changes who can read a file is the fault this method exists to prevent, so failing to
+        // carry the answer over is a reason not to replace the file - not a reason to do it anyway.
+        LogUtils.report(cannotCarryItOver);
+        return false;
+    }
+    }
+
+    /** Mode, owner and group, where the filesystem has them. */
+    private static void carryOverPosix(Path replacing, Path replacement) throws IOException {
+    java.nio.file.attribute.PosixFileAttributeView view =
+            Files.getFileAttributeView(replacing,
+                    java.nio.file.attribute.PosixFileAttributeView.class);
+    if( view==null )
+        return;
+
+    java.nio.file.attribute.PosixFileAttributes attributes = view.readAttributes();
+    Files.setPosixFilePermissions(replacement,attributes.permissions());
+
+    java.nio.file.attribute.PosixFileAttributes now =
+            Files.readAttributes(replacement,java.nio.file.attribute.PosixFileAttributes.class);
+    if( !now.group().equals(attributes.group()) )
+        Files.getFileAttributeView(replacement,
+                java.nio.file.attribute.PosixFileAttributeView.class).setGroup(attributes.group());
+    if( !now.owner().equals(attributes.owner()) )
+        Files.setOwner(replacement,attributes.owner());
+    }
+
+    /** The ACL, where the filesystem keeps one - Windows and NFSv4 among them. */
+    private static void carryOverAcl(Path replacing, Path replacement) throws IOException {
+    java.nio.file.attribute.AclFileAttributeView from =
+            Files.getFileAttributeView(replacing,java.nio.file.attribute.AclFileAttributeView.class);
+    java.nio.file.attribute.AclFileAttributeView to =
+            Files.getFileAttributeView(replacement,java.nio.file.attribute.AclFileAttributeView.class);
+    if( from==null || to==null )
+        return;
+
+    to.setAcl(from.getAcl());
+    }
+
+    /**
+       Extended attributes, which a move drops in silence.
+
+       Measured: a marker written to a destination was gone after the replacement, with the mode bits
+       looking untouched - which is how this kind of loss escapes a test that only reads the mode.
+     */
+    private static void carryOverUserAttributes(Path replacing, Path replacement) throws IOException {
+    java.nio.file.attribute.UserDefinedFileAttributeView from =
+            Files.getFileAttributeView(replacing,
+                    java.nio.file.attribute.UserDefinedFileAttributeView.class);
+    java.nio.file.attribute.UserDefinedFileAttributeView to =
+            Files.getFileAttributeView(replacement,
+                    java.nio.file.attribute.UserDefinedFileAttributeView.class);
+    if( from==null || to==null )
+        return;
+
+    for( String name : from.list() ) {
+        java.nio.ByteBuffer value = java.nio.ByteBuffer.allocate(from.size(name));
+        from.read(name,value);
+        value.flip();
+        to.write(name,value);
     }
     }
     

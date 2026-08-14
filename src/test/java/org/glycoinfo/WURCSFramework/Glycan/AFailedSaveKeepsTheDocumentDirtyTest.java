@@ -120,6 +120,87 @@ public class AFailedSaveKeepsTheDocumentDirtyTest {
 						java.nio.file.Files.getPosixFilePermissions(path)));
 	}
 
+	/**
+	 * It keeps the group the replaced file had, not the one a new file would get.
+	 *
+	 * <p>Mode bits are not the whole of who can read a file. A fresh file takes its group from the
+	 * platform's rule — the containing directory's on macOS, the creating process's on Linux — rather
+	 * than from the file being replaced. So a destination whose group had been set for a team came back
+	 * with a different group and an identical mode, which is a loss of access that reading the mode
+	 * cannot see. On Linux that is the ordinary case for a shared directory rather than an edge one.
+	 */
+	@Test
+	public void replacingAFileKeepsTheGroupItHad() throws Exception {
+		File destination = existingDestination("the previous complete save");
+		java.nio.file.Path path = destination.toPath();
+		org.junit.Assume.assumeTrue(java.nio.file.Files.getFileStore(path)
+				.supportsFileAttributeView(java.nio.file.attribute.PosixFileAttributeView.class));
+
+		Object groupBefore = java.nio.file.Files.readAttributes(path,
+				java.nio.file.attribute.PosixFileAttributes.class).group();
+
+		Document document = dirtyDocument();
+		document.failOnWrite = false;
+		assertTrue(document.save(destination.getAbsolutePath()));
+
+		assertEquals("saving should not change the file's group", groupBefore,
+				java.nio.file.Files.readAttributes(path,
+						java.nio.file.attribute.PosixFileAttributes.class).group());
+	}
+
+	/** And the owner, for the same reason. */
+	@Test
+	public void replacingAFileKeepsTheOwnerItHad() throws Exception {
+		File destination = existingDestination("the previous complete save");
+		java.nio.file.Path path = destination.toPath();
+		org.junit.Assume.assumeTrue(java.nio.file.Files.getFileStore(path)
+				.supportsFileAttributeView(java.nio.file.attribute.PosixFileAttributeView.class));
+
+		Object ownerBefore = java.nio.file.Files.getOwner(path);
+
+		Document document = dirtyDocument();
+		document.failOnWrite = false;
+		assertTrue(document.save(destination.getAbsolutePath()));
+
+		assertEquals("saving should not change the file's owner",
+				ownerBefore, java.nio.file.Files.getOwner(path));
+	}
+
+	/**
+	 * And anything an extended attribute says, which a move drops in silence.
+	 *
+	 * <p>Measured before this was carried over: a marker written to the destination was gone after the
+	 * save while the mode looked untouched. Whatever an ACL says would go the same way, and is carried
+	 * by the same code — this is the half of it a POSIX filesystem can be made to demonstrate.
+	 */
+	@Test
+	public void replacingAFileKeepsItsExtendedAttributes() throws Exception {
+		File destination = existingDestination("the previous complete save");
+		java.nio.file.Path path = destination.toPath();
+
+		java.nio.file.attribute.UserDefinedFileAttributeView attributes =
+				java.nio.file.Files.getFileAttributeView(path,
+						java.nio.file.attribute.UserDefinedFileAttributeView.class);
+		org.junit.Assume.assumeNotNull(attributes);
+		try {
+			attributes.write("glycanbuilder.test",
+					java.nio.ByteBuffer.wrap("kept".getBytes(StandardCharsets.UTF_8)));
+		} catch (Exception notSupportedHere) {
+			org.junit.Assume.assumeNoException(notSupportedHere);
+		}
+
+		Document document = dirtyDocument();
+		document.failOnWrite = false;
+		assertTrue(document.save(destination.getAbsolutePath()));
+
+		assertTrue("the extended attribute did not survive the save: "
+				+ java.nio.file.Files.getFileAttributeView(path,
+						java.nio.file.attribute.UserDefinedFileAttributeView.class).list(),
+				java.nio.file.Files.getFileAttributeView(path,
+						java.nio.file.attribute.UserDefinedFileAttributeView.class)
+						.list().contains("glycanbuilder.test"));
+	}
+
 	/** An existing good save is not truncated when the replacement cannot be serialized. */
 	@Test
 	public void aFailedSaveDoesNotDamageThePreviousFile() throws Exception {
