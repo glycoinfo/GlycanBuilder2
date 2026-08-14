@@ -41,20 +41,60 @@ and it is what lets the next person trust this file.
 
 ---
 
-## Verified, and can be closed
+## Verified, and closed
 
-Measured on 1.35.2. Each needs a comment carrying the measurement, not a bare close.
+Measured on 1.35.2, commented with the measurement, and closed on 2026-08-14.
 
 | # | Title | What was measured |
 |---|---|---|
 | #67 | Composition m/z is incorrect | Hex₃HexNAc₂ as a composition weighs 910.3278, as does the same glycan linked. Fixed by the 1.34.1–1.34.3 composition work |
 | #150 | Ambiguous linkage read as the parent's position | Fixed in 1.34.0, `AmbiguousLinkageKeepsUnknownPositionsTest` holds it |
 | #158 | org.jdom has no fixed version | Duplicate of #175, which carries the fuller investigation |
-| #17 | AUdxxxxxh no longer supported | G00771KP reads and draws. Ask the reporter to confirm before closing — it is their report |
+| #125 | Redrawing G11127BT | Half done, and split: the structure no longer takes the JVM down, it is refused with a sentence. Being unable to draw it carried on as **#200** under the title it should have had |
 
-**#125** (redrawing G11127BT) is half done: the structure no longer takes the JVM down, it is refused
-with a sentence saying a ring through a bridge cannot be represented. Being unable to draw it is what
-remains, and the issue should say so rather than being closed.
+**#17** (AUdxxxxxh no longer supported) is still open and still wants the same thing: G00771KP reads
+and draws, so ask the reporter to confirm the import is what they meant before closing — it is their
+report.
+
+---
+
+## Fixed, and still open on the tracker
+
+**The largest gap between this file and the tracker.** Nine issues are marked done below — eight of
+them in a version a user can already install — and every one of them is still open on GitHub. Somebody
+reading the tracker sees a backlog that is not there, and none of the reporters has been told.
+
+Each wants a comment carrying what was measured and the version it went out in, then a close — not a
+bare close.
+
+| # | What it was | Released in |
+|---|---|---|
+| #132 | `v_stripes`/`h_stripes` never painted | 1.36.0 |
+| #107 | Composition export to WURCS fails | 1.36.0 |
+| #34 | Duplicated linkage position in a branched glycan | 1.37.0 |
+| #186 | PNG background not transparent | 1.37.0 |
+| #188 | SVG gives every character a white background | 1.37.0 |
+| #106 | Saving on close offers Save As for an already-saved file | 1.37.0 |
+| #178 | "Open additional document" leaves the document counted as unchanged | 1.37.0 |
+| #179 | "Remember files after restarting" carries a reducing end into new imports | 1.37.0 |
+| #88 | No right margin on a bridge label | **`develop`, unreleased** — merged as #199, no version carries it yet |
+
+**#127** is a different case and should stay open with its scope narrowed rather than closed: the
+neutral mass follows `MassOptions.ISOTOPE` as of 1.36.0, the ion adducts still do not. See the
+unfiled follow-ups below.
+
+**#83** is on `develop` too (merged as #201) but is not fixed by it — removing an angle that was never
+used does not answer whether the symbol looks wrong, which is what the reporter was asked.
+
+### Two things measured but never filed
+
+Both were found while measuring something else, both are real, and neither exists as an issue — so
+they are invisible to anyone who does not read this file.
+
+- **`IonCloud` captures an ion's mass when the ion is set, not when the mass is computed**, so an m/z
+  can pair an average neutral mass with a monoisotopic adduct. This is the remainder of #127.
+- **A repeat unit's own linkage position does not survive a round trip**, `l1` → `l?`. Found while
+  measuring #57, and a different fault from the one that issue reports.
 
 ---
 
@@ -82,8 +122,8 @@ remains, and the issue should say so rather than being closed.
 
 ## P3 — visibly wrong
 
-~~#88 (no right margin on a bridge)~~ — **done**: the cleared area was the glyphs' bounds cast to
-int, which truncates the origin one way and the width the other.
+~~#88 (no right margin on a bridge)~~ — **done, on `develop` and not yet released**: the cleared area
+was the glyphs' bounds cast to int, which truncates the origin one way and the width the other.
 
 **#29** (bisecting GlcNAc position) — **the rule and the expected numbers are both known; what is
 not known is where in the layout to apply them.**
@@ -110,18 +150,23 @@ changed nothing; it was reverted rather than left in place looking like a fix.
 is what turns one bucket of children into rows.
 
 
-#58 (G07957FT layout) · #20 (bracket not symmetric about the
-reducing end) · **#83** — the angle those two took was never used, and is gone; that does not establish the symbol is
-orientation-independent, and the measurements are on the issue.
-
-#91 (Add-structure menu
-misaligned) · #6 (fragments carrying a bridge)
-
 **#57** (repeat-unit linkage position) — measured: the model holds position 2 as the sequence says,
 so the 3 appears between the model and the picture, and the likely candidate is the position
 belonging to the *other* end of the repeat. Asked the reporter to confirm which label. Found
 separately while measuring: the round trip drops the repeat's own linkage position, `l1` → `l?`,
-which is a different fault in the same corner and wants its own issue.
+which is a different fault in the same corner and is not filed.
+
+**#83** (CFG hat diamonds take orientation from the bond) — the angle those two symbols took was
+never used, and is gone as of #201, on `develop`. That does not establish the symbol is
+orientation-independent; the measurements are on the issue, and the reporter was asked whether it
+looks *rotated* or merely *placed differently*.
+
+**#183** (a failed WURCS export shows every error twice) — two dialogs per failed structure, so four
+for two bad structures. #108 (a message for a partially failed export) was closed in 1.35.x and this
+is the same code path, so start by reading what that change left behind.
+
+#58 (G07957FT layout) · #20 (bracket not symmetric about the reducing end) ·
+#91 (Add-structure menu misaligned) · #6 (fragments carrying a bridge)
 
 ## P4 — not there yet
 
@@ -129,7 +174,8 @@ which is a different fault in the same corner and wants its own issue.
 |---|---|---|
 | #95 | Validate a drawn structure | Before submitting to GlyTouCan. Validation code exists elsewhere and could be called |
 | #100 | Substituents and defined residues in the composition builder | Overlaps #7 (which monosaccharides the list should offer); decide them together |
-| #181 | No way to add deoxy / en / alditol to a monosaccharide | A regression against the old GlycoWorkbench |
+| #181 | No way to add deoxy / en / alditol to a monosaccharide | A regression against the old GlycoWorkbench. #189 and #190 are both instances of it, per R. Ranzinger on #190 — a modified residue can be imported from a sequence but not drawn |
+| #200 | A ring closed through a bridge cannot be represented | The bridge plus the direct bond make a genuine cycle where everything downstream assumes a tree, so it is a change to the structure model, not the renderer. Carried on from #125, which is closed |
 | #184 | Multi-format clipboard (bitmap + text + SVG) | |
 | #177 | Open a .gws by double-clicking it | Needs file association *and* accepting a path at startup |
 | #41 | SNFG with linkage placement notation | CFG has it; SNFG does not |
@@ -137,6 +183,7 @@ which is a different fault in the same corner and wants its own issue.
 | #172 | Check for updates at startup | Waiting on the Microsoft Store question |
 | #109 | Compositions with linkage (lactonised sialic acid) | A WURCS question more than a GB2 one |
 | #7 | Review the Add-composition monosaccharide list | |
+| #16 | A standing list of modifications that were not handled | Fourteen WURCS collected since 2021, almost certainly not one fault — `*OSO`, `*=NO` and the rest fail at different points and some read now. Asked the reporter whether to re-measure each on 1.35.2, close this, and file one issue per modification that still fails. Overlaps #181 |
 
 ## P5 — plumbing
 
@@ -151,28 +198,90 @@ which is a different fault in the same corner and wants its own issue.
 #182 ("Unknown" is a misleading group name) · #189 (sulfate on a GlcNAc nitrogen) ·
 #190 (a KEGG structure with ribitol)
 
-#189 and #190 are asked as "how do I input this?" and may each turn out to be a missing capability
-rather than a missing instruction. Answer them by trying it, and re-file what does not work.
+#189 and #190 are asked as "how do I input this?" and both look like the missing capability #181
+describes rather than a missing instruction — R. Ranzinger said so on #190. Confirm it by trying, then
+say so on each and let #181 carry the work.
+
+**#90** (no second window on macOS) — Swing runs one instance per application on macOS, and it is not
+ours to change. Two workarounds are already in the thread, `open -n /Applications/GlycanBuilder2.app`
+and the same line wrapped as a Script Editor app. The answer is to put one of them somewhere a user
+will find it and close the issue, not to keep it open against an approach nobody has.
 
 ---
 
 ## Not a priority band, but do it first
 
 **#123** is someone outside the project offering patches — NPEs turned into exceptions that say what
-failed in WURCS terms — and asking how to submit them. The last word is theirs: they will be back in
-about a week. Replying with how to send it costs a paragraph, and not replying costs the patches.
+failed in WURCS terms. **Answered on 2026-08-14** with how to send them, what shape a test wants, and
+two recent refusals to imitate. They said about a week, so nothing is owed here until roughly the 21st;
+the next move is theirs.
 
 Contribution questions are answered ahead of the queue, whatever band the code would fall in.
 
 ---
 
+## The order to take them in
+
+The bands say what a thing costs. This says what to pick up, and it is the bands applied twice: once
+for cost, once for what it costs to leave the tracker saying something untrue.
+
+**1. One sitting of tracker work — about an hour, and it outranks every open defect.** Nine fixed
+issues are still open and two measured faults are not filed at all. Both are the same failure and it
+is the one this file is most emphatic about: *silence outranks severity*. An issue that says a fixed
+bug is live, and a real fault that exists in nobody's tracker, are both quietly wrong to everyone
+outside this repository — and unlike the defects below, they cost an hour rather than a week.
+
+- Close the nine with the measurement and the version, from the table above
+- File the `IonCloud` m/z fault, and narrow #127 to it
+- File the repeat unit's `l1` → `l?` round trip
+- Close #90 with the `open -n` workaround, and say on #189 and #190 that #181 is the work
+
+**2. The ion adduct isotope** — the new #127 issue. The last thing left in the project that hands
+someone a wrong number they cannot see is wrong: an m/z pairing an average neutral mass with a
+monoisotopic adduct. P1 by the same rule that put #127 there in the first place.
+
+**3. The repeat unit's linkage position, lost on a round trip** — the other new issue. A position the
+sequence states does not survive being written back, which is P2: the output cannot be used for what
+it was written for.
+
+**4. #29, the bisecting GlcNAc** — the largest P3 and the one with a known next step
+(`BBoxManager.alignLeftsOnTop`). Reaches every picture the application draws, which is why it wants a
+clear run at it rather than being squeezed in.
+
+**5. #183, the doubled export error** — cheap P3, and the same code path as #108, which is closed.
+
+**6. The waiting list, before starting anything new.** #17, #57, #58, #66, #83, #185, #16 are all
+waiting on somebody else and several are closable on a reply. A nudge costs a paragraph.
+
+Then the rest of P3, and P4 as wishes rather than work: #200 and #181 are both structure-model
+changes and neither is small.
+
+**When the next release goes out**, it already has two fixes waiting on `develop` (#199, #201) and the
+version bump belongs immediately before the merge to `master`, not before that.
+
+---
+
 ## Where this stands, for whoever picks it up next
 
-As of 2026-08-14, after 1.37.0.
+Re-checked against the tracker on 2026-08-15.
 
-**Released**: P1 and P2 are done. 1.36.0 carried the composition WURCS export, the average mass and
-the striped fills; 1.37.0 carried the position rules, the transparent exports and the three
+**Released**: P1 and P2 are done in the code. 1.36.0 carried the composition WURCS export, the average
+mass and the striped fills; 1.37.0 carried the position rules, the transparent exports and the three
 document-loses-your-work bugs.
+
+**The code is ahead of the tracker, and the tracker is what other people read.** Nine fixed issues are
+still open — the table under "Fixed, and still open on the tracker" is the shortest piece of work on
+this page and the one that changes what the project looks like from outside. Two measured faults are
+not filed at all.
+
+**On `develop`, waiting for the next release**: #199 (#88, the bridge label's margin) and #201 (#83's
+unused angle). `pom.xml` still reads 1.37.0 on both branches, correctly — the bump belongs immediately
+before the merge to `master`.
+
+**Releases are in order**, checked against the API rather than the release page: nothing is a
+pre-release, `releases/latest` resolves to v1.37.0, and 1.36.0 and 1.37.0 each carry the same five
+installers as every release before them. What is missing on all of them is the Windows `.msix`, which
+is uploaded by hand and is what #180 is about.
 
 **Open pull request**: #202, this file and the layout document. Nothing else is unmerged.
 
@@ -182,7 +291,7 @@ closable:
 | # | Waiting for |
 |---|---|
 | #17 | the reporter to confirm the import is what they meant, or close it |
-| #57 | which label shows 3 — and the round trip dropping `l1` → `l?` wants its own issue |
+| #57 | which label shows 3 — and the round trip dropping `l1` → `l?` is still not filed |
 | #58 | which part of the layout is wrong |
 | #66 | a retest on 1.36+ and the GWS; it does not reproduce here |
 | #83 | whether the symbol looks *rotated* or merely *placed differently* |
