@@ -125,8 +125,7 @@ Both were found while measuring something else and existed nowhere but this file
 ~~#88 (no right margin on a bridge)~~ — **done, on `develop` and not yet released**: the cleared area
 was the glyphs' bounds cast to int, which truncates the origin one way and the width the other.
 
-**#29** (bisecting GlcNAc position) — **the rule and the expected numbers are both known; what is
-not known is where in the layout to apply them.**
+~~**#29** (bisecting GlcNAc position)~~ — **fixed, in PR #207, waiting to merge.**
 
 The convention: branches are drawn in the numeric order of their linkage positions, so a bisecting
 GlcNAc at 4 sits between the 3- and 6-antennae (I. Yamada, 2026-08-14). GlycoCraft states the same
@@ -137,17 +136,26 @@ thing as an explicit rule and gives worked numbers —
 >
 > 最終配置: α1-6 Man at y=-70, bisecting GlcNAc at y=0, α1-3 Man at y=+70
 
-Measured here, on the same structure: 6-antenna y=82, β-Man y=82, 3-antenna y=134, bisecting y=30 —
-the bisecting sits above the 6-antenna instead of between the two.
+Now measured, default orientation: 6-antenna y=30, bisecting GlcNAc y=82 level with its β-Man,
+3-antenna y=134. Was 82 / 30 / 134 — the bisecting above the 6-antenna, with the 6-antenna pushed onto
+its parent's line.
 
-**Where it is not.** Every ordinary monosaccharide gets the same placement from
-`conf/residue_placements_snfg` — the catch-all `1 → 0`, straight out — and `BookingManager` puts them
-all in one bucket for angle 0. So the branch order is not decided there. Sorting the children by
-linkage position before the booking loop in `AbstractGlycanRenderer.assignPosition` was tried and
-changed nothing; it was reverted rather than left in place looking like a fix.
+**What it turned out to be.** Every ordinary monosaccharide is placed straight out, so all of a
+residue's branches arrive in one region and are stacked in whatever order that region's list is in —
+which was the order the children were stored. Attaching one afterwards appended it, so it was stacked
+last, which is the far edge. That is why the issue is phrased as "if you add it after drawing": the
+same molecule imported from a sequence drew correctly, because the sequence listed the children
+differently.
 
-**Where to look next**: `BBoxManager`, and its `alignLeftsOnTop` / `alignLeftsOnBottom` family, which
-is what turns one bucket of children into rows.
+`AbstractGlycanRenderer.inPositionOrder` sorts that region before it is stacked, ascending, in all four
+orientations — which is what three of the four were already doing for a plain biantennary core, so a
+middle branch moves into place and nothing already right moves at all.
+
+**Two dead ends worth not repeating.** Sorting the children in `assignPosition` changed nothing: the
+region list is rebuilt from `PositionManager.getChildrenAtPosition`, which walks the residue's own
+linkages. And the first version of the test found the bisecting GlcNAc by name and position and picked
+up the chitobiose core's GlcNAc, which is also at 4 — it failed without the change, for the wrong
+reason.
 
 
 **#57** (repeat-unit linkage position) — measured: the model holds position 2 as the sequence says,
@@ -251,11 +259,13 @@ someone a wrong number they could not see was wrong. P1 by the same rule that pu
 to be dropped on the way in rather than on the way out, and to be one line: the closing repeat marker
 was the only one of the two that was never given the position before being added.
 
-**4. #29, the bisecting GlcNAc — the next piece of work.** The largest P3 and the one with a known next
-step (`BBoxManager.alignLeftsOnTop`). Reaches every picture the application draws, which is why it
-wants a clear run at it rather than being squeezed in.
+**4. ~~#29, the bisecting GlcNAc~~ — fixed, PR #207.** It reached every picture the application draws,
+so it was checked in all four orientations and the plain core comes out unchanged in each. It also
+turned up a mistake in `docs/linkage-positions-and-anomers.md`, corrected on this branch: the
+position-to-side rules in the placement dictionaries apply to substituents only, not to saccharides.
 
-**5. #183, the doubled export error** — cheap P3, and the same code path as #108, which is closed.
+**5. #183, the doubled export error — the next piece of work.** Cheap P3, and the same code path as
+#108, which is closed.
 
 **6. The waiting list, before starting anything new.** #17, #57, #58, #66, #83, #185, #16 are all
 waiting on somebody else and several are closable on a reply. A nudge costs a paragraph.
@@ -289,8 +299,9 @@ pre-release, `releases/latest` resolves to v1.37.0, and 1.36.0 and 1.37.0 each c
 installers as every release before them. What is missing on all of them is the Windows `.msix`, which
 is uploaded by hand and is what #180 is about.
 
-**Open pull requests**: #202 (this file and the layout document), #205 (#203, the adduct isotope) and
-#206 (#204, the repeat's position). All three are for `develop` and carry no version bump.
+**Open pull requests**: #202 (this file and the layout document), #205 (#203, the adduct isotope),
+#206 (#204, the repeat's position) and #207 (#29, branch order). All four are for `develop` and carry no
+version bump.
 
 **Waiting on somebody else**, and worth a look before starting anything new — several of these may be
 closable:

@@ -85,23 +85,36 @@ side, the 6-antenna on the other, and the bisecting GlcNAc at 4 sits between the
 *Confirmed by I. Yamada, 2026-08-14: "単糖の結合方向は数字の順番になるようにするのが慣例であるので、
 4位の単糖は、3と６の間の位置に配置される".*
 
-**This is not what the code does.** `conf/residue_placements_snfg` assigns a side from the position
-alone, in two ranges:
+**Where it is decided, and where it is not.** `conf/residue_placements_snfg` does have rules that pick
+a side from the position:
 
 ```
 (!cs)&(!cx)&(lp=[1-3[N]])   -90
 (!cs)&(!cx)&(lp=[4-9])       90
 ```
 
-4 and 6 both fall in `[4-9]`, so a bisecting GlcNAc and a 6-antenna are sent to the same side and one
-of them gives way — measured, the bisecting GlcNAc ends up above the 6-antenna and the 6-antenna
-drops to the β-Man's own line (#29).
+**They are not about saccharides.** `cs` reads "child is a monosaccharide", so `(!cs)&(!cx)` restricts
+both rules to substituents. Every ordinary monosaccharide falls through to the catch-all `1 → 0` and is
+placed straight out — in `residue_placements_cfg` too, which has the same shape.
 
-Ordering by position cannot be expressed in that dictionary, which matches one linkage at a time and
-cannot see its siblings. Making the drawing follow the convention needs both halves: candidate
-positions wide enough for a middle branch to exist, and `BookingManager` allocating them in position
-order rather than in the order the children happen to be stored. That reaches every picture the
-application draws, which is why it is written down here before it is attempted.
+*An earlier version of this section said 4 and 6 both match `lp=[4-9]` and are therefore sent to the
+same side. That was read off the rule without checking which children it applies to, and it was wrong.
+It is recorded here rather than quietly removed, because it is the kind of mistake this document exists
+to stop: the dictionary is easy to read as saying more than it does.*
+
+So all of a residue's branches arrive in one region, and the picture is decided by the order that
+region's list is in. That was the order the children happened to be stored — what the sequence said, or
+what somebody drew first. Attaching a bisecting GlcNAc to a finished core appended it and it was
+stacked last, which is the far edge: above the 6-antenna, with the 6-antenna pushed down onto the
+β-Man's own line (#29).
+
+**The fix is in the renderer, not the dictionary.** Ordering by position cannot be expressed in a
+dictionary that matches one linkage at a time and cannot see its siblings.
+`AbstractGlycanRenderer.inPositionOrder` sorts the straight-out region before it is stacked, ascending,
+in all four orientations — which is what three of the four were already doing correctly for a plain
+biantennary core, so a middle branch moves into place and nothing that was already right moves at all.
+
+An unknown position sorts last and keeps the order it came in: there is nothing to compare it with.
 
 ### The anomeric configuration
 
