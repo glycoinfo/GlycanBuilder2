@@ -21,6 +21,10 @@ package org.eurocarbdb.application.glycanbuilder;
 
 import java.awt.*;
 import java.io.*;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 
 import org.eurocarbdb.application.glycanbuilder.logutility.LogUtils;
@@ -408,22 +412,21 @@ public abstract class BaseDocument {
     // a full disk or a serialization failure returned false while leaving the document marked saved
     // and clean - so the asterisk went away, Save went grey, and the next close let the work go
     // without asking. The write is what decides; the bookkeeping follows it.
-    File tmpfile = null;
+    Path tmpfile = null;
 
     try{
-        // write to tmp file, so nothing touches the destination until a whole document exists
-        tmpfile = File.createTempFile("gwb",null);
+        Path destination = new File(filename).toPath().toAbsolutePath();
 
-        FileOutputStream out = new FileOutputStream(tmpfile);
-        try {
+        // Keep the temporary file beside the destination. A completed file can then replace the old
+        // one with a filesystem move, rather than truncating the old file and copying bytes into it.
+        // A failed copy used to leave the last good save partial or empty.
+        tmpfile = Files.createTempFile(destination.getParent(),"gwb",null);
+
+        try (OutputStream out = Files.newOutputStream(tmpfile)) {
             write(out);
         }
-        finally {
-            out.close();
-        }
 
-        // copy to dest file
-        FileUtils.copy(tmpfile,new File(filename));
+        replaceFile(tmpfile,destination);
 
         setFilename(filename);
         fireDocumentInit();
@@ -435,7 +438,141 @@ public abstract class BaseDocument {
     }
     finally {
         // Ours, and gone either way. It used to be left behind on every failing path.
-        if( tmpfile!=null ) tmpfile.delete();
+        if( tmpfile!=null ) {
+            try {
+                Files.deleteIfExists(tmpfile);
+            }
+            catch( IOException cannotDelete ) {
+                LogUtils.report(cannotDelete);
+            }
+        }
+    }
+    }
+
+    /**
+       Replace a saved file without copying into and truncating the previous version.
+
+       The temporary file is created in the destination directory, so the ordinary fallback is still
+       a same-filesystem rename. The atomic option is used where the filesystem offers it; providers
+       that do not support it still move the complete file rather than streaming over the old one.
+     */
+    private static void replaceFile(Path source, Path destination) throws Exception {
+    if( accessControlCarriedOver(destination,source) ) {
+        try {
+            Files.move(source,destination,StandardCopyOption.ATOMIC_MOVE,
+                    StandardCopyOption.REPLACE_EXISTING);
+        }
+        catch( AtomicMoveNotSupportedException notAtomicHere ) {
+            Files.move(source,destination,StandardCopyOption.REPLACE_EXISTING);
+        }
+        return;
+    }
+
+    // The replacement could not be made to say what the file it replaces says about who may read it,
+    // so it does not replace it: the finished bytes are written into the destination instead, which
+    // cannot change its access control because the file is never replaced.
+    //
+    // Atomicity is what that gives up, and it is worth less than quietly changing who can read
+    // somebody's work. Refusing the save outright was the other option and is worse: a user who can
+    // write a file they do not own - a group-writable file in a shared directory - would be unable to
+    // save at all, which is a new way to lose work in exchange for avoiding an old one.
+    FileUtils.copy(source.toFile(),destination.toFile());
+    }
+
+    /**
+       Make the replacement say what the file it replaces says about who may read and write it.
+
+       A move puts a new file in place of the old one, so the saved document would otherwise carry the
+       temporary file's access control rather than the destination's - and a fresh temporary file is
+       owner-only. Measured: a destination at rw-r--r-- came back rw------- after one save, so in a
+       shared directory everyone but the owner lost work they had been reading.
+
+       Mode bits are not the whole of it, which is the second thing measured here. A fresh file takes
+       its group from the platform's rule - the directory's group on macOS, the creating process's on
+       Linux - rather than from the file being replaced, so a destination whose group had been set for a
+       team came back with a different one and the same mode. Extended attributes were dropped
+       altogether. Anything an ACL says would go the same way.
+
+       So all four are carried: mode, owner, group and the ACL, plus any user-defined attributes.
+       Owner and group are only set where they differ, so the ordinary case of saving one's own file
+       never asks for a privilege it does not need.
+
+       @return Returns whether the replacement now says everything the destination said. False means the
+               caller must not replace it.
+     */
+    private static boolean accessControlCarriedOver(Path replacing, Path replacement) {
+    try {
+        if( !Files.exists(replacing) )
+            return true;    // nothing to carry over, and nothing to lose by replacing it
+
+        carryOverPosix(replacing,replacement);
+        carryOverAcl(replacing,replacement);
+        carryOverUserAttributes(replacing,replacement);
+
+        return true;
+    }
+    catch( Exception cannotCarryItOver ) {
+        // Reported, and then the caller writes into the file rather than replacing it. A save that
+        // quietly changes who can read a file is the fault this method exists to prevent, so failing to
+        // carry the answer over is a reason not to replace the file - not a reason to do it anyway.
+        LogUtils.report(cannotCarryItOver);
+        return false;
+    }
+    }
+
+    /** Mode, owner and group, where the filesystem has them. */
+    private static void carryOverPosix(Path replacing, Path replacement) throws IOException {
+    java.nio.file.attribute.PosixFileAttributeView view =
+            Files.getFileAttributeView(replacing,
+                    java.nio.file.attribute.PosixFileAttributeView.class);
+    if( view==null )
+        return;
+
+    java.nio.file.attribute.PosixFileAttributes attributes = view.readAttributes();
+    Files.setPosixFilePermissions(replacement,attributes.permissions());
+
+    java.nio.file.attribute.PosixFileAttributes now =
+            Files.readAttributes(replacement,java.nio.file.attribute.PosixFileAttributes.class);
+    if( !now.group().equals(attributes.group()) )
+        Files.getFileAttributeView(replacement,
+                java.nio.file.attribute.PosixFileAttributeView.class).setGroup(attributes.group());
+    if( !now.owner().equals(attributes.owner()) )
+        Files.setOwner(replacement,attributes.owner());
+    }
+
+    /** The ACL, where the filesystem keeps one - Windows and NFSv4 among them. */
+    private static void carryOverAcl(Path replacing, Path replacement) throws IOException {
+    java.nio.file.attribute.AclFileAttributeView from =
+            Files.getFileAttributeView(replacing,java.nio.file.attribute.AclFileAttributeView.class);
+    java.nio.file.attribute.AclFileAttributeView to =
+            Files.getFileAttributeView(replacement,java.nio.file.attribute.AclFileAttributeView.class);
+    if( from==null || to==null )
+        return;
+
+    to.setAcl(from.getAcl());
+    }
+
+    /**
+       Extended attributes, which a move drops in silence.
+
+       Measured: a marker written to a destination was gone after the replacement, with the mode bits
+       looking untouched - which is how this kind of loss escapes a test that only reads the mode.
+     */
+    private static void carryOverUserAttributes(Path replacing, Path replacement) throws IOException {
+    java.nio.file.attribute.UserDefinedFileAttributeView from =
+            Files.getFileAttributeView(replacing,
+                    java.nio.file.attribute.UserDefinedFileAttributeView.class);
+    java.nio.file.attribute.UserDefinedFileAttributeView to =
+            Files.getFileAttributeView(replacement,
+                    java.nio.file.attribute.UserDefinedFileAttributeView.class);
+    if( from==null || to==null )
+        return;
+
+    for( String name : from.list() ) {
+        java.nio.ByteBuffer value = java.nio.ByteBuffer.allocate(from.size(name));
+        from.read(name,value);
+        value.flip();
+        to.write(name,value);
     }
     }
     
