@@ -181,7 +181,19 @@ public abstract class AbstractResidueRenderer implements ResidueRenderer{
     	return p;
     }
 
-    static private Shape createHatDiamond(double angle, double x, double y, double w, double h) {
+    /**
+     * A diamond with a hat on its upper left.
+     *
+     * <p>Takes no angle, and never did anything with one. {@code createShape} handed it the
+     * direction of the residue's own bond, which read as though the symbol turned with the
+     * structure - and #83 was opened to ask whether that was intended for CFG. It was not happening:
+     * the hat is placed from the bounding box and nothing else, so the symbol has always been the
+     * same whichever way the structure is drawn. The argument is gone so that the code says so.
+     *
+     * <p>If CFG should turn these with the bond, that is a change to make deliberately, and this is
+     * not it.
+     */
+    static private Shape createHatDiamond(double x, double y, double w, double h) {
     	GeneralPath f = new GeneralPath();
 
     	// append diamond
@@ -196,7 +208,8 @@ public abstract class AbstractResidueRenderer implements ResidueRenderer{
     	return f;
     }
 
-    static private Shape createRHatDiamond(double angle, double x, double y, double w, double h) {
+    /** The mirror of {@link #createHatDiamond}, with the hat on the upper right. Also takes no angle. */
+    static private Shape createRHatDiamond(double x, double y, double w, double h) {
     	GeneralPath f = new GeneralPath();
 
     	// append diamond
@@ -733,10 +746,11 @@ public abstract class AbstractResidueRenderer implements ResidueRenderer{
     			return createUpTriangle(x,y,w,h);
     		return createTriangle(angle(pp,ps),x,y,w,h);
     	}
-    	if( shape.equals("hatdiamond") ) 
-    		return createHatDiamond(angle(pp,ps),x,y,w,h);            
-    	if( shape.equals("rhatdiamond") ) 
-    		return createRHatDiamond(angle(pp,ps),x,y,w,h);            
+    	// No angle: these have never turned with the bond, whatever passing one suggested (#83)
+    	if( shape.equals("hatdiamond") )
+    		return createHatDiamond(x,y,w,h);
+    	if( shape.equals("rhatdiamond") )
+    		return createRHatDiamond(x,y,w,h);
     
     	if( shape.equals("bracket") ) 
     		return createBracket(orientation.getAngle(),x,y,w,h);
