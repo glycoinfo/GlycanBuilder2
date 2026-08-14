@@ -103,7 +103,7 @@ Both were found while measuring something else and existed nowhere but this file
 | ~~#132~~ | ~~`v_stripes`/`h_stripes` never painted~~ | **Done.** Three bars, clipped to the outline. The test asserts the drawn image and, separately, that the stripes exist — Tal is green and All is blue, so comparing the pair passes on colour alone |
 | ~~#107~~ | ~~Composition export to WURCS fails~~ | **Done.** `org.glycoinfo.application.glycanbuilder.composition` builds the composition as unlinked nodes and lets `WURCSFactory` canonicalize, which is what glycompconverter does. No new dependency; output pinned against that implementation's, residue by residue |
 | ~~#127~~ | ~~`MassOptions.ISOTOPE` has no effect~~ | **Done for the neutral mass**, 1.36.0, and closed. Residues, water, hydrogen and the derivatization all follow the choice; measured against literature (Glc 180.156, Man₃GlcNAc₂ 910.82) |
-| **#203** | An m/z pairs an average neutral mass with a monoisotopic adduct | **The top of this list.** `IonCloud` captures an adduct's mass when the ion is set rather than when the mass is computed, so the isotope choice never reaches it. `Molecule` already carries both masses — what is missing is resolving the adduct at `computeMZ` time. Test it with potassium or chloride; sodium would pass while proving nothing |
+| ~~#203~~ | ~~An m/z pairs an average neutral mass with a monoisotopic adduct~~ | **Fixed, in PR #205, waiting to merge.** `IonCloud` captured an adduct's mass when the ion was set rather than when it was computed, so the choice could not reach it. `computeMZ`/`computeMass` take the flag now and `getIonsMass(boolean)` recomputes the total; a charge given an explicit mass keeps it. The test is on potassium and chloride, with sodium as the control — one stable isotope, so a sodiated m/z was right by accident and a test on the default adduct would have passed before the fix |
 | **#185** | EPS/PS/PDF export writes 0 bytes silently | **Half done.** A failed transcode is now refused by name instead of being written as an empty file — it had been logged and returned as null, and the null was written. The underlying Windows failure does not reproduce here: all five formats write on macOS with the pinned batik 1.19 / fop 2.11. Waiting on a retest from the reporter |
 | **#66** | WURCS export fails with `"_map" is null` on a heavily modified Fuc | **Does not reproduce on 1.36.0** — a Fuc with 2-O-Me, 3-NH₂ and 4-O-Me writes WURCS, drawn or imported, alone or as a branch. The substituent MAP handling has been reworked since it was filed. Waiting on a retest and the GWS |
 | ~~#34~~ | ~~Duplicated linkage position in a branched glycan~~ | **Done.** A stated position another child holds is refused, in `addChild` as well as `canAddChild` — the two had grown apart and adding is the path that makes the structure. Unknown positions still stack, and a file that already contains one still opens |
@@ -114,7 +114,7 @@ Both were found while measuring something else and existed nowhere but this file
 |---|---|---|
 | ~~#186~~ | ~~PNG background not transparent~~ | **Done.** The renderer could always paint without one; the export passed opaque for every format alike. BMP and JPEG keep theirs, having no alpha to write |
 | ~~#188~~ | ~~SVG gives every character its own white background~~ | **Done.** `clearRect` on an SVG surface paints the background colour rather than removing anything, and the export set that colour to white. Measured: white rectangles 9 → 0, colours intact |
-| **#204** | A repeat unit's own linkage position does not survive a round trip | `l1` → `l?` on G03246MZ, measured on 1.37.0. A position the sequence states is written back as unknown, so the export says less than the import did and says it in a form that looks deliberate. Which end drops it is not known; the first move is a test that asserts the round trip keeps it |
+| ~~#204~~ | ~~A repeat unit's own linkage position does not survive a round trip~~ | **Fixed, in PR #206, waiting to merge.** It was dropped on the way in, not on the way out: `addChild` rebuilds a linkage from its bonds and ends by taking the child's anomeric carbon, and the closing marker is created fresh with none — so the `?` it was born with was written over the position that had just been worked out. `makeEdgeWithStartBracket` had always set it for the opening marker; only the closing side was missing the line, which is why one end of a repeat survived and the other did not. G03246MZ now round-trips character for character |
 | **#187** | Ungrouping in PowerPoint destroys Fuc and Man | May be answered by #188 — there is no white background left to go hunting for. Worth a retest before anything else is done |
 | ~~#106~~ | ~~Saving on close offers Save As for an already-saved file~~ | **Done.** The close prompt called `onSaveAs` outright; `onSave` writes to the file the document came from and falls back by itself |
 | ~~#178~~ | ~~"Open additional document" leaves the document counted as unchanged~~ | **Done.** `setFilename` cleared the changed flag as a side effect, and a merge took the merged file's name as well. A merge now keeps its own name and counts as changed |
@@ -244,18 +244,16 @@ hour rather than a week, which is why they came first.
 Ten issues closed with their measurements, #203 and #204 filed, #88 left open on purpose until the fix
 is in a release, #189 answered from the dictionary and #190 pointed at #181.
 
-**2. #203, the ion adduct isotope** — now the top of P1, and the last thing in the project that hands
-someone a wrong number they cannot see is wrong: an m/z pairing an average neutral mass with a
-monoisotopic adduct. P1 by the same rule that put #127 there in the first place. **This is the next
-piece of work.**
+**2. ~~#203, the ion adduct isotope~~ — fixed, PR #205.** The last thing in the project that handed
+someone a wrong number they could not see was wrong. P1 by the same rule that put #127 there.
 
-**3. #204, the repeat unit's linkage position lost on a round trip** — a position the sequence states
-does not survive being written back, which is P2: the output cannot be used for what it was written
-for.
+**3. ~~#204, the repeat unit's linkage position lost on a round trip~~ — fixed, PR #206.** It turned out
+to be dropped on the way in rather than on the way out, and to be one line: the closing repeat marker
+was the only one of the two that was never given the position before being added.
 
-**4. #29, the bisecting GlcNAc** — the largest P3 and the one with a known next step
-(`BBoxManager.alignLeftsOnTop`). Reaches every picture the application draws, which is why it wants a
-clear run at it rather than being squeezed in.
+**4. #29, the bisecting GlcNAc — the next piece of work.** The largest P3 and the one with a known next
+step (`BBoxManager.alignLeftsOnTop`). Reaches every picture the application draws, which is why it
+wants a clear run at it rather than being squeezed in.
 
 **5. #183, the doubled export error** — cheap P3, and the same code path as #108, which is closed.
 
@@ -291,7 +289,8 @@ pre-release, `releases/latest` resolves to v1.37.0, and 1.36.0 and 1.37.0 each c
 installers as every release before them. What is missing on all of them is the Windows `.msix`, which
 is uploaded by hand and is what #180 is about.
 
-**Open pull request**: #202, this file and the layout document. Nothing else is unmerged.
+**Open pull requests**: #202 (this file and the layout document), #205 (#203, the adduct isotope) and
+#206 (#204, the repeat's position). All three are for `develop` and carry no version bump.
 
 **Waiting on somebody else**, and worth a look before starting anything new — several of these may be
 closable:
