@@ -66,8 +66,8 @@ remains, and the issue should say so rather than being closed.
 | ~~#107~~ | ~~Composition export to WURCS fails~~ | **Done.** `org.glycoinfo.application.glycanbuilder.composition` builds the composition as unlinked nodes and lets `WURCSFactory` canonicalize, which is what glycompconverter does. No new dependency; output pinned against that implementation's, residue by residue |
 | ~~#127~~ | ~~`MassOptions.ISOTOPE` has no effect~~ | **Done for the neutral mass.** Residues, water, hydrogen and the derivatization all follow the choice; measured against literature (Glc 180.156, Man₃GlcNAc₂ 910.82). **Still monoisotopic: the ion adducts.** `IonCloud` captures an ion's mass when the ion is set, not when the mass is computed, so an m/z carries an average neutral mass and a monoisotopic adduct. Worth its own issue |
 | **#185** | EPS/PS/PDF export writes 0 bytes silently | **Half done.** A failed transcode is now refused by name instead of being written as an empty file — it had been logged and returned as null, and the null was written. The underlying Windows failure does not reproduce here: all five formats write on macOS with the pinned batik 1.19 / fop 2.11. Waiting on a retest from the reporter |
-| **#66** | WURCS export fails with `"_map" is null` on a heavily modified Fuc | |
-| **#34** | Duplicated linkage position in a branched glycan | The position list is built without asking what the parent already carries, so an impossible structure can be drawn |
+| **#66** | WURCS export fails with `"_map" is null` on a heavily modified Fuc | **Does not reproduce on 1.36.0** — a Fuc with 2-O-Me, 3-NH₂ and 4-O-Me writes WURCS, drawn or imported, alone or as a branch. The substituent MAP handling has been reworked since it was filed. Waiting on a retest and the GWS |
+| ~~#34~~ | ~~Duplicated linkage position in a branched glycan~~ | **Done.** A stated position another child holds is refused, in `addChild` as well as `canAddChild` — the two had grown apart and adding is the path that makes the structure. Unknown positions still stack, and a file that already contains one still opens |
 
 ## P2 — work is lost, or the output cannot be used
 
