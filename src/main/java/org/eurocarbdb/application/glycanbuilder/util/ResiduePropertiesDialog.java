@@ -114,66 +114,61 @@ public class ResiduePropertiesDialog extends EscapeDialog implements java.awt.ev
     	field_min.setText("100");
     }
 
+    /**
+     * The positions to offer for the linkage from {@code parent}.
+     *
+     * <p>Asks the residue rather than working it out. This used to be the only place that knew about
+     * ring forms and anomeric centres, and the model enforced none of it - so a structure drawn here
+     * obeyed rules that one built any other way did not, which is how a Man came to carry two
+     * branches at position 4 (#34). The rules are in {@code Residue.availableLinkagePositions} now
+     * and this shows what they say.
+     *
+     * @param parent The residue the linkage hangs off.
+     * @return Returns the list to show, {@code "?"} first - always offered, since it says nothing
+     *         about where anything is.
+     */
     private ListModel<String> createPositions(Residue parent) {
 		DefaultListModel<String> ret = new DefaultListModel<String>();
-
-		// collect available positions
-		char[] par_pos = null;
-		if (parent == null || parent.getType().getLinkagePositions().length == 0)
-			par_pos = new char[]{'1', '2', '3', '4', '5', '6', '7', '8', '9', 'N'};
-		else
-			par_pos = parent.getType().getLinkagePositions();
-
-		// 20211223, S.TSUCHIYA add
-		String par_pos_temp = String.valueOf(par_pos);
-
-		// select unavailable linkage position from par_pos
-		for (Linkage donorLinkage : parent.getChildrenLinkages()) {
-			if (this.current == donorLinkage.getChildResidue()) continue;
-
-			for (Bond donorBond : donorLinkage.getBonds()) {
-				if (donorBond.getParentPositions().length > 1) continue;
-				if (donorBond.getParentPositions()[0] == '?') continue;
-				char donorPos = donorBond.getParentPositions()[0];
-				par_pos_temp = par_pos_temp.replace(donorPos, ' ');
-			}
-		}
-
-		// replace ring position, 20211223, S.TSUCHIYA add
-		if (parent.getRingSize() == 'o') {
-			par_pos_temp += parent.getType().getAnomericCarbon();
-		}
-		if (parent.getRingSize() == 'p') {
-			if (parent.getAnomericCarbon() == '1') {
-				par_pos_temp = par_pos_temp.replace('5', ' ');
-			}
-			if (parent.getAnomericCarbon() == '2') {
-				par_pos_temp = par_pos_temp.replace('6', ' ');
-			}
-		}
-		if (parent.getRingSize() == 'f') {
-			if (parent.getAnomericCarbon() == '1') {
-				par_pos_temp = par_pos_temp.replace('4', ' ');
-			}
-			if (parent.getAnomericCarbon() == '2') {
-				par_pos_temp = par_pos_temp.replace('5', ' ');
-			}
-		}
-
-		// refresh par_pos, 20211223, S.TSUCHIYA add
-		if (!par_pos_temp.equals(String.valueOf(par_pos))) {
-			par_pos_temp = par_pos_temp.replaceAll(" ", "");
-			par_pos = par_pos_temp.toCharArray();
-			Arrays.sort(par_pos);
-		}
-
-		// add elements
 		ret.addElement("?");
-		for (int i = 0; i < par_pos.length; i++)
-			ret.addElement("" + par_pos[i]);
+		if (parent == null) return ret;
+
+		for (char position : parent.availableLinkagePositions()) {
+			// the position this linkage already has is still its own to keep
+			ret.addElement("" + position);
+		}
+		for (char position : positionsThisLinkageAlreadyHas(parent)) {
+			if (!ret.contains("" + position)) ret.addElement("" + position);
+		}
 
 		return ret;
-	}
+    }
+
+    /**
+     * The positions the linkage being edited already occupies.
+     *
+     * <p>They are unavailable by the residue's reckoning, because this linkage is what holds them -
+     * and leaving them out would drop the current selection from the list it is selected in.
+     *
+     * @param parent The residue the linkage hangs off.
+     * @return Returns those positions.
+     */
+    private char[] positionsThisLinkageAlreadyHas(Residue parent) {
+		StringBuilder held = new StringBuilder();
+		for (org.eurocarbdb.application.glycanbuilder.linkage.Linkage linkage : parent.getChildrenLinkages()) {
+			if (this.current != linkage.getChildResidue()) continue;
+
+			for (org.eurocarbdb.application.glycanbuilder.linkage.Bond bond : linkage.getBonds()) {
+				char[] positions = bond.getParentPositions();
+				if (positions != null && positions.length == 1 && positions[0] != '?')
+					held.append(positions[0]);
+			}
+		}
+
+		char[] ret = new char[held.length()];
+		held.getChars(0, held.length(), ret, 0);
+
+		return ret;
+    }
 
     private void setSelections() {
     	if( parent_link!=null )        

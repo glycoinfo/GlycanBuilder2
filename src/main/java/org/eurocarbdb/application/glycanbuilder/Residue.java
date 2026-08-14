@@ -1373,7 +1373,7 @@ public class Residue {
 		// one this child can be given (#34). Checked here as well as in canAddChild because this
 		// does not consult it - the two have grown apart, and adding is the path that makes the
 		// structure
-		if( positionAlreadyTaken(child,bonds) )
+		if( positionIsNotAvailable(child,bonds) )
 			return false;
 
 		// check for available space
@@ -1431,7 +1431,7 @@ public class Residue {
 
 		// a carbon carries one glycosidic bond, so a position another child already occupies is not
 		// one this child can be given (#34)
-		if( positionAlreadyTaken(child,bonds) )
+		if( positionIsNotAvailable(child,bonds) )
 			return false;
 
 		// check for available space
@@ -1457,27 +1457,175 @@ public class Residue {
 	 * @param bonds The bonds it would be added by.
 	 * @return Returns whether one of them names a position another child already has.
 	 */
-	private boolean positionAlreadyTaken(Residue child, Collection<Bond> bonds) {
+	/**
+	 * The positions this residue can take an ordinary glycosidic bond at, as it stands.
+	 *
+	 * <p>Everything that decides this in one place, so that a structure built by any route obeys the
+	 * same rules. It had been in three: the residue type's list, which only the linkage dialog asked;
+	 * the ring and anomeric rules, which only that dialog knew; and what a sibling had taken, which
+	 * only the model knew. A structure drawn through the dialog therefore obeyed rules the model did
+	 * not enforce, and one built any other way obeyed almost none - which is how a Man came to carry
+	 * two branches at position 4 (#34).
+	 *
+	 * <p>What is taken into account, and why each is not the same as the others:
+	 *
+	 * <ul>
+	 *   <li><b>The residue type's list.</b> It already knows what the sugar is made of - GlcNAc omits
+	 *       2 for its N-acetyl, Xyl has no 6 - and whether a built-in substituent closes its position
+	 *       is a chemical judgement made per residue rather than a rule: GlcA keeps 6 open, because a
+	 *       carboxyl can be esterified. 47 of the 134 types declare no list at all, mostly reducing
+	 *       ends and substituents; no list means no constraint, not no positions.</li>
+	 *   <li><b>The ring.</b> Its oxygen occupies a position and that position takes no glycosidic
+	 *       bond: 5 for a pyranose closing from 1, 6 from 2; 4 for a furanose from 1, 5 from 2. An
+	 *       open chain closes nothing. The ring atom is not always oxygen - it can be nitrogen - but
+	 *       that is a fact about what the residue is, not about what can hang off it.</li>
+	 *   <li><b>An alditol</b> has no ring and no anomeric centre, so its 1 is an ordinary hydroxyl and
+	 *       does take a bond, which the type's list does not say because in a ring it does not.</li>
+	 *   <li><b>What a sibling holds.</b> A carbon carries one glycosidic bond, and a methyl at 4 is
+	 *       the same claim on the same atom as a branch at 4.</li>
+	 * </ul>
+	 *
+	 * <p>This describes ordinary glycosidic bonds. A <b>bridge</b> is not one and is not bound by it -
+	 * an anhydro attaches at the anomeric carbon, which no type's list offers, and 1,6-anhydro is a
+	 * real structure. See {@link #acceptsPosition}.
+	 *
+	 * @return Returns the positions, in order, without {@code '?'} - which is always acceptable and
+	 *         is not a position.
+	 */
+	public char[] availableLinkagePositions() {
+		StringBuilder available = new StringBuilder();
+
+		char[] fromType = (type==null) ? new char[0] : type.getLinkagePositions();
+		if( fromType.length==0 ) {
+			// No list is no constraint. Reducing ends and substituents mostly have none.
+			for( char position='1'; position<='9'; position++ )
+				available.append(position);
+			available.append('N');
+		}
+		else
+			available.append(fromType);
+
+		// an alditol has no ring and no anomeric centre, so position 1 is an ordinary hydroxyl
+		if( isAlditol() && available.indexOf("1")<0 )
+			available.insert(0,'1');
+
+		char closedByRing = ringPosition();
+		if( closedByRing!='\0' ) {
+			int at = available.indexOf(String.valueOf(closedByRing));
+			if( at>=0 ) available.deleteCharAt(at);
+		}
+
+		for( Linkage taken : children_linkages ) {
+			for( Bond bond : taken.getBonds() ) {
+				char[] positions = bond.getParentPositions();
+				if( positions==null || positions.length!=1 || positions[0]=='?' )
+					continue;
+
+				int at = available.indexOf(String.valueOf(positions[0]));
+				if( at>=0 ) available.deleteCharAt(at);
+			}
+		}
+
+		char[] ret = new char[available.length()];
+		available.getChars(0,available.length(),ret,0);
+		Arrays.sort(ret);
+
+		return ret;
+	}
+
+	/**
+	 * The position the ring occupies, which takes no glycosidic bond.
+	 *
+	 * <p>An alditol and an open chain have no ring, and a ring size this does not recognise is not
+	 * one it will guess at.
+	 *
+	 * @return Returns the position, or {@code '\0'} where no ring closes one.
+	 */
+	private char ringPosition() {
+		if( isAlditol() )
+			return '\0';
+
+		char anomeric = getAnomericCarbon();
+		if( ring_size=='p' ) {
+			if( anomeric=='1' ) return '5';
+			if( anomeric=='2' ) return '6';
+		}
+		if( ring_size=='f' ) {
+			if( anomeric=='1' ) return '4';
+			if( anomeric=='2' ) return '5';
+		}
+
+		return '\0';
+	}
+
+	/**
+	 * Whether a child can be given this position.
+	 *
+	 * @param position The position asked for. {@code '?'} is always acceptable: it says nothing about
+	 *        where anything is, so it can neither collide nor be out of range.
+	 * @param child The residue that would go there, since a bridge is not bound by the same rules -
+	 *        it may attach at the anomeric carbon, which no type's list offers. May be null, which is
+	 *        read as an ordinary residue.
+	 * @return Returns whether the position is available.
+	 */
+	public boolean acceptsPosition(char position, Residue child) {
+		if( position=='?' )
+			return true;
+
+		// A bridge is not an ordinary glycosidic bond: 1,6-anhydro attaches at the anomeric carbon,
+		// and the type's list describes what an ordinary bond may do. Only the sibling rule applies.
+		boolean isBridge = child!=null && child.getType()!=null && child.getType().isBridge();
+		if( isBridge )
+			return !positionHeldByAChild(position,child);
+
+		for( char available : availableLinkagePositions() )
+			if( available==position ) return true;
+
+		return false;
+	}
+
+	/**
+	 * @param position A stated position.
+	 * @param except A residue not counted against itself, or null.
+	 * @return Returns whether some other child already holds it.
+	 */
+	private boolean positionHeldByAChild(char position, Residue except) {
+		for( Linkage taken : children_linkages ) {
+			if( taken.getChildResidue()==except )
+				continue;
+
+			for( Bond bond : taken.getBonds() ) {
+				char[] positions = bond.getParentPositions();
+				if( positions!=null && positions.length==1 && positions[0]==position )
+					return true;
+			}
+		}
+
+		return false;
+	}
+
+	/**
+	 * Whether any of these bonds names a position this residue will not give the child.
+	 *
+	 * <p>Every rule about what a position can take is in {@link #acceptsPosition}; this only walks
+	 * the bonds. A bond naming several positions at once is left alone - "one of these" is not a
+	 * claim on any one of them, and refusing it would refuse structures that say less rather than
+	 * something wrong.
+	 *
+	 * @param child The residue about to be added, which is not counted against itself.
+	 * @param bonds The bonds it would be added by.
+	 * @return Returns whether one of them asks for a position that is not available.
+	 */
+	private boolean positionIsNotAvailable(Residue child, Collection<Bond> bonds) {
 		if( bonds==null )
 			return false;
 
 		for( Bond bond : bonds ) {
 			char[] positions = bond.getParentPositions();
-			if( positions==null || positions.length!=1 || positions[0]=='?' )
+			if( positions==null || positions.length!=1 )
 				continue;
-
-			for( Linkage taken : children_linkages ) {
-				if( taken.getChildResidue()==child )
-					continue;
-
-				for( Bond takenBond : taken.getBonds() ) {
-					char[] takenPositions = takenBond.getParentPositions();
-					if( takenPositions==null || takenPositions.length!=1 )
-						continue;
-					if( takenPositions[0]==positions[0] )
-						return true;
-				}
-			}
+			if( !acceptsPosition(positions[0],child) )
+				return true;
 		}
 
 		return false;
