@@ -1336,12 +1336,9 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 		try {
 			String str_encode = "";
 			GlycanParser parser = GlycanParserFactory.getParser(format);
-			str_encode = toString(a_lstGlycan, parser);
-			if (str_encode.equals("")) throw new Exception("Invalid output string");
-
 			this.lastExportFailures = new ArrayList<Glycan>();
-			for (Glycan g : a_lstGlycan)
-				if (parser.writeGlycan(g).equals("")) this.lastExportFailures.add(g);
+			str_encode = toString(a_lstGlycan, parser, null, this.lastExportFailures);
+			if (str_encode.equals("")) throw new Exception("Invalid output string");
 
 			for (String s : str_encode.split(";")) this.lst_encode.addLast(s);
 			return true;
@@ -1381,12 +1378,9 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 
 			// serialize structures
 			GlycanParser parser = GlycanParserFactory.getParser(format);
-			String str = toString(parser);
-			if (str == null) throw new Exception("Invalid output string");
-
 			this.lastExportFailures = new ArrayList<Glycan>();
-			for (Glycan g : structures)
-				if (parser.writeGlycan(g).equals("")) this.lastExportFailures.add(g);
+			String str = toString(structures, parser, null, this.lastExportFailures);
+			if (str == null) throw new Exception("Invalid output string");
 
 			// write to file
 			bw.write(str, 0, str.length());
@@ -1518,30 +1512,68 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	 */
 	static public String toString(Collection<Glycan> structures,
 								  GlycanParser parser, BBoxManager bboxManager) {
+		return toString(structures, parser, bboxManager, null);
+	}
+
+	/**
+	 * Create a string representation of the specified structures using the given parser, noting which
+	 * of them produced nothing.
+	 *
+	 * <p><b>Why the failures are collected here.</b> The callers used to write everything once for the
+	 * file and then write it all again to find out which structures had come out empty. A structure
+	 * that cannot be converted reports that on the way through - a message naming what it could not
+	 * encode, and the exception under it - so writing it twice said it all twice, and a workspace with
+	 * two bad structures produced four dialogs to dismiss (#183).
+	 *
+	 * <p>One pass, and the emptiness noticed as it happens.
+	 *
+	 * @param failures
+	 *            filled with the structures that produced no output, or {@code null} to not ask
+	 */
+	static public String toString(Collection<Glycan> structures, GlycanParser parser,
+								  BBoxManager bboxManager, Collection<Glycan> failures) {
 
 		String str = "";
 		if (parser instanceof GWSParser) {
 			for (Iterator<Glycan> i = structures.iterator(); i.hasNext(); ) {
-				str += parser.writeGlycan(i.next(), bboxManager);
+				Glycan structure = i.next();
+				str += record(parser.writeGlycan(structure, bboxManager), structure, failures);
 				if (i.hasNext()) str += ";";
 			}
 		} else if (parser instanceof WURCS2Parser) {
 			for (Iterator<Glycan> i = structures.iterator(); i.hasNext(); ) {
-				str += parser.writeGlycan(i.next());
+				Glycan structure = i.next();
+				str += record(parser.writeGlycan(structure), structure, failures);
 				if (i.hasNext()) str += "\n";
 			}
 		} else {
+			// These formats hold one structure, so only the first is written - and the rest are
+			// therefore absent from the file, which is what the caller warns about.
+			Glycan first = structures.isEmpty() ? null : structures.iterator().next();
 			if (bboxManager != null) { //At the moment this will force conversion to GlycoCT_XML
-				str = parser.writeGlycan(structures.isEmpty() ? null : structures
-						.iterator().next(), bboxManager);
+				str = record(parser.writeGlycan(first, bboxManager), first, failures);
 			} else {
-				str = parser.writeGlycan(structures.isEmpty() ? null : structures
-						.iterator().next());
+				str = record(parser.writeGlycan(first), first, failures);
 			}
-
+			if (failures != null)
+				for (Glycan unwritten : structures)
+					if (unwritten != first && !failures.contains(unwritten)) failures.add(unwritten);
 		}
 
 		return str;
+	}
+
+	/**
+	 * Note a structure as a failure when it encoded to nothing, and hand the encoding straight back.
+	 *
+	 * <p>Returned unchanged, null included: {@code exportTo} tells a null apart from an empty string
+	 * and refuses the export on it, and turning one into the other here would write an empty file
+	 * without saying so.
+	 */
+	static private String record(String encoded, Glycan structure, Collection<Glycan> failures) {
+		if (failures != null && structure != null && (encoded == null || encoded.isEmpty()))
+			failures.add(structure);
+		return encoded;
 	}
 
 	public void fromString(String str, String format) throws Exception {
