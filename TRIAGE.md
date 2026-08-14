@@ -82,10 +82,27 @@ remains, and the issue should say so rather than being closed.
 
 ## P3 — visibly wrong
 
-#29 (bisecting GlcNAc position) · #57 (repeat-unit linkage position) · #58 (G07957FT layout) ·
-#20 (bracket not symmetric about the reducing end) · #88 (no right margin on a bridge) ·
-#83 (CFG hat diamonds take orientation from the bond) · #91 (Add-structure menu misaligned) ·
-#6 (fragments carrying a bridge)
+~~#88 (no right margin on a bridge)~~ — **done**: the cleared area was the glyphs' bounds cast to
+int, which truncates the origin one way and the width the other.
+
+**#29** (bisecting GlcNAc position) — measured: the placement dictionary sends both position 4 and
+position 6 to the same side (`lp=[4-9]` → 90), so a bisecting GlcNAc and the 6-antenna compete and one
+gives way. Adding it after drawing is not the cause. Not changed: the rule that would fix it is a
+drawing convention, and picking it decides every picture the application draws — asked the reporter
+which rule they want.
+
+#58 (G07957FT layout) · #20 (bracket not symmetric about the
+reducing end) · **#83** — the angle those two took was never used, and is gone; that does not establish the symbol is
+orientation-independent, and the measurements are on the issue.
+
+#91 (Add-structure menu
+misaligned) · #6 (fragments carrying a bridge)
+
+**#57** (repeat-unit linkage position) — measured: the model holds position 2 as the sequence says,
+so the 3 appears between the model and the picture, and the likely candidate is the position
+belonging to the *other* end of the repeat. Asked the reporter to confirm which label. Found
+separately while measuring: the round trip drops the repeat's own linkage position, `l1` → `l?`,
+which is a different fault in the same corner and wants its own issue.
 
 ## P4 — not there yet
 
