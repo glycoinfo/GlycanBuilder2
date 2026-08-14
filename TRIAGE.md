@@ -87,9 +87,12 @@ int, which truncates the origin one way and the width the other.
 
 **#29** (bisecting GlcNAc position) — measured: the placement dictionary sends both position 4 and
 position 6 to the same side (`lp=[4-9]` → 90), so a bisecting GlcNAc and the 6-antenna compete and one
-gives way. Adding it after drawing is not the cause. Not changed: the rule that would fix it is a
-drawing convention, and picking it decides every picture the application draws — asked the reporter
-which rule they want.
+gives way. Adding it after drawing is not the cause. **The convention is settled**: branches are ordered by their linkage
+position, so 3 below, 4 between, 6 above (I. Yamada, 2026-08-14; recorded in
+`docs/linkage-positions-and-anomers.md`). Implementing it is wider than the dictionary, which matches
+one linkage at a time and cannot see its siblings — it needs candidate positions that admit a middle
+branch *and* `BookingManager` allocating in position order. Not attempted yet: it reaches every
+picture the application draws.
 
 #58 (G07957FT layout) · #20 (bracket not symmetric about the
 reducing end) · **#83** — the angle those two took was never used, and is gone; that does not establish the symbol is

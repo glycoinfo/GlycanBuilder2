@@ -76,6 +76,33 @@ of them.
 
 ## What is drawn
 
+### Which way a branch goes
+
+**Branches are ordered by their linkage position.** A residue's children are drawn in the numeric
+order of the positions they attach at, so on a β-Man carrying 3, 4 and 6 the 3-antenna is on one
+side, the 6-antenna on the other, and the bisecting GlcNAc at 4 sits between them.
+
+*Confirmed by I. Yamada, 2026-08-14: "単糖の結合方向は数字の順番になるようにするのが慣例であるので、
+4位の単糖は、3と６の間の位置に配置される".*
+
+**This is not what the code does.** `conf/residue_placements_snfg` assigns a side from the position
+alone, in two ranges:
+
+```
+(!cs)&(!cx)&(lp=[1-3[N]])   -90
+(!cs)&(!cx)&(lp=[4-9])       90
+```
+
+4 and 6 both fall in `[4-9]`, so a bisecting GlcNAc and a 6-antenna are sent to the same side and one
+of them gives way — measured, the bisecting GlcNAc ends up above the 6-antenna and the 6-antenna
+drops to the β-Man's own line (#29).
+
+Ordering by position cannot be expressed in that dictionary, which matches one linkage at a time and
+cannot see its siblings. Making the drawing follow the convention needs both halves: candidate
+positions wide enough for a middle branch to exist, and `BookingManager` allocating them in position
+order rather than in the order the children happen to be stored. That reaches every picture the
+application draws, which is why it is written down here before it is attempted.
+
 ### The anomeric configuration
 
 α and β describe the configuration at the anomeric centre. **Where there is no anomeric centre there
