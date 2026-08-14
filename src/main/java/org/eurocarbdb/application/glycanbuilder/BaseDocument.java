@@ -415,11 +415,16 @@ public abstract class BaseDocument {
     Path tmpfile = null;
 
     try{
-        Path destination = new File(filename).toPath().toAbsolutePath();
+        // Save into what a symbolic link points at, not over the link. Writing to the destination had
+        // always followed it, because that is what opening a file for writing does; replacing the
+        // destination does not, so a save through a link left a regular file where the link had been
+        // and the file it pointed at still holding the previous contents - reported as a success.
+        Path destination = followLinks(new File(filename).toPath().toAbsolutePath());
 
-        // Keep the temporary file beside the destination. A completed file can then replace the old
-        // one with a filesystem move, rather than truncating the old file and copying bytes into it.
-        // A failed copy used to leave the last good save partial or empty.
+        // Keep the temporary file beside the destination - the resolved one, so the move stays on the
+        // same filesystem. A completed file can then replace the old one with a filesystem move, rather
+        // than truncating the old file and copying bytes into it, which left the last good save partial
+        // or empty when the copy failed partway.
         tmpfile = Files.createTempFile(destination.getParent(),"gwb",null);
 
         try (OutputStream out = Files.newOutputStream(tmpfile)) {
@@ -457,26 +462,61 @@ public abstract class BaseDocument {
        that do not support it still move the complete file rather than streaming over the old one.
      */
     private static void replaceFile(Path source, Path destination) throws Exception {
-    if( accessControlCarriedOver(destination,source) ) {
-        try {
-            Files.move(source,destination,StandardCopyOption.ATOMIC_MOVE,
-                    StandardCopyOption.REPLACE_EXISTING);
-        }
-        catch( AtomicMoveNotSupportedException notAtomicHere ) {
-            Files.move(source,destination,StandardCopyOption.REPLACE_EXISTING);
-        }
-        return;
+    // Nothing is replaced unless the replacement says what the file it replaces says about who may
+    // read it. This used to fall back to copying the bytes into the destination instead, on the
+    // grounds that a file which is never replaced cannot have its access control changed - which is
+    // true, and beside the point: that copy truncates the destination before it transfers, so a
+    // failure partway through leaves the last good save partial or empty. It is exactly the fault this
+    // whole change set out to remove, kept alive on the one path where attributes are most likely to
+    // fail - a shared file somebody else owns.
+    //
+    // Refusing is the safer of the two, and the argument I made for the fallback was wrong on its own
+    // terms: it also loses work, and it loses it silently. A refusal is visible and recoverable - the
+    // document stays dirty and Save As still works.
+    if( !accessControlCarriedOver(destination,source) )
+        throw new IOException("cannot save over " + destination
+                + " without changing who is allowed to read it");
+
+    try {
+        Files.move(source,destination,StandardCopyOption.ATOMIC_MOVE,
+                StandardCopyOption.REPLACE_EXISTING);
+    }
+    catch( AtomicMoveNotSupportedException notAtomicHere ) {
+        Files.move(source,destination,StandardCopyOption.REPLACE_EXISTING);
+    }
     }
 
-    // The replacement could not be made to say what the file it replaces says about who may read it,
-    // so it does not replace it: the finished bytes are written into the destination instead, which
-    // cannot change its access control because the file is never replaced.
-    //
-    // Atomicity is what that gives up, and it is worth less than quietly changing who can read
-    // somebody's work. Refusing the save outright was the other option and is worse: a user who can
-    // write a file they do not own - a group-writable file in a shared directory - would be unable to
-    // save at all, which is a new way to lose work in exchange for avoiding an old one.
-    FileUtils.copy(source.toFile(),destination.toFile());
+    /**
+       Follow a chain of symbolic links to the path that will actually be written.
+
+       Not {@code toRealPath}, which requires the file to exist: a link pointing at a name that is not
+       there yet is a perfectly ordinary thing to save to, and resolving it by hand handles that as well
+       as a link whose target is relative to the link's own directory.
+
+       @return Returns the path at the end of the chain, or the path given where it is not a link.
+     */
+    private static Path followLinks(Path path) throws IOException {
+    Path resolved = path;
+
+    // A bound rather than a cycle check: a loop of links has no end to find, and thirty-two hops is
+    // past anything real.
+    for( int hops=0; hops<32 && Files.isSymbolicLink(resolved); hops++ ) {
+        Path parent = resolved.getParent();
+        Path target = Files.readSymbolicLink(resolved);
+
+        resolved = ((parent==null) ? target : parent.resolve(target)).toAbsolutePath().normalize();
+    }
+
+    // Running out of hops is a refusal, not an answer. Returning the link we stopped on made it the
+    // destination, so a loop of links - or a chain longer than the bound - had one of its links replaced
+    // by the saved file while the real file kept the previous contents, and the save reported success.
+    // Measured: a two-link cycle came back saved=true with one link destroyed; a thirty-three link chain
+    // came back saved=true with an intermediate link replaced and the target untouched.
+    if( Files.isSymbolicLink(resolved) )
+        throw new IOException("cannot find what " + path
+                + " points at: more than 32 symbolic links to follow, or a loop of them");
+
+    return resolved;
     }
 
     /**
