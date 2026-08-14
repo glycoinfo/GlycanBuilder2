@@ -73,9 +73,9 @@ remains, and the issue should say so rather than being closed.
 
 | # | Title | Note |
 |---|---|---|
-| **#186** | PNG background not transparent | These three are one problem — "I cannot put this in a paper" — |
-| **#188** | SVG gives every character its own white background | and are worth doing together rather than |
-| **#187** | Ungrouping in PowerPoint destroys Fuc and Man | one at a time |
+| ~~#186~~ | ~~PNG background not transparent~~ | **Done.** The renderer could always paint without one; the export passed opaque for every format alike. BMP and JPEG keep theirs, having no alpha to write |
+| ~~#188~~ | ~~SVG gives every character its own white background~~ | **Done.** `clearRect` on an SVG surface paints the background colour rather than removing anything, and the export set that colour to white. Measured: white rectangles 9 → 0, colours intact |
+| **#187** | Ungrouping in PowerPoint destroys Fuc and Man | May be answered by #188 — there is no white background left to go hunting for. Worth a retest before anything else is done |
 | **#106** | Saving on close offers Save As for an already-saved file | |
 | **#178** | "Open additional document" leaves the document counted as unchanged, so it closes without warning | |
 | **#179** | "Remember files after restarting" carries a customised reducing end into newly imported structures | |

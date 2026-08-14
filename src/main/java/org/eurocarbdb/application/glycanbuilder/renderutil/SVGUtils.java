@@ -69,6 +69,17 @@ public class SVGUtils   {
     public void afterRendering();
     }
 
+    /**
+       White with no alpha - which is what "no background" is on a surface that paints one.
+
+       <p>An exported picture goes into a figure or a slide, where a white rectangle behind the
+       glycan covers whatever it is placed on (#186). On an SVG surface it was worse than one
+       rectangle: the renderers clear behind text so it stays legible over a bond line, and
+       clearRect on such a surface paints the background colour rather than removing anything, so
+       every piece of text carried its own white patch (#188).</p>
+    */
+    static private final Color TRANSPARENT = new Color(255,255,255,0);
+
     private SVGUtils() {}
 
     /**
@@ -140,8 +151,7 @@ public class SVGUtils   {
 
             // clear background
             g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
-            g2d.setBackground(Color.white);
-            g2d.clearRect(0, 0, d.width, d.height);
+            g2d.setBackground(TRANSPARENT);
 
             // paint
             for (Glycan s : structures)
@@ -186,8 +196,7 @@ public class SVGUtils   {
 
             // clear background
     		g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING,RenderingHints.VALUE_TEXT_ANTIALIAS_OFF);
-    		g2d.setBackground(Color.white);
-    		g2d.clearRect(0, 0, d.width, d.height);
+    		g2d.setBackground(TRANSPARENT);
 
             // paint
     		for(Glycan structure : structures )
@@ -300,7 +309,7 @@ public class SVGUtils   {
     all_dim.width = (int)(all_dim.width*sf);
     all_dim.height = (int)(all_dim.height*sf);
     */
-    g2d.setBackground(Color.white);
+    g2d.setBackground(TRANSPARENT);
     g2d.setSVGCanvasSize(all_dim);
     
     return g2d;
@@ -606,9 +615,27 @@ public class SVGUtils   {
     else if( format.equals("eps") )
         os.write(orRefuse(getEPSGraphics(gr,structures,show_masses,show_redend), format));
     else if( format.equals("bmp") || format.equals("png") || format.equals("jpg") )
-        javax.imageio.ImageIO.write(gr.getImage(structures,true,show_masses,show_redend,scale,posManager,bboxManager),format,os);
+        javax.imageio.ImageIO.write(gr.getImage(structures,opaqueFor(format),show_masses,show_redend,scale,posManager,bboxManager),format,os);
     else
         throw new Exception("Unrecognized graphic format: " + format);
+    }
+
+    /**
+       Whether an image of this format should be painted onto white rather than onto nothing.
+
+       <p>PNG carries an alpha channel and the renderer has always been able to paint without a
+       background - the export simply never asked, passing opaque for every format alike. So a glycan
+       put into a figure or a slide arrived with a white rectangle around it, over whatever it was
+       placed on (#186).</p>
+
+       <p>BMP and JPEG have no alpha to write. Painting those onto nothing gives a black background,
+       or an undefined one, which is worse than the white it replaces - so they keep it.</p>
+
+       @param format The format being written.
+       @return Returns whether to paint a background.
+    */
+    static private boolean opaqueFor(String format) {
+    return !format.equals("png");
     }
 
     /**
