@@ -61,7 +61,17 @@ jobs:
             ## Windows
             Install GlycanBuilder2 from the Microsoft Store:
             https://apps.microsoft.com/detail/9pp6bsnx71jl
+          # Attach installers by extension. `artifacts/*` attached whatever the
+          # download step happened to fetch, and once tests.yml began running as
+          # part of the release that included the surefire-reports artifact --
+          # v1.39.0 went out with 92 test reports hanging off it. Naming the
+          # extensions keeps a release to the things people install, whatever
+          # else future jobs leave in the directory.
+          #
+          # Windows is deliberately absent: it ships through the Microsoft Store.
           files: |
-            artifacts/*
+            artifacts/*.dmg
+            artifacts/*.deb
+            artifacts/*.rpm
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
