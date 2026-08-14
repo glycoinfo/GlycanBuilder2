@@ -889,8 +889,38 @@ public abstract class AbstractResidueRenderer implements ResidueRenderer{
     	return c;
     }
 
-    static private Shape createArc(double x, double y, double w, double h, int start_pos, int end_pos) {    
+    static private Shape createArc(double x, double y, double w, double h, int start_pos, int end_pos) {
     	return new Arc2D.Double(x-0.5*w,y-0.5*h,2*w,2*h,-end_pos*60.+30.,-((start_pos-end_pos+6)%6)*60.,Arc2D.PIE);
+    }
+
+    /**
+     * Bars across the symbol, which is what the striped CFG fills are.
+     *
+     * <p>Three bars with two gaps between them, over the whole box - the caller clips this to the
+     * symbol's own outline, so a circle gets stripes with circular ends and a square gets square
+     * ones, which is what the notation draws. Three is as few as reads unmistakably as a stripe
+     * pattern at the size a residue is drawn, and as many as stays legible when it is drawn small.
+     *
+     * <p>Without this the fill fell through every case and nothing was painted inside the outline,
+     * which made Tal and All, Tag and Psi, and TalNAc and AllNAc the same picture in CFG - the
+     * interior pattern being the only thing that tells each pair apart.
+     *
+     * @param vertical Whether the bars run up and down (Tal, Tag, TalNAc) or across (All, Psi,
+     *        AllNAc).
+     * @return Returns the bars as one shape.
+     */
+    static private Shape createStripes(double x, double y, double w, double h, boolean vertical) {
+    	final int bars = 3;
+    	final int bands = bars * 2 - 1;
+
+    	Path2D.Double stripes = new Path2D.Double();
+    	double band = (vertical ? w : h) / bands;
+    	for (int at = 0; at < bands; at += 2) {
+    		if (vertical) stripes.append(new Rectangle2D.Double(x + at * band, y, band, h), false);
+    		else stripes.append(new Rectangle2D.Double(x, y + at * band, w, band), false);
+    	}
+
+    	return stripes;
     }
     
     protected Shape createFillShape(Residue node, Rectangle cur_bbox, ResidueStyle style, ResAngle orientation, double a_dAngle) {    
@@ -926,6 +956,10 @@ public abstract class AbstractResidueRenderer implements ResidueRenderer{
     		return cur_bbox;
     	if( fillstyle.equals("half"))
     		return createHalf(w/2., h/2., x+w/2., y+h/2.);
+    	if( fillstyle.equals("v_stripes") )
+    		return createStripes(x,y,w,h,true);
+    	if( fillstyle.equals("h_stripes") )
+    		return createStripes(x,y,w,h,false);
     	if( fillstyle.equals("left") )
     		return new Rectangle2D.Double(x,y,w/2.,h);
     	if( fillstyle.equals("top") )
