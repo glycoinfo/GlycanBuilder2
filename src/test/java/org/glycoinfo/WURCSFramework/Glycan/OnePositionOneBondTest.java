@@ -96,4 +96,55 @@ public class OnePositionOneBondTest {
 
 		return man;
 	}
+
+	/**
+	 * A substituent occupies a position exactly as a monosaccharide does.
+	 *
+	 * <p>The rule is about the carbon, not about what kind of thing is hanging off it: a methyl at 4
+	 * and a branch at 4 are the same claim on the same atom. Substituents are attached as child
+	 * residues here, so they were already covered - this holds that they stay covered, in both
+	 * orders and between two substituents, since none of that is obvious from the code that does it.
+	 */
+	@Test
+	public void aSubstituentTakesAPositionTooAndInEitherOrder() throws Exception {
+		Residue afterSugar = manOnAFreeEnd();
+		afterSugar.addChild(ResidueDictionary.newResidue("Gal"), '4');
+		assertFalse("a methyl was added onto a position a branch already holds",
+				afterSugar.addChild(ResidueDictionary.newResidue("Me"), '4'));
+
+		Residue afterSubstituent = manOnAFreeEnd();
+		afterSubstituent.addChild(ResidueDictionary.newResidue("Me"), '4');
+		assertFalse("a branch was added onto a position a methyl already holds",
+				afterSubstituent.addChild(ResidueDictionary.newResidue("Gal"), '4'));
+
+		Residue betweenSubstituents = manOnAFreeEnd();
+		betweenSubstituents.addChild(ResidueDictionary.newResidue("Me"), '4');
+		assertFalse("two substituents were put on the same position",
+				betweenSubstituents.addChild(ResidueDictionary.newResidue("S"), '4'));
+	}
+
+	/**
+	 * And several substituents on their own positions are untouched, which is the case from #66 -
+	 * the heavily modified fucose that started this line of work.
+	 */
+	@Test
+	public void substituentsOnDifferentPositionsAreFine() throws Exception {
+		Residue fucose = manOnAFreeEnd();
+
+		assertTrue(fucose.addChild(ResidueDictionary.newResidue("Me"), '2'));
+		assertTrue(fucose.addChild(ResidueDictionary.newResidue("N"), '3'));
+		assertTrue(fucose.addChild(ResidueDictionary.newResidue("Me"), '4'));
+
+		assertEquals(3, fucose.getNoChildren());
+	}
+
+	/** An unknown position does not block a stated one, whichever arrived first. */
+	@Test
+	public void anUnknownPositionBlocksNothing() throws Exception {
+		Residue parent = manOnAFreeEnd();
+		parent.addChild(ResidueDictionary.newResidue("S"), '?');
+
+		assertTrue("a sulfate of unknown position should not close position 4",
+				parent.addChild(ResidueDictionary.newResidue("Gal"), '4'));
+	}
 }
