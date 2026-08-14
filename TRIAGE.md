@@ -274,19 +274,23 @@ position-to-side rules in the placement dictionaries apply to substituents only,
 sequence turned out to write back unchanged, so there was nothing to watch fail. Recorded as such rather
 than claimed as verified.
 
-**6. The waiting list — the next piece of work.** #17, #57, #58, #66, #83, #185, #16 are all waiting on
-somebody else and several are closable on a reply. A nudge costs a paragraph, and #183 has just joined
-them.
+**6. The waiting list — held until Monday 2026-08-17.** #17, #57, #58, #66, #83, #185, #16 and #183 are
+all waiting on somebody else and several are closable on a reply. A nudge costs a paragraph.
 
-**Then a release.** Six fixes are on `develop` and none of them has reached anybody: #88, #83's dead
-angle, and the four from 2026-08-15. That is the whole of P1 and P2 sitting where no user can install
-it, which by this file's own ranking is worth more than the next defect on the list.
+**Not to be sent before Monday 2026-08-17** — I. Yamada, 2026-08-15. The nudges were written and ready on
+the Saturday; holding them is deliberate, so if this list looks stalled on a weekend, it is not.
+
+**~~Then a release~~ — 1.38.0, released 2026-08-15**, and taken ahead of the waiting list because six
+fixes were sitting where nobody could install them, which by this file's own ranking outranks the next
+defect. `master` reads 1.38.0, tagged `v1.38.0` on the merge commit.
+
+**#88, #203, #204 and #29 close with it.** #83 and #183 do **not**: #201 removed an angle the CFG hat
+diamonds never used, which does not answer whether the symbol looks *rotated* — the question the reporter
+was asked — and #183's fix is on a mechanism whose reported sequence no longer fails. Both stay on the
+waiting list. This corrects a list of six I wrote earlier the same day.
 
 Then the rest of P3, and P4 as wishes rather than work: #200 and #181 are both structure-model
 changes and neither is small.
-
-**When the next release goes out**, it already has two fixes waiting on `develop` (#199, #201) and the
-version bump belongs immediately before the merge to `master`, not before that.
 
 ---
 
@@ -302,25 +306,23 @@ document-loses-your-work bugs.
 #203 and #204 filed for the two faults that had been measured and never written down anywhere but here.
 The next piece of work is #203.
 
-**On `develop`, waiting for the next release**: #199 (#88, the bridge label's margin) and #201 (#83's
-unused angle). `pom.xml` still reads 1.37.0 on both branches, correctly — the bump belongs immediately
-before the merge to `master`.
+**1.38.0 is out.** `origin/develop` and `origin/master` both read 1.38.0 — checked against the remote,
+not the local refs, which is the check 1.35.0 was lost by. `v1.38.0` tags the merge commit and is
+reachable from `master`. It carries #199 (#88), #201 (#83's unused angle), #205 (#203), #206 (#204),
+#207 (#29) and #208 (#183), and 181 tests pass with all of them together.
 
-**Releases are in order**, checked against the API rather than the release page: nothing is a
-pre-release, `releases/latest` resolves to v1.37.0, and 1.36.0 and 1.37.0 each carry the same five
-installers as every release before them. What is missing on all of them is the Windows `.msix`, which
-is uploaded by hand and is what #180 is about.
+**The release page's label is the last step and it is easy to miss.** The workflow publishes as a
+pre-release, and `releases/latest` — which is what `UpdateCheck` asks — skips those, so until somebody marks
+it Latest the newest release is invisible to the update check. v1.38.0 was marked by hand; verified through
+the API, since the release page and `gh release list` have both misreported this.
 
-**On `develop`, waiting only for a release**: #199 (#88's bridge margin), #201 (#83's unused angle),
-#205 (#203), #206 (#204), #207 (#29) and #208 (#183). 181 tests pass with all of them together.
-`pom.xml` still reads 1.37.0, correctly — the bump belongs immediately before the merge to `master`.
+Every release carries the same five installers. What is missing on all of them is the Windows `.msix`,
+which is uploaded by hand and is what #180 is about.
 
-**Four issues are fixed and still open on purpose**: #203, #204, #29 and #183. `develop` is not the
-default branch, so "Closes #N" did not fire on merge, and closing them by hand would tell each reporter
-it is done while no version they can install has it. They close with the release, alongside #88. This is
-the same judgement as #88's, applied consistently rather than issue by issue.
+**Still with the maintainer, for every release**: `mvn deploy` from `master` at the versioned commit,
+and the Windows `.msix` to Partner Center. Neither is a step to take unasked.
 
-**Open pull request**: #202, this file and the layout document.
+**No open pull requests.**
 
 **Waiting on somebody else**, and worth a look before starting anything new — several of these may be
 closable:
@@ -337,10 +339,13 @@ closable:
 | #16 | whether to split it per modification |
 | #189 | whether they mean GlcNS or a sulfate on an already-acetylated nitrogen — a chemistry question, and the only thing left on it |
 | #190 | the WURCS or GlycoCT for G13093, for whoever takes #181 |
-| #88 | nothing — it is fixed, and waits only for a release to close against |
 | #123 | the contributor said about a week, from 2026-08-14 |
 
-**Deliberately not started**: #175 (jdom2) and taking glycanbuilder2web to 1.37.0 are both on hold at
+**Held until Monday 2026-08-17**: the nudges in the table above. Written and ready on Saturday the 15th, at
+the maintainer's request — see step 6 of "The order to take them in". A quiet weekend on this list is
+deliberate.
+
+**Deliberately not started**: #175 (jdom2) and taking glycanbuilder2web to 1.38.0 are both on hold at
 the maintainer's request.
 
 **The reducing-end note in "Before ranking anything, verify it" is the trap most likely to waste your

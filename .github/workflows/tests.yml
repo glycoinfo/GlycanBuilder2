@@ -1,0 +1,64 @@
+name: Tests
+
+# The suite, as a job other workflows can require.
+#
+# It exists because the release path did not run it. All four installer workflows build with
+# -DskipTests and release.yml only waits for them, so installers could be published - and were - without
+# a single regression test having executed in CI. The tests were run by hand before each release, which
+# is not a gate, it is a habit.
+#
+# Called by release.yml before any installer is built, and run on its own for pull requests, so a
+# failure is found before somebody dispatches a release.
+
+on:
+  workflow_call:
+  pull_request:
+    branches: [ master, develop ]
+
+env:
+  JAVA_VERSION: '21'
+  JAVA_DISTRIBUTION: 'zulu'
+  GITHUB_ACTOR: github.actor
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v5
+      with:
+        fetch-depth: 0
+
+    - name: Set up JDK ${{ env.JAVA_VERSION }}
+      uses: actions/setup-java@v5
+      with:
+        java-version: ${{ env.JAVA_VERSION }}
+        distribution: ${{ env.JAVA_DISTRIBUTION }}
+        server-id: github
+        server-username: GITHUB_ACTOR
+        server-password: GITHUB_TOKEN
+
+    - name: Cache Maven dependencies
+      uses: actions/cache@v5
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}_m2_${{ hashFiles('**/pom.xml') }}
+        restore-keys: ${{ runner.os }}_m2
+
+    # Headless, because much of the suite draws. Without it AWT initialization aborts the JVM on a
+    # runner with no display, which reads as a crash rather than as a missing display.
+    - name: Run the test suite
+      run: mvn -B -Djava.awt.headless=true test
+      shell: bash
+
+    # Kept whatever the outcome: a failing release is exactly when somebody needs to see which test
+    # failed, and surefire's own output is what says so.
+    - name: Upload test reports
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: surefire-reports
+        path: target/surefire-reports/
+        if-no-files-found: warn

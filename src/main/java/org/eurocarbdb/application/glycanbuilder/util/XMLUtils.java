@@ -48,9 +48,7 @@ public class XMLUtils {
      */
     static public Document newDocument() {
     try {
-        DocumentBuilderFactory factory =  DocumentBuilderFactory.newInstance();
-        DocumentBuilder builder = factory.newDocumentBuilder();
-        return builder.newDocument();
+        return SecureXml.newDocumentBuilder().newDocument();
     }    
     catch(Exception e) {
         LogUtils.report(e);
@@ -63,10 +61,7 @@ public class XMLUtils {
      */
     static public Document read(String data) {
     try {        
-        DocumentBuilderFactory factory =  DocumentBuilderFactory.newInstance();
-        DocumentBuilder builder = factory.newDocumentBuilder();
-        
-        return builder.parse(new ByteArrayInputStream(data.getBytes()));
+        return SecureXml.newDocumentBuilder().parse(new ByteArrayInputStream(data.getBytes()));
     }
     catch(Exception e) {
         LogUtils.report(e);
@@ -79,10 +74,7 @@ public class XMLUtils {
      */
     static public Document read(byte[] data) {
     try {        
-        DocumentBuilderFactory factory =  DocumentBuilderFactory.newInstance();
-        DocumentBuilder builder = factory.newDocumentBuilder();
-        
-        return builder.parse(new ByteArrayInputStream(data));
+        return SecureXml.newDocumentBuilder().parse(new ByteArrayInputStream(data));
     }
     catch(Exception e) {
         LogUtils.report(e);
@@ -95,10 +87,7 @@ public class XMLUtils {
      */
     static public Document read(InputStream is) {
     try {        
-        DocumentBuilderFactory factory =  DocumentBuilderFactory.newInstance();
-        DocumentBuilder builder = factory.newDocumentBuilder();
-
-        return builder.parse(is);
+        return SecureXml.newDocumentBuilder().parse(is);
     }
     catch(Exception e) {
         LogUtils.report(e);

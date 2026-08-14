@@ -381,8 +381,7 @@ public class SAXUtils {
        @throws Exception on errors
      */
     public static void read(InputStream is, DefaultHandler h) throws Exception {
-    SAXParser parser = SAXParserFactory.newInstance().newSAXParser();
-    parser.parse(is,h);
+    SecureXml.newSAXParser().parse(is,h);
     }
     
     /**

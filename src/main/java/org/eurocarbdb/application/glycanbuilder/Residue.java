@@ -1338,6 +1338,35 @@ public class Residue {
        @return <code>true</code> if the operation was successful
 	 */
 	public boolean addChild(Residue child, Collection<Bond> bonds) {
+		return attachChild(child,bonds,true);
+	}
+
+	/**
+	 * Attach a child that is being copied from a structure that already holds it.
+	 *
+	 * <p>A copy makes no new claim about a molecule, so the rules that decide what <em>may</em> be
+	 * attached do not apply to it: the question was settled when the original was made. Copying through
+	 * {@link #addChild} instead meant that a structure the rules would now refuse lost a residue on the
+	 * way through - silently, since a clone has nowhere to report - and {@code Glycan.clone()} is
+	 * copy-and-paste, undo and redo (#211).
+	 *
+	 * <p>Measured on a Glc carrying two substituents at position 2: 1.35.2 and 1.36.0 copied both,
+	 * 1.37.0 and 1.38.0 copied one and said nothing.
+	 *
+	 * <p>The distinction is between validating a change and reproducing a fact. Reading a file has
+	 * always been on the second side of it - a document containing such a structure still opens - and
+	 * copying belongs there too.
+	 */
+	protected boolean copyChild(Residue child, Collection<Bond> bonds) {
+		return attachChild(child,bonds,false);
+	}
+
+	/**
+	 * @param checkPosition
+	 *            whether the position rules apply. False when copying, where the structure already
+	 *            exists and nothing is being claimed.
+	 */
+	private boolean attachChild(Residue child, Collection<Bond> bonds, boolean checkPosition) {
 		if( child==null )
 			return false;
 
@@ -1346,8 +1375,8 @@ public class Residue {
 			if( !child.hasChildren() )
 				return false;
 
-			Linkage link = child.children_linkages.get(0);     
-			return addChild(link.getChildResidue(),link.getBonds());
+			Linkage link = child.children_linkages.get(0);
+			return attachChild(link.getChildResidue(),link.getBonds(),checkPosition);
 		}
 
 		//TODO: Investigate this further, this stop structures with repeat units from being copied 
@@ -1361,7 +1390,7 @@ public class Residue {
 
 		// cannot add a reducing end
 		if( child.isReducingEnd() && !child.canHaveParent() )
-			return this.addChild(child.firstChild(),bonds);
+			return this.attachChild(child.firstChild(),bonds,checkPosition);
 
 		// add labile back to lcleavage
 		if( isLCleavage() && cleaved_residue.getTypeName().equals(child.getTypeName()) ) {
@@ -1373,7 +1402,7 @@ public class Residue {
 		// one this child can be given (#34). Checked here as well as in canAddChild because this
 		// does not consult it - the two have grown apart, and adding is the path that makes the
 		// structure
-		if( positionIsNotAvailable(child,bonds) )
+		if( checkPosition && positionIsNotAvailable(child,bonds) )
 			return false;
 
 		// check for available space
@@ -1578,10 +1607,75 @@ public class Residue {
 		if( isBridge )
 			return !positionHeldByAChild(position,child);
 
+		// Nor is substituting this residue's own nitrogen. GlcN's 2 is left out of the list because
+		// the amine is there, and acylating that amine is how a GlcNAc is built up a step at a time:
+		// "Glc の C2 位の OH が、NHAc に置換され、GlcNAc となります" (I. Yamada, 2026-08-15). The
+		// position names the site, and what sits there is the group being modified - which is how the
+		// exporter has always read it, writing exactly GlcNAc's WURCS for a GlcN with an Ac at 2, up
+		// until 1.37.0 refused the attachment (#211).
+		if( substitutesOwnNitrogen(position,child) )
+			return !positionHeldByAChild(position,child);
+
 		for( char available : availableLinkagePositions() )
 			if( available==position ) return true;
 
 		return false;
+	}
+
+	/**
+	 * Whether attaching this child at this position means substituting the nitrogen this residue
+	 * already carries there, rather than claiming the carbon.
+	 *
+	 * <p>Both halves are read from the dictionary rather than reasoned about, which is the rule this
+	 * corner has taught twice now - the type's list is not a general test of what may attach, and
+	 * chemistry that is derived rather than declared has been wrong here before:
+	 *
+	 * <ul>
+	 *   <li><b>Where the nitrogen is</b>: the type's IUPAC name spells the built-in group and its
+	 *       position - {@code Glc$2N} is a free amine at 2, {@code Glc$2NAc} an N-acetyl at 2,
+	 *       {@code Neu$5NAc} one at 5.</li>
+	 *   <li><b>Whether it has room</b>: the type offers {@code N} among its linkage positions when it
+	 *       does. GlcN and NeuAc offer it; GlcNAc does not, so its 2 stays closed and a methyl there
+	 *       is still refused.</li>
+	 * </ul>
+	 *
+	 * <p>Only a substituent qualifies. A monosaccharide at a nitrogen would be a glycosidic bond to
+	 * something that is not a hydroxyl, and nothing measured here supports it.
+	 */
+	private boolean substitutesOwnNitrogen(char position, Residue child) {
+		if( child==null || !child.isSubstituent() || type==null )
+			return false;
+		if( position!=nitrogenPosition() )
+			return false;
+
+		for( char offered : type.getLinkagePositions() )
+			if( offered=='N' ) return true;
+
+		return false;
+	}
+
+	/**
+	 * The position at which this residue's type declares a nitrogen of its own, or {@code '\0'}.
+	 *
+	 * <p>Taken from the IUPAC name's group suffix: the digit in front of an {@code N} names the
+	 * position, as in {@code Glc$2N}, {@code Glc$2NAc} and {@code Neu$5NAc}. A type that declares no
+	 * group - {@code Mur$}, {@code Neu$} - has no such position, and keeps the plain carbon in its
+	 * list instead.
+	 */
+	private char nitrogenPosition() {
+		if( type==null || !type.hasIupacName() )
+			return '\0';
+
+		String name = type.getIupacName();
+		int at = name.indexOf('$');
+		if( at<0 )
+			return '\0';
+
+		for( int i=at+1; i<name.length()-1; i++ )
+			if( Character.isDigit(name.charAt(i)) && name.charAt(i+1)=='N' )
+				return name.charAt(i);
+
+		return '\0';
 	}
 
 	/**
@@ -1947,7 +2041,7 @@ public class Residue {
 
 		// clone children
 		for( Linkage l : children_linkages ){
-			clone.addChild(l.getChildResidue().cloneSubtree(stop_el,stop,startRep),l.getBonds());
+			clone.copyChild(l.getChildResidue().cloneSubtree(stop_el,stop,startRep),l.getBonds());
 
 		}
 
@@ -1971,7 +2065,7 @@ public class Residue {
 
 		// clone children
 		for( Linkage l : children_linkages )
-			clone.addChild(l.getChildResidue().cloneSubtreeAdd(add_el,toadd,toadd_bonds,startRep),l.getBonds());  
+			clone.copyChild(l.getChildResidue().cloneSubtreeAdd(add_el,toadd,toadd_bonds,startRep),l.getBonds());  
 
 				// add child where necessary
 				if( this==add_el && toadd!=null ) {

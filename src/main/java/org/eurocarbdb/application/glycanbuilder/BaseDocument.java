@@ -21,6 +21,10 @@ package org.eurocarbdb.application.glycanbuilder;
 
 import java.awt.*;
 import java.io.*;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 
 import org.eurocarbdb.application.glycanbuilder.logutility.LogUtils;
@@ -319,20 +323,25 @@ public abstract class BaseDocument {
        be parsed
        @see #read
      */
-    public boolean open(File file, boolean merge, boolean warning) 
+    public boolean open(File file, boolean merge, boolean warning)
     {
+    FileInputStream fis = null;
     try {
-        FileInputStream fis = new FileInputStream(file);
-        
+        fis = new FileInputStream(file);
+
         // read structure
         try {
         read(fis,merge);
         }
         catch(Exception e) {
-        	System.err.println("Got exception: "+e.getMessage());
-        init();
+        // What is already open is not the file's fault. This used to call init(), which cleared the
+        // current document before returning false - so a malformed file took the work that was on
+        // screen with it, and "Open additional document..." destroyed the document it was supposed
+        // to be adding to. GlycanDocument.fromString parses into a list of its own before it touches
+        // this document, so there is nothing half-read to tidy up after.
+        System.err.println("Got exception: "+e.getMessage());
         if( warning )
-            throw e;        
+            throw e;
         return false;
         }
 
@@ -359,8 +368,21 @@ public abstract class BaseDocument {
     catch( Exception e ) {
         LogUtils.report(e);
         return false;
-    }    
-    }    
+    }
+    finally {
+        // Closed either way. It used to be left to the garbage collector, so a failed open held the
+        // file open for as long as the collector took to notice - which on Windows is the difference
+        // between being able to delete or replace it and not.
+        if( fis!=null ) {
+            try {
+                fis.close();
+            }
+            catch( Exception cannotClose ) {
+                LogUtils.report(cannotClose);
+            }
+        }
+    }
+    }
 
     protected void read(InputStream is, boolean merge) throws Exception {
     	System.err.println("in read");
@@ -385,28 +407,213 @@ public abstract class BaseDocument {
      */
     public boolean save(String filename) {
 
+    // The document is told it has been saved only once it has been. setFilename sets was_saved and
+    // clears has_changed as a side effect, and calling it first meant that an unwritable destination,
+    // a full disk or a serialization failure returned false while leaving the document marked saved
+    // and clean - so the asterisk went away, Save went grey, and the next close let the work go
+    // without asking. The write is what decides; the bookkeeping follows it.
+    Path tmpfile = null;
+
     try{
-    	setFilename(filename);
-    	
-        // write to tmp file
-        File tmpfile = File.createTempFile("gwb",null);
-        write(new FileOutputStream(tmpfile));
+        // Save into what a symbolic link points at, not over the link. Writing to the destination had
+        // always followed it, because that is what opening a file for writing does; replacing the
+        // destination does not, so a save through a link left a regular file where the link had been
+        // and the file it pointed at still holding the previous contents - reported as a success.
+        Path destination = followLinks(new File(filename).toPath().toAbsolutePath());
 
-        // copy to dest file and delete tmp file
-        FileUtils.copy(tmpfile,new File(filename));
-        tmpfile.delete();
+        // Keep the temporary file beside the destination - the resolved one, so the move stays on the
+        // same filesystem. A completed file can then replace the old one with a filesystem move, rather
+        // than truncating the old file and copying bytes into it, which left the last good save partial
+        // or empty when the copy failed partway.
+        tmpfile = Files.createTempFile(destination.getParent(),"gwb",null);
 
-        //
-        
-        
-        //
+        try (OutputStream out = Files.newOutputStream(tmpfile)) {
+            write(out);
+        }
+
+        replaceFile(tmpfile,destination);
+
+        setFilename(filename);
         fireDocumentInit();
         return true;
     }
     catch( Exception e ) {
         LogUtils.report(e);
         return false;
-    }        
+    }
+    finally {
+        // Ours, and gone either way. It used to be left behind on every failing path.
+        if( tmpfile!=null ) {
+            try {
+                Files.deleteIfExists(tmpfile);
+            }
+            catch( IOException cannotDelete ) {
+                LogUtils.report(cannotDelete);
+            }
+        }
+    }
+    }
+
+    /**
+       Replace a saved file without copying into and truncating the previous version.
+
+       The temporary file is created in the destination directory, so the ordinary fallback is still
+       a same-filesystem rename. The atomic option is used where the filesystem offers it; providers
+       that do not support it still move the complete file rather than streaming over the old one.
+     */
+    private static void replaceFile(Path source, Path destination) throws Exception {
+    // Nothing is replaced unless the replacement says what the file it replaces says about who may
+    // read it. This used to fall back to copying the bytes into the destination instead, on the
+    // grounds that a file which is never replaced cannot have its access control changed - which is
+    // true, and beside the point: that copy truncates the destination before it transfers, so a
+    // failure partway through leaves the last good save partial or empty. It is exactly the fault this
+    // whole change set out to remove, kept alive on the one path where attributes are most likely to
+    // fail - a shared file somebody else owns.
+    //
+    // Refusing is the safer of the two, and the argument I made for the fallback was wrong on its own
+    // terms: it also loses work, and it loses it silently. A refusal is visible and recoverable - the
+    // document stays dirty and Save As still works.
+    if( !accessControlCarriedOver(destination,source) )
+        throw new IOException("cannot save over " + destination
+                + " without changing who is allowed to read it");
+
+    try {
+        Files.move(source,destination,StandardCopyOption.ATOMIC_MOVE,
+                StandardCopyOption.REPLACE_EXISTING);
+    }
+    catch( AtomicMoveNotSupportedException notAtomicHere ) {
+        Files.move(source,destination,StandardCopyOption.REPLACE_EXISTING);
+    }
+    }
+
+    /**
+       Follow a chain of symbolic links to the path that will actually be written.
+
+       Not {@code toRealPath}, which requires the file to exist: a link pointing at a name that is not
+       there yet is a perfectly ordinary thing to save to, and resolving it by hand handles that as well
+       as a link whose target is relative to the link's own directory.
+
+       @return Returns the path at the end of the chain, or the path given where it is not a link.
+     */
+    private static Path followLinks(Path path) throws IOException {
+    Path resolved = path;
+
+    // A bound rather than a cycle check: a loop of links has no end to find, and thirty-two hops is
+    // past anything real.
+    for( int hops=0; hops<32 && Files.isSymbolicLink(resolved); hops++ ) {
+        Path parent = resolved.getParent();
+        Path target = Files.readSymbolicLink(resolved);
+
+        resolved = ((parent==null) ? target : parent.resolve(target)).toAbsolutePath().normalize();
+    }
+
+    // Running out of hops is a refusal, not an answer. Returning the link we stopped on made it the
+    // destination, so a loop of links - or a chain longer than the bound - had one of its links replaced
+    // by the saved file while the real file kept the previous contents, and the save reported success.
+    // Measured: a two-link cycle came back saved=true with one link destroyed; a thirty-three link chain
+    // came back saved=true with an intermediate link replaced and the target untouched.
+    if( Files.isSymbolicLink(resolved) )
+        throw new IOException("cannot find what " + path
+                + " points at: more than 32 symbolic links to follow, or a loop of them");
+
+    return resolved;
+    }
+
+    /**
+       Make the replacement say what the file it replaces says about who may read and write it.
+
+       A move puts a new file in place of the old one, so the saved document would otherwise carry the
+       temporary file's access control rather than the destination's - and a fresh temporary file is
+       owner-only. Measured: a destination at rw-r--r-- came back rw------- after one save, so in a
+       shared directory everyone but the owner lost work they had been reading.
+
+       Mode bits are not the whole of it, which is the second thing measured here. A fresh file takes
+       its group from the platform's rule - the directory's group on macOS, the creating process's on
+       Linux - rather than from the file being replaced, so a destination whose group had been set for a
+       team came back with a different one and the same mode. Extended attributes were dropped
+       altogether. Anything an ACL says would go the same way.
+
+       So all four are carried: mode, owner, group and the ACL, plus any user-defined attributes.
+       Owner and group are only set where they differ, so the ordinary case of saving one's own file
+       never asks for a privilege it does not need.
+
+       @return Returns whether the replacement now says everything the destination said. False means the
+               caller must not replace it.
+     */
+    private static boolean accessControlCarriedOver(Path replacing, Path replacement) {
+    try {
+        if( !Files.exists(replacing) )
+            return true;    // nothing to carry over, and nothing to lose by replacing it
+
+        carryOverPosix(replacing,replacement);
+        carryOverAcl(replacing,replacement);
+        carryOverUserAttributes(replacing,replacement);
+
+        return true;
+    }
+    catch( Exception cannotCarryItOver ) {
+        // Reported, and then the caller writes into the file rather than replacing it. A save that
+        // quietly changes who can read a file is the fault this method exists to prevent, so failing to
+        // carry the answer over is a reason not to replace the file - not a reason to do it anyway.
+        LogUtils.report(cannotCarryItOver);
+        return false;
+    }
+    }
+
+    /** Mode, owner and group, where the filesystem has them. */
+    private static void carryOverPosix(Path replacing, Path replacement) throws IOException {
+    java.nio.file.attribute.PosixFileAttributeView view =
+            Files.getFileAttributeView(replacing,
+                    java.nio.file.attribute.PosixFileAttributeView.class);
+    if( view==null )
+        return;
+
+    java.nio.file.attribute.PosixFileAttributes attributes = view.readAttributes();
+    Files.setPosixFilePermissions(replacement,attributes.permissions());
+
+    java.nio.file.attribute.PosixFileAttributes now =
+            Files.readAttributes(replacement,java.nio.file.attribute.PosixFileAttributes.class);
+    if( !now.group().equals(attributes.group()) )
+        Files.getFileAttributeView(replacement,
+                java.nio.file.attribute.PosixFileAttributeView.class).setGroup(attributes.group());
+    if( !now.owner().equals(attributes.owner()) )
+        Files.setOwner(replacement,attributes.owner());
+    }
+
+    /** The ACL, where the filesystem keeps one - Windows and NFSv4 among them. */
+    private static void carryOverAcl(Path replacing, Path replacement) throws IOException {
+    java.nio.file.attribute.AclFileAttributeView from =
+            Files.getFileAttributeView(replacing,java.nio.file.attribute.AclFileAttributeView.class);
+    java.nio.file.attribute.AclFileAttributeView to =
+            Files.getFileAttributeView(replacement,java.nio.file.attribute.AclFileAttributeView.class);
+    if( from==null || to==null )
+        return;
+
+    to.setAcl(from.getAcl());
+    }
+
+    /**
+       Extended attributes, which a move drops in silence.
+
+       Measured: a marker written to a destination was gone after the replacement, with the mode bits
+       looking untouched - which is how this kind of loss escapes a test that only reads the mode.
+     */
+    private static void carryOverUserAttributes(Path replacing, Path replacement) throws IOException {
+    java.nio.file.attribute.UserDefinedFileAttributeView from =
+            Files.getFileAttributeView(replacing,
+                    java.nio.file.attribute.UserDefinedFileAttributeView.class);
+    java.nio.file.attribute.UserDefinedFileAttributeView to =
+            Files.getFileAttributeView(replacement,
+                    java.nio.file.attribute.UserDefinedFileAttributeView.class);
+    if( from==null || to==null )
+        return;
+
+    for( String name : from.list() ) {
+        java.nio.ByteBuffer value = java.nio.ByteBuffer.allocate(from.size(name));
+        from.read(name,value);
+        value.flip();
+        to.write(name,value);
+    }
     }
     
     /**

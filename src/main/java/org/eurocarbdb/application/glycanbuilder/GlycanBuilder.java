@@ -666,17 +666,36 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
 	public boolean onSave(BaseDocument doc, boolean ask_filename) {
 		if( doc==null ) return false;
 
-		// controlla se e' possibile salvare il file nella stessa posizione da cui e' stato aperto
-		File cur = doc.getFile();                
-		if( cur!=null && cur.canWrite() ) {
-			// salvo il documento su file
-			doc.save(cur.getAbsolutePath());       
-			return true;
-		}
+		Boolean saved = saveToItsOwnFile(doc);
+		if( saved!=null ) return saved.booleanValue();
 
 		// non e' stato possibile salvare il file nella posizione da cui e' stato aperto. Richiedo il salvataggio con scelta file
-		if( ask_filename ) return onSaveAs(doc);        
+		if( ask_filename ) return onSaveAs(doc);
 		return false;
+	}
+
+	/**
+	 * Write the document back to the file it came from, if it has one that can be written.
+	 *
+	 * <p>Separated from {@link #onSave(BaseDocument, boolean)} so the decision can be tested without a
+	 * window: everything above it is a file chooser, and everything about it that was wrong was here.
+	 * The result used to be discarded and {@code true} returned regardless, so an I/O failure read as a
+	 * successful save - and this is the branch "Save changes?" takes on exit, so answering Yes to it let
+	 * the application close over work that had not been written.
+	 *
+	 * <p>No second file chooser on failure: the document has a writable file, and asking again where to
+	 * put it would be answering a different question.
+	 *
+	 * @return Returns whether the save succeeded, or {@code null} when the document has no writable
+	 *         file of its own and the caller should offer Save As instead.
+	 */
+	public static Boolean saveToItsOwnFile(BaseDocument doc) {
+		// controlla se e' possibile salvare il file nella stessa posizione da cui e' stato aperto
+		File cur = (doc==null) ? null : doc.getFile();
+		if( cur==null || !cur.canWrite() )
+			return null;
+
+		return Boolean.valueOf(doc.save(cur.getAbsolutePath()));
 	}
 
 	/**
@@ -798,10 +817,11 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
 
 			// esporta il documento su file
 			if( theDoc.isSequenceFormat(format) ) {
-				if( theDoc.exportTo(filename,format) ) {
-					setLastExportedFile(filename);
-					warnAboutExportFailures(theDoc, format);
-				}
+				if( !exportSequenceTo(theDoc,filename,format) )
+					return false;
+
+				setLastExportedFile(filename);
+				warnAboutExportFailures(theDoc, format);
 				return true;
 			}
 			else if( SVGUtils.export((GlycanRendererAWT) theWorkspace.getGlycanRenderer(),filename,theDoc.getStructures(),theWorkspace.getGraphicOptions().SHOW_MASSES,theWorkspace.getGraphicOptions().SHOW_REDEND,format) ) {
@@ -810,6 +830,24 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
 			}        
 		}
 		return false;
+	}
+
+	/**
+	 * Write the document out in a sequence format, and say whether it was written.
+	 *
+	 * <p>Separated from {@link #onExportTo(String)} so the answer can be tested without a file chooser.
+	 * It used to be discarded and {@code true} returned regardless, so an export that wrote nothing
+	 * reported success - which also made a liar of the warning that follows it, whose whole purpose is
+	 * to tell a user what did not come out. The graphical formats in the same method had always
+	 * returned their real result.
+	 *
+	 * <p>The caller records the file as exported and warns about partial failures <em>only</em> on
+	 * true, so a failed export leaves no trace of having worked.
+	 *
+	 * @return Returns whether the document was written.
+	 */
+	public static boolean exportSequenceTo(GlycanDocument doc, String filename, String format) {
+		return doc!=null && doc.exportTo(filename,format);
 	}
 
 	/**

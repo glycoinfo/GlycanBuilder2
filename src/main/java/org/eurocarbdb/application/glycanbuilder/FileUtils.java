@@ -307,18 +307,15 @@ public class FileUtils {
 		if (dst == null)
 			throw new Exception("Invalid destination file");
 
-		FileChannel inChannel = new FileInputStream(src).getChannel();
-		FileChannel outChannel = new FileOutputStream(dst).getChannel();
-		try {
+		// Acquire both channels inside the resource statement. If opening the destination fails,
+		// Java closes the source channel that was already opened; the old form acquired both before
+		// entering its finally block and leaked the source on exactly that path.
+		try (FileChannel inChannel = new FileInputStream(src).getChannel();
+			 FileChannel outChannel = new FileOutputStream(dst).getChannel()) {
 			long position = 0;
 			long size = inChannel.size();
 			while (position < size)
 				position += inChannel.transferTo(position, 32000, outChannel);
-		} catch (IOException e) {
-			throw e;
-		} finally {
-			if (inChannel != null) inChannel.close();
-			if (outChannel != null) outChannel.close();
 		}
 	}
 
