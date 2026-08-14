@@ -319,20 +319,25 @@ public abstract class BaseDocument {
        be parsed
        @see #read
      */
-    public boolean open(File file, boolean merge, boolean warning) 
+    public boolean open(File file, boolean merge, boolean warning)
     {
+    FileInputStream fis = null;
     try {
-        FileInputStream fis = new FileInputStream(file);
-        
+        fis = new FileInputStream(file);
+
         // read structure
         try {
         read(fis,merge);
         }
         catch(Exception e) {
-        	System.err.println("Got exception: "+e.getMessage());
-        init();
+        // What is already open is not the file's fault. This used to call init(), which cleared the
+        // current document before returning false - so a malformed file took the work that was on
+        // screen with it, and "Open additional document..." destroyed the document it was supposed
+        // to be adding to. GlycanDocument.fromString parses into a list of its own before it touches
+        // this document, so there is nothing half-read to tidy up after.
+        System.err.println("Got exception: "+e.getMessage());
         if( warning )
-            throw e;        
+            throw e;
         return false;
         }
 
@@ -359,8 +364,21 @@ public abstract class BaseDocument {
     catch( Exception e ) {
         LogUtils.report(e);
         return false;
-    }    
-    }    
+    }
+    finally {
+        // Closed either way. It used to be left to the garbage collector, so a failed open held the
+        // file open for as long as the collector took to notice - which on Windows is the difference
+        // between being able to delete or replace it and not.
+        if( fis!=null ) {
+            try {
+                fis.close();
+            }
+            catch( Exception cannotClose ) {
+                LogUtils.report(cannotClose);
+            }
+        }
+    }
+    }
 
     protected void read(InputStream is, boolean merge) throws Exception {
     	System.err.println("in read");

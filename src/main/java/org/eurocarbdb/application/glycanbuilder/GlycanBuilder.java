@@ -817,10 +817,11 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
 
 			// esporta il documento su file
 			if( theDoc.isSequenceFormat(format) ) {
-				if( theDoc.exportTo(filename,format) ) {
-					setLastExportedFile(filename);
-					warnAboutExportFailures(theDoc, format);
-				}
+				if( !exportSequenceTo(theDoc,filename,format) )
+					return false;
+
+				setLastExportedFile(filename);
+				warnAboutExportFailures(theDoc, format);
 				return true;
 			}
 			else if( SVGUtils.export((GlycanRendererAWT) theWorkspace.getGlycanRenderer(),filename,theDoc.getStructures(),theWorkspace.getGraphicOptions().SHOW_MASSES,theWorkspace.getGraphicOptions().SHOW_REDEND,format) ) {
@@ -829,6 +830,24 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
 			}        
 		}
 		return false;
+	}
+
+	/**
+	 * Write the document out in a sequence format, and say whether it was written.
+	 *
+	 * <p>Separated from {@link #onExportTo(String)} so the answer can be tested without a file chooser.
+	 * It used to be discarded and {@code true} returned regardless, so an export that wrote nothing
+	 * reported success - which also made a liar of the warning that follows it, whose whole purpose is
+	 * to tell a user what did not come out. The graphical formats in the same method had always
+	 * returned their real result.
+	 *
+	 * <p>The caller records the file as exported and warns about partial failures <em>only</em> on
+	 * true, so a failed export leaves no trace of having worked.
+	 *
+	 * @return Returns whether the document was written.
+	 */
+	public static boolean exportSequenceTo(GlycanDocument doc, String filename, String format) {
+		return doc!=null && doc.exportTo(filename,format);
 	}
 
 	/**
