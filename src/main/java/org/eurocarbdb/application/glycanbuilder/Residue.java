@@ -1578,10 +1578,75 @@ public class Residue {
 		if( isBridge )
 			return !positionHeldByAChild(position,child);
 
+		// Nor is substituting this residue's own nitrogen. GlcN's 2 is left out of the list because
+		// the amine is there, and acylating that amine is how a GlcNAc is built up a step at a time:
+		// "Glc の C2 位の OH が、NHAc に置換され、GlcNAc となります" (I. Yamada, 2026-08-15). The
+		// position names the site, and what sits there is the group being modified - which is how the
+		// exporter has always read it, writing exactly GlcNAc's WURCS for a GlcN with an Ac at 2, up
+		// until 1.37.0 refused the attachment (#211).
+		if( substitutesOwnNitrogen(position,child) )
+			return !positionHeldByAChild(position,child);
+
 		for( char available : availableLinkagePositions() )
 			if( available==position ) return true;
 
 		return false;
+	}
+
+	/**
+	 * Whether attaching this child at this position means substituting the nitrogen this residue
+	 * already carries there, rather than claiming the carbon.
+	 *
+	 * <p>Both halves are read from the dictionary rather than reasoned about, which is the rule this
+	 * corner has taught twice now - the type's list is not a general test of what may attach, and
+	 * chemistry that is derived rather than declared has been wrong here before:
+	 *
+	 * <ul>
+	 *   <li><b>Where the nitrogen is</b>: the type's IUPAC name spells the built-in group and its
+	 *       position - {@code Glc$2N} is a free amine at 2, {@code Glc$2NAc} an N-acetyl at 2,
+	 *       {@code Neu$5NAc} one at 5.</li>
+	 *   <li><b>Whether it has room</b>: the type offers {@code N} among its linkage positions when it
+	 *       does. GlcN and NeuAc offer it; GlcNAc does not, so its 2 stays closed and a methyl there
+	 *       is still refused.</li>
+	 * </ul>
+	 *
+	 * <p>Only a substituent qualifies. A monosaccharide at a nitrogen would be a glycosidic bond to
+	 * something that is not a hydroxyl, and nothing measured here supports it.
+	 */
+	private boolean substitutesOwnNitrogen(char position, Residue child) {
+		if( child==null || !child.isSubstituent() || type==null )
+			return false;
+		if( position!=nitrogenPosition() )
+			return false;
+
+		for( char offered : type.getLinkagePositions() )
+			if( offered=='N' ) return true;
+
+		return false;
+	}
+
+	/**
+	 * The position at which this residue's type declares a nitrogen of its own, or {@code '\0'}.
+	 *
+	 * <p>Taken from the IUPAC name's group suffix: the digit in front of an {@code N} names the
+	 * position, as in {@code Glc$2N}, {@code Glc$2NAc} and {@code Neu$5NAc}. A type that declares no
+	 * group - {@code Mur$}, {@code Neu$} - has no such position, and keeps the plain carbon in its
+	 * list instead.
+	 */
+	private char nitrogenPosition() {
+		if( type==null || !type.hasIupacName() )
+			return '\0';
+
+		String name = type.getIupacName();
+		int at = name.indexOf('$');
+		if( at<0 )
+			return '\0';
+
+		for( int i=at+1; i<name.length()-1; i++ )
+			if( Character.isDigit(name.charAt(i)) && name.charAt(i+1)=='N' )
+				return name.charAt(i);
+
+		return '\0';
 	}
 
 	/**
