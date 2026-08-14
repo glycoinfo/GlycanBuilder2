@@ -1,4 +1,72 @@
 ## Change log
+### 1.39.0  (20260815)
+A code review, a regression 1.37.0 had shipped, and the reason neither had been caught: the release path
+was not running the tests. **Minor rather than patch** - `SecureXml`,
+`GlycanBuilder.saveToItsOwnFile` and `GlycanBuilder.exportSequenceTo` are new public API, and saving,
+exporting, reading XML and attaching a substituent all now refuse or allow things they did not. A
+consumer relying on any of those would see the change.
+* **The tests gate the release** (work package F, taken first). All four installer workflows build with
+  `-DskipTests` and `release.yml` only waited for them, so 1.36.0, 1.37.0 and 1.38.0 were all published
+  without a single regression test having run in CI. The suite was run by hand beforehand, which is a
+  habit rather than a gate
+  * `tests.yml` runs it headless, uploads surefire's reports whatever the outcome, and every installer
+    job now `needs: test`. It also runs on pull requests to `master` and `develop`, so a failure is found
+    before somebody dispatches a release rather than during one
+  * Taken before the five faults below because it is why they could ship. Fixing them without the gate
+    would leave the next one the same road
+* **The XML readers read only the document they were given** (#E). Both resolved external entities, so a
+  document could name a file and have its contents substituted into the parse. Measured, with an entity
+  pointing at a temporary file: `XMLUtils.read` returned the file's contents and `SAXUtils.read` handed
+  them to the handler. The same configuration issues network requests from a document, so the reach was
+  never the local disk alone
+  * Not the XXE work in 1.35.2 - that was `GlycoCTParser` refusing a `DOCTYPE` for one format, and left
+    these two helpers, which everything else goes through
+  * Nothing this application reads as XML declares a `DOCTYPE`, so the strongest setting was also the
+    compatible one: one is refused outright, which removes entity substitution rather than restricting
+    it. It fails closed - a parser that cannot be told to be safe is not returned
+* **A save that did not happen is not reported as one**, through the model and through the caller. Two
+  faults needing two fixes: `save` called `setFilename` before writing anything, and that sets
+  `was_saved` and clears `has_changed` as a side effect; and `onSave` discarded the result and returned
+  true, which is the branch "Save changes?" takes on exit, so an I/O failure let the application close
+  over work that had never been written
+  * **The destination is replaced rather than written into.** Copying the finished bytes into it
+    truncates first, so a failure partway through left the last good save partial or empty. A temporary
+    file beside the destination is moved over it instead, atomically where the filesystem offers it
+  * **A replacement says what the file it replaces said about who may read it** - mode, owner, group, the
+    ACL and any extended attributes. A move puts a new file in place of the old one, and a fresh
+    temporary file is owner-only: measured, a destination at `rw-r--r--` came back `rw-------`, and a
+    group set for a team came back changed with an identical mode. Where that cannot be reproduced the
+    save fails and the document stays dirty, rather than falling back to a copy that could truncate
+  * **A save through a symbolic link writes into what it points at.** Opening a file for writing follows
+    a link; replacing it does not, so a save left a regular file where the link had been and the real
+    file holding the previous contents - reported as a success. A loop of links, or a chain longer than
+    thirty-two, is refused with every link left as it was
+  * The temporary file is cleaned up on every path, and `FileUtils.copy` no longer leaks the source
+    channel when the destination cannot be opened
+* **A file that will not read does not take the open document with it** (#C). `open` caught the parse
+  failure and called `init()`, which clears the document, so a malformed file lost whatever was on screen
+  and "Open additional document..." destroyed the document it was meant to be adding to. Nothing needed
+  tidying: the parse builds a list of its own and only then hands it over
+* **A failed sequence export says so** (#D). It returned true regardless, so an export that wrote nothing
+  reported success - and made a liar of the warning that follows it, whose purpose is to say which
+  structures did not come out. The graphical formats had always returned their real result
+* **An acyl may substitute the amine a residue already carries** (#211), which 1.37.0 had begun refusing.
+  `GlcN`'s 2 is left out of its linkage positions because the amine is there, and the position rules
+  enforced that list against every child - so acylating the amine, which is how a GlcNAc is built up a
+  step at a time, stopped working. Measured: `GlcN.addChild(Ac, '2')` wrote exactly GlcNAc's WURCS on
+  1.35.2 and 1.36.0, and was refused on 1.37.0 and 1.38.0
+  * *"Glc + 2N → GlcN + 2Ac → GlcNAc となり、Glc の C2 位の OH が、NHAc に置換され、GlcNAc となります"* -
+    I. Yamada, 2026-08-15. The position names the site, and what sits there is the group being modified,
+    which is how the exporter has always read it
+  * Both halves of the rule are read from the dictionary rather than derived - the IUPAC name says where
+    the nitrogen is, and the type offers `N` among its positions when it has room. `GlcNAc` does not, so
+    its 2 stays shut. This corner has now taught twice that chemistry reasoned about instead of declared
+    comes out wrong here; the bridge exemption was the first time
+* **Copying a structure copies all of it** (#211). `cloneSubtree` rebuilt the copy through `addChild`, so
+  a structure holding two children at one position lost one during the copy - silently, and
+  `Glycan.clone()` is copy-and-paste, undo and redo. A copy makes no new claim about a molecule; reading a
+  file was always on that side of the line and copying belongs there too
+
 ### 1.38.0  (20260815)
 The tracker was re-checked against the code first, and the gap between them turned out to be the largest
 thing on the list: nine issues were marked fixed and still open, and two faults that had been measured
