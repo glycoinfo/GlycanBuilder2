@@ -385,28 +385,40 @@ public abstract class BaseDocument {
      */
     public boolean save(String filename) {
 
+    // The document is told it has been saved only once it has been. setFilename sets was_saved and
+    // clears has_changed as a side effect, and calling it first meant that an unwritable destination,
+    // a full disk or a serialization failure returned false while leaving the document marked saved
+    // and clean - so the asterisk went away, Save went grey, and the next close let the work go
+    // without asking. The write is what decides; the bookkeeping follows it.
+    File tmpfile = null;
+
     try{
-    	setFilename(filename);
-    	
-        // write to tmp file
-        File tmpfile = File.createTempFile("gwb",null);
-        write(new FileOutputStream(tmpfile));
+        // write to tmp file, so nothing touches the destination until a whole document exists
+        tmpfile = File.createTempFile("gwb",null);
 
-        // copy to dest file and delete tmp file
+        FileOutputStream out = new FileOutputStream(tmpfile);
+        try {
+            write(out);
+        }
+        finally {
+            out.close();
+        }
+
+        // copy to dest file
         FileUtils.copy(tmpfile,new File(filename));
-        tmpfile.delete();
 
-        //
-        
-        
-        //
+        setFilename(filename);
         fireDocumentInit();
         return true;
     }
     catch( Exception e ) {
         LogUtils.report(e);
         return false;
-    }        
+    }
+    finally {
+        // Ours, and gone either way. It used to be left behind on every failing path.
+        if( tmpfile!=null ) tmpfile.delete();
+    }
     }
     
     /**
