@@ -492,7 +492,12 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
 			int ret = JOptionPane.showConfirmDialog(this,"Save changes to " + doc.getName().toLowerCase() + "?", null, JOptionPane.YES_NO_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE);
 			if( ret == JOptionPane.CANCEL_OPTION ) return false;        
 			if( ret == JOptionPane.YES_OPTION ) {
-				if( !onSaveAs(doc) ) return false;
+				// Save, not Save As. A document that came from a file has one to go back to, and
+				// asking where to put it is asking a question that was answered when it was opened -
+				// the file's name is in the title bar at the time (#106). onSave falls back to Save As
+				// by itself where there is no file yet, or where it cannot be written to, which is
+				// the case this had been written for.
+				if( !onSave(doc) ) return false;
 				return true;
 			}
 			if( ret == JOptionPane.NO_OPTION ) return true;

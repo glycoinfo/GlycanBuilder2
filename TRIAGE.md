@@ -66,19 +66,19 @@ remains, and the issue should say so rather than being closed.
 | ~~#107~~ | ~~Composition export to WURCS fails~~ | **Done.** `org.glycoinfo.application.glycanbuilder.composition` builds the composition as unlinked nodes and lets `WURCSFactory` canonicalize, which is what glycompconverter does. No new dependency; output pinned against that implementation's, residue by residue |
 | ~~#127~~ | ~~`MassOptions.ISOTOPE` has no effect~~ | **Done for the neutral mass.** Residues, water, hydrogen and the derivatization all follow the choice; measured against literature (Glc 180.156, Man₃GlcNAc₂ 910.82). **Still monoisotopic: the ion adducts.** `IonCloud` captures an ion's mass when the ion is set, not when the mass is computed, so an m/z carries an average neutral mass and a monoisotopic adduct. Worth its own issue |
 | **#185** | EPS/PS/PDF export writes 0 bytes silently | **Half done.** A failed transcode is now refused by name instead of being written as an empty file — it had been logged and returned as null, and the null was written. The underlying Windows failure does not reproduce here: all five formats write on macOS with the pinned batik 1.19 / fop 2.11. Waiting on a retest from the reporter |
-| **#66** | WURCS export fails with `"_map" is null` on a heavily modified Fuc | |
-| **#34** | Duplicated linkage position in a branched glycan | The position list is built without asking what the parent already carries, so an impossible structure can be drawn |
+| **#66** | WURCS export fails with `"_map" is null` on a heavily modified Fuc | **Does not reproduce on 1.36.0** — a Fuc with 2-O-Me, 3-NH₂ and 4-O-Me writes WURCS, drawn or imported, alone or as a branch. The substituent MAP handling has been reworked since it was filed. Waiting on a retest and the GWS |
+| ~~#34~~ | ~~Duplicated linkage position in a branched glycan~~ | **Done.** A stated position another child holds is refused, in `addChild` as well as `canAddChild` — the two had grown apart and adding is the path that makes the structure. Unknown positions still stack, and a file that already contains one still opens |
 
 ## P2 — work is lost, or the output cannot be used
 
 | # | Title | Note |
 |---|---|---|
-| **#186** | PNG background not transparent | These three are one problem — "I cannot put this in a paper" — |
-| **#188** | SVG gives every character its own white background | and are worth doing together rather than |
-| **#187** | Ungrouping in PowerPoint destroys Fuc and Man | one at a time |
-| **#106** | Saving on close offers Save As for an already-saved file | |
-| **#178** | "Open additional document" leaves the document counted as unchanged, so it closes without warning | |
-| **#179** | "Remember files after restarting" carries a customised reducing end into newly imported structures | |
+| ~~#186~~ | ~~PNG background not transparent~~ | **Done.** The renderer could always paint without one; the export passed opaque for every format alike. BMP and JPEG keep theirs, having no alpha to write |
+| ~~#188~~ | ~~SVG gives every character its own white background~~ | **Done.** `clearRect` on an SVG surface paints the background colour rather than removing anything, and the export set that colour to white. Measured: white rectangles 9 → 0, colours intact |
+| **#187** | Ungrouping in PowerPoint destroys Fuc and Man | May be answered by #188 — there is no white background left to go hunting for. Worth a retest before anything else is done |
+| ~~#106~~ | ~~Saving on close offers Save As for an already-saved file~~ | **Done.** The close prompt called `onSaveAs` outright; `onSave` writes to the file the document came from and falls back by itself |
+| ~~#178~~ | ~~"Open additional document" leaves the document counted as unchanged~~ | **Done.** `setFilename` cleared the changed flag as a side effect, and a merge took the merged file's name as well. A merge now keeps its own name and counts as changed |
+| ~~#179~~ | ~~"Remember files after restarting" carries a customised reducing end into new imports~~ | **Done.** The WURCS reader clears it alongside the derivatization and ion cloud it already cleared: what the sequence states is the answer, and what it does not state is a default rather than a leftover |
 
 ## P3 — visibly wrong
 
