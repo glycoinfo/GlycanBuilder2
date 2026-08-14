@@ -58,43 +58,41 @@ report.
 
 ---
 
-## Fixed, and still open on the tracker
+## Fixed and closed, on 2026-08-15
 
-**The largest gap between this file and the tracker.** Nine issues are marked done below — eight of
-them in a version a user can already install — and every one of them is still open on GitHub. Somebody
-reading the tracker sees a backlog that is not there, and none of the reporters has been told.
-
-Each wants a comment carrying what was measured and the version it went out in, then a close — not a
-bare close.
+For a day these were all marked done here and open on GitHub — the tracker showed a backlog that did
+not exist, and no reporter had been told. Each is now closed with a comment carrying what was measured
+and the version it went out in.
 
 | # | What it was | Released in |
 |---|---|---|
 | #132 | `v_stripes`/`h_stripes` never painted | 1.36.0 |
 | #107 | Composition export to WURCS fails | 1.36.0 |
+| #127 | `MassOptions.ISOTOPE` has no effect | 1.36.0, for the neutral mass — the adducts became **#203** |
 | #34 | Duplicated linkage position in a branched glycan | 1.37.0 |
 | #186 | PNG background not transparent | 1.37.0 |
 | #188 | SVG gives every character a white background | 1.37.0 |
 | #106 | Saving on close offers Save As for an already-saved file | 1.37.0 |
 | #178 | "Open additional document" leaves the document counted as unchanged | 1.37.0 |
 | #179 | "Remember files after restarting" carries a reducing end into new imports | 1.37.0 |
-| #88 | No right margin on a bridge label | **`develop`, unreleased** — merged as #199, no version carries it yet |
+| #90 | No second window on macOS | Not a code change — closed with the `open -n` workaround |
 
-**#127** is a different case and should stay open with its scope narrowed rather than closed: the
-neutral mass follows `MassOptions.ISOTOPE` as of 1.36.0, the ion adducts still do not. See the
-unfiled follow-ups below.
+**#88 is fixed and deliberately still open.** The fix is on `develop` (merged as #199) and no version
+a user can install carries it, so closing it would read as done to somebody whose build still shows
+the problem. It is commented to that effect and closes with the next release.
 
 **#83** is on `develop` too (merged as #201) but is not fixed by it — removing an angle that was never
 used does not answer whether the symbol looks wrong, which is what the reporter was asked.
 
-### Two things measured but never filed
+### Two things measured, now filed
 
-Both were found while measuring something else, both are real, and neither exists as an issue — so
-they are invisible to anyone who does not read this file.
+Both were found while measuring something else and existed nowhere but this file until 2026-08-15.
 
-- **`IonCloud` captures an ion's mass when the ion is set, not when the mass is computed**, so an m/z
-  can pair an average neutral mass with a monoisotopic adduct. This is the remainder of #127.
-- **A repeat unit's own linkage position does not survive a round trip**, `l1` → `l?`. Found while
-  measuring #57, and a different fault from the one that issue reports.
+- **#203** — `IonCloud` captures an adduct's mass when the ion is set rather than when the mass is
+  computed, so an m/z can pair an average neutral mass with a monoisotopic adduct. Nil for sodium,
+  +0.135 per potassium, +0.484 per chloride, and *negative* for lithium. The remainder of #127.
+- **#204** — a repeat unit's own linkage position does not survive a round trip, `l1` → `l?`. Found
+  while measuring #57, and a different fault from the one that issue reports.
 
 ---
 
@@ -104,7 +102,8 @@ they are invisible to anyone who does not read this file.
 |---|---|---|
 | ~~#132~~ | ~~`v_stripes`/`h_stripes` never painted~~ | **Done.** Three bars, clipped to the outline. The test asserts the drawn image and, separately, that the stripes exist — Tal is green and All is blue, so comparing the pair passes on colour alone |
 | ~~#107~~ | ~~Composition export to WURCS fails~~ | **Done.** `org.glycoinfo.application.glycanbuilder.composition` builds the composition as unlinked nodes and lets `WURCSFactory` canonicalize, which is what glycompconverter does. No new dependency; output pinned against that implementation's, residue by residue |
-| ~~#127~~ | ~~`MassOptions.ISOTOPE` has no effect~~ | **Done for the neutral mass.** Residues, water, hydrogen and the derivatization all follow the choice; measured against literature (Glc 180.156, Man₃GlcNAc₂ 910.82). **Still monoisotopic: the ion adducts.** `IonCloud` captures an ion's mass when the ion is set, not when the mass is computed, so an m/z carries an average neutral mass and a monoisotopic adduct. Worth its own issue |
+| ~~#127~~ | ~~`MassOptions.ISOTOPE` has no effect~~ | **Done for the neutral mass**, 1.36.0, and closed. Residues, water, hydrogen and the derivatization all follow the choice; measured against literature (Glc 180.156, Man₃GlcNAc₂ 910.82) |
+| **#203** | An m/z pairs an average neutral mass with a monoisotopic adduct | **The top of this list.** `IonCloud` captures an adduct's mass when the ion is set rather than when the mass is computed, so the isotope choice never reaches it. `Molecule` already carries both masses — what is missing is resolving the adduct at `computeMZ` time. Test it with potassium or chloride; sodium would pass while proving nothing |
 | **#185** | EPS/PS/PDF export writes 0 bytes silently | **Half done.** A failed transcode is now refused by name instead of being written as an empty file — it had been logged and returned as null, and the null was written. The underlying Windows failure does not reproduce here: all five formats write on macOS with the pinned batik 1.19 / fop 2.11. Waiting on a retest from the reporter |
 | **#66** | WURCS export fails with `"_map" is null` on a heavily modified Fuc | **Does not reproduce on 1.36.0** — a Fuc with 2-O-Me, 3-NH₂ and 4-O-Me writes WURCS, drawn or imported, alone or as a branch. The substituent MAP handling has been reworked since it was filed. Waiting on a retest and the GWS |
 | ~~#34~~ | ~~Duplicated linkage position in a branched glycan~~ | **Done.** A stated position another child holds is refused, in `addChild` as well as `canAddChild` — the two had grown apart and adding is the path that makes the structure. Unknown positions still stack, and a file that already contains one still opens |
@@ -115,6 +114,7 @@ they are invisible to anyone who does not read this file.
 |---|---|---|
 | ~~#186~~ | ~~PNG background not transparent~~ | **Done.** The renderer could always paint without one; the export passed opaque for every format alike. BMP and JPEG keep theirs, having no alpha to write |
 | ~~#188~~ | ~~SVG gives every character its own white background~~ | **Done.** `clearRect` on an SVG surface paints the background colour rather than removing anything, and the export set that colour to white. Measured: white rectangles 9 → 0, colours intact |
+| **#204** | A repeat unit's own linkage position does not survive a round trip | `l1` → `l?` on G03246MZ, measured on 1.37.0. A position the sequence states is written back as unknown, so the export says less than the import did and says it in a form that looks deliberate. Which end drops it is not known; the first move is a test that asserts the round trip keeps it |
 | **#187** | Ungrouping in PowerPoint destroys Fuc and Man | May be answered by #188 — there is no white background left to go hunting for. Worth a retest before anything else is done |
 | ~~#106~~ | ~~Saving on close offers Save As for an already-saved file~~ | **Done.** The close prompt called `onSaveAs` outright; `onSave` writes to the file the document came from and falls back by itself |
 | ~~#178~~ | ~~"Open additional document" leaves the document counted as unchanged~~ | **Done.** `setFilename` cleared the changed flag as a side effect, and a merge took the merged file's name as well. A merge now keeps its own name and counts as changed |
@@ -174,7 +174,7 @@ is the same code path, so start by reading what that change left behind.
 |---|---|---|
 | #95 | Validate a drawn structure | Before submitting to GlyTouCan. Validation code exists elsewhere and could be called |
 | #100 | Substituents and defined residues in the composition builder | Overlaps #7 (which monosaccharides the list should offer); decide them together |
-| #181 | No way to add deoxy / en / alditol to a monosaccharide | A regression against the old GlycoWorkbench. #189 and #190 are both instances of it, per R. Ranzinger on #190 — a modified residue can be imported from a sequence but not drawn |
+| #181 | No way to add deoxy / en / alditol to a monosaccharide | A regression against the old GlycoWorkbench: a modified residue can be imported from a sequence but not drawn, per R. Ranzinger. #190 (ribitol) is the concrete case to satisfy. #189 is **not** one of these — see P6 |
 | #200 | A ring closed through a bridge cannot be represented | The bridge plus the direct bond make a genuine cycle where everything downstream assumes a tree, so it is a change to the structure model, not the renderer. Carried on from #125, which is closed |
 | #184 | Multi-format clipboard (bitmap + text + SVG) | |
 | #177 | Open a .gws by double-clicking it | Needs file association *and* accepting a path at startup |
@@ -198,14 +198,24 @@ is the same code path, so start by reading what that change left behind.
 #182 ("Unknown" is a misleading group name) · #189 (sulfate on a GlcNAc nitrogen) ·
 #190 (a KEGG structure with ribitol)
 
-#189 and #190 are asked as "how do I input this?" and both look like the missing capability #181
-describes rather than a missing instruction — R. Ranzinger said so on #190. Confirm it by trying, then
-say so on each and let #181 carry the work.
+**#190** (a KEGG structure with ribitol) is an instance of #181 — a modified residue can be imported
+from a sequence but not drawn, per R. Ranzinger on the issue. Left open as the concrete case #181 has
+to satisfy, and the reporter asked for the sequence, which is worth more to whoever takes #181 than a
+description of alditols.
 
-**#90** (no second window on macOS) — Swing runs one instance per application on macOS, and it is not
-ours to change. Two workarounds are already in the thread, `open -n /Applications/GlycanBuilder2.app`
-and the same line wrapped as a Script Editor app. The answer is to put one of them somewhere a user
-will find it and close the issue, not to keep it open against an approach nobody has.
+**#189** (sulfate on a GlcNAc nitrogen) **is not an instance of #181, and this file said it was for a
+day.** The dictionary answers it. `NS` — N-sulfate, `*NSO/3=O/3=O` — is an N-type substituent sitting
+right beside `NAc`, and `GlcN` declares `3,4,5,6,N` as its positions while `GlcNAc` declares `3,4,5,6`:
+
+- GlcN with `NS` at N is GlcNS, and it can be drawn today
+- GlcNAc has no free nitrogen, and 1.37.0's position rules refuse a second substituent there **on
+  purpose** — that is the rule working, not a gap
+
+What is left is the one chemistry question, which is the reporter's: whether they mean GlcNS or a
+sulfate on top of an acetylated nitrogen. Asked on the issue.
+
+*The lesson worth keeping: "these two look like the same missing capability" was written from the
+titles. Two greps at the dictionary said one of them had an answer already.*
 
 ---
 
@@ -225,24 +235,23 @@ Contribution questions are answered ahead of the queue, whatever band the code w
 The bands say what a thing costs. This says what to pick up, and it is the bands applied twice: once
 for cost, once for what it costs to leave the tracker saying something untrue.
 
-**1. One sitting of tracker work — about an hour, and it outranks every open defect.** Nine fixed
-issues are still open and two measured faults are not filed at all. Both are the same failure and it
-is the one this file is most emphatic about: *silence outranks severity*. An issue that says a fixed
-bug is live, and a real fault that exists in nobody's tracker, are both quietly wrong to everyone
-outside this repository — and unlike the defects below, they cost an hour rather than a week.
+**1. ~~One sitting of tracker work~~ — done on 2026-08-15.** Nine fixed issues were still open and two
+measured faults were filed nowhere. Both are the same failure, and it is the one this file is most
+emphatic about: *silence outranks severity*. An issue saying a fixed bug is live, and a real fault that
+exists in nobody's tracker, are equally wrong to everyone outside this repository — and they cost an
+hour rather than a week, which is why they came first.
 
-- Close the nine with the measurement and the version, from the table above
-- File the `IonCloud` m/z fault, and narrow #127 to it
-- File the repeat unit's `l1` → `l?` round trip
-- Close #90 with the `open -n` workaround, and say on #189 and #190 that #181 is the work
+Ten issues closed with their measurements, #203 and #204 filed, #88 left open on purpose until the fix
+is in a release, #189 answered from the dictionary and #190 pointed at #181.
 
-**2. The ion adduct isotope** — the new #127 issue. The last thing left in the project that hands
+**2. #203, the ion adduct isotope** — now the top of P1, and the last thing in the project that hands
 someone a wrong number they cannot see is wrong: an m/z pairing an average neutral mass with a
-monoisotopic adduct. P1 by the same rule that put #127 there in the first place.
+monoisotopic adduct. P1 by the same rule that put #127 there in the first place. **This is the next
+piece of work.**
 
-**3. The repeat unit's linkage position, lost on a round trip** — the other new issue. A position the
-sequence states does not survive being written back, which is P2: the output cannot be used for what
-it was written for.
+**3. #204, the repeat unit's linkage position lost on a round trip** — a position the sequence states
+does not survive being written back, which is P2: the output cannot be used for what it was written
+for.
 
 **4. #29, the bisecting GlcNAc** — the largest P3 and the one with a known next step
 (`BBoxManager.alignLeftsOnTop`). Reaches every picture the application draws, which is why it wants a
@@ -269,10 +278,9 @@ Re-checked against the tracker on 2026-08-15.
 mass and the striped fills; 1.37.0 carried the position rules, the transparent exports and the three
 document-loses-your-work bugs.
 
-**The code is ahead of the tracker, and the tracker is what other people read.** Nine fixed issues are
-still open — the table under "Fixed, and still open on the tracker" is the shortest piece of work on
-this page and the one that changes what the project looks like from outside. Two measured faults are
-not filed at all.
+**The tracker matches the code again**, as of 2026-08-15. Ten issues closed with their measurements,
+#203 and #204 filed for the two faults that had been measured and never written down anywhere but here.
+The next piece of work is #203.
 
 **On `develop`, waiting for the next release**: #199 (#88, the bridge label's margin) and #201 (#83's
 unused angle). `pom.xml` still reads 1.37.0 on both branches, correctly — the bump belongs immediately
@@ -291,13 +299,15 @@ closable:
 | # | Waiting for |
 |---|---|
 | #17 | the reporter to confirm the import is what they meant, or close it |
-| #57 | which label shows 3 — and the round trip dropping `l1` → `l?` is still not filed |
+| #57 | which label shows 3 — the round trip dropping `l1` → `l?` is #204 now |
 | #58 | which part of the layout is wrong |
 | #66 | a retest on 1.36+ and the GWS; it does not reproduce here |
 | #83 | whether the symbol looks *rotated* or merely *placed differently* |
 | #185 | a retest on Windows; all five formats write here |
 | #16 | whether to split it per modification |
-| #189, #190 | the structure, as WURCS or GlycoCT |
+| #189 | whether they mean GlcNS or a sulfate on an already-acetylated nitrogen — a chemistry question, and the only thing left on it |
+| #190 | the WURCS or GlycoCT for G13093, for whoever takes #181 |
+| #88 | nothing — it is fixed, and waits only for a release to close against |
 | #123 | the contributor said about a week, from 2026-08-14 |
 
 **Deliberately not started**: #175 (jdom2) and taking glycanbuilder2web to 1.37.0 are both on hold at
