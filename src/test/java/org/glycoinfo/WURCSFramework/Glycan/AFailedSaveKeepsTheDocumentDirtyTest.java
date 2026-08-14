@@ -5,7 +5,10 @@ import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -61,6 +64,100 @@ public class AFailedSaveKeepsTheDocumentDirtyTest {
 		assertFalse("the destination should not have been written", destination.exists());
 	}
 
+	/**
+	 * The destination is replaced rather than written into.
+	 *
+	 * <p>This is the assertion that tells the two implementations apart, and the reason the two above it
+	 * do not: writing to a temporary file first has always meant that a *serialization* failure left the
+	 * destination alone, so they pass against the old code as well. What was not transactional was the
+	 * step after it — copying the finished bytes *into* the destination, which truncates it first, so a
+	 * failure partway through left the last good save half-written.
+	 *
+	 * <p>A move cannot half-happen. It is observable as the file's identity: copying into a file keeps
+	 * its inode, moving a new file over it does not. Skipped where the filesystem has no such notion,
+	 * rather than asserted loosely enough to pass everywhere.
+	 */
+	@Test
+	public void theDestinationIsReplacedRatherThanWrittenInto() throws Exception {
+		File destination = existingDestination("the previous complete save");
+		Object inodeBefore = inodeOf(destination);
+		org.junit.Assume.assumeNotNull(inodeBefore);
+
+		Document document = dirtyDocument();
+		document.failOnWrite = false;
+		assertTrue(document.save(destination.getAbsolutePath()));
+
+		assertEquals("the new contents should be there", "written", contents(destination));
+		assertFalse("the destination was written into rather than replaced — a copy into an existing"
+				+ " file cannot be transactional, since it truncates before it writes",
+				inodeBefore.equals(inodeOf(destination)));
+	}
+
+	/**
+	 * And it keeps the permissions the replaced file had.
+	 *
+	 * <p>A move puts a new file in place of the old one, so without this the saved document carries the
+	 * temporary file's permissions — and a fresh temporary file is owner-only. A document in a shared
+	 * directory went from {@code rw-r--r--} to {@code rw-------} the first time it was saved, and
+	 * everyone but its owner lost work they had been reading. That is not a change a save should make.
+	 */
+	@Test
+	public void replacingAFileKeepsThePermissionsItHad() throws Exception {
+		File destination = existingDestination("the previous complete save");
+		java.nio.file.Path path = destination.toPath();
+		org.junit.Assume.assumeTrue(java.nio.file.Files.getFileStore(path)
+				.supportsFileAttributeView(java.nio.file.attribute.PosixFileAttributeView.class));
+
+		java.nio.file.Files.setPosixFilePermissions(path,
+				java.nio.file.attribute.PosixFilePermissions.fromString("rw-r--r--"));
+
+		Document document = dirtyDocument();
+		document.failOnWrite = false;
+		assertTrue(document.save(destination.getAbsolutePath()));
+
+		assertEquals("saving should not change who can read the file", "rw-r--r--",
+				java.nio.file.attribute.PosixFilePermissions.toString(
+						java.nio.file.Files.getPosixFilePermissions(path)));
+	}
+
+	/** An existing good save is not truncated when the replacement cannot be serialized. */
+	@Test
+	public void aFailedSaveDoesNotDamageThePreviousFile() throws Exception {
+		File destination = existingDestination("the previous complete save");
+
+		dirtyDocument().save(destination.getAbsolutePath());
+
+		assertEquals("the previous file should remain byte-for-byte intact",
+				"the previous complete save", contents(destination));
+	}
+
+	/** A failure while replacing the destination also cleans up the completed temporary file. */
+	@Test
+	public void aFailedReplacementLeavesNoTemporaryFileBehind() throws Exception {
+		File destination = File.createTempFile("glycanbuilder-save-directory-", "");
+		assertTrue(destination.delete());
+		assertTrue(destination.mkdir());
+		File child = new File(destination,"keep");
+		assertTrue(child.createNewFile());
+		destination.deleteOnExit();
+		child.deleteOnExit();
+
+		File temporaryDirectory = destination.getAbsoluteFile().getParentFile();
+		String[] before = temporaryDirectory.list(gwbTemporaries());
+		Document document = dirtyDocument();
+		document.failOnWrite = false;
+
+		assertFalse("a non-empty directory cannot be replaced by a saved document",
+				document.save(destination.getAbsolutePath()));
+
+		String[] after = temporaryDirectory.list(gwbTemporaries());
+		assertEquals("a completed temporary file was left behind after replacement failed",
+				(before == null) ? 0 : before.length, (after == null) ? 0 : after.length);
+		assertTrue("the destination directory should still exist", destination.isDirectory());
+		assertTrue("the destination's previous content should still exist", child.exists());
+		assertTrue("the document should remain dirty", document.hasChanged());
+	}
+
 	/** The temporary file the attempt made is its own to clean up, and it does. */
 	@Test
 	public void aFailedSaveLeavesNoTemporaryFileBehind() throws Exception {
@@ -87,6 +184,7 @@ public class AFailedSaveKeepsTheDocumentDirtyTest {
 		assertTrue("the document should be marked saved", document.wasSaved());
 		assertFalse("the document should be clean", document.hasChanged());
 		assertTrue("the destination should exist", destination.exists());
+		assertEquals("written", contents(destination));
 	}
 
 	private static Document dirtyDocument() {
@@ -102,6 +200,36 @@ public class AFailedSaveKeepsTheDocumentDirtyTest {
 		destination.deleteOnExit();
 
 		return destination;
+	}
+
+	private static File existingDestination(String contents) throws Exception {
+		File destination = File.createTempFile("glycanbuilder-save-", ".tmp");
+		destination.deleteOnExit();
+		FileWriter writer = new FileWriter(destination);
+		try {
+			writer.write(contents);
+		} finally {
+			writer.close();
+		}
+		return destination;
+	}
+
+	private static String contents(File file) throws Exception {
+		return new String(Files.readAllBytes(file.toPath()),StandardCharsets.UTF_8);
+	}
+
+	/**
+	 * The file's identity on the filesystem, or {@code null} where it has no such notion.
+	 *
+	 * <p>Two files with the same path and different inodes are two different files, which is the whole
+	 * difference between replacing a file and writing into it.
+	 */
+	private static Object inodeOf(File file) {
+		try {
+			return Files.getAttribute(file.toPath(),"unix:ino");
+		} catch (Exception noSuchNotion) {
+			return null;
+		}
 	}
 
 	private static java.io.FilenameFilter gwbTemporaries() {

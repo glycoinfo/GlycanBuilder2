@@ -21,6 +21,10 @@ package org.eurocarbdb.application.glycanbuilder;
 
 import java.awt.*;
 import java.io.*;
+import java.nio.file.AtomicMoveNotSupportedException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.*;
 
 import org.eurocarbdb.application.glycanbuilder.logutility.LogUtils;
@@ -408,22 +412,21 @@ public abstract class BaseDocument {
     // a full disk or a serialization failure returned false while leaving the document marked saved
     // and clean - so the asterisk went away, Save went grey, and the next close let the work go
     // without asking. The write is what decides; the bookkeeping follows it.
-    File tmpfile = null;
+    Path tmpfile = null;
 
     try{
-        // write to tmp file, so nothing touches the destination until a whole document exists
-        tmpfile = File.createTempFile("gwb",null);
+        Path destination = new File(filename).toPath().toAbsolutePath();
 
-        FileOutputStream out = new FileOutputStream(tmpfile);
-        try {
+        // Keep the temporary file beside the destination. A completed file can then replace the old
+        // one with a filesystem move, rather than truncating the old file and copying bytes into it.
+        // A failed copy used to leave the last good save partial or empty.
+        tmpfile = Files.createTempFile(destination.getParent(),"gwb",null);
+
+        try (OutputStream out = Files.newOutputStream(tmpfile)) {
             write(out);
         }
-        finally {
-            out.close();
-        }
 
-        // copy to dest file
-        FileUtils.copy(tmpfile,new File(filename));
+        replaceFile(tmpfile,destination);
 
         setFilename(filename);
         fireDocumentInit();
@@ -435,7 +438,63 @@ public abstract class BaseDocument {
     }
     finally {
         // Ours, and gone either way. It used to be left behind on every failing path.
-        if( tmpfile!=null ) tmpfile.delete();
+        if( tmpfile!=null ) {
+            try {
+                Files.deleteIfExists(tmpfile);
+            }
+            catch( IOException cannotDelete ) {
+                LogUtils.report(cannotDelete);
+            }
+        }
+    }
+    }
+
+    /**
+       Replace a saved file without copying into and truncating the previous version.
+
+       The temporary file is created in the destination directory, so the ordinary fallback is still
+       a same-filesystem rename. The atomic option is used where the filesystem offers it; providers
+       that do not support it still move the complete file rather than streaming over the old one.
+     */
+    private static void replaceFile(Path source, Path destination) throws IOException {
+    carryOverPermissions(destination,source);
+
+    try {
+        Files.move(source,destination,StandardCopyOption.ATOMIC_MOVE,
+                StandardCopyOption.REPLACE_EXISTING);
+    }
+    catch( AtomicMoveNotSupportedException notAtomicHere ) {
+        Files.move(source,destination,StandardCopyOption.REPLACE_EXISTING);
+    }
+    }
+
+    /**
+       Give the replacement the permissions the file being replaced had.
+
+       A move puts a new file in place of the old one, so the saved file would otherwise carry the
+       temporary file's permissions - and a fresh temporary file is owner-only. Measured: a document
+       saved into a directory shared with colleagues went from rw-r--r-- to rw------- the first time it
+       was saved, so everyone but its owner lost access to work they had been reading. Copying into the
+       destination, which is what this replaced, had preserved them by never replacing the file.
+
+       Quiet where there is nothing to carry over: a destination that does not exist yet has no
+       permissions to keep, and a filesystem without POSIX permissions has none to read. Neither is a
+       reason to refuse a save.
+     */
+    private static void carryOverPermissions(Path replacing, Path replacement) {
+    try {
+        if( !Files.exists(replacing) )
+            return;
+        if( !Files.getFileStore(replacing).supportsFileAttributeView(
+                java.nio.file.attribute.PosixFileAttributeView.class) )
+            return;
+
+        Files.setPosixFilePermissions(replacement,Files.getPosixFilePermissions(replacing));
+    }
+    catch( Exception cannotCarryThemOver ) {
+        // The save is worth more than the permissions on it. Reported rather than swallowed, because
+        // a file that quietly changes who can read it is the fault this method exists to avoid.
+        LogUtils.report(cannotCarryThemOver);
     }
     }
     
