@@ -169,9 +169,15 @@ never used, and is gone as of #201, on `develop`. That does not establish the sy
 orientation-independent; the measurements are on the issue, and the reporter was asked whether it
 looks *rotated* or merely *placed differently*.
 
-**#183** (a failed WURCS export shows every error twice) — two dialogs per failed structure, so four
-for two bad structures. #108 (a message for a partially failed export) was closed in 1.35.x and this
-is the same code path, so start by reading what that change left behind.
+~~**#183** (a failed WURCS export shows every error twice)~~ — **fixed, in PR #208, waiting to merge.**
+The export wrote every structure for the file and then wrote them all again to find which had come out
+empty, and one failure is already two windows — `LogUtils.report` shows the message and then a
+`ReportDialog` — so the second pass produced a second pair. One pass now.
+
+**The reported sequence no longer fails.** `WURCS=2.0/1,1,0/[A111h]/1/` writes back unchanged as of
+1.37.0, so those steps produce no dialogs at all and the fix changes nothing a user would see with it.
+Fixed on the mechanism rather than on anything watchable, and the reporter has been asked for a structure
+that still refuses to export.
 
 #58 (G07957FT layout) · #20 (bracket not symmetric about the reducing end) ·
 #91 (Add-structure menu misaligned) · #6 (fragments carrying a bridge)
@@ -264,11 +270,13 @@ so it was checked in all four orientations and the plain core comes out unchange
 turned up a mistake in `docs/linkage-positions-and-anomers.md`, corrected on this branch: the
 position-to-side rules in the placement dictionaries apply to substituents only, not to saccharides.
 
-**5. #183, the doubled export error — the next piece of work.** Cheap P3, and the same code path as
-#108, which is closed.
+**5. ~~#183, the doubled export error~~ — fixed, PR #208.** The mechanism was real; the reported
+sequence turned out to write back unchanged, so there was nothing to watch fail. Recorded as such rather
+than claimed as verified.
 
-**6. The waiting list, before starting anything new.** #17, #57, #58, #66, #83, #185, #16 are all
-waiting on somebody else and several are closable on a reply. A nudge costs a paragraph.
+**6. The waiting list — the next piece of work.** #17, #57, #58, #66, #83, #185, #16 are all waiting on
+somebody else and several are closable on a reply. A nudge costs a paragraph, and #183 has just joined
+them.
 
 Then the rest of P3, and P4 as wishes rather than work: #200 and #181 are both structure-model
 changes and neither is small.
@@ -300,8 +308,8 @@ installers as every release before them. What is missing on all of them is the W
 is uploaded by hand and is what #180 is about.
 
 **Open pull requests**: #202 (this file and the layout document), #205 (#203, the adduct isotope),
-#206 (#204, the repeat's position) and #207 (#29, branch order). All four are for `develop` and carry no
-version bump.
+#206 (#204, the repeat's position), #207 (#29, branch order) and #208 (#183, one message per failed
+export). All five are for `develop` and carry no version bump.
 
 **Waiting on somebody else**, and worth a look before starting anything new — several of these may be
 closable:
@@ -314,6 +322,7 @@ closable:
 | #66 | a retest on 1.36+ and the GWS; it does not reproduce here |
 | #83 | whether the symbol looks *rotated* or merely *placed differently* |
 | #185 | a retest on Windows; all five formats write here |
+| #183 | a structure that still refuses to export — the one in the report writes fine now |
 | #16 | whether to split it per modification |
 | #189 | whether they mean GlcNS or a sulfate on an already-acetylated nitrogen — a chemistry question, and the only thing left on it |
 | #190 | the WURCS or GlycoCT for G13093, for whoever takes #181 |
