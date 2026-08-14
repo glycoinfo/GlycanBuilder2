@@ -103,7 +103,7 @@ Both were found while measuring something else and existed nowhere but this file
 | ~~#132~~ | ~~`v_stripes`/`h_stripes` never painted~~ | **Done.** Three bars, clipped to the outline. The test asserts the drawn image and, separately, that the stripes exist — Tal is green and All is blue, so comparing the pair passes on colour alone |
 | ~~#107~~ | ~~Composition export to WURCS fails~~ | **Done.** `org.glycoinfo.application.glycanbuilder.composition` builds the composition as unlinked nodes and lets `WURCSFactory` canonicalize, which is what glycompconverter does. No new dependency; output pinned against that implementation's, residue by residue |
 | ~~#127~~ | ~~`MassOptions.ISOTOPE` has no effect~~ | **Done for the neutral mass**, 1.36.0, and closed. Residues, water, hydrogen and the derivatization all follow the choice; measured against literature (Glc 180.156, Man₃GlcNAc₂ 910.82) |
-| ~~#203~~ | ~~An m/z pairs an average neutral mass with a monoisotopic adduct~~ | **Fixed, in PR #205, waiting to merge.** `IonCloud` captured an adduct's mass when the ion was set rather than when it was computed, so the choice could not reach it. `computeMZ`/`computeMass` take the flag now and `getIonsMass(boolean)` recomputes the total; a charge given an explicit mass keeps it. The test is on potassium and chloride, with sodium as the control — one stable isotope, so a sodiated m/z was right by accident and a test on the default adduct would have passed before the fix |
+| ~~#203~~ | ~~An m/z pairs an average neutral mass with a monoisotopic adduct~~ | **Fixed in PR #205, merged to `develop` on 2026-08-15.** `IonCloud` captured an adduct's mass when the ion was set rather than when it was computed, so the choice could not reach it. `computeMZ`/`computeMass` take the flag now and `getIonsMass(boolean)` recomputes the total; a charge given an explicit mass keeps it. The test is on potassium and chloride, with sodium as the control — one stable isotope, so a sodiated m/z was right by accident and a test on the default adduct would have passed before the fix |
 | **#185** | EPS/PS/PDF export writes 0 bytes silently | **Half done.** A failed transcode is now refused by name instead of being written as an empty file — it had been logged and returned as null, and the null was written. The underlying Windows failure does not reproduce here: all five formats write on macOS with the pinned batik 1.19 / fop 2.11. Waiting on a retest from the reporter |
 | **#66** | WURCS export fails with `"_map" is null` on a heavily modified Fuc | **Does not reproduce on 1.36.0** — a Fuc with 2-O-Me, 3-NH₂ and 4-O-Me writes WURCS, drawn or imported, alone or as a branch. The substituent MAP handling has been reworked since it was filed. Waiting on a retest and the GWS |
 | ~~#34~~ | ~~Duplicated linkage position in a branched glycan~~ | **Done.** A stated position another child holds is refused, in `addChild` as well as `canAddChild` — the two had grown apart and adding is the path that makes the structure. Unknown positions still stack, and a file that already contains one still opens |
@@ -114,7 +114,7 @@ Both were found while measuring something else and existed nowhere but this file
 |---|---|---|
 | ~~#186~~ | ~~PNG background not transparent~~ | **Done.** The renderer could always paint without one; the export passed opaque for every format alike. BMP and JPEG keep theirs, having no alpha to write |
 | ~~#188~~ | ~~SVG gives every character its own white background~~ | **Done.** `clearRect` on an SVG surface paints the background colour rather than removing anything, and the export set that colour to white. Measured: white rectangles 9 → 0, colours intact |
-| ~~#204~~ | ~~A repeat unit's own linkage position does not survive a round trip~~ | **Fixed, in PR #206, waiting to merge.** It was dropped on the way in, not on the way out: `addChild` rebuilds a linkage from its bonds and ends by taking the child's anomeric carbon, and the closing marker is created fresh with none — so the `?` it was born with was written over the position that had just been worked out. `makeEdgeWithStartBracket` had always set it for the opening marker; only the closing side was missing the line, which is why one end of a repeat survived and the other did not. G03246MZ now round-trips character for character |
+| ~~#204~~ | ~~A repeat unit's own linkage position does not survive a round trip~~ | **Fixed in PR #206, merged to `develop` on 2026-08-15.** It was dropped on the way in, not on the way out: `addChild` rebuilds a linkage from its bonds and ends by taking the child's anomeric carbon, and the closing marker is created fresh with none — so the `?` it was born with was written over the position that had just been worked out. `makeEdgeWithStartBracket` had always set it for the opening marker; only the closing side was missing the line, which is why one end of a repeat survived and the other did not. G03246MZ now round-trips character for character |
 | **#187** | Ungrouping in PowerPoint destroys Fuc and Man | May be answered by #188 — there is no white background left to go hunting for. Worth a retest before anything else is done |
 | ~~#106~~ | ~~Saving on close offers Save As for an already-saved file~~ | **Done.** The close prompt called `onSaveAs` outright; `onSave` writes to the file the document came from and falls back by itself |
 | ~~#178~~ | ~~"Open additional document" leaves the document counted as unchanged~~ | **Done.** `setFilename` cleared the changed flag as a side effect, and a merge took the merged file's name as well. A merge now keeps its own name and counts as changed |
@@ -125,7 +125,7 @@ Both were found while measuring something else and existed nowhere but this file
 ~~#88 (no right margin on a bridge)~~ — **done, on `develop` and not yet released**: the cleared area
 was the glyphs' bounds cast to int, which truncates the origin one way and the width the other.
 
-~~**#29** (bisecting GlcNAc position)~~ — **fixed, in PR #207, waiting to merge.**
+~~**#29** (bisecting GlcNAc position)~~ — **fixed in PR #207, merged to `develop` on 2026-08-15.**
 
 The convention: branches are drawn in the numeric order of their linkage positions, so a bisecting
 GlcNAc at 4 sits between the 3- and 6-antennae (I. Yamada, 2026-08-14). GlycoCraft states the same
@@ -169,7 +169,7 @@ never used, and is gone as of #201, on `develop`. That does not establish the sy
 orientation-independent; the measurements are on the issue, and the reporter was asked whether it
 looks *rotated* or merely *placed differently*.
 
-~~**#183** (a failed WURCS export shows every error twice)~~ — **fixed, in PR #208, waiting to merge.**
+~~**#183** (a failed WURCS export shows every error twice)~~ — **fixed in PR #208, merged to `develop` on 2026-08-15.**
 The export wrote every structure for the file and then wrote them all again to find which had come out
 empty, and one failure is already two windows — `LogUtils.report` shows the message and then a
 `ReportDialog` — so the second pass produced a second pair. One pass now.
@@ -278,6 +278,10 @@ than claimed as verified.
 somebody else and several are closable on a reply. A nudge costs a paragraph, and #183 has just joined
 them.
 
+**Then a release.** Six fixes are on `develop` and none of them has reached anybody: #88, #83's dead
+angle, and the four from 2026-08-15. That is the whole of P1 and P2 sitting where no user can install
+it, which by this file's own ranking is worth more than the next defect on the list.
+
 Then the rest of P3, and P4 as wishes rather than work: #200 and #181 are both structure-model
 changes and neither is small.
 
@@ -307,9 +311,16 @@ pre-release, `releases/latest` resolves to v1.37.0, and 1.36.0 and 1.37.0 each c
 installers as every release before them. What is missing on all of them is the Windows `.msix`, which
 is uploaded by hand and is what #180 is about.
 
-**Open pull requests**: #202 (this file and the layout document), #205 (#203, the adduct isotope),
-#206 (#204, the repeat's position), #207 (#29, branch order) and #208 (#183, one message per failed
-export). All five are for `develop` and carry no version bump.
+**On `develop`, waiting only for a release**: #199 (#88's bridge margin), #201 (#83's unused angle),
+#205 (#203), #206 (#204), #207 (#29) and #208 (#183). 181 tests pass with all of them together.
+`pom.xml` still reads 1.37.0, correctly — the bump belongs immediately before the merge to `master`.
+
+**Four issues are fixed and still open on purpose**: #203, #204, #29 and #183. `develop` is not the
+default branch, so "Closes #N" did not fire on merge, and closing them by hand would tell each reporter
+it is done while no version they can install has it. They close with the release, alongside #88. This is
+the same judgement as #88's, applied consistently rather than issue by issue.
+
+**Open pull request**: #202, this file and the layout document.
 
 **Waiting on somebody else**, and worth a look before starting anything new — several of these may be
 closable:
