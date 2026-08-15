@@ -3603,18 +3603,29 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		if( failures.isEmpty() ) return;
 
 		StringBuilder positions = new StringBuilder();
+		// Why, where whatever refused a structure said so. The count and the positions say that
+		// something went wrong; only this says what, and it was already being thrown away.
+		java.util.LinkedHashSet<String> reasons = new java.util.LinkedHashSet<String>();
 		int index = 0;
 		for( Glycan g : exported ) {
 			index++;
 			if( failures.contains(g) ) {
 				if( positions.length()>0 ) positions.append(", ");
 				positions.append(index);
+
+				String why = theDoc.getLastExportFailureReason(g);
+				if( why!=null ) reasons.add(why);
 			}
 		}
 
-		JOptionPane.showMessageDialog(theParent,
-				failures.size() + " of " + exported.size() + " structure(s) could not be exported to " + format
-						+ " and were left blank (position(s): " + positions + ").",
+		StringBuilder message = new StringBuilder();
+		message.append(failures.size()).append(" of ").append(exported.size())
+				.append(" structure(s) could not be exported to ").append(format)
+				.append(" and were left blank (position(s): ").append(positions).append(").");
+		for( String why : reasons )
+			message.append("\n\n").append(why);
+
+		JOptionPane.showMessageDialog(theParent, message.toString(),
 				"Export incomplete", JOptionPane.WARNING_MESSAGE);
 	}
 

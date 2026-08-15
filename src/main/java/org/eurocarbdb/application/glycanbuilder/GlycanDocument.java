@@ -70,6 +70,12 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	// nothing for those, so callers need this to warn rather than leave it unnoticed
 	private ArrayList<Glycan> lastExportFailures = new ArrayList<Glycan>();
 
+	// Why each of those produced nothing, where whatever refused it said so. Static because the
+	// encoding runs through static methods; identity-keyed because two structures can be equal and
+	// still be two entries in the document.
+	static private java.util.Map<Glycan,String> lastExportReasons =
+			new java.util.IdentityHashMap<Glycan,String>();
+
 	// ----------------
 
 	/**
@@ -97,6 +103,17 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	 */
 	public ArrayList<Glycan> getLastExportFailures() {
 		return this.lastExportFailures;
+	}
+
+	/**
+	 * Why a structure produced no output on the most recent export, or null where nothing said.
+	 *
+	 * <p>The warning that names which structures came out blank can name the reason too. "A composition
+	 * cannot be written in 'NeuAc'" is the difference between somebody knowing to remove a residue and
+	 * somebody knowing only that something is wrong.
+	 */
+	public String getLastExportFailureReason(Glycan structure) {
+		return lastExportReasons.get(structure);
 	}
 
 	public void clearString() {
@@ -1537,12 +1554,14 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 		if (parser instanceof GWSParser) {
 			for (Iterator<Glycan> i = structures.iterator(); i.hasNext(); ) {
 				Glycan structure = i.next();
+				forgetPreviousReason();
 				str += record(parser.writeGlycan(structure, bboxManager), structure, failures);
 				if (i.hasNext()) str += ";";
 			}
 		} else if (parser instanceof WURCS2Parser) {
 			for (Iterator<Glycan> i = structures.iterator(); i.hasNext(); ) {
 				Glycan structure = i.next();
+				forgetPreviousReason();
 				str += record(parser.writeGlycan(structure), structure, failures);
 				if (i.hasNext()) str += "\n";
 			}
@@ -1550,6 +1569,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 			// These formats hold one structure, so only the first is written - and the rest are
 			// therefore absent from the file, which is what the caller warns about.
 			Glycan first = structures.isEmpty() ? null : structures.iterator().next();
+			forgetPreviousReason();
 			if (bboxManager != null) { //At the moment this will force conversion to GlycoCT_XML
 				str = record(parser.writeGlycan(first, bboxManager), first, failures);
 			} else {
@@ -1571,9 +1591,39 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	 * without saying so.
 	 */
 	static private String record(String encoded, Glycan structure, Collection<Glycan> failures) {
-		if (failures != null && structure != null && (encoded == null || encoded.isEmpty()))
+		if (failures != null && structure != null && (encoded == null || encoded.isEmpty())) {
 			failures.add(structure);
+			rememberWhy(structure);
+		}
 		return encoded;
+	}
+
+	/**
+	 * Why a structure produced nothing, in the words of whatever refused it.
+	 *
+	 * <p>The reason exists and was being thrown away. A composition of something the encoder cannot
+	 * name says so - "A composition cannot be written in 'NeuAc'" - and a writer reports it before
+	 * handing back an empty string. The warning that follows the export could then only say that N of M
+	 * structures "were left blank", which tells somebody that something went wrong and nothing about
+	 * what.
+	 *
+	 * <p>Read from {@link LogUtils}, which is where the writers already put it. That is a narrow
+	 * arrangement - it works because a writer reports immediately before returning, on the same thread -
+	 * and it is why the reason is cleared before each structure rather than trusted to be fresh. A
+	 * writer that fails silently leaves no reason, and the warning falls back to what it said before.
+	 */
+	static private void rememberWhy(Glycan structure) {
+		String reason = LogUtils.getLastError();
+		if (reason != null && !reason.trim().isEmpty())
+			lastExportReasons.put(structure, reason.trim());
+	}
+
+	/**
+	 * Clear the last reported error, so that what is read after a structure is written belongs to that
+	 * structure rather than to something earlier.
+	 */
+	static private void forgetPreviousReason() {
+		LogUtils.clearLastError();
 	}
 
 	public void fromString(String str, String format) throws Exception {
