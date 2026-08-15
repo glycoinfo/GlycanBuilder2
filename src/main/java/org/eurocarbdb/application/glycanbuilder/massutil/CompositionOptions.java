@@ -249,7 +249,10 @@ public class CompositionOptions {
     for( int i=0; i<NEU5ACLAC; i++ ) ret.addAntenna(ResidueDictionary.newResidue("NeuAcLac"));
     for( int i=0; i<KDO; i++ ) ret.addAntenna(ResidueDictionary.newResidue("KDO"));
     for( int i=0; i<KDN; i++ ) ret.addAntenna(ResidueDictionary.newResidue("KDN"));
-    for( int i=0; i<MUR; i++ ) ret.addAntenna(ResidueDictionary.newResidue("MurNAc"));
+    // Muramic acid, which is what the count is called and what the dialog offers. It built a MurNAc
+    // - an N-acetyl heavier by C2H2O - so the mass shown and the composition searched were both for a
+    // residue nobody had asked for. Both residues exist; this is the one named on the label.
+    for( int i=0; i<MUR; i++ ) ret.addAntenna(ResidueDictionary.newResidue("Mur"));
 
     for( int i=0; i<S; i++ ) ret.addAntenna(ResidueDictionary.newResidue("S"));
     for( int i=0; i<P; i++ ) ret.addAntenna(ResidueDictionary.newResidue("P"));
