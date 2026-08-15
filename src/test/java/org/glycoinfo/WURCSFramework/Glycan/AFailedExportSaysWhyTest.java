@@ -19,12 +19,12 @@ import org.junit.Test;
  * That an export which produced nothing says why, and not only that it did.
  *
  * <p>The reason existed and was thrown away. A composition of something the encoder cannot name says so
- * — {@code A composition cannot be written in 'NeuAc'} — and the writer reports it before handing back an
+ * — {@code A composition cannot be written in 'MeH'} — and the writer reports it before handing back an
  * empty string. The warning that followed could then only say that N of M structures "were left blank",
  * which tells somebody that something went wrong and nothing about what to do.
  *
- * <p>The failure used here is a real one rather than a contrived seam: a composition containing sialic
- * acid cannot be written at all (#219), which is the most ordinary way a user meets this.
+ * <p>The failure used here is a real one rather than a contrived seam: the composition dialog offers a
+ * methyl hexose and the encoder has no residue for it (#220).
  */
 public class AFailedExportSaysWhyTest {
 
@@ -36,7 +36,7 @@ public class AFailedExportSaysWhyTest {
 	/** A composition the encoder cannot name is reported as a failure, with the reason attached. */
 	@Test
 	public void aFailureCarriesTheReasonThatCausedIt() throws Exception {
-		GlycanDocument document = documentHolding(compositionWithSialicAcid());
+		GlycanDocument document = documentHolding(compositionThatCannotBeWritten());
 
 		document.exportFromStructure(document.getStructures(), "wurcs2");
 
@@ -46,7 +46,7 @@ public class AFailedExportSaysWhyTest {
 		String why = document.getLastExportFailureReason(document.getStructures().get(0));
 		assertNotNull("the reason was thrown away", why);
 		assertTrue("the reason should name what could not be written, and says: " + why,
-				why.contains("NeuAc"));
+				why.contains("MeH"));
 	}
 
 	/**
@@ -74,7 +74,7 @@ public class AFailedExportSaysWhyTest {
 	 */
 	@Test
 	public void aReasonDoesNotOutliveTheExportItBelongsTo() throws Exception {
-		GlycanDocument first = documentHolding(compositionWithSialicAcid());
+		GlycanDocument first = documentHolding(compositionThatCannotBeWritten());
 		first.exportFromStructure(first.getStructures(), "wurcs2");
 		assertNotNull(first.getLastExportFailureReason(first.getStructures().get(0)));
 
@@ -85,12 +85,19 @@ public class AFailedExportSaysWhyTest {
 				second.getLastExportFailureReason(second.getStructures().get(0)));
 	}
 
-	/** Hex3 HexNAc2 Neu5Ac1 — ordinary, and unwritable until #219 is fixed. */
-	private static Glycan compositionWithSialicAcid() throws Exception {
+	/**
+	 * Hex3 HexNAc2 with a methyl hexose, which the encoder has no residue for.
+	 *
+	 * <p>This was written with a sialic acid, which is how the fault was met — and #219 fixed that, so
+	 * the fixture became a composition that exports. Changed to one that still cannot be written rather
+	 * than to a contrived seam: MeH is a real residue the composition dialog offers, and #220 is the
+	 * open question of what a composition should say about it.
+	 */
+	private static Glycan compositionThatCannotBeWritten() throws Exception {
 		CompositionOptions counts = new CompositionOptions();
 		counts.HEX = 3;
 		counts.HEXNAC = 2;
-		counts.NEU5AC = 1;
+		counts.MEHEX = 1;
 
 		return counts.getCompositionAsGlycan(neutral());
 	}
