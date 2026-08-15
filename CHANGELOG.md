@@ -1,4 +1,41 @@
 ## Change log
+### 1.40.0  (20260815)
+Compositions, found by comparing this library against glycanbuilder2web rather than by the suite.
+**Minor rather than patch**: the Muramic Acid count builds a different residue than it did, so a mass and a
+composition search both change.
+* **A composition containing sialic acid exported as an empty file** (#219), through four releases. The
+  residue type is called `NeuAc` and composition WURCS calls it `Neu5Ac`, and nothing on the road between
+  them translated - so `named()` returned null, the count threw, and the writer reported it and handed back
+  an empty string
+  * **Not fixable by renaming.** `Neu5Ac` is already a residue type of its own, declared in
+    `conf/compositions` - a third residue dictionary that also feeds `ResidueDictionary`. Adding it as a
+    synonym of `NeuAc` shadows the real type: measured, it broke the position rules, and was reverted. So
+    the table lives in the composition encoder, which is also where glycanbuilder2web has always kept its
+    own copy of it, and why that application was never affected
+  * Thirteen of the composition counts write where eleven did, and a sialylated composition writes the same
+    WURCS glycanbuilder2web writes for it
+  * **The test that should have existed** walks every count `CompositionOptions` has. The encoder's own
+    tests ask for a residue *by the encoder's own name*, so only names it already knows can appear in one -
+    which is exactly how this survived: the single assertion that went through the application's path used
+    Hex and HexNAc, the two residues whose names happen to agree. *A test that builds its input the way the
+    code under test likes it will not find a fault on the way in.*
+* **"Muramic Acid" built an N-acetyl muramic acid** (#221). The dialog said Mur and the count built MurNAc -
+  heavier by C₂H₂O - so the mass shown and the composition searched were both for a residue nobody had
+  asked for. Both residues exist and both write; this is the one on the label
+  * **The one change here that alters a number a user sees.** Saved work is unaffected: a composition
+    already saved holds a `MurNAc` residue and still does. Only what the Mur count builds from now on
+    changes
+* **An export that produced nothing says why.** The reason existed and was being thrown away - a writer
+  reports `A composition cannot be written in 'MeH'` before returning an empty string, and the warning that
+  followed could only say that N of M structures "were left blank". Both warnings carry the reasons now
+  * Read from `LogUtils`, where the writers already put it. A narrow arrangement - it works because a writer
+    reports immediately before returning, on the same thread - so the reason is cleared before each
+    structure rather than trusted to be fresh, and the test holds that weak point rather than the happy path
+* **A release attaches installers and nothing else that happens to be in the run.** The download pattern
+  said "everything except the Windows installer", which was true of the four installers until the test job
+  began uploading its surefire reports into the same run - ninety-two report files went to the 1.39.0
+  release. Named rather than excluded now, and the attach step selects by extension
+
 ### 1.39.0  (20260815)
 A code review, a regression 1.37.0 had shipped, and the reason neither had been caught: the release path
 was not running the tests. **Minor rather than patch** - `SecureXml`,
