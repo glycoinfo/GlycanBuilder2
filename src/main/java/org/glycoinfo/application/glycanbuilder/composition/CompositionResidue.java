@@ -16,6 +16,9 @@ package org.glycoinfo.application.glycanbuilder.composition;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.List;
 
 import org.eurocarbdb.MolecularFramework.sugar.Anomer;
@@ -138,7 +141,34 @@ public enum CompositionResidue {
 		for (CompositionResidue residue : values())
 			if (residue.name.equalsIgnoreCase(name)) return residue;
 
-		return null;
+		return BY_RESIDUE_TYPE_NAME.get(name.toLowerCase());
+	}
+
+	/**
+	 * Residue type names that mean one of these and are not spelled like it.
+	 *
+	 * <p>The names above are the ones composition WURCS uses. A residue type is named for the
+	 * application's own dictionary, and for the sialic acids the two disagree: the residue is
+	 * {@code NeuAc}, the composition calls it {@code Neu5Ac}. Nothing translated between them, so a
+	 * composition containing sialic acid - the most ordinary residue there is in an N-glycan - was
+	 * refused outright and exported as an empty file (#219).
+	 *
+	 * <p><b>Not solvable by naming the residue types differently.</b> {@code Neu5Ac} is already a
+	 * residue type of its own, declared in {@code conf/compositions}, so adding it as a synonym of
+	 * {@code NeuAc} shadows a real type - measured, and it broke the position rules where it was tried.
+	 * The translation belongs here, which is also where glycanbuilder2web has kept its own copy of it
+	 * and why that application was unaffected.
+	 *
+	 * <p>Only names that differ are listed. The other eleven residues the composition dialog offers are
+	 * spelled the same on both sides and are found by the loop above.
+	 */
+	private static final Map<String, CompositionResidue> BY_RESIDUE_TYPE_NAME;
+	static {
+		Map<String, CompositionResidue> translated = new HashMap<String, CompositionResidue>();
+		translated.put("neuac", NEU5AC);
+		translated.put("neugc", NEU5GC);
+
+		BY_RESIDUE_TYPE_NAME = Collections.unmodifiableMap(translated);
 	}
 
 	/**

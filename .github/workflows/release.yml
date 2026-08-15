@@ -39,12 +39,21 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # Installers only, named rather than excluded. The pattern used to say "everything except the
+      # Windows one", which was true of the four installers while they were the only artifacts in the run
+      # - and stopped being true the moment the test job began uploading its surefire reports into the
+      # same run. Ninety-two report files were downloaded here alongside the five installers, and the
+      # build-logs-* artifacts had always been coming too.
+      #
+      # The Windows installer is matched and downloaded now rather than excluded by name, because the
+      # step that attaches the assets selects by extension and its .msix is not one of them. Saying which
+      # artifacts are wanted is worth more than keeping a list of the ones that are not.
       - name: Download installer artifacts
         uses: actions/download-artifact@v7
         with:
           path: artifacts
           merge-multiple: true
-          pattern: '!glycanbuilder2-installer-windows'
+          pattern: glycanbuilder2-installer-*
 
       - name: List downloaded artifacts
         run: |
@@ -61,7 +70,11 @@ jobs:
             ## Windows
             Install GlycanBuilder2 from the Microsoft Store:
             https://apps.microsoft.com/detail/9pp6bsnx71jl
+          # By extension, not by directory. Either this or the download pattern above would have kept
+          # the surefire reports off the release; a release's assets are worth two locks.
           files: |
-            artifacts/*
+            artifacts/*.deb
+            artifacts/*.rpm
+            artifacts/*.dmg
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

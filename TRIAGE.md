@@ -102,6 +102,7 @@ Both were found while measuring something else and existed nowhere but this file
 |---|---|---|
 | ~~#132~~ | ~~`v_stripes`/`h_stripes` never painted~~ | **Done.** Three bars, clipped to the outline. The test asserts the drawn image and, separately, that the stripes exist — Tal is green and All is blue, so comparing the pair passes on colour alone |
 | ~~#107~~ | ~~Composition export to WURCS fails~~ | **Done.** `org.glycoinfo.application.glycanbuilder.composition` builds the composition as unlinked nodes and lets `WURCSFactory` canonicalize, which is what glycompconverter does. No new dependency; output pinned against that implementation's, residue by residue |
+| ~~#219~~ | ~~A composition with sialic acid exports as an empty file~~ | **Fixed, on `develop`.** The residue type is `NeuAc` and composition WURCS calls it `Neu5Ac`; nothing translated. Not fixable by renaming — `Neu5Ac` is already a type, from `conf/compositions`. The table lives in the encoder now, where glycanbuilder2web has always kept its own |
 | ~~#127~~ | ~~`MassOptions.ISOTOPE` has no effect~~ | **Done for the neutral mass**, 1.36.0, and closed. Residues, water, hydrogen and the derivatization all follow the choice; measured against literature (Glc 180.156, Man₃GlcNAc₂ 910.82) |
 | ~~#203~~ | ~~An m/z pairs an average neutral mass with a monoisotopic adduct~~ | **Fixed in PR #205, merged to `develop` on 2026-08-15.** `IonCloud` captured an adduct's mass when the ion was set rather than when it was computed, so the choice could not reach it. `computeMZ`/`computeMass` take the flag now and `getIonsMass(boolean)` recomputes the total; a charge given an explicit mass keeps it. The test is on potassium and chloride, with sodium as the control — one stable isotope, so a sodiated m/z was right by accident and a test on the default adduct would have passed before the fix |
 | **#185** | EPS/PS/PDF export writes 0 bytes silently | **Half done.** A failed transcode is now refused by name instead of being written as an empty file — it had been logged and returned as null, and the null was written. The underlying Windows failure does not reproduce here: all five formats write on macOS with the pinned batik 1.19 / fop 2.11. Waiting on a retest from the reporter |
@@ -182,6 +183,13 @@ that still refuses to export.
 #58 (G07957FT layout) · #20 (bracket not symmetric about the reducing end) ·
 #91 (Add-structure menu misaligned) · #6 (fragments carrying a bridge)
 
+**#222** (a sulfate cannot be added to a GlcN) — the working spelling is the plain sulfate at position 2,
+which the exporter combines with the residue's own `2*N` into `2*NSO/3=O/3=O`. It only works from 1.39.0:
+before that the position rules refused it, which is #211's other face. What remains is that the *wrong*
+spelling — at position `N` — attaches and then writes nothing, and the better answer is to refuse the
+attachment. That is a position-rule change, and those have produced two regressions in two days, so it
+waits for the reporter's retest rather than being done in a hurry.
+
 ## P4 — not there yet
 
 | # | Title | Note |
@@ -249,67 +257,83 @@ Contribution questions are answered ahead of the queue, whatever band the code w
 The bands say what a thing costs. This says what to pick up, and it is the bands applied twice: once
 for cost, once for what it costs to leave the tracker saying something untrue.
 
-**1. ~~One sitting of tracker work~~ — done on 2026-08-15.** Nine fixed issues were still open and two
-measured faults were filed nowhere. Both are the same failure, and it is the one this file is most
-emphatic about: *silence outranks severity*. An issue saying a fixed bug is live, and a real fault that
-exists in nobody's tracker, are equally wrong to everyone outside this repository — and they cost an
-hour rather than a week, which is why they came first.
+**The list below is a record of 2026-08-15, kept because the reasoning is worth more than the ticks.**
+Everything on it is done. What is left to pick up is at the bottom.
 
-Ten issues closed with their measurements, #203 and #204 filed, #88 left open on purpose until the fix
-is in a release, #189 answered from the dictionary and #190 pointed at #181.
+1. ~~**One sitting of tracker work.**~~ Nine fixed issues were open and two measured faults were filed
+   nowhere — the same failure, and the one this file is most emphatic about: *silence outranks severity*.
+   Ten issues closed with their measurements, #203 and #204 filed.
+2. ~~**#203, the ion adduct isotope.**~~ The last thing handing someone a wrong number they could not see
+   was wrong.
+3. ~~**#204, a repeat unit's position lost on a round trip.**~~ Dropped on the way in, not out, and one
+   line.
+4. ~~**#29, the bisecting GlcNAc.**~~ Reached every picture, so checked in all four orientations.
+5. ~~**#183, the doubled export error.**~~ Mechanism real; the reported sequence no longer fails, and that
+   was recorded rather than claimed as verified.
+6. ~~**A code review, six work packages.**~~ Taken with the test gate first, because it was why the other
+   five could ship: 1.36.0, 1.37.0 and 1.38.0 all went out with `-DskipTests` in every installer workflow.
+   The XML readers were leaking local files through external entities; save, open and export all reported
+   failures as successes.
+7. ~~**The save path, three rounds of review.**~~ Transactional replacement, a channel leak, then access
+   control — owner, group, ACL and extended attributes, or the file is not replaced at all — then symbolic
+   links, then the boundary where a link chain has no end. One of my judgements was overturned in the
+   middle of it and the correction is on #214.
+8. ~~**#211, a regression 1.37.0 had shipped.**~~ Found by taking glycanbuilder2web forward, not by the
+   suite. An acyl could no longer substitute the amine a residue carries, and a copy silently dropped a
+   residue.
+9. ~~**#219 and #221, composition.**~~ A composition containing sialic acid exported as an empty file
+   through four releases, and "Muramic Acid" built a MurNAc.
 
-**2. ~~#203, the ion adduct isotope~~ — fixed, PR #205.** The last thing in the project that handed
-someone a wrong number they could not see was wrong. P1 by the same rule that put #127 there.
+---
 
-**3. ~~#204, the repeat unit's linkage position lost on a round trip~~ — fixed, PR #206.** It turned out
-to be dropped on the way in rather than on the way out, and to be one line: the closing repeat marker
-was the only one of the two that was never given the position before being added.
+## What is left, and why none of it can be picked up today
 
-**4. ~~#29, the bisecting GlcNAc~~ — fixed, PR #207.** It reached every picture the application draws,
-so it was checked in all four orientations and the plain core comes out unchanged in each. It also
-turned up a mistake in `docs/linkage-positions-and-anomers.md`, corrected on this branch: the
-position-to-side rules in the placement dictionaries apply to substituents only, not to saccharides.
+Thirty issues are open and **none is actionable without either a reply or a decision.** That is worth
+stating plainly rather than leaving the list to imply there is work going begging.
 
-**5. ~~#183, the doubled export error~~ — fixed, PR #208.** The mechanism was real; the reported
-sequence turned out to write back unchanged, so there was nothing to watch fail. Recorded as such rather
-than claimed as verified.
+| what | how many | which |
+|---|---|---|
+| waiting on somebody else | 12 | #17, #57, #58, #66, #83, #185, #16, #183, #189, #190, #123, #222 |
+| waiting on a decision — chemistry or product | 6 | #220, #7, #100, #109, #117, #182 |
+| on hold at the maintainer's request | 2 | #175, #180 |
+| wishes rather than work | 8 | #41, #93, #94, #95, #172, #177, #181, #184 |
+| drawing, P3 | 4 | #6, #20, #58, #91 |
+| structure-model changes, neither small | 2 | #200, #181 |
 
-**6. The waiting list — held until Monday 2026-08-17.** #17, #57, #58, #66, #83, #185, #16 and #183 are
-all waiting on somebody else and several are closable on a reply. A nudge costs a paragraph.
+**The nudges are held until Monday 2026-08-17** — I. Yamada, 2026-08-15. They were written and ready on
+the Saturday; holding them is deliberate, so a quiet weekend on this list is not a stall.
 
-**Not to be sent before Monday 2026-08-17** — I. Yamada, 2026-08-15. The nudges were written and ready on
-the Saturday; holding them is deliberate, so if this list looks stalled on a weekend, it is not.
-
-**~~Then a release~~ — 1.38.0, released 2026-08-15**, and taken ahead of the waiting list because six
-fixes were sitting where nobody could install them, which by this file's own ranking outranks the next
-defect. `master` reads 1.38.0, tagged `v1.38.0` on the merge commit.
-
-**#88, #203, #204 and #29 close with it.** #83 and #183 do **not**: #201 removed an angle the CFG hat
-diamonds never used, which does not answer whether the symbol looks *rotated* — the question the reporter
-was asked — and #183's fix is on a mechanism whose reported sequence no longer fails. Both stay on the
-waiting list. This corrects a list of six I wrote earlier the same day.
-
-Then the rest of P3, and P4 as wishes rather than work: #200 and #181 are both structure-model
-changes and neither is small.
+**#222 is the one that looks actionable and is not.** A sulfate attaches at a GlcN's `N` and then writes
+nothing, and refusing the attachment is the better answer — but that is a change to the position rules,
+and changes of exactly that shape have produced two regressions in two days: 1.37.0's #211, and a synonym
+that shadowed a real residue type on the 15th. It waits for the reporter's retest, which costs nothing.
 
 ---
 
 ## Where this stands, for whoever picks it up next
 
-Re-checked against the tracker on 2026-08-15.
+Re-checked against the tracker on 2026-08-15, after 1.39.0.
 
-**Released**: P1 and P2 are done in the code. 1.36.0 carried the composition WURCS export, the average
-mass and the striped fills; 1.37.0 carried the position rules, the transparent exports and the three
-document-loses-your-work bugs.
+**1.39.0 is out**, and is the first release a test gate stood in front of. `origin/develop` and
+`origin/master` both read it — checked against the remote, not the local refs, which is the check 1.35.0
+was lost by. `v1.39.0` tags the merge commit, `releases/latest` resolves to it, and the run's own log shows
+`test` finishing before any installer started.
 
-**The tracker matches the code again**, as of 2026-08-15. Ten issues closed with their measurements,
-#203 and #204 filed for the two faults that had been measured and never written down anywhere but here.
-The next piece of work is #203.
+**On `develop` and not yet released**: #219 (a composition containing sialic acid), #221 (Mur built a
+MurNAc), the reason an export came out blank, and the release workflow attaching only installers. 226 tests
+pass with all of it.
 
-**1.38.0 is out.** `origin/develop` and `origin/master` both read 1.38.0 — checked against the remote,
-not the local refs, which is the check 1.35.0 was lost by. `v1.38.0` tags the merge commit and is
-reachable from `master`. It carries #199 (#88), #201 (#83's unused angle), #205 (#203), #206 (#204),
-#207 (#29) and #208 (#183), and 181 tests pass with all of them together.
+**Three things worth carrying forward**, each of which cost time to learn:
+
+- **There is a third residue dictionary.** `conf/compositions` defines residue types and they reach
+  `ResidueDictionary`, so `Neu5Ac` is already a type of its own — which is why the sialic acid names could
+  not be fixed with a synonym, and why trying shadowed a real type and broke the position rules.
+- **A test that builds its input the way the code under test likes it will not find a fault on the way in.**
+  The composition encoder's tests asked for residues *by the encoder's own names*, so a composition with
+  sialic acid failed for four releases with a green suite.
+- **Model and IO fixes reach a consumer with the jar; drawing and desktop-UI fixes do not.** Found twice
+  taking glycanbuilder2web forward, and the reason to measure rather than assume when a library layout fix
+  is supposed to have arrived.
 
 **The release page's label is the last step and it is easy to miss.** The workflow publishes as a
 pre-release, and `releases/latest` — which is what `UpdateCheck` asks — skips those, so until somebody marks
@@ -334,6 +358,7 @@ closable:
 | #58 | which part of the layout is wrong |
 | #66 | a retest on 1.36+ and the GWS; it does not reproduce here |
 | #83 | whether the symbol looks *rotated* or merely *placed differently* |
+| #222 | a retest on 1.39.0 with the sulfate at 2 rather than at N — and the advice that sent them to N was mine, corrected on #189 |
 | #185 | a retest on Windows; all five formats write here |
 | #183 | a structure that still refuses to export — the one in the report writes fine now |
 | #16 | whether to split it per modification |
