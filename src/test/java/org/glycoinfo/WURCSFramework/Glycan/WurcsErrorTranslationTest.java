@@ -40,17 +40,35 @@ public class WurcsErrorTranslationTest {
 		try {
 			new WURCS2Parser().readGlycan(POSITION_PAST_THE_SUGAR, new MassOptions());
 			fail("it converted");
-		} catch (StringIndexOutOfBoundsException raw) {
-			fail("still a raw StringIndexOutOfBoundsException");
 		} catch (WURCSToGlycanException translated) {
 			assertTrue(translated.getMessage(),
-					translated.getMessage().contains("could not convert this WURCS"));
-			assertTrue("does not say what kind of failure it was",
-					translated.getMessage().contains("StringIndexOutOfBounds"));
-			assertTrue("does not name the sequence",
-					translated.getMessage().contains("WURCS=2.0/1,1,0/[axxxxh"));
+					translated.getMessage().contains(WURCSToGlycanException.badSubstituentMessage));
+			assertTrue(translated.getMessage(),
+					translated.getMessage().contains("*OSO/3=O/3=O"));
 			assertTrue("the original trace was lost",
-					translated.getCause() instanceof StringIndexOutOfBoundsException);
+					translated.getCause() != null);
+		} catch (Exception raw) {
+			fail("still a raw Exception: "+raw.getClass().getSimpleName());
+		}
+	}
+
+	/** The failure names the failure, the sequence, and carries the original underneath. */
+	@Test
+	public void aConversionFailureSpeaksWurcs2() throws Exception {
+		try {
+			// G00028QS // in analyzeGRES use in WURCSSequence2ToGlycan.start
+			new WURCS2Parser().readGlycan("WURCS=2.0/3,3,2/[AUdxxxxh][AUxxxxxh][uxxxh_4*NCC/3=O]/1-2-3/a?|b?|c?}-{a?|b?|c?_a?|b?|c?}-{a?|b?|c?", 
+				new MassOptions());
+			fail("it converted");
+		} catch (WURCSToGlycanException translated) {
+			assertTrue(translated.getMessage(),
+					translated.getMessage().contains(WURCSToGlycanException.badResidueMessage));
+			assertTrue(translated.getMessage(),
+					translated.getMessage().contains("AUdxxxxh"));
+			assertTrue("the original trace was lost",
+			 		translated.getCause() != null);
+		} catch (Exception raw) {
+			fail("still a raw Exception: "+raw.getClass().getSimpleName());
 		}
 	}
 
@@ -81,9 +99,12 @@ public class WurcsErrorTranslationTest {
 					"WURCS=2.0/1,1,0/[a2122h-1b_1-5_2*XYZQW]/1/", new MassOptions());
 			fail("it converted");
 		} catch (WURCSToGlycanException wrapped) {
-			fail("a descriptive checked failure was rewrapped: " + wrapped.getMessage());
-		} catch (Exception descriptive) {
-			assertTrue(descriptive.getMessage(), descriptive.getMessage().contains("*XYZQW"));
+			assertTrue("does not indicate a bad substituent", 
+				wrapped.getMessage().contains(WURCSToGlycanException.badSubstituentMessage));
+			assertTrue("does not indicate the problematic substituent", 
+				wrapped.getMessage().contains("*XYZQW"));
+		} catch (Exception ex) {
+			fail("a generic exception was raised: " + ex.getMessage());
 		}
 	}
 

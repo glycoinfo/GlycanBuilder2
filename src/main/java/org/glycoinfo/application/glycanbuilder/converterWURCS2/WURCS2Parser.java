@@ -61,7 +61,7 @@ public class WURCS2Parser implements GlycanParser{
 	}
 	
 	public Glycan readGlycan(String str, MassOptions mass_opt) throws Exception{
-		if(str.equals("") || !str.contains("WURCS")) throw new Exception(str + " is wrong format");
+		if(str.equals("") || !str.contains("WURCS")) throw new WURCSToGlycanException(str + " is wrong format");
 		mass_opt.setDerivatization("Und");
 		mass_opt.ION_CLOUD.set("Na", 0);
 
@@ -86,13 +86,16 @@ public class WURCS2Parser implements GlycanParser{
 			WURCSSequence2ToGlycan seq22glycan = new WURCSSequence2ToGlycan();
 			seq22glycan.start(new WURCSFactory(graph), mass_opt);
 			glycan = seq22glycan.getGlycan();
-		} catch (RuntimeException undescribed) {
+		} catch (WURCSToGlycanException ex) {
+			throw ex;
+		} catch (Exception undescribed) {
 			// The conversion's own failures come out as raw NullPointerExceptions and
 			// StringIndexOutOfBounds - "String index out of range: 8" for a substituent placed at
 			// position 9 of a hexose, say - which name nothing and read as crashes rather than as
 			// answers (#123). This is the one door every WURCS enters through, so the translation
 			// happens here: what kind of failure, on which sequence, with the original underneath
 			// for whoever needs the trace.
+			// undescribed.printStackTrace();
 			throw new WURCSToGlycanException("could not convert this WURCS to a structure ("
 					+ undescribed.getClass().getSimpleName()
 					+ (undescribed.getMessage() != null ? ": " + undescribed.getMessage() : "")
@@ -138,7 +141,7 @@ public class WURCS2Parser implements GlycanParser{
 	private static void refuseCycles(Residue residue, java.util.Set<Residue> visited) throws Exception {
 		if (residue == null) return;
 		if (!visited.add(residue))
-			throw new Exception("this WURCS makes two connections between the same residues"
+			throw new WURCSToGlycanException("this WURCS makes two connections between the same residues"
 					+ " (a ring through a bridge), which cannot be represented yet");
 
 		for (org.eurocarbdb.application.glycanbuilder.linkage.Linkage linkage : residue.getChildrenLinkages())
