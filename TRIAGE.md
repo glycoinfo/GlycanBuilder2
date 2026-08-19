@@ -105,7 +105,7 @@ Both were found while measuring something else and existed nowhere but this file
 | ~~#219~~ | ~~A composition with sialic acid exports as an empty file~~ | **Fixed, on `develop`.** The residue type is `NeuAc` and composition WURCS calls it `Neu5Ac`; nothing translated. Not fixable by renaming — `Neu5Ac` is already a type, from `conf/compositions`. The table lives in the encoder now, where glycanbuilder2web has always kept its own |
 | ~~#127~~ | ~~`MassOptions.ISOTOPE` has no effect~~ | **Done for the neutral mass**, 1.36.0, and closed. Residues, water, hydrogen and the derivatization all follow the choice; measured against literature (Glc 180.156, Man₃GlcNAc₂ 910.82) |
 | ~~#203~~ | ~~An m/z pairs an average neutral mass with a monoisotopic adduct~~ | **Fixed in PR #205, merged to `develop` on 2026-08-15.** `IonCloud` captured an adduct's mass when the ion was set rather than when it was computed, so the choice could not reach it. `computeMZ`/`computeMass` take the flag now and `getIonsMass(boolean)` recomputes the total; a charge given an explicit mass keeps it. The test is on potassium and chloride, with sodium as the control — one stable isotope, so a sodiated m/z was right by accident and a test on the default adduct would have passed before the fix |
-| **#185** | EPS/PS/PDF export writes 0 bytes silently | **Half done.** A failed transcode is now refused by name instead of being written as an empty file — it had been logged and returned as null, and the null was written. The underlying Windows failure does not reproduce here: all five formats write on macOS with the pinned batik 1.19 / fop 2.11. Waiting on a retest from the reporter |
+| ~~#185~~ | ~~EPS/PS/PDF export writes 0 bytes silently~~ | **Closed 2026-08-17.** A failed transcode is refused by name instead of being written as an empty file — it had been logged and returned as null, and the null was written. The underlying Windows failure never reproduced here: all five formats write on macOS with the pinned batik 1.19 / fop 2.11. Closed once the Store was updated, since the blocker was a version too old to test against; the reporter was asked to reopen rather than refile |
 | **#66** | WURCS export fails with `"_map" is null` on a heavily modified Fuc | **Does not reproduce on 1.36.0** — a Fuc with 2-O-Me, 3-NH₂ and 4-O-Me writes WURCS, drawn or imported, alone or as a branch. The substituent MAP handling has been reworked since it was filed. Waiting on a retest and the GWS |
 | ~~#34~~ | ~~Duplicated linkage position in a branched glycan~~ | **Done.** A stated position another child holds is refused, in `addChild` as well as `canAddChild` — the two had grown apart and adding is the path that makes the structure. Unknown positions still stack, and a file that already contains one still opens |
 
@@ -202,7 +202,7 @@ waits for the reporter's retest rather than being done in a hurry.
 | #177 | Open a .gws by double-clicking it | Needs file association *and* accepting a path at startup |
 | #41 | SNFG with linkage placement notation | CFG has it; SNFG does not |
 | #93 | Nested brackets | Rare in papers, currently flattened to a composition |
-| #172 | Check for updates at startup | Waiting on the Microsoft Store question |
+| ~~#172~~ | ~~Check for updates at startup~~ | **Closed 2026-08-17 as considered and declined.** Help ▸ Check for Updates ships (1.35.0) and is user-initiated, which is what keeps it clear of Store policy; a Store-distributed application volunteering a download link is the part that does not change with the Store being current. Reopen if the Store lags again, or if the deb/rpm/dmg builds turn out to be where most installs are — `UpdateCheck.run()` is already there for it |
 | #109 | Compositions with linkage (lactonised sialic acid) | A WURCS question more than a GB2 one |
 | #7 | Review the Add-composition monosaccharide list | |
 | #16 | A standing list of modifications that were not handled | Fourteen WURCS collected since 2021, almost certainly not one fault — `*OSO`, `*=NO` and the rest fail at different points and some read now. Asked the reporter whether to re-measure each on 1.35.2, close this, and file one issue per modification that still fails. Overlaps #181 |
@@ -212,11 +212,11 @@ waits for the reporter's retest rather than being done in a hurry.
 | # | Title | Note |
 |---|---|---|
 | #175 | Get off `org.jdom:jdom` | The reachable path was closed in 1.35.2; the Dependabot alert stays open until the dependency moves. #158 folds into this |
-| #180 | Microsoft Store still on 1.28.0 | A release-process problem, not a code one |
+| ~~#180~~ | ~~Microsoft Store still on 1.28.0~~ | **Closed 2026-08-17: the Store has been updated.** It was a release-process problem rather than a code one, and it blocked #185 and gated #172. The `.msix` is still the one step outside CI |
 
 ## P6 — answers rather than changes
 
-#94 (which classes read a WURCS) · #117 (what the correct composition is) ·
+#117 (what the correct composition is) ·
 #182 ("Unknown" is a misleading group name) · #189 (sulfate on a GlcNAc nitrogen) ·
 #190 (a KEGG structure with ribitol)
 
@@ -293,10 +293,10 @@ stating plainly rather than leaving the list to imply there is work going beggin
 
 | what | how many | which |
 |---|---|---|
-| waiting on somebody else | 12 | #17, #57, #58, #66, #83, #185, #16, #183, #189, #190, #123, #222 |
+| waiting on somebody else | 11 | #17, #57, #58, #66, #83, #16, #183, #189, #190, #123, #222 |
 | waiting on a decision — chemistry or product | 6 | #220, #7, #100, #109, #117, #182 |
-| on hold at the maintainer's request | 2 | #175, #180 |
-| wishes rather than work | 8 | #41, #93, #94, #95, #172, #177, #181, #184 |
+| on hold at the maintainer's request | 1 | #175 |
+| wishes rather than work | 6 | #41, #93, #95, #177, #181, #184 |
 | drawing, P3 | 4 | #6, #20, #58, #91 |
 | structure-model changes, neither small | 2 | #200, #181 |
 
@@ -340,8 +340,10 @@ pre-release, and `releases/latest` — which is what `UpdateCheck` asks — skip
 it Latest the newest release is invisible to the update check. v1.38.0 was marked by hand; verified through
 the API, since the release page and `gh release list` have both misreported this.
 
-Every release carries the same five installers. What is missing on all of them is the Windows `.msix`,
-which is uploaded by hand and is what #180 is about.
+Every release carries the same five installers. The Windows `.msix` is not one of them: it is built and
+uploaded to Partner Center by hand, which is why the Store sat on 1.28.0 for seven releases (#180,
+closed 2026-08-17 once it was updated). It is the one release step outside CI, and the lag it produces
+is invisible from here — it took a reporter unable to retest #185 to surface it.
 
 **Still with the maintainer, for every release**: `mvn deploy` from `master` at the versioned commit,
 and the Windows `.msix` to Partner Center. Neither is a step to take unasked.
@@ -359,7 +361,6 @@ closable:
 | #66 | a retest on 1.36+ and the GWS; it does not reproduce here |
 | #83 | whether the symbol looks *rotated* or merely *placed differently* |
 | #222 | a retest on 1.39.0 with the sulfate at 2 rather than at N — and the advice that sent them to N was mine, corrected on #189 |
-| #185 | a retest on Windows; all five formats write here |
 | #183 | a structure that still refuses to export — the one in the report writes fine now |
 | #16 | whether to split it per modification |
 | #189 | whether they mean GlcNS or a sulfate on an already-acetylated nitrogen — a chemistry question, and the only thing left on it |
