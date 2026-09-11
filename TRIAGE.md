@@ -719,6 +719,66 @@ the fifth - which, by the measurement above, they already do.
   name contains a comma cannot be read back, the same way `-` and `/` cannot. Not measured; follows
   from the grammar.
 
+## Settling the GWS specification: what it would take, and what is in the way
+
+The proposal, 2026-09-11: rework `GWSParser.fromString` so structures round-trip, and settle the GWS
+notation first, since the reader and the writer currently speak different languages. The sequencing
+instinct is right - a format whose writer emits what its reader rejects is a definition problem, not
+a local bug - and five things stand in the way of taking it in that order.
+
+**1. There is no specification to settle; the existing files are the specification.** GWS's authority
+is `GWSParser` plus twenty years of `.gws` written by GlycoWorkbench and GlycanBuilder. Writing a
+grammar from the regex is an afternoon. Knowing whether that grammar describes the files people have
+is the hard part, and **there are no files to check against**: zero `.gws` in this repository,
+glycanbuilder2web, glycanbuilder2-refactor or glycoworkbench-desktop.
+
+**2. The reader and the writer must both be covered, and choosing between them is not a technical
+call.** Six of 134 dictionary residues are writable and unreadable. Widening the reader rescues files
+that already exist but leaves new files unopenable by old readers; narrowing the writer protects the
+future and abandons what is already written.
+
+**3. Freezing the specification first blocks repairs that need no specification.** Three measured
+faults are bugs under any reading: the heptose that cannot be reopened, a `$` inside a name that
+empties the structure **with no error at all**, and `NaN` appearing in written output.
+
+**4. There is more than one reader.** GlycanBuilder2, glycanbuilder2-refactor (1.25.6-era, fifteen
+releases behind) and GlycoWorkbench. A file written by a new GlycanBuilder2 has to open in software
+that will not receive this change for a long time - and whether it ever does is #226's open question.
+
+**5. Rewriting the parser without the baseline hides the result.** The before is measured: 60.9%
+survive, 2.9% come back empty, 6.1% come back different, 30.1% cannot be read back. The harness runs
+in ten seconds. Without it, a rewrite cannot be told from a reshuffle.
+
+Whatever is written should say what "done" means: a grammar, a conformance corpus of inputs with
+expected outcomes, and a statement of which versions are required to read the result. Otherwise
+"specification" becomes a document nothing can be tested against.
+
+### Where a GWS corpus could come from - investigated, 2026-09-11
+
+WURCS and GlycoCT both have public corpora. **GWS does not**, and the search is now closed enough to
+record.
+
+| source | result |
+|---|---|
+| `sparql.glygen.org` | **Does not hold GWS.** The store keeps six sequence formats - glycam, glycoct, inchi, iupac, smiles_isomeric, wurcs - and GlycoWorkbench is not among them |
+| `sparql.glygen.org/ln2triplestoredata/triples.tar.gz` | 1.94 GB, 2026-05-15. Same store, so the predicate is not in it either; downloading it would not help |
+| `data.glygen.org/…/others/gwb.zip`, `gws.zip` | Not published. Both return 3,454 bytes of the site's HTML shell, where `wurcs.zip` returns 22 MB of data |
+| PyGly `smw/glycandata/queries/gwb.sparql2zip` | Real, and it proves GWS exists **somewhere**: it selects `glycandata:property "GlycoWorkBench"`. But that vocabulary is `glyomics.org/glycandata#`, an internal store - the same query against the public endpoint returns nothing |
+| Generating GWS from the WURCS corpus | Already done, 1,631 structures. **Measures the wrong thing for this purpose** - see below |
+| Real `.gws` files: users' saved work, papers' supplements | Unexplored, and the only true source |
+
+Worth knowing for whoever queries GlyGen next: the endpoint is **not** `/sparql`, which 404s. It is
+`POST /cgi-bin/get_triples.py` with `injson={"qs":"<query>","format":"JSON"}`.
+
+**The distinction that decides this.** Generating GWS from WURCS answers "can today's GlycanBuilder2
+read what today's GlycanBuilder2 writes". The specification needs "can we read what GlycoWorkbench
+wrote", and no amount of generating produces that. So the corpus question narrows to one request -
+glygen-glycan-data's internal store - with no fallback.
+
+**If it cannot be had**, the specification has to be founded on the current parser plus a stated
+compatibility policy, and **must say so on its first page**. An unverifiable premise written as
+though it were evidence is worse than an admitted gap.
+
 ## What is left
 
 Re-counted 2026-09-11: **47 open**, of which 18 arrived after the last pass. "Nothing is actionable"
