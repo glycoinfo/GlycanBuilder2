@@ -653,6 +653,72 @@ regenerate to make the build green, and then it is worse than no test at all, be
 one. The discipline it needs is a sentence in the review checklist: **a changed baseline is a change
 to explain, not a change to accept.**
 
+## What `$` means in a GWS string
+
+Written down on 2026-09-11 because it was assumed to be free text, and it is not. Read out of
+`GWSParser.toString` / `fromString`, `MassOptions.toString` / `fromString`, and confirmed by running
+each case.
+
+### The shape
+
+```
+<structure>$<isotope>,<derivatization>,<ion cloud>,<neutral exchanges>[,<reducing end>]
+              0          1                2              3                4
+```
+
+`freeEnd--?b1D-GalNAc,p$MONO,Und,0,0,freeEnd`
+
+- The split is `str.indexOf('$')` - **the first** `$`, not the last.
+- The tail is split on `,` by `TextUtils.tokenize`, which **discards empty tokens**: `a,,b` is two
+  tokens, not three. Fields are positional, so an empty one does not hold its place - it shifts
+  everything after it left.
+- Fields 0-3 are **required**. Field 4 is optional.
+
+### What it accepts, measured
+
+| tail | result |
+|---|---|
+| `MONO,Und,0,0,freeEnd` | the normal form |
+| `MONO,Und,0,0` | fine - reducing end falls back to the default |
+| `MONO,Und,0` | **`IndexOutOfBoundsException`** |
+| `MONO,Und` / empty | **`IndexOutOfBoundsException`** |
+| `MONO,Und,0,0,freeEnd,hello` | **reads, and `hello` is silently dropped when it is written again** |
+| `MONO,Und,0,0,freeEnd,label=Ser/Thr,a,b,c` | the same - read, ignored, gone on the next save |
+| `MONO,Und,0,0,NoSuchReducingEnd` | **accepted**, and written back unchanged |
+| `MONO,Und,0,0,freeEnd$extra` | accepted; the second `$` is ordinary text, and the reducing end is now literally named `freeEnd$extra` |
+
+**So the belief is half right.** Anything *after the fifth field* is tolerated on the way in and
+thrown away on the way out. Nothing is free-form before that: four fields must be present, in order,
+non-empty.
+
+### Why "accepted" is not the same as "safe"
+
+`ResidueDictionary.findResidueType` never refuses a name. Unknown names go to
+`ResidueType.createUnknown`, and a name containing `=` is read as `name=massu` and becomes a custom
+reducing end. That is how `Ser_Thr=87.0320u` works - and it is also why a typo in field 4 produces a
+residue type rather than an error.
+
+### Using it to carry something
+
+Tempting, for #34: put the display label after the reducing end, where the reader ignores it. It does
+not work, and the table says why - **the writer does not carry it**. `MassOptions.toString` rebuilds
+the tail from five values, so anything appended survives exactly one read and is gone the moment the
+document is saved. A label has to live somewhere the writer writes.
+
+If the tail is ever to carry more, it needs the extension designed rather than discovered: a keyed
+field (`k=v`) so position stops mattering, tolerated by old readers because they ignore tokens past
+the fifth - which, by the measurement above, they already do.
+
+### Two faults found while writing this down
+
+- **`AVG,perMe,Na1,0,redEnd` reads and comes back as `AVG,perMe,0,0,redEnd`.** The ion cloud is lost.
+  `IonCloud.toString` writes `Na` for one sodium and `2Na` for two, so `Na1` is not the spelling it
+  writes - but it is the spelling a person would guess, and losing an adduct silently is the same
+  class of fault as #203. Whether the correct spelling survives is not yet measured.
+- Field 4 is a residue **name**, unquoted, in a comma-separated list. A custom reducing end whose
+  name contains a comma cannot be read back, the same way `-` and `/` cannot. Not measured; follows
+  from the grammar.
+
 ## What is left
 
 Re-counted 2026-09-11: **47 open**, of which 18 arrived after the last pass. "Nothing is actionable"
