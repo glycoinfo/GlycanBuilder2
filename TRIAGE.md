@@ -827,6 +827,50 @@ to add, they are the only witness we have to the format as it was actually produ
 are multi-structure documents - which is itself worth having under test, since that path is separate
 from the one every other test uses.
 
+### The original parser, and when the six names became unwritable
+
+Both original projects survive on the Google Code archive, and both can be downloaded today:
+
+```
+https://storage.googleapis.com/google-code-archive-source/v2/code.google.com/glycoworkbench/source-archive.zip   38 MB
+https://storage.googleapis.com/google-code-archive-source/v2/code.google.com/glycanbuilder/source-archive.zip    90 MB
+```
+
+GlycanBuilder's carries `src/org/eurocarbdb/application/glycanbuilder/GWSParser.java` - the first
+version of this parser - with `.hg` history alongside it.
+
+**The grammar has barely moved in twenty years.** Original against current:
+
+| | original | current |
+|---|---|---|
+| residue name | `[a-zA-z0-9_#=\.]+` | `[a-zA-z0-9_#=.]+` |
+| cleavage | `/([a-zA-z0-9_#]+)` | identical |
+| ring form | `[\?opf]` | `[?opfa]` - alditol added |
+| repeat counts | `[0-9]+` | `-?[0-9]+` - negatives allowed |
+
+So the name class is **the same class it started with, typo included**: `a-zA-z` spans ASCII 65-122
+and has admitted `[`, `\`, `]`, `^` and backtick into residue names since the beginning. It was
+never narrowed, never widened, never revisited.
+
+**And the six unwritable names are not original.** The first dictionary had 81 residue types and
+**every one of them fits the class**. Today's has 134, of which six do not:
+
+```
+L-gro-D-manHep   D-gro-D-manHep   Tri-P   (S)Lac   (R)Lac   (X)Lac
+```
+
+That is the whole history of this fault in one line: **the grammar was adequate for the residues it
+was written for, and residues were added afterwards without anyone checking they could be written.**
+Nobody broke GWS; the dictionary outgrew it, quietly, one residue at a time.
+
+Which settles two things for the specification:
+
+- The character class carries no design intent worth preserving. Treating it as a deliberate
+  restriction - and building an escape around it out of deference - would be deference to a typo.
+- The missing guard is obvious and cheap, and it is a test rather than a format change: **every name
+  in the dictionary must be writable and readable**. Six fail today. That test would have caught
+  each of the six on the day it was added, and it needs no specification to be settled first.
+
 
 ## What is left
 
