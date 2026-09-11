@@ -5,10 +5,12 @@ in, and the format of a `.gws` file.
 
 **This document has two levels, and they are two different kinds of statement.**
 
-- **Part 1, GWS core, is normative for GlycanBuilder2.** It says what this project *must* read and
+- **Part 1, GWS core, is normative for GlycanBuilder2 and for glycanbuilder2web**, which uses the
+  same library and therefore inherits every clause. It says what this project *must* read and
   write. Two requirements shape it: **every `.gws` that has ever been written must be readable**, and
   **a residue label may carry any character**. Where today's code falls short of that, the document
-  states the requirement and the shortfall is a defect, not a clause.
+  states the requirement and the shortfall is a defect, not a clause. What core requires of
+  *GlycanCore* is deliberately out of scope: see open question 1.
 - **Part 2, GWS extended, is descriptive.** It records the superset implemented in
   [GlycanCore](https://gitlab.com/glycoinfo/glycanbuilder-module/glycancore). Core does not include
   it, and this project is not to grow it: anything beyond Part 1 belongs to the extension, and the
@@ -99,42 +101,56 @@ bounding-box  := "<bounding_box>" int "," int "," int "," int "</bounding_box>"
 
 Examples: `?b1D-GalNAc,p` · `freeEnd` · `--3S` (a sulfate at 3) · `?b1D-GlcNAc,p<bounding_box>0,0,30,30</bounding_box>`
 
-### The name, reading and writing
+### The name
 
-**A name is read as:** *(Required.)*
-
-```
-name := ( [A-Za-z0-9_#=.] | "-" (?! "-" | [0-9]) | "(" | ")" )+
-```
-
-That is wider than the class any implementation uses today, and wider deliberately: it is what makes
-**every `.gws` ever written** readable. Two additions over the historical class, each needed by names
-that have been written to files and could not be read back:
-
-- **`-`, when not followed by `-` or a digit.** `--` is a linkage and `-<digit>` is the pre-2007
-  linkage form, so the restriction is exactly enough to keep both unambiguous. *(Measured: with this
-  rule `D-gro-D-galHep,p` reads as the name `gro-D-galHep` after the `D-` configuration prefix,
-  `Tri-P` reads whole, and `D-gro-D-galHep,p--4b1D-Gal,p` and `D-gro-D-galHep-4b1D-Gal,p` both split
-  at the right place.)*
-- **`(` and `)`**, for `(S)Lac`, `(R)Lac`, `(X)Lac`.
-
-**A name is written as:** *(Required.)*
+**A name is:** *(Required.)*
 
 ```
-safe := [A-Za-z0-9_#.]        // note: no "=", see §1.3.1
+name := ( [A-Za-z0-9_#=.] | "-" (?! "-" | [0-9]) | "(" [A-Za-z0-9] ")" )+
 ```
 
-Anything else is escaped, per §1.3.1. So a reader accepts `D-gro-D-manHep` and `(S)Lac`; a writer
-emits neither, choosing a safe spelling or the escape. **This is the asymmetry of the opening rule,
-and it is what lets old files be rescued without making new files unreadable elsewhere.**
+Wider than the class any implementation uses today, and wider deliberately: this is what makes
+**every `.gws` ever written** readable. Two additions over the historical class, each carrying names
+that have been written to files and could not be read back — and each narrowed to exactly what is
+unambiguous:
+
+- **`-`, when not followed by `-` or a digit.** `--` is a linkage and `-<digit>` the pre-2007 linkage
+  form, so the restriction is precisely enough. *(Measured: `D-gro-D-galHep,p` reads as the name
+  `gro-D-galHep` after the `D-` configuration prefix; `Tri-P` reads whole;
+  `D-gro-D-galHep,p--4b1D-Gal,p` and `D-gro-D-galHep-4b1D-Gal,p` both split where they should.)*
+- **A parenthesised single character**, `"(" [A-Za-z0-9] ")"`, for `(S)Lac`, `(R)Lac`, `(X)Lac`.
+
+**Bare `(` and `)` must not be admitted.** Parentheses delimit branches, and a branch opens with `(`
+followed immediately by `--`, so the constrained form above cannot collide with one. Admitting them
+unconstrained does collide, and only for residues with **no ring form**, which is why it looks safe
+until it is not. *(Measured, with an unconstrained class: `b1D-Man(--3a1D-Man,p)` reads the name as
+`Man(`, `S(--3a1D-Man,p)` as `S(`, and `GalNAc)--4b1D-Gal,p` as `GalNAc)`. With the constrained form
+all three read correctly.)*
+
+### Writing: the same names, unchanged
+
+**A writer emits the name it holds.** *(Required.)* No renaming, no normalisation, no escape for any
+name in the dictionaries — the reader above accepts all of them, so the round trip closes on the
+identical string.
+
+The escape of §1.3.1 exists for **one purpose only**: a label a user typed that contains a character
+the grammar genuinely cannot carry. After the two additions above, that set is small:
+
+```
+/  ,  $  =  space   and every non-ASCII character
+```
+
+`-`, `(` and `)` are **not** in it. `GalNAc-Ser` and `(S)Lac` are written literally and read back
+literally, which is both simpler and what a reader of the file would expect to see.
 
 ### Why the historical class is not the specification
 
 `[a-zA-z0-9_#=.]`, which both implementations use, is **not a typo-free character class**: `a-zA-z`
 spans ASCII 65–122, so it also admits `[`, `\`, `]`, `^` and `` ` ``. It has been that class since
-2007 and was never revisited. *(Read, both versions; GlycanCore corrected the span to `[a-zA-Z0-9_#=.]`
-without changing the intended set.)* It carries no design intent worth preserving, which is why the
-normative class above was derived from what files contain rather than from what the regex allows.
+2007 and was never revisited. *(Read, both versions; GlycanCore corrected the span to
+`[a-zA-Z0-9_#=.]` without changing the intended set.)* It carries no design intent worth preserving,
+which is why the grammar above was derived from what files contain rather than from what the regex
+allows.
 
 ### 1.3.1 What a name may contain today
 
@@ -173,25 +189,29 @@ than failing. Not implemented; see [Open questions](#open).
 
 ### Names with any character in them: the escape
 
-Decided 2026-09-11. A residue label may contain **any character except `=`**, and the format does not
-change to allow it: the label is encoded into characters the existing grammar already accepts, so
-every reader that exists today - this project, GlycanCore, GlycoWorkbench, 1.28.0 - reads the file.
+Decided 2026-09-11, and narrowed on 2026-09-11 once the reader was widened. **This applies to labels
+a user types, not to names in the dictionaries** — those are read and written literally, per "Writing"
+above. A label may contain any character at all; the format does not change to allow it, because the
+label is encoded into characters the grammar already accepts.
+
+The characters that need encoding, after `-` and `(x)` became readable:
+
+```
+/  ,  $  =  space   and every non-ASCII character
+```
 
 #### The rules
 
-1. **`=` is forbidden in a label.** It is the separator inside the stored name of a custom reducing
-   end (`label=<mass>u`), and forbidding it is fail-safe where escaping it would be fail-open: a
-   single path that forgot to encode would truncate the label *and* throw on the mass. Nothing in
-   chemistry notation wants it, and **no dictionary name contains one** *(measured: 0 of 134)*.
-2. **Safe characters pass through unchanged**: `A-Z a-z 0-9 _ # .`
-3. **Every other character is written `_XX_`**, two upper-case hex digits. `/` → `_2F_`, `-` →
-   `_2D_`, `(` → `_28_`.
-4. **A label that had anything encoded is prefixed `_e_`.** A label that needed no encoding is stored
+1. **Safe characters pass through unchanged**: `A-Z a-z 0-9 _ # .`, and — since the reader accepts
+   them — `-` and a parenthesised single character. `GalNAc-Ser` is stored as it was typed.
+2. **Every other character is written `_XX_`**, two upper-case hex digits. `/` → `_2F_`, `,` →
+   `_2C_`, `$` → `_24_`, `=` → `_3D_`, space → `_20_`.
+3. **A label that had anything encoded is prefixed `_e_`.** A label that needed no encoding is stored
    as it is, with no prefix.
-5. **A literal label beginning `_e_` is encoded**, if only its leading underscore (`_5F_`), so that
+4. **A literal label beginning `_e_` is encoded**, if only its leading underscore (`_5F_`), so that
    it too carries the prefix. This is the only reason a label with no otherwise-unsafe character
    gets encoded.
-6. **Non-ASCII is encoded as its UTF-8 bytes**, one `_XX_` each.
+5. **Non-ASCII is encoded as its UTF-8 bytes**, one `_XX_` each.
 
 #### Worked examples
 
@@ -200,11 +220,11 @@ every reader that exists today - this project, GlycanCore, GlycoWorkbench, 1.28.
 | `Ser_Thr` | `Ser_Thr` | nothing unsafe - **no prefix, no change** |
 | `Ser_2F_Thr` | `Ser_2F_Thr` | nothing unsafe either; rule 4 is what keeps this distinct from the next row |
 | `Ser/Thr` | `_e_Ser_2F_Thr` | `/` encoded |
-| `GalNAc-Ser/Thr` | `_e_GalNAc_2D_Ser_2F_Thr` | both `-` and `/` |
+| `GalNAc-Ser/Thr` | `_e_GalNAc-Ser_2F_Thr` | only `/` — `-` is readable, so it stays |
 | `/-` | `_e__2F__2D_` | consecutive escapes run their underscores together; still unambiguous, since a decoder reads `_`, two hex, `_` |
 | `セリン` | `_e__E3__82__BB__E3__83__AA__E3__83__B3_` | UTF-8, three bytes per character |
 | `_e_Ser` | `_e__5F_e_5F_Ser` | rule 5 |
-| `Ser=Thr` | — | refused at input, rule 1 |
+| `Ser=Thr` | `_e_Ser_3D_Thr` | `=` separates a custom reducing end's label from its mass, so it must be encoded — without that, the label truncates and the mass parse throws *(measured: `For input string: "Th"`)* |
 
 *(Every stored form above was written as a reducing-end name, read back and rendered on 1.40.0: all
 eight round-trip. `_e_GalNAc_2D_Ser_2F_Thr` renders at 540×111, the UTF-8 one at 665×111.)*
@@ -293,6 +313,11 @@ It is `MassOptions.toString()`, positional, comma-separated. `freeEnd--?b1D-GalN
 
 - Fields 0–3 are **required**; a tail of three fields throws `IndexOutOfBoundsException`.
 - Field 4 is optional. *(4 of the 14 GlycoWorkbench examples have no `$` section at all.)*
+- **A writer reproduces what it read: no `$` section stays absent, and a four-field tail stays four
+  fields.** *(Required.)* Today the writer always emits five, which is why no file GlycoWorkbench
+  wrote comes back unchanged — `…$MONO,Und,Na,0` gains `,freeEnd` and a structure with no `$` gains
+  a whole section *(measured)*. Neither is damage, and both destroy textual identity for no gain.
+  Held the same way as §1.6.1: remember the shape that arrived, reproduce it.
 - **Empty fields do not hold their place.** The tokenizer discards them, so `a,,b` is two tokens and
   everything after a blank shifts left.
 
@@ -340,33 +365,41 @@ save it.
 
 ## 1.7 Core conformance
 
-**An implementation conforms to GWS core when all four of these pass.** *(Required.)* Each is a
-corpus that exists today; none is in this repository yet, and all four should be.
+**An implementation conforms to GWS core when all four pass.** *(Required.)* Each corpus exists
+today; none is in this repository yet, and all four should be.
 
 | # | corpus | requirement | where it stands |
 |---|---|---|---|
-| C1 | the **14 `.gws` written by GlycoWorkbench** (`glycoinfo/eurocarbdb`, `application/GlycoWorkbench/examples/`) | every file reads, and the structure read is the structure written | **14 read, 0 fail** *(measured)*. None is textually identical on rewrite, because the writer states mass options the 2008 writer left implicit - see below |
-| C2 | the **29 dictionary names containing `-`** (3 in `residue_types`, 26 in `non_symbolic_residue_types`) | each name reads, and the residue is the one the dictionary defines | **0 of 29 read today** *(measured)*. The widened class of §1.3 is what fixes this |
-| C3 | the **3 dictionary names containing parentheses** (`(S)Lac`, `(R)Lac`, `(X)Lac`) | as C2 | **0 of 3 read today** *(measured)* |
+| C1 | the **14 `.gws` written by GlycoWorkbench** (`glycoinfo/eurocarbdb`, `application/GlycoWorkbench/examples/`) | **each file reads and writes back as the identical string** | **14 read, 0 fail**, and the **structure part of all 14 is already byte-identical** *(measured)*. Only the `$` section differs, which §1.6 now requires be reproduced — so identity is reachable |
+| C2 | the **29 dictionary names containing `-`** (3 in `residue_types`, 26 in `non_symbolic_residue_types`) | each name reads, resolves to the residue the dictionary defines, and writes back identically | **0 of 29 read today** *(measured)*. The `-` rule of §1.3 fixes this with no change to the writer |
+| C3 | the **3 dictionary names containing parentheses** (`(S)Lac`, `(R)Lac`, `(X)Lac`) | as C2 | **0 of 3 read today** *(measured)*. The `"(" [A-Za-z0-9] ")"` rule fixes this, also with no writer change |
 | C4 | the **25 core-level strings** among GlycanCore's 47 test strings | each reads | **25 read** *(measured)*; the other 22 are Part 2 and must **not** read |
 
-**C1 requires a structural comparison, not a textual one.** No file GlycoWorkbench wrote round-trips
-as text - `…$MONO,Und,Na,0` comes back as `…$MONO,Und,Na,0,freeEnd`, and a file with no `$` gains one.
-That is the writer being more explicit, not damage, and a conformance test written on string equality
-would fail all 14 *(measured)*.
+**C1 is a string comparison.** That is a change from this document's first draft, which required a
+structural one because the writer normalised the `$` section. With §1.6's reproduction rule the
+normalisation goes away, and a test on string equality becomes both correct and far easier to read
+when it fails.
+
+Three things make textual identity achievable rather than aspirational, all measured:
+
+- the structure part of all 14 GlycoWorkbench files already matches exactly;
+- `writeGlycan` is `toString(structure, false, true)` — **`ordered=false`, so the writer does not sort
+  branches**, and the order in the file survives;
+- with the reader widened, the writer needs no change at all for the 32 dictionary names — it already
+  emits exactly what the file contained.
 
 ### Where the current implementation stands against its own requirements
 
-| requirement | status |
-|---|---|
-| read every `.gws` ever written | **not met** - C2 and C3 fail: 32 dictionary names can be written and not read |
-| a label may carry any character | **not met** - `/`, `-`, `,`, space, `(`, `)` are refused, and `$` empties the structure with no error |
-| `=` refused in a label | **not met** - accepted, then truncates the label and throws on the mass |
-| write only what others can read | **not met** - the 32 names above are written and are unreadable by this project, GlycanCore and GlycoWorkbench alike |
+| requirement | status | what fixes it |
+|---|---|---|
+| read every `.gws` ever written | **not met** — 32 dictionary names can be written and not read | the two additions in §1.3, reader only |
+| read and write the identical string | **not met** — the `$` section is normalised on write | §1.6's reproduction rule |
+| a label may carry any character | **not met** — `/`, `,`, space refused; `$` empties the structure with no error; `=` truncates the label and throws on the mass | the escape in §1.3.1 |
+| destroy nothing it does not interpret | **not met** — tail fields past the fifth are dropped | §1.6.1 |
 
-And for the wider picture, measured across 1,631 structures taken through WURCS → GWS → WURCS:
-60.9% survive, 2.9% come back empty, 6.1% come back different, **30.1% cannot be read back**. The
-largest single group of those failures is C2.
+And for scale, measured across 1,631 structures taken through WURCS → GWS → WURCS: 60.9% survive,
+2.9% come back empty, 6.1% come back different, **30.1% cannot be read back**. The largest single
+group of those failures is C2.
 
 # Part 2 — GWS extended (GlycanCore)
 
