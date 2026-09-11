@@ -405,7 +405,96 @@ Everything on it is done. What is left to pick up is at the bottom.
 
 ---
 
-## Can we build a suite that would have caught #238? Yes - and here is why the present one did not
+## Before fixing anything: what a safe-to-change test base would take
+
+Asked on 2026-09-11 - build the verification first, so that fixing an issue stops creating the next
+one. This is the survey, measured rather than estimated. **No source has been changed.**
+
+### Where the two projects actually stand
+
+Line coverage, measured on 2026-09-11 by running each suite under JaCoCo:
+
+| | tests | line coverage | runtime |
+|---|---|---|---|
+| **GlycanBuilder2** | 226 | **28.5%** (6,727 / 23,615) | 11.5 s |
+| **glycanbuilder2web** | 583 | **81.8%** (5,754 / 7,036) | 45.9 s |
+
+**The library everything is built on is the least tested part of the stack, by a wide margin.** The
+web application, which sits on top of it and is a quarter of its size, has nearly three times the
+coverage. Both suites run in under a minute, so nothing about the current setup argues against
+adding a great deal more.
+
+Where the library's coverage goes:
+
+| package | cov | lines | |
+|---|---|---|---|
+| `…glycanbuilder` (model, canvas, document) | **14.8%** | 10,234 | the core |
+| `…glycanbuilder.util` | **7.4%** | 3,148 | dialogs and helpers |
+| `…renderutil` | 41.8% | 3,396 | drawing |
+| `…massutil` | 59.8% | 786 | |
+| `…util.exchange.importer` / `.exporter` | **84.0% / 84.9%** | 1,593 | the WURCS conversion - the recent work |
+| `…dataset` | 86.6% | 373 | |
+| `converterGWS` | 74.7% | 257 | |
+| `converterKCF`, `converterGlycoMinds` | **0%** | 606 | two formats the application offers and nothing tests |
+
+### The classes where a change is invisible
+
+Ranked by unreached lines - this is the list of places where an edit can go wrong silently:
+
+| class | cov | unreached | |
+|---|---|---|---|
+| `GlycanCanvas` | 0% | 2,259 | Swing; expensive to test, and the largest single hole |
+| `BBoxManager` | 25.1% | 656 | **layout arithmetic, no UI** |
+| `Glycan` | 26.5% | 630 | **the structure model** |
+| `GlycanDocument` | 17.7% | 549 | **open, save, import, merge** |
+| `AbstractGlycanRenderer` | 42.1% | 472 | |
+| `Fragmenter` | 0% | 410 | **fragmentation, entirely untested** |
+| `Residue` | 44.5% | 383 | **where #238 lives** |
+| `KCFParser` | 0% | 351 | |
+| the dialogs | 0% | ~2,100 | Swing |
+
+Split by kind: **~6,900 unreached lines are Swing** - dialogs, canvas, menus - where unit tests are
+genuinely expensive. The other **~9,900 are model, conversion and layout**: plain Java, no display
+needed, testable today with nothing new installed. That second number is the real finding.
+
+**`Residue.addChild` is not untested** - eleven test classes touch it, including
+`OnePositionOneBondTest`, which is #34's own test. It still shipped #238. Coverage is necessary and
+not sufficient: the line was executed, the case was not.
+
+### What "safe to change" needs, and in what order
+
+Not "cover everything" - that is how a test effort dies. Four stages, each of which makes the next
+cheaper, and each worth stopping at if the appetite runs out.
+
+**Stage 1 - a floor under what already works** (a few days). Two corpus tests with committed
+baselines: every WURCS the registry holds, read and written back; and every format the application
+offers, over the same structures. Records what each input does today, fails when any input changes
+category. This is the stage that would have caught #238, #239 and #236, and it needs no new
+infrastructure - `tests.yml` already gates every pull request.
+
+**Stage 2 - the model and the layout** (one to two weeks). `Glycan`, `Residue`, `GlycanDocument`,
+`BBoxManager`, `Fragmenter`: ~2,600 unreached lines of plain Java. Attaching, detaching, positions,
+brackets, repeats, copy, merge, undo. Six of the eighteen new issues are copy-and-paste and
+selection, an area with **no tests at all**, and #200 and #230/#234 are structure-model changes that
+cannot be attempted safely until this exists.
+
+**Stage 3 - the picture** (one week, then upkeep). Render a fixed corpus in four orientations and
+every notation, hash it, compare. #29 and #88 were drawing regressions found by eye; #91, #232, #233
+are drawing issues with nothing watching them. The upkeep cost is real: fonts and platforms move, so
+this wants a tolerance and a documented way to re-bless.
+
+**Stage 4 - the Swing surface** (open-ended). ~6,900 lines behind dialogs and the canvas. The web
+application solves the same problem with Karibu, which builds a UI without a browser and gets it to
+81.8%; the desktop equivalent is AssertJ-Swing or FEST, and it is the most expensive stage for the
+least return. Worth doing last, or never, if stages 1-3 hold.
+
+**What crosses both projects.** The web application is the better-tested of the two and takes the
+library as a dependency, so its 583 tests are already an integration test of the library - that is
+how #221 was caught. Making that deliberate is cheap: run the web suite against a release candidate
+of the library before tagging, not after. Stage 1's corpus belongs in the library, where both
+consumers inherit it.
+
+### Could a suite have caught #238? Yes - and the present one says why it did not
 
 Asked on 2026-09-11, after #238 turned out to be a regression this project shipped in 1.37.0 and
 nobody noticed for four releases. This section is the feasibility answer, not a plan of work.
