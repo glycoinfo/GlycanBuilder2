@@ -1,0 +1,3 @@
+# input	required behaviour (spec §1.2)	status on 1.40.0
+freeEnd$S/T=87.0320u--?b1D-GalNAc,p$MONO,Und,0,0,freeEnd	refuse: a raw '$' in a name	FAILS - reads with no error and yields an EMPTY structure
+Ser$Thr=87.0320u--?b1D-GalNAc,p$MONO,Und,0,0,freeEnd	refuse	FAILS - same

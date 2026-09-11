@@ -490,16 +490,25 @@ Settled by Part 1, and recorded here so the history is legible:
 
 # The corpora, and where they are
 
-§1.7 makes four of these a requirement. None is in this repository yet; all four should be, and the
-first two cost nothing but a copy.
+**They are in this repository now: [`gws-conformance/`](gws-conformance/).** §1.7 makes four of them
+a requirement; the other three cover the clauses §1.7 does not.
 
-| set | size | source |
+| file | rows | requirement |
 |---|---|---|
-| **C1** GlycoWorkbench examples | 14 | `glycoinfo/eurocarbdb`, `application/GlycoWorkbench/examples/` — the only witness to the format as originally produced, and two of them exercise the multi-structure path that nothing else tests |
-| **C2/C3** dictionary names | 29 + 3 | this repository: `conf/residue_types`, `conf/non_symbolic_residue_types`. The test writes each name, reads it back, and checks the residue is the one defined |
-| **C4** GlycanCore test strings | 47 | `glycancore`, `src/test/java/org/glycoinfo/glycanbuilder/io/TestGWSIO.java` — 25 core, 22 extended |
-| *(not a requirement)* generated | any | WURCS corpus → GWS → back. Tests whether today's writer and reader agree; **does not** test whether we read what GlycoWorkbench wrote, which is why C1 exists |
+| `c1-glycoworkbench/` | 14 `.gws` | C1 — read, and write back the identical string |
+| `c2c3-dictionary-names.tsv` | 33 | C2, C3 — every dictionary name writable and readable. **33 of 33 unreadable today** |
+| `c4-glycancore-strings.tsv` | 48 | C4 — 26 core rows must read, 22 extended rows must not |
+| `c5-label-escapes.tsv` | 9 | §1.3.1 — a label may carry any character |
+| `c6-dollar-section.tsv` | 6 | §1.6, §1.6.1 — reproduce the section's shape, carry what is not interpreted. **5 of 6 fail today** |
+| `c7-must-be-refused.tsv` | 2 | §1.2 — a raw `$` in a name is refused. **Both fail today, silently** |
 
-The originals are downloadable: GlycoWorkbench and GlycanBuilder both survive on the Google Code
-archive (`storage.googleapis.com/google-code-archive-source/v2/code.google.com/{glycoworkbench,glycanbuilder}/source-archive.zip`),
+Every status column was measured on 1.40.0 before any of this was implemented, so the data is both
+the requirement and the baseline. Nothing in it was written by hand: the GWS strings came from the
+library itself, built as structures and written out, or from files other software produced. There is
+no runner yet, deliberately — `gws-conformance/README.md` gives the three assertion shapes that cover
+all of it.
+
+The originals remain downloadable, should the data ever need regenerating: GlycoWorkbench and
+GlycanBuilder both survive on the Google Code archive
+(`storage.googleapis.com/google-code-archive-source/v2/code.google.com/{glycoworkbench,glycanbuilder}/source-archive.zip`),
 and the WURCS and GlycoCT corpora at `data.glygen.org/ln2downloads/glycan/others/`.
