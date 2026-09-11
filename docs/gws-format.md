@@ -132,15 +132,58 @@ made.
 Four things the escape has to cover, and only the first is obvious:
 
 1. **Characters outside the name class** — `/`, `-`, `,`, space, `(`, `)`, `$`, and the rest.
-2. **`=`, which is inside the class and still unsafe.** A custom reducing end is stored as
-   `name=<mass>u` and read back by splitting on `=`, so `Ser=Thr` becomes `Ser=Thr=87.0320u` and the
-   mass is parsed from `Thr`. Being in the character class is not the same as being safe.
+2. **`=`, which is inside the class and still unsafe.** See the next section: escaping it changes
+   how a custom reducing end is stored.
 3. **`_` itself**, as the escape introducer: `Ser_Thr` has to be written `Ser_5F_Thr`, or the two
    cannot be told apart. **No dictionary residue name contains `_`** *(measured: 0 of 134)*, so this
    costs nothing for the six unwritable names and only affects user-typed labels.
 4. **Non-ASCII.** `セリン` does not match the name pattern at all today. Two hex digits cannot carry
    it; the form has to be decided — UTF-8 bytes as consecutive `_XX_`, or a wider `_uXXXX_`. Unless
    Japanese labels are ruled out, this needs choosing rather than discovering.
+
+
+### What escaping `=` changes about a custom reducing end
+
+A custom reducing end has no dictionary entry. It is stored **as its own name**, and that name is a
+two-field record with `=` as the separator:
+
+```java
+// ResidueType.createOtherReducingEnd(label, mass)
+ret.name = label + "=" + new DecimalFormat("0.0000").format(mass) + "u";
+
+// ResidueDictionary.findResidueType(type_name)  - the way back
+String[] tokens = type_name.split("=");
+String name = tokens[0];
+double mass = Double.valueOf(tokens[1].substring(0, tokens[1].length()-1));   // strips the "u"
+```
+
+So the label shares one string with the mass, and `=` is what tells them apart.
+
+| the user types | stored as | `split("=")` gives | read back as |
+|---|---|---|---|
+| `Ser_Thr` | `Ser_Thr=87.0320u` | `["Ser_Thr", "87.0320u"]` | label `Ser_Thr`, 87.0320 ✓ |
+| `Ser=Thr` — **today** | `Ser=Thr=87.0320u` | `["Ser", "Thr", "87.0320u"]` | label **truncated to `Ser`**, and the mass parsed from `"Th"` — *(measured: `For input string: "Th"`)* |
+| `Ser=Thr` — **escaped** | `Ser_3D_Thr=87.0320u` | `["Ser_3D_Thr", "87.0320u"]` | decode → `Ser=Thr`, 87.0320 ✓ |
+
+The record's **shape** does not change. What changes is that **the label field stops being literal**,
+and three things follow from that:
+
+**The mass, not just the label, depends on it.** The failure in row two is a `NumberFormatException`
+about the mass. Escaping `=` is not cosmetic - it is what makes `tokens.length` reliably 2, so the
+mass can be found at all. Today it can be 3 or more.
+
+**Everything that displays a type name has to decode.** `getTypeName()` returns the stored form, and
+the canvas draws it: *(measured)* a reducing end round-trips as `Ser_2F_Thr=87.0320u` and renders at
+436×111, the width tracking the label's length. Without a decode step in the renderer and in the
+dialog, the user is shown `Ser_3D_Thr` where they typed `Ser=Thr`.
+
+**Files written before the change become ambiguous, and only those.** A label typed literally as
+`Ser_3D_Thr` is legal today *(measured: reads, renders 438×111)*. A new reader would decode it to
+`Ser=Thr` - silently changing a label somebody chose. The new **writer** is unambiguous, because it
+escapes its own introducer and would store that label as `Ser_5F_3D_5F_Thr`; the collision is
+strictly between the new reader and old files. Nothing in the format distinguishes the two, so this
+is a decision to take openly: accept it as rare, or add a marker that says "this label is encoded",
+which is a format change and belongs with [open question 4](#open).
 
 ### One place the escape must **not** be applied
 
