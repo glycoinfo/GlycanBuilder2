@@ -276,20 +276,11 @@ residues. Counts on `]` accept negative numbers; the 2007 parser did not. *(Read
 ## 1.6 The `$` section
 
 ```
-mass-options := isotope "," derivatization "," ion-cloud "," neutral-exchanges ( "," reducing-end )?
+mass-options := isotope "," derivatization "," ion-cloud "," neutral-exchanges
+                ( "," reducing-end )? ( "," anything )*
 ```
 
 It is `MassOptions.toString()`, positional, comma-separated. `freeEnd--?b1D-GalNAc,p$MONO,Und,0,0,freeEnd`
-
-- Fields 0–3 are **required**; a tail with three fields throws `IndexOutOfBoundsException`.
-- Field 4 is optional.
-- **Empty fields do not hold their place.** The tokenizer discards them, so `a,,b` is two tokens and
-  everything after a blank shifts left.
-- **Tokens past the fifth are read and ignored** — and **discarded when the structure is written
-  again**, because the writer rebuilds the tail from five values. The tail is therefore not a place
-  to carry anything.
-
-*(All measured.)*
 
 | field | meaning | written as |
 |---|---|---|
@@ -298,14 +289,54 @@ It is `MassOptions.toString()`, positional, comma-separated. `freeEnd--?b1D-GalN
 | 2 | ion cloud | `0` when empty, else `Na`, `2Na`, `Na+K`, … — **one ion is `Na`, not `Na1`** |
 | 3 | neutral exchanges | same spelling as the ion cloud |
 | 4 | reducing end | a residue name, or `name=<mass>u` for a custom one |
+| 5+ | **not core's business** | see below |
 
-*(The ion-cloud spelling is measured twice over: `IonCloud.toString` writes it that way, and 6 of the
-14 GlycoWorkbench examples carry `Na`.)*
+- Fields 0–3 are **required**; a tail of three fields throws `IndexOutOfBoundsException`.
+- Field 4 is optional. *(4 of the 14 GlycoWorkbench examples have no `$` section at all.)*
+- **Empty fields do not hold their place.** The tokenizer discards them, so `a,,b` is two tokens and
+  everything after a blank shifts left.
 
-**Field 4 is not validated.** `ResidueDictionary.findResidueType` never refuses a name: an unknown
-one becomes a residue type via `createUnknown`, and one containing `=` is read as `name=massu` and
-becomes a custom reducing end. A typo in this field produces a residue, not an error. *(Measured:
+*(All measured. The ion-cloud spelling twice over: `IonCloud.toString` writes it that way, and 6 of
+the 14 GlycoWorkbench examples carry `Na`.)*
+
+**Field 4 is not validated.** `ResidueDictionary.findResidueType` never refuses a name: an unknown one
+becomes a residue type via `createUnknown`, and one containing `=` is read as `name=massu` and becomes
+a custom reducing end. A typo here produces a residue, not an error. *(Measured:
 `…,NoSuchReducingEnd` round-trips unchanged.)*
+
+### 1.6.1 Fields past the fifth: interpret nothing, preserve everything
+
+**Core interprets the five fields and nothing else. It must also destroy nothing else.** *(Required.)*
+
+```
+reading : parse fields 0-4. Keep the remainder of the tail verbatim, uninterpreted.
+writing : emit the five fields, then append the remainder unchanged.
+```
+
+The five fields correspond one-to-one with what GlycanBuilder2 can do — isotope, derivatization, ion
+cloud, neutral exchanges, reducing end — so interpreting more would mean taking the extension into
+core, which is the opposite of this document's arrangement. But **not interpreting is not the same as
+deleting**, and today core deletes:
+
+| a file containing | GlycanBuilder2 writes back | GlycanCore writes back |
+|---|---|---|
+| `$MONO,Und,0,0,freeEnd,writer=x` | `$MONO,Und,0,0,freeEnd` — **dropped** | `$MONO,Und,0,0,freeEnd,writer=x` — **kept** |
+| `$MONO,Und,0,0,freeEnd,writer=x,ver=1` | dropped | **kept** |
+
+*(Measured, both implementations.)* So a file that survives a GlycanCore round trip is degraded by a
+GlycanBuilder2 one: **opening a document and saving it loses information nobody asked core to
+understand.** That is the same class of fault as a save that cannot be reopened, and it is why the
+rule above is normative rather than a nicety.
+
+Nothing occupies those fields today, so nothing is being lost yet. The rule exists so that the day
+the extension puts something there, core is already safe — and so that whatever convention the
+extension chooses is **none of core's business**. Core needs no keyed-field scheme, no registry and no
+agreement about what the fields mean; it needs only to carry them.
+
+Where it lands in the implementation: a string held on `MassOptions`, set by `fromString`, appended by
+`toString`, copied by `clone()`. **Deliberately excluded from `equals()`** — a difference core cannot
+interpret must not make a document count as modified, or opening an extended file would prompt to
+save it.
 
 ## 1.7 Core conformance
 
@@ -391,16 +422,25 @@ measured only in that this project rejects it.)*
 
 # Open questions {#open}
 
-Three of the five this document opened are settled by Part 1 being normative. What remains:
+One remains.
 
-1. **Do the two dialects converge?** Part 1 fixes core and Part 2 fences the extension, which is a
-   working arrangement rather than an answer: it does not say whether GlycanCore will one day read
-   core's widened names, or whether GlycanBuilder2's successor simply becomes an extended reader.
-   Sits beside the fork question in #226, and is a decision for people rather than parsers.
-2. **Does the `$` tail get a keyed form?** Tokens past the fifth are already ignored by every reader
-   measured, so `k=v` fields would be backward compatible — but the writer would have to carry them,
-   which it does not today. Needed only if something must travel with a structure that the five
-   fields cannot hold.
+1. **Do the two dialects converge — and does core's reading grammar reach GlycanCore?** Part 1 fixes
+   core and Part 2 fences the extension, which is a working arrangement rather than an answer. The
+   question has a deadline: **GlycanBuilder2's successor is to be built on GlycanCore**, and
+   GlycanCore's reading grammar is *narrower* than core's — it refuses `D-gro-D-galHep` and `(S)Lac`
+   exactly as this project does today *(measured)*. So the reading widened by §1.3, which is what
+   rescues every existing file, **would be lost at that migration** unless one of these is chosen:
+
+   | | what it means | cost |
+   |---|---|---|
+   | **converge upward** | GlycanCore adopts core's reading grammar — `type_str` at `GWSParser.java:67` | one line, and the same rule is already measured unambiguous |
+   | **stay separate** | GlycanBuilder2 keeps a reader GlycanCore lacks | a one-off conversion of every existing file before the migration; anything missed is lost |
+   | **do not widen at all** | give up on rescuing old files | contradicts §1.7 C2/C3 |
+
+   The first is a line of code and the third is a retreat, so the real content of the question is
+   governance rather than engineering: **converging upward means a core requirement reaching into
+   GlycanCore**, which is the first time the arrangement in this document would be crossed. That sits
+   beside the fork question in glycoinfo/GlycanBuilder2#226 and is for people to decide.
 
 Settled by Part 1, and recorded here so the history is legible:
 
@@ -411,6 +451,9 @@ Settled by Part 1, and recorded here so the history is legible:
   it, and a reader that still accepts them is harmlessly liberal.
 - ~~*Writer or reader authoritative where they disagree?*~~ **Neither** — they are different
   grammars on purpose.
+- ~~*Does the `$` tail get a keyed form?*~~ **Not core's question.** §1.6.1 has core carry the tail
+  without interpreting it, so the extension may adopt any convention it likes without core needing to
+  know or agree.
 
 # The corpora, and where they are
 
