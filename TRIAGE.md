@@ -914,6 +914,27 @@ For completeness: **GlycanFormatConverter has no GWS at all.** Its `io` package 
 GlycoCT, IUPAC, JSON, KCF, LinearCode and WURCS. It is the naming and structure library this project
 already depends on, not a format reference for GWS.
 
+### The specification exists now: `docs/gws-format.md`
+
+Written 2026-09-11, on the proposal that the two dialects be documented together rather than merged:
+core fixes here, GlycanCore's additions recorded as the layer above, and nothing brought across that
+does not need to be.
+
+The boundary between the two is **measured, not asserted**. GlycanCore's own test file holds 47 GWS
+strings; this project reads 25 of them and fails on 22, and the 22 are exactly the additions -
+`#n` attachment ids, counts on `}`, `^?`, `%` linkage probabilities, and the `$$NAME=…` definition
+block that carries what the core has nowhere to put.
+
+Every clause in the document is marked **measured**, **read** or **open**, because a specification
+assembled from two parsers is a description of software rather than a standard, and saying so is
+what keeps it usable. The five open questions are listed rather than answered - whether the dialects
+converge, escape or widen, whether to correct the `a-zA-z` span, whether the `$` tail gains keyed
+fields, and which of the writer or the reader is authoritative where they disagree.
+
+With that written down, the core repairs can start without waiting on any of it: the six unwritable
+dictionary names, the `$`-in-a-name silent emptying, and `NaN` in written output are faults under
+both dialects.
+
 
 ## What is left
 
