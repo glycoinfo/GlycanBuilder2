@@ -871,6 +871,49 @@ Which settles two things for the specification:
   in the dictionary must be writable and readable**. Six fail today. That test would have caught
   each of the six on the day it was added, and it needs no specification to be settled first.
 
+### There is already a second GWS implementation, and it has moved on
+
+Found 2026-09-11 by following `gitlab.com/glycoinfo/glycantranslator`, which reads and writes GWS
+through `io/gb/GBSParser` - and that delegates to a **different** `GWSParser`, in
+`org.glycoinfo.glycanbuilder.io`, from **GlycanCore**
+(`gitlab.com/glycoinfo/glycanbuilder-module/glycancore`, 0.13.10, last touched 2026-08-25).
+
+So the ecosystem holds two live GWS implementations, not one:
+
+| | this project | GlycanCore |
+|---|---|---|
+| package | `org.eurocarbdb.application.glycanbuilder.converterGWS` | `org.glycoinfo.glycanbuilder.io` |
+| name class | `[a-zA-z0-9_#=.]` - **the 2007 typo** | `[a-zA-Z0-9_#=\.]` - **corrected** |
+| anomer | `[abo?]` | `[abudo?!]` |
+| ring | `[?opfa]` | `[?pfoa!]` |
+| configuration | `[DL]-` | `[DL?]-` |
+| linkage probability | — | `%[_^0-9]+` |
+| core modification | — | `\[[a-zA-Z0-9_=/\-,]+\]` |
+| multi-structure | caller splits on `;` | `fromString` splits on `;` itself, returns a list |
+| normalisation | — | `setNormalizeOnRead(true)` |
+
+**GlycanCore's is a superset dialect**: probability annotations on linkages, `!` markers, `u`/`d`
+anomers, a core-modification bracket, and the character class typo fixed. Its test file carries **48
+GWS strings** exercising repeats, brackets, `>…<` and `}` forms this project has no test for.
+
+Two things follow, and both are larger than #34.
+
+**A specification cannot be settled by this project alone.** Whatever is written has to say which of
+the two dialects it describes, and whether they are meant to converge. A file written by GlycanCore
+with `%` probabilities is not readable here; the reverse mostly is. That is a governance question
+sitting on top of the technical one, and it joins #226 - the fork question - as something that has
+to be decided by people rather than discovered by a parser.
+
+**The 48 test strings and the corrected class are free evidence.** Even if the dialects stay
+separate, GlycanCore has already made two of the decisions this section was circling: it fixed
+`a-zA-z` without widening the set, and it extended the format at the *linkage* rather than at the
+*name*. Neither solves the six unwritable names - `type_str` still excludes `-` and `/` - which
+suggests the second implementation hit the same wall and went around it.
+
+For completeness: **GlycanFormatConverter has no GWS at all.** Its `io` package covers GLYCAM,
+GlycoCT, IUPAC, JSON, KCF, LinearCode and WURCS. It is the naming and structure library this project
+already depends on, not a format reference for GWS.
+
 
 ## What is left
 
