@@ -96,6 +96,67 @@ Both were found while measuring something else and existed nowhere but this file
 
 ---
 
+## Eighteen issues arrived while nobody was triaging
+
+Filed 2026-08-19 to 08-27, after the last pass of this file, and re-checked on 2026-09-11. They are
+grouped here rather than scattered into the bands below, because they arrived as clusters and are
+cheaper taken as clusters.
+
+**#238 is the one to take first, and it is ours.** Measured on 2026-09-11:
+
+```
+in : WURCS=2.0/2,2,1/[a2122h-1a_1-5_1*N_2*NCC/3=O][a2122h-1b_1-5_2*NCC/3=O]/1-2/a3-b1
+out: WURCS=2.0/2,2,1/[a2122h-1a_1-5_2*NCC/3=O]      [a2122h-1b_1-5_2*NCC/3=O]/1-2/a3-b1
+```
+
+The `1*N` is gone, and the imported structure holds `Glc` with an `NAc` at 2 rather than the amine at
+1 — which is exactly what the reporter describes. 1.28.0 and 1.35.2 keep it; **1.37.0 drops it**, and
+1.40.0 still does. The substituent sits at position 1, which is also where the parent linkage
+attaches, and 1.37.0 is where #34 made `addChild` refuse a position another child already holds. That
+is a hypothesis, not a measurement — but it is the first place to look, and the band is P1: nobody
+sees a substituent that was never drawn.
+
+**#239 is not a regression, whatever the title says.** `WURCS=2.0/1,1,0/[a2122h-1x_1-?]/1/` writes
+back as `[a2122h-1x_1-?_1-?]` — the unknown ring emitted twice — and it does so on 1.28.0, 1.35.2,
+1.37.0 and 1.40.0 alike. Real, and worth fixing; just not something recent work broke, so it does not
+carry #238's urgency. Reproduces with one residue, which is the cheapest possible test.
+
+| cluster | issues | note |
+|---|---|---|
+| **Copy and paste, and selection** | #229, #240, #241, #242, #244, #245 | Six reports, one area. Changing several selected residues at once (#229, #245) and the controls going dead on select-all (#244) are the same missing idea: an operation over a selection rather than over the last residue clicked |
+| **WURCS in and out** | #236, #237, #239, #228 | #236 (invalid WURCS loads silently) is the same want as **#95**, and wurcsframework already has `WURCSValidator`/`WURCSValidationReport` for it — one call answers both. #228 is inside **PR #227**'s scope |
+| **Uncertain terminal residues** | #230, #231, #234 | M. Matsubara picked up #230 on 2026-09-05 |
+| **Composition** | #235 | Joins the composition decision below (#7, #100, #109, #117, #220) rather than standing alone |
+| **Drawing and export** | #232, #233 | Independent and small: exporting one selected structure rather than all of them, and annotation unreadable on dark residues |
+| **Chemistry** | #243 | Ring and anomer when a PA label is removed |
+
+## The `/` a reducing end cannot be called
+
+glyconavi/glycanbuilder2web#34 asks for `GalNAc-Ser/Thr`. The refusal is this project's, not the web
+application's, and it is the format rather than a rule someone chose:
+
+```java
+// GWSParser
+String residue_str = "([abo?][1-9N?])?+([DL]-)?+([a-zA-z0-9_#=.]+)(?:,([?opfa]))?+";
+String cleaved_str = "/([a-zA-z0-9_#]+)";
+```
+
+`/` is not merely absent from the name class — it is **the character that introduces a cleavage**.
+Measured: `Ser_Thr` round-trips; `Ser/Thr` writes
+`Ser/Thr=87.0320u--?b1D-GalNAc,p$MONO,Und,0,0,Ser/Thr=87.0320u` and fails to read back with
+`invalid format for linkage: =87.0320u--?b1D-GalNAc,p`. The parser takes `Ser` as the name, `/Thr` as
+the cleavage, and chokes on the rest.
+
+**The web application refuses it at the keystroke; this one does not refuse it at all.**
+`MassOptionsStructureDialog` hands `field_other_name.getText()` straight to
+`ResidueType.createOtherReducingEnd`, so the desktop will take `Ser/Thr` and write a `.gws` that
+cannot be reopened. That asymmetry is the bug here, and it is P2: the work is lost, and only on
+reopening.
+
+Two shapes of fix, and the choice is a format decision rather than a coding one: widen the name class
+and disambiguate it from the cleavage (which changes what old readers accept), or keep the stored name
+in the safe alphabet and carry a display label beside it. Neither is started.
+
 ## P1 — a wrong answer nobody can see is wrong
 
 | # | Title | What is known |
@@ -245,8 +306,9 @@ titles. Two greps at the dictionary said one of them had an answer already.*
 
 **#123** is someone outside the project offering patches — NPEs turned into exceptions that say what
 failed in WURCS terms. **Answered on 2026-08-14** with how to send them, what shape a test wants, and
-two recent refusals to imitate. They said about a week, so nothing is owed here until roughly the 21st;
-the next move is theirs.
+two recent refusals to imitate. They said about a week, and the patches arrived: **PR #227**, open
+since 2026-08-19 and unreviewed as of 2026-09-11. The next move is ours, and a contributor waiting
+three weeks on a review is worse than any item in the bands below.
 
 Contribution questions are answered ahead of the queue, whatever band the code would fall in.
 
@@ -286,33 +348,39 @@ Everything on it is done. What is left to pick up is at the bottom.
 
 ---
 
-## What is left, and why none of it can be picked up today
+## What is left
 
-Thirty issues are open and **none is actionable without either a reply or a decision.** That is worth
-stating plainly rather than leaving the list to imply there is work going begging.
+Re-counted 2026-09-11: **47 open**, of which 18 arrived after the last pass. "Nothing is actionable"
+was true on 2026-08-15 and is not true now.
 
 | what | how many | which |
 |---|---|---|
+| **actionable now** | 12 | **#238** (ours, P1), #239, #232, #233, #236 + #95, #237, #229/#240/#241/#242/#244/#245 as one piece |
 | waiting on somebody else | 11 | #17, #57, #58, #66, #83, #16, #183, #189, #190, #123, #222 |
-| waiting on a decision — chemistry or product | 6 | #220, #7, #100, #109, #117, #182 |
-| on hold at the maintainer's request | 1 | #175 |
-| wishes rather than work | 6 | #41, #93, #95, #177, #181, #184 |
+| waiting on a decision — chemistry or product | 7 | #220, #7, #100, #109, #117, #182, #235 |
+| in somebody else's repository | 3 | #175 (glycoinfo/MolecularFramework#4, glycoinfo/ResourcesDB#1), #226 |
+| wishes rather than work | 5 | #41, #93, #177, #181, #184 |
 | drawing, P3 | 4 | #6, #20, #58, #91 |
-| structure-model changes, neither small | 2 | #200, #181 |
+| structure-model changes, neither small | 3 | #200, #181, #230/#231/#234 |
 
-**The nudges are held until Monday 2026-08-17** — I. Yamada, 2026-08-15. They were written and ready on
-the Saturday; holding them is deliberate, so a quiet weekend on this list is not a stall.
+**The nudges are four weeks overdue.** They were held until Monday 2026-08-17 at the maintainer's
+request — I. Yamada, 2026-08-15 — and the hold has long since expired: the questions on the eleven
+waiting issues went out on 2026-08-14 and 08-15, and it is now 2026-09-11 with no reply on any of
+them. #185 came off that list by being answered; the rest are simply waiting.
 
-**#222 is the one that looks actionable and is not.** A sulfate attaches at a GlcN's `N` and then writes
-nothing, and refusing the attachment is the better answer — but that is a change to the position rules,
-and changes of exactly that shape have produced two regressions in two days: 1.37.0's #211, and a synonym
-that shadowed a real residue type on the 15th. It waits for the reporter's retest, which costs nothing.
-
----
+**There is an open pull request now.** #227, from N. Edwards, turns the conversion's raw
+`NullPointerException`s and `StringIndexOutOfBounds` into a named exception carrying the element that
+failed — which is #123, and reaches #228 and #236. Reviewed but not commented on: it should use a
+field and an accessor rather than concatenating the element into the message, mirroring
+wurcsframework's own `WURCSFormatException(message, input)` / `getInputString()`; and the
+`RuntimeException` it introduces in `TrivialNameConverter` is the one place it does not follow its own
+rule — no named type, no cause, no element.
 
 ## Where this stands, for whoever picks it up next
 
-Re-checked against the tracker on 2026-08-15, after 1.39.0.
+Re-checked against the tracker on **2026-09-11**. The pass below was written on 2026-08-15 after
+1.39.0 and is kept because the reasoning still holds; what changed since is at the top of this file -
+eighteen new issues, one of them a regression of ours, and a pull request nobody has answered.
 
 **1.39.0 is out**, and is the first release a test gate stood in front of. `origin/develop` and
 `origin/master` both read it — checked against the remote, not the local refs, which is the check 1.35.0
@@ -348,7 +416,8 @@ is invisible from here — it took a reporter unable to retest #185 to surface i
 **Still with the maintainer, for every release**: `mvn deploy` from `master` at the versioned commit,
 and the Windows `.msix` to Partner Center. Neither is a step to take unasked.
 
-**No open pull requests.**
+**One open pull request**: #227, from N. Edwards, since 2026-08-19. See "Not a priority band, but do
+it first".
 
 **Waiting on somebody else**, and worth a look before starting anything new — several of these may be
 closable:
@@ -367,9 +436,9 @@ closable:
 | #190 | the WURCS or GlycoCT for G13093, for whoever takes #181 |
 | #123 | the contributor said about a week, from 2026-08-14 |
 
-**Held until Monday 2026-08-17**: the nudges in the table above. Written and ready on Saturday the 15th, at
-the maintainer's request — see step 6 of "The order to take them in". A quiet weekend on this list is
-deliberate.
+**The hold on the nudges expired on Monday 2026-08-17** and nothing was sent. Four weeks on, none of
+the eleven has replied, and the questions themselves are from 2026-08-14 and 08-15. Whatever is sent
+now should probably say so rather than pretend the gap did not happen.
 
 **Deliberately not started**: #175 (jdom2) and taking glycanbuilder2web to 1.38.0 are both on hold at
 the maintainer's request.
