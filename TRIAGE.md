@@ -532,10 +532,43 @@ have moved from *round-trips* to *corrupted* in 1.37.0 and stopped the release.
 
 | question | answer |
 |---|---|
-| Is the corpus obtainable? | **Yes, and somebody already has it.** N. Edwards built PR #227 by "parsing the GlyTouCan collection of WURCS sequences using the readGlycan method" - so the collection is in hand inside the project. `ts.glycosmos.org/sparql` answers, and glycanbuilder2web already calls a sparqlist for WURCS→accession, so a "list every WURCS" query is a small ask of whoever runs it. Probing blind from here did not produce one; asking will |
+| Is the corpus obtainable? | **Yes - it is a public download, and it has already been fetched.** `https://data.glygen.org/ln2downloads/glycan/others/wurcs.zip`, 22 MB, **98,829 WURCS sequences**, one file per GlyTouCan accession. It is N. Edwards' own group's dump (glygen-glycan-data), which is how #227 was built; the SPARQL behind it is public too, in `PyGly/smw/glycandata/queries/wurcs.sparql2zip`. Nobody needs to be asked |
 | Is it fast enough for CI? | Not at full size, on every pull request. A stratified sample committed to the repository - a few thousand chosen to cover skeletons, substituents, repeats, ambiguity, compositions - runs in seconds. The full run belongs on a schedule, or before a release |
 | Does it need new infrastructure? | **No.** `tests.yml` already gates every pull request and is called by `release.yml`; a corpus test is another JUnit class. The one new thing is a baseline file in the repository and the discipline of updating it deliberately |
 | What else is uncovered? | **GWS names** - the `/` finding above was measured by hand and nothing tests it. **Drawing** has three invariant tests and no image comparison, so #91, #232, #233 have nothing watching them. **Copy and paste** - six open issues, zero tests |
+
+### What the corpus says today
+
+2,000 sequences sampled evenly across the 98,829, read and written back on 1.40.0. **6.4 seconds.**
+
+| outcome | count | share |
+|---|---|---|
+| round-trips identically | 1,039 | **52.0%** |
+| **writes an empty string** | 449 | **22.5%** |
+| writes a different sequence | 168 | 8.4% |
+| refuses to import | 344 | 17.2% |
+
+**Just over half of registered structures survive a round trip.** The 22.5% that write *nothing* are
+the worst of it - the same silence as #219, at scale and unmeasured until now.
+
+Read the caveat before quoting the number: this dump is from 2017, so some failures are the corpus
+being old rather than the code being wrong - 9 of the sampled failures are the repeat separator
+`:` that WURCS has since replaced with `-`. A current dump would put the honest figure somewhere
+above 52%. That is an argument for refreshing the corpus, not for not having one.
+
+Two of the 168 altered sequences are issues already open, which is the point:
+
+```
+G01309UP  [a11221h-1a_1-?]  ->  [a11221h-1a_1-?_1-?]      #239, the doubled unknown ring
+G03468DF  WURCS=2.0/1,6,7/  ->  WURCS=2.0/1,6,6/          a linkage disappears - not filed
+```
+
+The second is new. A ring-closure bond is lost on the way through, which is #200's territory and has
+nobody watching it.
+
+**This is the baseline.** Committing these four counts and the per-accession outcome, and failing the
+build when any accession changes category, is Stage 1 - and the measurement above took one afternoon
+and no new infrastructure.
 
 ### What a full suite would be, in order of what it buys
 
