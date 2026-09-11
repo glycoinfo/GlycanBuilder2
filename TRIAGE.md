@@ -153,9 +153,66 @@ the cleavage, and chokes on the rest.
 cannot be reopened. That asymmetry is the bug here, and it is P2: the work is lost, and only on
 reopening.
 
-Two shapes of fix, and the choice is a format decision rather than a coding one: widen the name class
-and disambiguate it from the cleavage (which changes what old readers accept), or keep the stored name
-in the safe alphabet and carry a display label beside it. Neither is started.
+### What actually survives, measured
+
+A reducing end named for each character, written to GWS and read back on 1.40.0:
+
+| in the name | round-trips | why |
+|---|---|---|
+| `_` `.` `#` | **yes** | in the name class |
+| `^` `]` | **yes, by accident** | the class is written `[a-zA-z0-9_#=.]`, and `a-zA-z` is a typo: it spans ASCII 65-122, so `[`, `\`, `]`, `^`, `` ` `` slip in. `]` ends a repeat and `^` follows it, so a name carrying either inside a repeat block is a fault waiting to be found |
+| `/` | no | `invalid format for linkage: =87.0320u--?b1D-GalNAc,p` - `Ser` is taken as the name and `/Thr` as a cleavage |
+| `-` | no | `--` is a linkage, so a single `-` ends the name |
+| `,` | no | separates the ring form |
+| space | no | not in the class |
+| `%` | no | not in the class, so **percent-encoding is not available** |
+
+**`-` matters as much as `/`**, and is likelier to be typed: `Ser-Thr` breaks exactly the same way.
+
+### Encoding: the cheap option is real, and needs no format change
+
+`Ser_2F_Thr` **round-trips today, unchanged, on the parser as it stands.** That is the whole of the
+finding. An escape built only from characters the class already accepts - `_` plus hex digits, say
+`_2F_` for `/` and `_2D_` for `-` - passes through every reader that exists, including 1.28.0 and
+GlycoWorkbench, because to them it is an ordinary name.
+
+What that buys and what it costs:
+
+- **No format change, no flag day.** Old readers do not break; they show `Ser_2F_Thr` where a new one
+  shows `Ser/Thr`. A degraded label is a far better failure than a file that will not open.
+- **The decoding is one place** - wherever a residue name is displayed - and the encoding is one
+  place: `ResidueType.createOtherReducingEnd`, which is already the single door custom names come
+  through, from both the desktop dialog and `ResidueDictionary`.
+- **It is not reversible for free.** A user who legitimately types `_2F_` gets `/` back. The escape
+  character has to be escaped first (`_` → `_5F_`), which is ordinary but must be written down.
+- **It does not fix `]` and `^`.** Those are admitted by the typo rather than by design; encoding the
+  name does not stop a *dictionary* residue name containing them. Worth fixing the class separately,
+  and deliberately, since narrowing it could reject files somebody already has.
+
+The alternatives, for the record:
+
+| approach | cost | old readers |
+|---|---|---|
+| **`_XX_` hex escape** (above) | small, one encode + one decode | fine - show the escaped form |
+| Widen the name class, disambiguate from `cleaved_str` | format change; `/` is genuinely ambiguous with cleavage, so it needs a delimiter or quoting | **reject the file** |
+| Quote the name, e.g. `"Ser/Thr"=87.0320u` | format change, but unambiguous and readable | **reject the file** |
+| Keep a safe stored name, carry the display label elsewhere | needs somewhere to carry it; GWS has no field for it, so it would have to go in the name anyway | fine |
+
+The escape is the only one that does not divide files into old and new. **Not started, and not a
+coding decision alone** - whoever owns the GWS format should say whether an escape is acceptable
+before anything is written.
+
+### What it would mean for the web application
+
+glyconavi/glycanbuilder2web#34 is a request to *use* the character, not to be told why it is refused,
+and an escape is what makes that possible: the dialog would stop rejecting `/`, encode it on the way
+into the residue type, and decode it for display. The refusal there is currently the only thing
+standing between a user and an unopenable file, so **it should not be relaxed before the encoding
+exists** - in that order, or the web application starts writing the files the desktop already can.
+
+Worth deciding at the same time: whether the escape covers everything a label might want -
+`-`, `,`, space and `(` `)` are all likelier in an aglycon name than `/` - or only the characters
+asked for. Covering the class once is cheaper than returning to it per character.
 
 ## P1 — a wrong answer nobody can see is wrong
 
@@ -347,6 +404,72 @@ Everything on it is done. What is left to pick up is at the bottom.
    through four releases, and "Muramic Acid" built a MurNAc.
 
 ---
+
+## Can we build a suite that would have caught #238? Yes - and here is why the present one did not
+
+Asked on 2026-09-11, after #238 turned out to be a regression this project shipped in 1.37.0 and
+nobody noticed for four releases. This section is the feasibility answer, not a plan of work.
+
+### What exists
+
+**49 test classes, 243 tests** in this repository, and they are not thin - the save path, the XML
+readers, position rules, masses, composition encoding and three drawing invariants all have tests,
+most written in the last month. glycanbuilder2web has 77 test classes and 583 tests on top.
+
+**And #238 still got through.** The reason is visible in the one test that should have caught it,
+`RegisteredGlycanWURCSRoundTripTest`, which says so itself:
+
+> Only structures that survive the round trip today are asserted here. Ambiguous and repeating
+> structures (undetermined linkages, `~n` repeats, `u`/`h` skeletons) do not, and are left out
+> rather than pinned to their current broken behaviour.
+
+Forty-three sequences, hand-picked, **selected for passing**. A curated allow-list cannot catch a
+regression in a structure that was never on the list, and it quietly guarantees that the hardest
+inputs - the ones most likely to break - are the ones not watched. #238's sequence was not on it.
+Neither was #239's, which is a single residue.
+
+### What would have caught it
+
+A **corpus test**: every WURCS the registry holds, read and written back, with the result compared
+against a committed baseline of what each sequence does today.
+
+The baseline is the part that matters, and it is what turns the present approach on its head.
+Instead of asserting "these 43 round-trip", it records "these N round-trip, these M do not, and here
+is how each one fails", and fails the build when **any sequence changes category** - including a
+sequence that starts working, which is how a fix gets noticed and the baseline updated. #238 would
+have moved from *round-trips* to *corrupted* in 1.37.0 and stopped the release.
+
+### Is it feasible
+
+| question | answer |
+|---|---|
+| Is the corpus obtainable? | **Yes, and somebody already has it.** N. Edwards built PR #227 by "parsing the GlyTouCan collection of WURCS sequences using the readGlycan method" - so the collection is in hand inside the project. `ts.glycosmos.org/sparql` answers, and glycanbuilder2web already calls a sparqlist for WURCS→accession, so a "list every WURCS" query is a small ask of whoever runs it. Probing blind from here did not produce one; asking will |
+| Is it fast enough for CI? | Not at full size, on every pull request. A stratified sample committed to the repository - a few thousand chosen to cover skeletons, substituents, repeats, ambiguity, compositions - runs in seconds. The full run belongs on a schedule, or before a release |
+| Does it need new infrastructure? | **No.** `tests.yml` already gates every pull request and is called by `release.yml`; a corpus test is another JUnit class. The one new thing is a baseline file in the repository and the discipline of updating it deliberately |
+| What else is uncovered? | **GWS names** - the `/` finding above was measured by hand and nothing tests it. **Drawing** has three invariant tests and no image comparison, so #91, #232, #233 have nothing watching them. **Copy and paste** - six open issues, zero tests |
+
+### What a full suite would be, in order of what it buys
+
+1. **WURCS corpus round trip with a baseline.** Catches #238, #239, #236, and the class they belong
+   to. The single highest-value piece, and the one that pays for itself the first time it fires.
+2. **GWS round trip over an adversarial name set.** Every character the grammar reserves, in a
+   residue name, in a reducing end name, inside a repeat. Would have found the `/` fault, and the
+   `]`/`^` typo, without a user asking for `Ser/Thr`.
+3. **A rendering baseline.** Render a fixed set of structures in all four orientations and all
+   notations, hash the image, compare. Cheap to run, awkward to maintain across font changes - but
+   it is the only thing that would catch a drawing regression, and #29 and #88 were both drawing
+   regressions found by eye.
+4. **Copy, paste and selection.** Six open issues say this area has no safety net at all.
+5. **A mass baseline.** Every residue and composition the dictionaries offer, weighed, pinned. #221
+   (Mur built a MurNAc) changed masses correctly; nothing would have told us if it had changed one
+   incorrectly.
+
+### The honest caveat
+
+None of this is free to maintain. A baseline that nobody updates deliberately becomes a file people
+regenerate to make the build green, and then it is worse than no test at all, because it looks like
+one. The discipline it needs is a sentence in the review checklist: **a changed baseline is a change
+to explain, not a change to accept.**
 
 ## What is left
 
