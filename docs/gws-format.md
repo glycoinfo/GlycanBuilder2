@@ -110,7 +110,51 @@ dictionary.)*
 
 An escape using only characters the class already accepts — `_` plus hex digits, so `/` becomes
 `_2F_` — round-trips today on an unmodified parser, and older readers show the escaped form rather
-than failing. *(Measured: `Ser_2F_Thr` round-trips.)* Not implemented; see [Open questions](#open).
+than failing. Not implemented; see [Open questions](#open).
+
+### An unrestricted name is reachable, including `$`
+
+*(Measured 2026-09-11, by naming a reducing end each way, writing, reading back and rendering.)*
+
+| name as typed | today | as `_XX_` escape | escaped result |
+|---|---|---|---|
+| `Ser/Thr` | `invalid format for linkage: =87.0320u…` | `Ser_2F_Thr` | **reads, renders 436×111** |
+| `Ser(x)Thr` | `invalid format for linkage: x` | `Ser_28_x_29_Thr` | **reads, renders 478×111** |
+| `Ser$Thr` | reads with **no error** and yields an empty structure | `Ser_24_Thr` | **reads, renders 437×111** |
+| `Ser=Thr` | `For input string: "Th"` | `Ser_3D_Thr` | **reads, renders 438×111** |
+| `Ser_Thr` | reads — but would be ambiguous once `_` introduces an escape | `Ser_5F_Thr` | **reads, renders 436×111** |
+| `セリン` | `Invalid format for string: セリン=87.0320u…` | needs a defined form — see below | — |
+
+So **no character needs to be forbidden, `$` included.** Once the writer escapes, no raw `$` reaches
+the string and the first-`$` split stays safe. Giving up `$` is a concession that does not have to be
+made.
+
+Four things the escape has to cover, and only the first is obvious:
+
+1. **Characters outside the name class** — `/`, `-`, `,`, space, `(`, `)`, `$`, and the rest.
+2. **`=`, which is inside the class and still unsafe.** A custom reducing end is stored as
+   `name=<mass>u` and read back by splitting on `=`, so `Ser=Thr` becomes `Ser=Thr=87.0320u` and the
+   mass is parsed from `Thr`. Being in the character class is not the same as being safe.
+3. **`_` itself**, as the escape introducer: `Ser_Thr` has to be written `Ser_5F_Thr`, or the two
+   cannot be told apart. **No dictionary residue name contains `_`** *(measured: 0 of 134)*, so this
+   costs nothing for the six unwritable names and only affects user-typed labels.
+4. **Non-ASCII.** `セリン` does not match the name pattern at all today. Two hex digits cannot carry
+   it; the form has to be decided — UTF-8 bytes as consecutive `_XX_`, or a wider `_uXXXX_`. Unless
+   Japanese labels are ruled out, this needs choosing rather than discovering.
+
+### One place the escape must **not** be applied
+
+```java
+String cleavage_typename = m.group(7);
+if( cleavage_typename.indexOf('_') != -1 )
+    cleavage = CrossRingFragmentDictionary.newFragment(cleavage_typename, ret);
+else
+    cleavage = ResidueDictionary.newResidue(cleavage_typename);
+```
+
+In a **cleavage** name, `_` already decides whether the name is a cross-ring fragment or an ordinary
+residue. Escaping cleavage names would break that test. *(Read.)* The escape belongs to residue
+names and to field 4 of the `$` section — not to the cleavage name after `/`.
 
 ## 1.4 A linkage
 
@@ -236,7 +280,10 @@ Listed because a specification that answers them silently is worse than one that
    This sits beside the fork question in #226 and is a decision for people, not parsers.
 2. **Should the name class be escaped or widened?** Escaping (`_2F_`) needs no format change and no
    flag day; widening splits files into old and new. Whatever is chosen must cover the dictionary's
-   own names, not only the characters a user asked for — the six above are the requirement.
+   own names, not only the characters a user asked for — the six above are the requirement. If the
+   answer is escaping, three sub-decisions come with it and none is technical: the escape form, the
+   treatment of non-ASCII, and whether `=` is escaped (it must be, but that changes how a custom
+   reducing end is stored).
 3. **Is the `a-zA-z` span to be corrected here?** It admits `]` and `^`, both reserved. Narrowing it
    could reject a file somebody already holds, which is why it has not been done quietly.
 4. **Does the `$` tail get a keyed form?** Tokens past the fifth are already ignored by every reader
