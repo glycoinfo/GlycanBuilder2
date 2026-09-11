@@ -112,78 +112,69 @@ An escape using only characters the class already accepts — `_` plus hex digit
 `_2F_` — round-trips today on an unmodified parser, and older readers show the escaped form rather
 than failing. Not implemented; see [Open questions](#open).
 
-### An unrestricted name is reachable, including `$`
+### Names with any character in them: the escape
 
-*(Measured 2026-09-11, by naming a reducing end each way, writing, reading back and rendering.)*
+Decided 2026-09-11. A residue label may contain **any character except `=`**, and the format does not
+change to allow it: the label is encoded into characters the existing grammar already accepts, so
+every reader that exists today - this project, GlycanCore, GlycoWorkbench, 1.28.0 - reads the file.
 
-| name as typed | today | as `_XX_` escape | escaped result |
-|---|---|---|---|
-| `Ser/Thr` | `invalid format for linkage: =87.0320u…` | `Ser_2F_Thr` | **reads, renders 436×111** |
-| `Ser(x)Thr` | `invalid format for linkage: x` | `Ser_28_x_29_Thr` | **reads, renders 478×111** |
-| `Ser$Thr` | reads with **no error** and yields an empty structure | `Ser_24_Thr` | **reads, renders 437×111** |
-| `Ser=Thr` | `For input string: "Th"` | `Ser_3D_Thr` | **reads, renders 438×111** |
-| `Ser_Thr` | reads — but would be ambiguous once `_` introduces an escape | `Ser_5F_Thr` | **reads, renders 436×111** |
-| `セリン` | `Invalid format for string: セリン=87.0320u…` | needs a defined form — see below | — |
+#### The rules
 
-So **no character needs to be forbidden, `$` included.** Once the writer escapes, no raw `$` reaches
-the string and the first-`$` split stays safe. Giving up `$` is a concession that does not have to be
-made.
+1. **`=` is forbidden in a label.** It is the separator inside the stored name of a custom reducing
+   end (`label=<mass>u`), and forbidding it is fail-safe where escaping it would be fail-open: a
+   single path that forgot to encode would truncate the label *and* throw on the mass. Nothing in
+   chemistry notation wants it, and **no dictionary name contains one** *(measured: 0 of 134)*.
+2. **Safe characters pass through unchanged**: `A-Z a-z 0-9 _ # .`
+3. **Every other character is written `_XX_`**, two upper-case hex digits. `/` → `_2F_`, `-` →
+   `_2D_`, `(` → `_28_`.
+4. **A label that had anything encoded is prefixed `_e_`.** A label that needed no encoding is stored
+   as it is, with no prefix.
+5. **A literal label beginning `_e_` is encoded**, if only its leading underscore (`_5F_`), so that
+   it too carries the prefix. This is the only reason a label with no otherwise-unsafe character
+   gets encoded.
+6. **Non-ASCII is encoded as its UTF-8 bytes**, one `_XX_` each.
 
-Four things the escape has to cover, and only the first is obvious:
+#### Worked examples
 
-1. **Characters outside the name class** — `/`, `-`, `,`, space, `(`, `)`, `$`, and the rest.
-2. **`=`, which is inside the class and still unsafe.** See the next section: escaping it changes
-   how a custom reducing end is stored.
-3. **`_` itself**, as the escape introducer: `Ser_Thr` has to be written `Ser_5F_Thr`, or the two
-   cannot be told apart. **No dictionary residue name contains `_`** *(measured: 0 of 134)*, so this
-   costs nothing for the six unwritable names and only affects user-typed labels.
-4. **Non-ASCII.** `セリン` does not match the name pattern at all today. Two hex digits cannot carry
-   it; the form has to be decided — UTF-8 bytes as consecutive `_XX_`, or a wider `_uXXXX_`. Unless
-   Japanese labels are ruled out, this needs choosing rather than discovering.
+| the user types | stored as | why |
+|---|---|---|
+| `Ser_Thr` | `Ser_Thr` | nothing unsafe - **no prefix, no change** |
+| `Ser_2F_Thr` | `Ser_2F_Thr` | nothing unsafe either; rule 4 is what keeps this distinct from the next row |
+| `Ser/Thr` | `_e_Ser_2F_Thr` | `/` encoded |
+| `GalNAc-Ser/Thr` | `_e_GalNAc_2D_Ser_2F_Thr` | both `-` and `/` |
+| `/-` | `_e__2F__2D_` | consecutive escapes run their underscores together; still unambiguous, since a decoder reads `_`, two hex, `_` |
+| `セリン` | `_e__E3__82__BB__E3__83__AA__E3__83__B3_` | UTF-8, three bytes per character |
+| `_e_Ser` | `_e__5F_e_5F_Ser` | rule 5 |
+| `Ser=Thr` | — | refused at input, rule 1 |
 
+*(Every stored form above was written as a reducing-end name, read back and rendered on 1.40.0: all
+eight round-trip. `_e_GalNAc_2D_Ser_2F_Thr` renders at 540×111, the UTF-8 one at 665×111.)*
 
-### What escaping `=` changes about a custom reducing end
+#### Why the prefix, rather than escaping `_`
 
-A custom reducing end has no dictionary entry. It is stored **as its own name**, and that name is a
-two-field record with `=` as the separator:
+Without it the encoding is not reversible. `Ser/Thr` and a label typed literally as `Ser_2F_Thr`
+would both be stored as `Ser_2F_Thr`, and a reader holding that string could not tell which was
+meant. The alternative - escaping `_` itself everywhere - also restores reversibility, but it
+rewrites every label containing an underscore, and it leaves **files written before the change**
+ambiguous: they contain `_2F_` sequences that were always literal, and a decoder would silently turn
+them into `/`.
 
-```java
-// ResidueType.createOtherReducingEnd(label, mass)
-ret.name = label + "=" + new DecimalFormat("0.0000").format(mass) + "u";
+The prefix solves both. **A file written before this change carries no `_e_`, so it is read
+literally**, which is what it was. Nothing already saved changes meaning.
 
-// ResidueDictionary.findResidueType(type_name)  - the way back
-String[] tokens = type_name.split("=");
-String name = tokens[0];
-double mass = Double.valueOf(tokens[1].substring(0, tokens[1].length()-1));   // strips the "u"
-```
+#### Where the escape applies
 
-So the label shares one string with the mass, and `=` is what tells them apart.
+Residue names, and field 4 of the `$` section. **Not** to a cleavage name - see below. Decoding
+belongs wherever a name is shown: `getTypeName()` returns the stored form, and the canvas draws it,
+so without a decode step in the renderer and in the dialog the user is shown `_e_Ser_2F_Thr` where
+they typed `Ser/Thr`.
 
-| the user types | stored as | `split("=")` gives | read back as |
-|---|---|---|---|
-| `Ser_Thr` | `Ser_Thr=87.0320u` | `["Ser_Thr", "87.0320u"]` | label `Ser_Thr`, 87.0320 ✓ |
-| `Ser=Thr` — **today** | `Ser=Thr=87.0320u` | `["Ser", "Thr", "87.0320u"]` | label **truncated to `Ser`**, and the mass parsed from `"Th"` — *(measured: `For input string: "Th"`)* |
-| `Ser=Thr` — **escaped** | `Ser_3D_Thr=87.0320u` | `["Ser_3D_Thr", "87.0320u"]` | decode → `Ser=Thr`, 87.0320 ✓ |
+#### What this fixes
 
-The record's **shape** does not change. What changes is that **the label field stops being literal**,
-and three things follow from that:
-
-**The mass, not just the label, depends on it.** The failure in row two is a `NumberFormatException`
-about the mass. Escaping `=` is not cosmetic - it is what makes `tokens.length` reliably 2, so the
-mass can be found at all. Today it can be 3 or more.
-
-**Everything that displays a type name has to decode.** `getTypeName()` returns the stored form, and
-the canvas draws it: *(measured)* a reducing end round-trips as `Ser_2F_Thr=87.0320u` and renders at
-436×111, the width tracking the label's length. Without a decode step in the renderer and in the
-dialog, the user is shown `Ser_3D_Thr` where they typed `Ser=Thr`.
-
-**Files written before the change become ambiguous, and only those.** A label typed literally as
-`Ser_3D_Thr` is legal today *(measured: reads, renders 438×111)*. A new reader would decode it to
-`Ser=Thr` - silently changing a label somebody chose. The new **writer** is unambiguous, because it
-escapes its own introducer and would store that label as `Ser_5F_3D_5F_Thr`; the collision is
-strictly between the new reader and old files. Nothing in the format distinguishes the two, so this
-is a decision to take openly: accept it as rare, or add a marker that says "this label is encoded",
-which is a format change and belongs with [open question 4](#open).
+The six dictionary residue names that cannot be written today are the reason this is not merely a
+convenience: `L-gro-D-manHep`, `D-gro-D-manHep`, `Tri-P` carry `-`, and `(S)Lac`, `(R)Lac`, `(X)Lac`
+carry parentheses *(measured)*. None carries `=`, so rule 1 costs them nothing and rules 2-4 make
+all six writable.
 
 ### One place the escape must **not** be applied
 
@@ -321,12 +312,8 @@ Listed because a specification that answers them silently is worse than one that
 1. **Do the two dialects converge?** If they are meant to, this document becomes the migration plan;
    if not, it should say which software writes which, so that a `.gws` file carries an expectation.
    This sits beside the fork question in #226 and is a decision for people, not parsers.
-2. **Should the name class be escaped or widened?** Escaping (`_2F_`) needs no format change and no
-   flag day; widening splits files into old and new. Whatever is chosen must cover the dictionary's
-   own names, not only the characters a user asked for — the six above are the requirement. If the
-   answer is escaping, three sub-decisions come with it and none is technical: the escape form, the
-   treatment of non-ASCII, and whether `=` is escaped (it must be, but that changes how a custom
-   reducing end is stored).
+2. ~~**Should the name class be escaped or widened?**~~ **Decided 2026-09-11: escaped**, with the
+   `_e_` prefix and `=` forbidden — see "Names with any character in them". Not implemented.
 3. **Is the `a-zA-z` span to be corrected here?** It admits `]` and `^`, both reserved. Narrowing it
    could reject a file somebody already holds, which is why it has not been done quietly.
 4. **Does the `$` tail get a keyed form?** Tokens past the fifth are already ignored by every reader
