@@ -3,23 +3,33 @@
 GWS — "GlycoWorkbench sequence" — is the text form GlycanBuilder and GlycoWorkbench save structures
 in, and the format of a `.gws` file.
 
-**This document describes two levels.** *GWS core* is what this project reads and writes, and what
-GlycoWorkbench wrote before it. *GWS extended* is the superset implemented by
-[GlycanCore](https://gitlab.com/glycoinfo/glycanbuilder-module/glycancore), which this project does
-not read. The split is deliberate: the extensions are newer work and there is no need to bring them
-here to fix what is broken in the core.
+**This document has two levels, and they are two different kinds of statement.**
 
-## Status of this document, and how to read it
+- **Part 1, GWS core, is normative for GlycanBuilder2.** It says what this project *must* read and
+  write. Two requirements shape it: **every `.gws` that has ever been written must be readable**, and
+  **a residue label may carry any character**. Where today's code falls short of that, the document
+  states the requirement and the shortfall is a defect, not a clause.
+- **Part 2, GWS extended, is descriptive.** It records the superset implemented in
+  [GlycanCore](https://gitlab.com/glycoinfo/glycanbuilder-module/glycancore). Core does not include
+  it, and this project is not to grow it: anything beyond Part 1 belongs to the extension, and the
+  extension belongs to GlycanCore.
 
-**This is a description, not a standard.** It was written on 2026-09-11 by reading two parsers and
-running structures through them, because no specification existed. Each clause is one of:
+That division is the point. Core is fixed here so that existing files stop being lost; the extension
+evolves there, without the two being merged.
 
-- **Measured** — stated because a structure was written, read back, and the result observed.
-- **Read** — taken from the grammar in the source and not separately exercised.
-- **Open** — a question the implementations do not answer consistently. Listed rather than decided.
+## Status, and how to read it
 
-Where core and extended disagree, both are given. Nothing here is a proposal: it says what the
-software does today, so that changing it becomes a decision rather than an accident.
+Written 2026-09-11. No specification existed, so the material came from reading two parsers, from the
+original 2007 sources, and from running structures through them. Each clause is tagged:
+
+- **Measured** — a structure was written, read back, and the result observed.
+- **Read** — taken from the grammar in the source, not separately exercised.
+- **Required** — a normative clause in Part 1. Where today's code does not meet it, that is said
+  plainly and the gap is listed in §1.7.
+- **Open** — a question left undecided. Listed rather than settled.
+
+The tags are kept even for normative clauses: knowing whether a rule rests on a measurement or on a
+reading of somebody's regex is worth as much as the rule.
 
 Sources: `GWSParser` in `org.eurocarbdb.application.glycanbuilder.converterGWS` (this project);
 `GWSParser` / `GWSBuilder` in `org.glycoinfo.glycanbuilder.io` (GlycanCore 0.13.10, 2026-08-25); the
@@ -27,6 +37,19 @@ original 2007 parser, from
 `storage.googleapis.com/google-code-archive-source/v2/code.google.com/glycanbuilder/source-archive.zip`;
 and the 14 `.gws` examples shipped with GlycoWorkbench, in `glycoinfo/eurocarbdb` under
 `application/GlycoWorkbench/examples/`.
+
+## The rule the rest of this follows
+
+**Read liberally, write conservatively.** *(Required.)*
+
+| | rule |
+|---|---|
+| **reading** | accept every spelling that has ever been written — old hyphenated names, parenthesised names, escaped names, and structures with no `$` section |
+| **writing** | emit only what another implementation can read: safe characters, or the escape of §1.3 |
+
+The two halves are not the same grammar, and that is deliberate. A reader that accepts only what it
+writes loses files; a writer that emits everything its reader accepts makes files nobody else can
+open. Every clause below that differs between reading and writing does so for this reason.
 
 ---
 
@@ -66,7 +89,6 @@ residue := anomer? configuration? name ring-form? cleavage? placement? bounding-
 
 anomer        := [abo?] [1-9N?]
 configuration := ("D" | "L") "-"
-name          := [a-zA-z0-9_#=.]+
 ring-form     := "," [?opfa]
 cleavage      := "/" [a-zA-z0-9_#]+
 placement     := "@" "-"? [0-9]+ "s"?
@@ -77,7 +99,44 @@ bounding-box  := "<bounding_box>" int "," int "," int "," int "</bounding_box>"
 
 Examples: `?b1D-GalNAc,p` · `freeEnd` · `--3S` (a sulfate at 3) · `?b1D-GlcNAc,p<bounding_box>0,0,30,30</bounding_box>`
 
-### The name class, and its consequences
+### The name, reading and writing
+
+**A name is read as:** *(Required.)*
+
+```
+name := ( [A-Za-z0-9_#=.] | "-" (?! "-" | [0-9]) | "(" | ")" )+
+```
+
+That is wider than the class any implementation uses today, and wider deliberately: it is what makes
+**every `.gws` ever written** readable. Two additions over the historical class, each needed by names
+that have been written to files and could not be read back:
+
+- **`-`, when not followed by `-` or a digit.** `--` is a linkage and `-<digit>` is the pre-2007
+  linkage form, so the restriction is exactly enough to keep both unambiguous. *(Measured: with this
+  rule `D-gro-D-galHep,p` reads as the name `gro-D-galHep` after the `D-` configuration prefix,
+  `Tri-P` reads whole, and `D-gro-D-galHep,p--4b1D-Gal,p` and `D-gro-D-galHep-4b1D-Gal,p` both split
+  at the right place.)*
+- **`(` and `)`**, for `(S)Lac`, `(R)Lac`, `(X)Lac`.
+
+**A name is written as:** *(Required.)*
+
+```
+safe := [A-Za-z0-9_#.]        // note: no "=", see §1.3.1
+```
+
+Anything else is escaped, per §1.3.1. So a reader accepts `D-gro-D-manHep` and `(S)Lac`; a writer
+emits neither, choosing a safe spelling or the escape. **This is the asymmetry of the opening rule,
+and it is what lets old files be rescued without making new files unreadable elsewhere.**
+
+### Why the historical class is not the specification
+
+`[a-zA-z0-9_#=.]`, which both implementations use, is **not a typo-free character class**: `a-zA-z`
+spans ASCII 65–122, so it also admits `[`, `\`, `]`, `^` and `` ` ``. It has been that class since
+2007 and was never revisited. *(Read, both versions; GlycanCore corrected the span to `[a-zA-Z0-9_#=.]`
+without changing the intended set.)* It carries no design intent worth preserving, which is why the
+normative class above was derived from what files contain rather than from what the regex allows.
+
+### 1.3.1 What a name may contain today
 
 `[a-zA-z0-9_#=.]` is **not a typo-free character class**. `a-zA-z` spans ASCII 65–122, so it also
 admits `[`, `\`, `]`, `^` and `` ` ``. This has been the class since the first version in 2007 and
@@ -248,25 +307,50 @@ one becomes a residue type via `createUnknown`, and one containing `=` is read a
 becomes a custom reducing end. A typo in this field produces a residue, not an error. *(Measured:
 `…,NoSuchReducingEnd` round-trips unchanged.)*
 
-## 1.7 What core does not round-trip
+## 1.7 Core conformance
 
-Measured on 1.40.0, for anyone writing a conformance test:
+**An implementation conforms to GWS core when all four of these pass.** *(Required.)* Each is a
+corpus that exists today; none is in this repository yet, and all four should be.
 
-| corpus | result |
+| # | corpus | requirement | where it stands |
+|---|---|---|---|
+| C1 | the **14 `.gws` written by GlycoWorkbench** (`glycoinfo/eurocarbdb`, `application/GlycoWorkbench/examples/`) | every file reads, and the structure read is the structure written | **14 read, 0 fail** *(measured)*. None is textually identical on rewrite, because the writer states mass options the 2008 writer left implicit - see below |
+| C2 | the **29 dictionary names containing `-`** (3 in `residue_types`, 26 in `non_symbolic_residue_types`) | each name reads, and the residue is the one the dictionary defines | **0 of 29 read today** *(measured)*. The widened class of §1.3 is what fixes this |
+| C3 | the **3 dictionary names containing parentheses** (`(S)Lac`, `(R)Lac`, `(X)Lac`) | as C2 | **0 of 3 read today** *(measured)* |
+| C4 | the **25 core-level strings** among GlycanCore's 47 test strings | each reads | **25 read** *(measured)*; the other 22 are Part 2 and must **not** read |
+
+**C1 requires a structural comparison, not a textual one.** No file GlycoWorkbench wrote round-trips
+as text - `…$MONO,Und,Na,0` comes back as `…$MONO,Und,Na,0,freeEnd`, and a file with no `$` gains one.
+That is the writer being more explicit, not damage, and a conformance test written on string equality
+would fail all 14 *(measured)*.
+
+### Where the current implementation stands against its own requirements
+
+| requirement | status |
 |---|---|
-| 14 `.gws` written by GlycoWorkbench | **14 read, 0 fail, 0 textually identical** — the writer states mass options the 2008 writer left implicit |
-| 1,631 structures via WURCS → GWS → WURCS | 60.9% survive · 2.9% come back empty · 6.1% come back different · **30.1% cannot be read back** |
+| read every `.gws` ever written | **not met** - C2 and C3 fail: 32 dictionary names can be written and not read |
+| a label may carry any character | **not met** - `/`, `-`, `,`, space, `(`, `)` are refused, and `$` empties the structure with no error |
+| `=` refused in a label | **not met** - accepted, then truncates the label and throws on the mass |
+| write only what others can read | **not met** - the 32 names above are written and are unreadable by this project, GlycanCore and GlycoWorkbench alike |
 
-The first line matters for test design: **a GWS baseline must compare structures, not text**, or
-every file GlycoWorkbench ever wrote reads as a failure.
-
----
+And for the wider picture, measured across 1,631 structures taken through WURCS → GWS → WURCS:
+60.9% survive, 2.9% come back empty, 6.1% come back different, **30.1% cannot be read back**. The
+largest single group of those failures is C2.
 
 # Part 2 — GWS extended (GlycanCore)
 
-GlycanCore implements everything in Part 1 with three corrections and five additions. This project
-reads **none** of the additions. *(Measured: of 47 GWS strings in GlycanCore's own test file, this
-project reads 25 and fails on 22.)*
+**This part is descriptive, and it is also a boundary.** Everything here is outside GWS core:
+GlycanBuilder2 is not to implement it, and an implementation that reads only Part 1 is conformant.
+The extension is GlycanCore's, and it evolves there.
+
+The boundary was drawn by measurement rather than by preference: of the 47 GWS strings in
+GlycanCore's own test file, **25 are core and 22 use an addition below** *(measured)*. That is what
+makes "core" a line somebody can test against rather than a matter of taste.
+
+Note that core and extended are **not** ordered by which is better. Core has the wider *name* - it
+has to, to read every file ever written - while extended has the wider *structure* syntax. An
+extended reader is not automatically a core reader: GlycanCore refuses `D-gro-D-galHep` and `(S)Lac`
+exactly as this project does *(measured)*.
 
 ## 2.1 Corrections to the core
 
@@ -307,28 +391,39 @@ measured only in that this project rejects it.)*
 
 # Open questions {#open}
 
-Listed because a specification that answers them silently is worse than one that admits them.
+Three of the five this document opened are settled by Part 1 being normative. What remains:
 
-1. **Do the two dialects converge?** If they are meant to, this document becomes the migration plan;
-   if not, it should say which software writes which, so that a `.gws` file carries an expectation.
-   This sits beside the fork question in #226 and is a decision for people, not parsers.
-2. ~~**Should the name class be escaped or widened?**~~ **Decided 2026-09-11: escaped**, with the
-   `_e_` prefix and `=` forbidden — see "Names with any character in them". Not implemented.
-3. **Is the `a-zA-z` span to be corrected here?** It admits `]` and `^`, both reserved. Narrowing it
-   could reject a file somebody already holds, which is why it has not been done quietly.
-4. **Does the `$` tail get a keyed form?** Tokens past the fifth are already ignored by every reader
+1. **Do the two dialects converge?** Part 1 fixes core and Part 2 fences the extension, which is a
+   working arrangement rather than an answer: it does not say whether GlycanCore will one day read
+   core's widened names, or whether GlycanBuilder2's successor simply becomes an extended reader.
+   Sits beside the fork question in #226, and is a decision for people rather than parsers.
+2. **Does the `$` tail get a keyed form?** Tokens past the fifth are already ignored by every reader
    measured, so `k=v` fields would be backward compatible — but the writer would have to carry them,
-   which it does not today.
-5. **What is authoritative when the writer and the reader disagree?** Six residue names can be
-   written and not read. Widening the reader rescues existing files; narrowing the writer protects
-   future ones. Both are defensible and they are not the same choice.
+   which it does not today. Needed only if something must travel with a structure that the five
+   fields cannot hold.
 
-# Conformance corpus
+Settled by Part 1, and recorded here so the history is legible:
 
-Neither collection is in this repository yet; both should be.
+- ~~*Escape or widen the name class?*~~ **Both, asymmetrically** — widen the reader, escape the
+  writer (§1.3, "The rule the rest of this follows").
+- ~~*Correct the `a-zA-z` span?*~~ **Moot.** The normative class is derived from what files contain,
+  not from that regex; the span's accidental members (`[`, `\`, `]`, `^`, `` ` ``) are simply not in
+  it, and a reader that still accepts them is harmlessly liberal.
+- ~~*Writer or reader authoritative where they disagree?*~~ **Neither** — they are different
+  grammars on purpose.
+
+# The corpora, and where they are
+
+§1.7 makes four of these a requirement. None is in this repository yet; all four should be, and the
+first two cost nothing but a copy.
 
 | set | size | source |
 |---|---|---|
-| GlycoWorkbench examples | 14 | `glycoinfo/eurocarbdb`, `application/GlycoWorkbench/examples/` — the only witness to the format as originally produced, and two exercise the multi-structure path |
-| GlycanCore test strings | 47 | `glycancore`, `src/test/java/org/glycoinfo/glycanbuilder/io/TestGWSIO.java` — 25 core, 22 extended, which is what makes the boundary in this document measurable rather than asserted |
-| Generated | any | WURCS corpus → GWS → back. Tests whether today's writer and reader agree; **does not** test whether we read what GlycoWorkbench wrote |
+| **C1** GlycoWorkbench examples | 14 | `glycoinfo/eurocarbdb`, `application/GlycoWorkbench/examples/` — the only witness to the format as originally produced, and two of them exercise the multi-structure path that nothing else tests |
+| **C2/C3** dictionary names | 29 + 3 | this repository: `conf/residue_types`, `conf/non_symbolic_residue_types`. The test writes each name, reads it back, and checks the residue is the one defined |
+| **C4** GlycanCore test strings | 47 | `glycancore`, `src/test/java/org/glycoinfo/glycanbuilder/io/TestGWSIO.java` — 25 core, 22 extended |
+| *(not a requirement)* generated | any | WURCS corpus → GWS → back. Tests whether today's writer and reader agree; **does not** test whether we read what GlycoWorkbench wrote, which is why C1 exists |
+
+The originals are downloadable: GlycoWorkbench and GlycanBuilder both survive on the Google Code
+archive (`storage.googleapis.com/google-code-archive-source/v2/code.google.com/{glycoworkbench,glycanbuilder}/source-archive.zip`),
+and the WURCS and GlycoCT corpora at `data.glygen.org/ln2downloads/glycan/others/`.
