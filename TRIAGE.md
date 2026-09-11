@@ -570,6 +570,66 @@ nobody watching it.
 build when any accession changes category, is Stage 1 - and the measurement above took one afternoon
 and no new infrastructure.
 
+### The same measurement for GlycoCT and GWS
+
+Asked for on 2026-09-11, and it changed what we know about #34.
+
+**GlycoCT condensed** - the same GlyGen download publishes `glycoct.zip`, 41,553 structures. 2,000
+sampled, 6.0 s:
+
+| outcome | count | share |
+|---|---|---|
+| round-trips identically | 1,521 | **76.1%** |
+| writes an empty string | 6 | 0.3% |
+| writes a different sequence | 146 | 7.3% |
+| refuses to import | 327 | 16.4% |
+
+Better than WURCS, and the refusals are mostly named residues the dictionary does not carry -
+`L-gro-a-D-manHepp`, `a-L-N-enx-thrHexA`, `?-Gro-ol`. Worth knowing before the first attempt:
+`GlycoCTParser` reads **XML** GlycoCT; condensed is `GlycoCTCondensedParser`, and running the corpus
+through the wrong one fails all 2,000 on an XML prolog error.
+
+**GWS** has no published corpus, so it was measured the way it is actually used - as the save format:
+WURCS in, GWS out, read the GWS back, WURCS out, compare. 1,631 structures, 9.7 s:
+
+| outcome | count | share |
+|---|---|---|
+| survives being saved and reopened | 993 | **60.9%** |
+| comes back empty | 47 | 2.9% |
+| comes back different | 100 | 6.1% |
+| **cannot be read back at all** | 491 | **30.1%** |
+
+### #34 is not about a slash
+
+The largest single group of those 491 failures is this, and it reproduces with **one residue**:
+
+```
+WURCS in : WURCS=2.0/1,1,0/[a21122h-1a_1-5]/1/
+GWS  out : freeEnd--1a1D-D-gro-D-galHep,p$MONO,Und,0,0,freeEnd
+read back: invalid format for linkage: -gro-D-galHep,p
+```
+
+`D-gro-D-galHep` is a **heptose from this project's own residue dictionary**. Draw it, save the
+`.gws`, reopen it: the file is broken. The name carries hyphens, and `-` ends a name in the GWS
+grammar - exactly the fault documented above for `Ser/Thr`, reached without anyone typing anything
+unusual.
+
+Six of the 134 dictionary residue types have names GWS cannot write:
+
+```
+L-gro-D-manHep   D-gro-D-manHep   Tri-P   (S)Lac   (R)Lac   (X)Lac
+```
+
+So the character-class question is not a feature request from one user. **The save format cannot
+represent six residues the builder offers**, and has not been able to for as long as those residues
+have existed. That moves the escape from "nice for aglycon labels" to P2 - work is lost, on reopening
+- and it decides the open question in that section: the escape has to cover the dictionary's own
+names, not just the characters someone asked for.
+
+One more thing the run turned up, unexplained: some written GWS contains `NaN`
+(`--NaNL-L-gro-...`). Not filed, not investigated.
+
+
 ### What a full suite would be, in order of what it buys
 
 1. **WURCS corpus round trip with a baseline.** Catches #238, #239, #236, and the class they belong
