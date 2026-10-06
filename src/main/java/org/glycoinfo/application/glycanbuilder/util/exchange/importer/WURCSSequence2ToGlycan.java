@@ -13,6 +13,8 @@ import org.glycoinfo.WURCSFramework.wurcs.sequence2.GLIN;
 import org.glycoinfo.WURCSFramework.wurcs.sequence2.GRES;
 import org.glycoinfo.WURCSFramework.wurcs.sequence2.WURCSSequence2;
 
+import org.glycoinfo.application.glycanbuilder.util.exchange.WURCSToGlycanException;
+
 import java.util.HashMap;
 import java.util.LinkedList;
 
@@ -127,15 +129,28 @@ public class WURCSSequence2ToGlycan {
 	}
 
 	private void analyzeGRES(GRES _gres) throws Exception {
-		GRESToResidue gres2residue = new GRESToResidue();
-
-		gres2residue.start(_gres);
+		GRESToResidue gres2residue;
+		try {
+			gres2residue = new GRESToResidue();
+			gres2residue.start(_gres);
+		} catch (WURCSToGlycanException ex) {
+			throw ex;
+		} catch (Exception ex) {
+			throw new WURCSToGlycanException(WURCSToGlycanException.badResidueMessage,_gres.getMS().getString(),ex);
+		}
 		Residue residue = gres2residue.getResidue();
 		this.gres2residue.put(_gres, residue);
 
 		// add substituent as child residue
 		SUBSTAnalyzer substAnalyzer = new SUBSTAnalyzer(gres2residue.getModifications());
-		substAnalyzer.start(_gres, residue);
+		try {
+			substAnalyzer.start(_gres, residue);
+		} catch (WURCSToGlycanException ex) {
+			throw ex;
+		} catch (Exception ex) {
+			throw new WURCSToGlycanException(WURCSToGlycanException.badResidueMessage,_gres.getMS().getString(),ex);
+		}
+		
 	}
 
 	private void analyzeCompositionGLIN (GRES _gres) {
@@ -153,8 +168,16 @@ public class WURCSSequence2ToGlycan {
 	}
 
 	private void analyzeGLIN(GRES _gres, LinkedList<LIN> _lins) throws Exception {
-		GLINToLinkage glin2linkage = new GLINToLinkage(this.gres2residue.get(_gres), _lins);
-		glin2linkage.start(_gres);
+		GLINToLinkage glin2linkage;
+		try {
+			glin2linkage = new GLINToLinkage(this.gres2residue.get(_gres), _lins);
+			glin2linkage.start(_gres);
+		} catch (WURCSToGlycanException ex) {
+			throw ex;
+		} catch (Exception ex) {
+			throw new WURCSToGlycanException("Failed to convert linkage",ex);
+		}
+		
 
 		// define glycosidic bond
 		Residue donor = this.gres2residue.get(_gres);
@@ -162,8 +185,13 @@ public class WURCSSequence2ToGlycan {
 				this.gres2residue.get(glin2linkage.getParents().get(0)) : null;
 		Residue start = this.gres2residue.get(glin2linkage.getStartRepeatingGRES());
 
-		LinkageConnector linkageConnector = new LinkageConnector(donor, acceptor, start);
-		linkageConnector.start(glin2linkage);
+		LinkageConnector linkageConnector;
+		try {
+			linkageConnector = new LinkageConnector(donor, acceptor, start);
+			linkageConnector.start(glin2linkage);
+		} catch (Exception ex) {
+			throw new WURCSToGlycanException("Failed to convert linkage",ex);
+		}
 
 		// set parents for fragments
 		if(glin2linkage.getParents().size() > 1) {

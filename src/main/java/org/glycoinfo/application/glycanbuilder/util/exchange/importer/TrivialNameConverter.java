@@ -72,20 +72,20 @@ public class TrivialNameConverter {
 
     private void makeTrivialName (Node _node) {
         IUPACNotationConverter inConv = new IUPACNotationConverter();
+        this.trivialName = null;
         try {
             inConv.makeTrivialName(_node);
-        } catch (GlycanException e) {
-            e.printStackTrace();
+            this.trivialName = inConv.getCoreCode();
+        } catch (Exception ignored) {
         }
-        this.trivialName = inConv.getCoreCode();
     }
 
     public void makeIUPACNotation (Node _node) {
+        this.fullName = null;
         try {
             ExtendedConverter extConv = new ExtendedConverter();
             this.fullName = extConv.start(_node);
-        } catch (Exception e) {
-            e.printStackTrace();
+        } catch (Exception ignored) {
         }
     }
 
