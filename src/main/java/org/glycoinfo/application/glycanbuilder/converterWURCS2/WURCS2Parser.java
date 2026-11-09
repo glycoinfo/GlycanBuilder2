@@ -2,6 +2,7 @@ package org.glycoinfo.application.glycanbuilder.converterWURCS2;
 
 import org.eurocarbdb.application.glycanbuilder.Glycan;
 import org.eurocarbdb.application.glycanbuilder.Residue;
+import org.glycoinfo.application.glycanbuilder.util.exchange.GlycanToWURCSException;
 import org.glycoinfo.application.glycanbuilder.util.exchange.WURCSToGlycanException;
 import org.eurocarbdb.application.glycanbuilder.converter.GlycanParser;
 import org.eurocarbdb.application.glycanbuilder.logutility.LogUtils;
@@ -19,45 +20,95 @@ public class WURCS2Parser implements GlycanParser{
 	
 	public void setTolerateUnknown(boolean f) {}
 	
+	/**
+	 * The WURCS for this structure, or an empty string.
+	 *
+	 * <p>This method has nowhere to throw - it is {@link GlycanParser}'s, and every caller treats an
+	 * empty string as "this structure has no WURCS" - so when the conversion fails, the reason goes to
+	 * {@link LogUtils#report}. The desktop application shows that as a dialog, and its export reads it
+	 * back to name which structures came out blank. Nothing here has changed for those callers.
+	 *
+	 * <p>Anything else - a server writing WURCS for several people, a tool, a test - should call
+	 * {@link #toWURCS} instead, which says why on the call. The last-error slot this method writes to
+	 * is global, so on a server it belongs to whoever wrote last (#275).
+	 */
 	public String writeGlycan(Glycan structure) {
-		if (structure.isFragment()) return "";
+		try {
+			String wurcs = encode(structure);
+
+			return (wurcs == null) ? "" : wurcs;
+		} catch (Exception cannotBeWritten) {
+			// Reported as it was thrown, not as wrapped by toWURCS: the dialog and the export's
+			// warning both quote this sentence, and they should keep saying what they said.
+			LogUtils.report(cannotBeWritten);
+
+			return "";
+		}
+	}
+
+	/**
+	 * The WURCS for this structure, or an exception that says why there is none.
+	 *
+	 * <p>{@link #writeGlycan} answers a structure it cannot write with an empty string and leaves the
+	 * reason in a global slot. For 21 of the 23 heptoses and octoses that reason is "has no stereo
+	 * recorded for it" and the caller - the web application's WURCS panel, an MCP encode - received
+	 * {@code ""} and nothing else (#275). This is the same conversion, with the reason on the call.
+	 *
+	 * <p>It does not report to {@link LogUtils}: the exception is the report, and a caller that wants a
+	 * dialog can show one.
+	 *
+	 * @throws GlycanToWURCSException naming why: a residue with no skeleton recorded, a composition of
+	 *         something the encoder cannot name, a fragment, an empty composition, or the conversion
+	 *         failing outright
+	 */
+	public String toWURCS(Glycan structure) throws GlycanToWURCSException {
+		String wurcs;
+		try {
+			wurcs = encode(structure);
+		} catch (Exception cannotBeWritten) {
+			throw GlycanToWURCSException.wrapping(cannotBeWritten);
+		}
+
+		if (wurcs == null || wurcs.isEmpty()) {
+			if (structure.isFragment())
+				throw new GlycanToWURCSException("a fragment has no WURCS: WURCS describes whole structures");
+			if (structure.isComposition())
+				throw new GlycanToWURCSException("this composition holds no residues, so it has no WURCS");
+			throw new GlycanToWURCSException("the conversion produced no WURCS and gave no reason");
+		}
+
+		return wurcs;
+	}
+
+	/**
+	 * The conversion itself, shared by both doors.
+	 *
+	 * @return the WURCS, or null where there is nothing to write - a fragment, an empty composition -
+	 *         which {@link #writeGlycan} has always answered in silence and {@link #toWURCS} names
+	 * @throws Exception whatever the conversion threw, unwrapped
+	 */
+	private String encode(Glycan structure) throws Exception {
+		if (structure.isFragment()) return null;
 
 		// A composition is written as composition WURCS, which is a different encoding rather than a
 		// worse one: it says which residues are present and that nothing is known about what joins
 		// them, and it is what GlyTouCan and GlyCosmos match a composition against. This used to
 		// return nothing at all, so "export to WURCS" on a composition wrote an empty file and said
 		// why to nobody (#107).
-		if (structure.isComposition()) {
-			try {
-				String composition = GlycanComposition.toWURCS(structure);
+		if (structure.isComposition())
+			return GlycanComposition.toWURCS(structure);
 
-				return (composition == null) ? "" : composition;
-			} catch (Exception cannotBeWritten) {
-				// The same silence as before would be worse now that there is something to say, but
-				// this method has nowhere to throw: every caller treats an empty string as "this
-				// structure has no WURCS". Reported where the other converters report.
-				LogUtils.report(cannotBeWritten);
+		LinkageTypeOptimizer linkOpt = new LinkageTypeOptimizer();
+		linkOpt.start(structure);
 
-				return "";
-			}
-		}
+		GlycanToWURCSGraph glycan2graph = new GlycanToWURCSGraph();
+		glycan2graph.start(structure);
+		// MAPs go out in their normalized form: that is what a validator asks for, and readGlycan
+		// accepts either spelling, so the round trip still holds
+		WURCSGraph graph = glycan2graph.getGraph();
+		this.rewriteMAPs(graph, true);
 
-		try{
-			LinkageTypeOptimizer linkOpt = new LinkageTypeOptimizer();
-			linkOpt.start(structure);
-
-			GlycanToWURCSGraph glycan2graph = new GlycanToWURCSGraph();
-			glycan2graph.start(structure);
-			// MAPs go out in their normalized form: that is what a validator asks for, and readGlycan
-			// accepts either spelling, so the round trip still holds
-			WURCSGraph graph = glycan2graph.getGraph();
-			this.rewriteMAPs(graph, true);
-
-			return new WURCSFactory(graph).getWURCS();
-		}catch (Exception e) {
-			LogUtils.report(e);
-			return "";
-		}
+		return new WURCSFactory(graph).getWURCS();
 	}
 	
 	public Glycan readGlycan(String str, MassOptions mass_opt) throws Exception{
