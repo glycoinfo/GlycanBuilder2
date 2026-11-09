@@ -62,7 +62,22 @@ public class GWSParser implements GlycanParser {
 		String end_repeat_str = "](?:_(-?[0-9]+))?+(?:\\^(-?[0-9]+))?+";
 		// Ring forms: pyranose, furanose, alditol and the open chain, which a residue can be set to
 		// through setRingSize and which this used to write without being able to read back.
-		String residue_str = "([abo?][1-9N?])?+([DL]-)?+([a-zA-z0-9_#=.]+)(?:,([?opfa]))?+";
+		// A residue name. Two forms are admitted beyond the historical character class, because the
+		// writer has always been able to emit them and this reader could not read them back - drawing
+		// a heptose, saving and reopening lost the file (#256). See docs/gws-format.md 1.3.
+		//
+		//   -   when it is not the start of a linkage. "--" opens one and "-[1-9N?]" is the pre-2007
+		//       form, so both are excluded and nothing that reads today stops reading. No name in any
+		//       dictionary has a "-" followed by a digit, N or ?, so the exclusion costs nothing.
+		//   (c) a parenthesised single character, for (S)Lac, (R)Lac and (X)Lac. Deliberately narrow:
+		//       parentheses delimit branches, and a branch always opens "(--", so this cannot collide
+		//       with one. Admitting them unconstrained does collide - a name then reads as "Man(".
+		//
+		// The a-zA-z span is left as it is. It is a 2007 typo spanning ASCII 65-122, so it also admits
+		// [ \ ] ^ and `; narrowing it to a-zA-Z would be correct and would stop reading files that
+		// read today, which is the one thing this format may not do.
+		String name_str = "((?:[a-zA-z0-9_#=.]|-(?![-0-9N?])|\\([A-Za-z0-9]\\))+)";
+		String residue_str = "([abo?][1-9N?])?+([DL]-)?+" + name_str + "(?:,([?opfa]))?+";
 		String cleaved_str = "/([a-zA-z0-9_#]+)";
 		String place_str = "@(-?[0-9]+s?)";
 		String cord_str="<bounding_box>([0-9]+),([0-9]+),([0-9]+),([0-9]+)</bounding_box>";

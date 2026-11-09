@@ -7,8 +7,8 @@
 # today: pass | the failure as it actually comes out
 #
 # issue	origin	gws	today	measured
-256	ours	freeEnd--??1D-GlcNAc,p--??1D-D-gro-D-manHep,p$MONO,Und,0,0,freeEnd	read-fails	java.lang.Exception: invalid format for linkage: -gro-D-manHep,p (GWSParser.readSubtreeLinkage:504)
-253	glycoworkbench	freeEnd--5?2KDO--7?1D-Hept,p(((--?Hept--??1D-GlcNAc,p)--??1D-Glc,p--??1D-Glc,p--??1D-Gal,p--??1D-GlcNAc,p)--??1D-Glc,p)--??1PEtn$MONO,Und,H,Na-H,freeEnd	renamed	reads, and comes back as ...--5?2Kdo--... : KDO is silently respelled Kdo. Both Hept residues come back superclass=Unknown, isSubstituent=false
+256	ours	freeEnd--??1D-GlcNAc,p--??1D-D-gro-D-manHep,p$MONO,Und,0,0,freeEnd	pass	FIXED 2026-11-09 by widening the reader's name class. Reads, and comes back byte-identical. Was: java.lang.Exception: invalid format for linkage: -gro-D-manHep,p (GWSParser.readSubtreeLinkage:504)
+253	glycoworkbench	freeEnd--5?2KDO--7?1D-Hept,p(((--?Hept--??1D-GlcNAc,p)--??1D-Glc,p--??1D-Glc,p--??1D-Gal,p--??1D-GlcNAc,p)--??1D-Glc,p)--??1PEtn$MONO,Und,H,Na-H,freeEnd	renamed	reads, and comes back as ...--5?2Kdo--... : KDO is silently respelled Kdo. Unchanged by the grammar fix, because it is a dictionary spelling and not a grammar problem. Both Hept residues come back superclass=Unknown, isSubstituent=false
 #
 # What #255 says is happening, and is not. The issue reads "the first Heptose residue becomes a
 # Substituent of the KDO residue". Parsed from the string above, neither Hept is a substituent in the
@@ -33,5 +33,11 @@
 #
 # So heptose fails in all three directions at once: the generic row is disabled, the fifteen specific
 # rows cannot survive a GWS round trip, and the spelling another program writes is in no dictionary.
-# One grammar change (docs/gws-format.md 1.3) fixes the third column; the first two are dictionary
-# edits and want a chemistry opinion, not a code change.
+#
+# The second of those is FIXED (2026-11-09): the reader's name class now admits the dash, so every
+# heptose and octose name but five survives the round trip byte-identically. The five that do not are
+# bad dictionary rows, listed in ../gws/dictionary-names.tsv, and each needs a chemistry decision.
+#
+# The other two are untouched and still want a chemistry opinion rather than code: whether to
+# uncomment the generic Hep row, and whether Hept should be a synonym of it so that a GlycoWorkbench
+# file names a heptose rather than an unknown residue.
