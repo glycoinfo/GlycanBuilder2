@@ -210,7 +210,9 @@ reader can be written to accommodate them — each is a row that contradicts its
   writer emits `freeEnd--??-manOct,p` with a dash standing where the carbon should be.
 - `L-gro-D-glcOct` records its chirality as `/`, which the writer emits as `/-` and a reader must take
   as the start of a cleavage. The row disagrees with itself three ways: the name says `L-gro-D`, the
-  synonym column `D-gro-D-glcOct`, the description `D-glycero-L-glcoOctose`.
+  `iupac_name` column `D-gro-D-glcOct`, the description `D-glycero-L-glcoOctose`. *(The `iupac_name`
+  column is field 5, per `ResidueType(String)`; stated here as the synonym column, which is field 4
+  and holds `-`, until the columns were counted against the parser.)*
 - `?-gro-D-manHep` and `?-gro-D-glcHep` *begin* with `?`, which marks an unknown position everywhere
   else in the format.
 

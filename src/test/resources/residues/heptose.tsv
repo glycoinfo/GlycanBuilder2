@@ -41,3 +41,25 @@
 # The other two are untouched and still want a chemistry opinion rather than code: whether to
 # uncomment the generic Hep row, and whether Hept should be a synonym of it so that a GlycoWorkbench
 # file names a heptose rather than an unknown residue.
+#
+# And a fourth direction, found 2026-11-09 after the grammar fix and worse than the other three:
+# OF THE 23 HEPTOSE AND OCTOSE ROWS, 21 EXPORT TO WURCS AS AN EMPTY STRING.
+#
+#   L-gro-D-manHep     ok   WURCS=2.0/1,1,0/[a11221h-1x_1-5]/1/
+#   D-gro-D-manHep     ok   WURCS=2.0/1,1,0/[a11222h-1x_1-5]/1/
+#   the other 21       empty string, and no exception reaches the caller
+#
+# Those two are the only heptose or octose names in NativeMonosaccharideDictionary
+# (NativeMonosaccharideDictionary.java:144 and :172). For every other name
+# ResidueAnalyzer.stereoOfResidue:239 throws
+#
+#   WURCSExchangeException: D-gro-D-galHep has no stereo recorded for it, so it has no skeleton
+#   to write.
+#
+# which is logged and swallowed, so writeGlycan returns "". Same exception as #261 and the same shape
+# as #220 - an empty file where the reason should be. So the grammar fix made these residues
+# save and reopen; it did not make them usable, and nothing in GWS was ever going to.
+#
+# Note also that a chirality of "/" does not throw: getStereo maps anything that is not D or L to the
+# unknown-configuration stereo (1->3, 2->4), so L-gro-D-glcOct would be written as configuration
+# unknown while its name says L. A quiet wrong answer rather than a loud one.

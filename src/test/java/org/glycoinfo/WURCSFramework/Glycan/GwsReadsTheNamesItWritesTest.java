@@ -111,9 +111,9 @@ public class GwsReadsTheNamesItWritesTest {
 	 * a position or {@code ?} belongs, so the writer emits {@code --??-manOct,p} - a dash standing
 	 * where the carbon should be.
 	 * <li>{@code L-gro-D-glcOct} records its <em>chirality</em> as {@code /}, which the writer emits
-	 * as {@code /-} and the reader reads as the start of a cleavage. Its synonym column says
-	 * {@code D-gro-D-glcOct} and its description {@code D-glycero-L-glcoOctose}, so the row disagrees
-	 * with itself three ways.
+	 * as {@code /-} and the reader reads as the start of a cleavage. Its {@code iupac_name} column
+	 * (field 5) says {@code D-gro-D-glcOct} and its description {@code D-glycero-L-glcoOctose}, so the
+	 * row disagrees with itself three ways.
 	 * <li>{@code ?-gro-D-manHep} and {@code ?-gro-D-glcHep} <em>begin</em> with {@code ?}, which marks
 	 * an unknown position everywhere else in the format. A name cannot start with it and stay
 	 * unambiguous; these two need either the escape of §1.3.1 or a different name.
@@ -123,6 +123,11 @@ public class GwsReadsTheNamesItWritesTest {
 	 * they are recorded here and raised rather than quietly edited — <strong>#273</strong>. This
 	 * assertion is on the exact set: a sixth name appearing fails the test, and a name leaving it
 	 * fails it too, so neither can pass unnoticed.
+	 *
+	 * <p><strong>This is the set that cannot be read, not the set that is wrong.</strong> Three more
+	 * rows contradict themselves and are invisible here because their names happen to be readable:
+	 * {@code D-gro-D-altHep} is described as {@code D-glycero-D-TaloHeptose} — a different sugar — and
+	 * {@code D-gro-D-galOct} and {@code D-gro-D-talOct} are described as {@code L-}. Also on #273.
 	 */
 	private static final List<String> KNOWN_BAD_ROWS = java.util.Arrays.asList(
 			"?-gro-D-glcHep", "?-gro-D-manHep", "L-gro-D-glcOct", "araOct", "manOct");

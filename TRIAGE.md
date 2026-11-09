@@ -1095,7 +1095,7 @@ reducing-end label is too narrow", and that is not the same as one fix reaching 
   as do `(S)Lac` and `Tri-P`.
 - **The five that remain are not grammar at all**, which was not known before the change: `araOct`
   and `manOct` record an anomeric carbon of `-`, `L-gro-D-glcOct` a chirality of `/` (and its name,
-  synonym and description disagree three ways), and `?-gro-D-manHep` and `?-gro-D-glcHep` begin with
+  `iupac_name` and description disagree three ways), and `?-gro-D-manHep` and `?-gro-D-glcHep` begin with
   `?`. All five are rows to correct, and that is a chemistry decision — **they are the one thing in
   C1 that needs an answer rather than code.** Filed as **#273**, with the question each row raises.
 - **`KDO` → `Kdo` is unchanged**, as expected: a dictionary spelling, not a grammar problem.
@@ -1108,6 +1108,28 @@ reducing-end label is too narrow", and that is not the same as one fix reaching 
   Filed as **#274**.
 - The test asks the dictionaries rather than a list, and asserts the **exact** set of five, so neither
   a sixth appearing nor one of the five being fixed can pass unnoticed.
+
+**Three things learned afterwards, answering a question about #273.**
+
+- **The five are the set that cannot be *read*, not the set that is *wrong*.** Three more rows
+  contradict themselves and are invisible to the round-trip test because their names happen to be
+  readable: `D-gro-D-altHep` is described as `D-glycero-D-TaloHeptose` — **a different sugar** — and
+  `D-gro-D-galOct` and `D-gro-D-talOct` are named `D-` and described `L-`. Eight wrong rows, five
+  unreadable ones, and the two sets only partly overlap.
+- **A column was named wrong here and on #273.** The column that disagrees with `L-gro-D-glcOct`'s
+  own name is `iupac_name`, field 5, not the synonym column, which is field 4 and holds `-`. Counted
+  against `ResidueType(String)` rather than by eye, which is how it should have been done the first
+  time.
+- **The grammar fix made these residues saveable, not usable.** Of the 23 heptose and octose rows,
+  **21 export to WURCS as an empty string** — only `D-gro-D-manHep` and `L-gro-D-manHep` write, and
+  they are the only two with stereo recorded in `NativeMonosaccharideDictionary`. For the rest,
+  `ResidueAnalyzer.stereoOfResidue:239` throws *"has no stereo recorded for it"* — #261's exact
+  message — and it is logged and swallowed, so `writeGlycan` returns `""`. Same shape as #220. Filed
+  separately.
+
+One more thing worth carrying: **`TextUtils.tokenize` drops empty tokens**, so the dictionary format
+cannot express an empty field and a stray second tab shifts every later column silently. It is why
+`residue_types`' physically-26-field rows parse as 24 tokens and pass the parser's own length check.
 
 ## The test data, reconsidered
 
