@@ -379,6 +379,12 @@ for cost, once for what it costs to leave the tracker saying something untrue.
 **The list below is a record of 2026-08-15, kept because the reasoning is worth more than the ticks.**
 Everything on it is done. What is left to pick up is at the bottom.
 
+**Since 2026-11-09, read this together with "Twenty-five more arrived, and they are not twenty-five
+problems".** The bands still rank what a single issue costs; the clusters say which issues share a
+cause, and four of those causes account for fourteen of the twenty-five newest. Where the two
+disagree, take the cluster: fixing one cause and closing four issues beats fixing four symptoms, and
+the clusters are where the regressions come from.
+
 1. ~~**One sitting of tracker work.**~~ Nine fixed issues were open and two measured faults were filed
    nowhere — the same failure, and the one this file is most emphatic about: *silence outranks severity*.
    Ten issues closed with their measurements, #203 and #204 filed.
@@ -936,10 +942,216 @@ dictionary names, the `$`-in-a-name silent emptying, and `NaN` in written output
 both dialects.
 
 
+## Twenty-five more arrived, and they are not twenty-five problems
+
+Re-checked **2026-11-09**, after two months in which nothing on our side moved. #247–#271 were filed
+between 09-15 and 10-21, twenty-four by R. Ranzinger and one by M. Matsubara. Read as a list they
+look like twenty-five defects in twenty-five places. Measured, they are **six root causes**, and two
+of them are the ones this file already spent August describing.
+
+Group by what has to change, not by what the reporter saw. An issue appears once, under the cause;
+the symptom it was filed as is in brackets.
+
+### C1 — A residue name the writer can emit and the reader cannot read
+
+**#256, #253, #255, #254** · reaches **web #34**, **#177**, **#226**
+
+Measured today on 1.40.0, from the reporter's own string:
+
+```
+freeEnd--??1D-GlcNAc,p--??1D-D-gro-D-manHep,p$MONO,Und,0,0,freeEnd
+  -> java.lang.Exception: invalid format for linkage: -gro-D-manHep,p
+     GWSParser.readSubtreeLinkage(GWSParser.java:504)
+```
+
+That is #256 exactly, stack for stack. GlycanBuilder2 wrote that string itself, and GlycanBuilder2
+will not read it back. The cause is the one already written up above and specified in
+`docs/gws-format.md` §1.3: the GWS name class is `[a-zA-z0-9_#=.]+` and `-` is not in it.
+
+Re-counted properly, by reading the dictionaries rather than by hand — the count has been given as 6
+and as 33, and both were wrong:
+
+| offending character | rows | which |
+|---|---|---|
+| `-` | 30 | fifteen `X-gro-Y-zzzHep`, the octoses, `Tri-P` |
+| `( )` | 3 | `(S)Lac`, `(R)Lac`, `(X)Lac` |
+| `-` and `?` | 2 | `?-gro-D-manHep`, `?-gro-D-glcHep` |
+
+**35 of 272 dictionary rows**, and `(S)Lac` fails the same way — `Invalid format for string:
+?1(S)Lac`. One character in one character class accounts for thirty of them.
+
+Three things this cluster turned up that are not in any issue:
+
+- **`KDO` is silently respelled `Kdo`.** The #253 file reads, and comes back as `--5?2Kdo--`. A
+  GlycoWorkbench file changes spelling by being opened and saved. That is #226's drift, caught in the
+  act, and a C1-corpus failure under the specification's own string-comparison rule.
+- **The generic heptose row is commented out.** `residue_types:105` is `%Hep`, and `%` is this
+  file's comment marker. So the only generic heptose is disabled, the fifteen specific ones cannot
+  survive GWS, and `Hept` — the spelling GlycoWorkbench writes — is in no dictionary at all; it is
+  built on the fly by `createUnknown`. Heptose fails in all three directions at once.
+- **#255's own diagnosis is wrong.** It reads "the first Heptose residue becomes a Substituent of the
+  KDO residue". Parsed from the string in #253, *neither* `Hept` is a substituent — both come back
+  `superclass=Unknown, isSubstituent=false`. Whatever makes one look like a substituent happens in
+  placement or drawing. A fix aimed at the parser will miss it. Verify before fixing; this is the
+  second time an issue in this tracker has named the wrong layer.
+
+### C2 — The white pentagon exists, and nothing routes to it
+
+**#248, #250, #251, #252, #254, #258, #260, #261, #262, #263** · reaches **#182**, **#220**
+
+Ten issues, one SNFG rule (note 11), and most of the machinery already in the tree:
+`residue_styles_snfg:27` is `Assigned → pentagon`, and `ResidueType.createAssigned` exists at line
+228. It has one caller in the whole repository.
+
+Three faults underneath the ten:
+
+1. **The dictionary says the wrong superclass.** The thirty heptose and octose rows say `Unknown`,
+   so `residue_styles_snfg:26` — `Unknown → hexagon` — is what they get. #248 and #254 are a
+   dictionary edit, not a renderer change.
+2. **The index is computed twice.** `GlycanRendererAWT.assignID` (line 109) and `displayLegend`
+   (line 131) each walk the structure with their own counter starting at 1 and their own map, a
+   `HashMap` in one and a `TreeMap` in the other. Nothing makes the two agree, which is precisely how
+   a footnote can name a residue 3 that no symbol carries (**#251**). Both hold `int id = 1`, where
+   SNFG asks for a letter A–Z (**#262**).
+3. **Two predicates that should be one.** `displayLegend` decides on
+   `!theResidueStyleDictionary.containsResidue(residue)` — "has no style row" — while
+   `AbstractGlycanRenderer.addLegendMargin` (line 502) reserves the vertical space on
+   `superclass.equals("Assigned")`. A heptose satisfies the first and not the second, so it earns a
+   footnote line and no room for it. That is **#250**'s overlap, with nothing left over to explain.
+
+**#252 has a flat answer**: `Residue.setLegend` has exactly one caller, `GRESToResidue:84`, the WURCS
+importer. A residue added from the GUI has no way to be named. And — unreported — the legend is a
+field on `Residue` that GWS does not carry, so a footnote is lost on save and reopen. Any fix for
+#252 that only stores the name on the residue will look right and lose it on save, which makes #252
+and #261 wait on the GWS work rather than lead it.
+
+### C3 — Skeleton codes the WURCS conversion has no case for
+
+**#265, #266, #261, #236** · reaches **#17**, **#66**
+
+Unknown stereo centres (`a1122xh`, `adxxxxh`, `hxh`), the descriptors `F` and `f`, and `araHex` with
+no stereo to write — one table, both directions, same two methods in the stacks:
+`SkeletonCodeToStereo.checkStereos` on the way in and `ResidueAnalyzer.stereoOfResidue:239` on the
+way out. #236 is the same family seen from the other side: an invalid WURCS loaded without an error.
+Not reproduced here yet; the stacks are the reporters'.
+
+### C4 — A repeat does not survive a round trip
+
+**#267, #268, #269, #270, #271, #264** · reaches **#57**, **#93**
+
+Not five bugs. **#268 is the whole cluster in one line**: the structure was drawn in GlycanBuilder2,
+exported to WURCS by GlycanBuilder2, and GlycanBuilder2 will not read it back. #269 says why that can
+happen quietly — the import is faithful and the *export* was already wrong. #270 gives a cause with a
+line number: `NumberFormatException: For input string: "3/6"`, an alternative linkage inside a
+repeat. #264 draws 3 of 13 residues. #267 is #96's refresh fault returning on a failed import, which
+is a second, separable defect wearing the same clothes. #271 is ours, model-level, and the only one
+reproducible without the GUI: `createRepetition()` returns `true`, drops the terminal residue and
+writes no closing bracket.
+
+### C5 — The clipboard is GWS
+
+**#249, #240, #241, #242, #229, #244, #245** · reaches **#184**, **#187**
+
+`GlycanSelection.getText()` is `GlycanDocument.toString(theStructures)`, and that is what the
+`glycoFlavor` payload carries. **Copy and paste inside the application is a GWS round trip.** So
+#249 — G63532WE copies, and pastes silently into nothing — is not a clipboard defect at all: it is
+C1, seen through the clipboard, because that structure is full of residues whose names GWS cannot
+write back. Fix C1 and #249 goes with it. The rest of the cluster is selection and multi-residue
+editing and is genuinely separate; it should not be scheduled with #249 just because the menu item is
+the same.
+
+### C6 — An unknown ring form, plus an anhydro nobody asked for
+
+**#259, #257, #258**
+
+`_1-?_` imports the ring correctly as `?` *and* adds a `1,? Anhydro`. Three one-residue WURCS strings
+reproduce it, which makes this the cheapest cluster in the list to test and probably to fix. #257 is
+the structure the three were cut out of; #258 rides along here and in C2.
+
+### What this reordering buys
+
+| Do this | and these stop | issues |
+|---|---|---|
+| Widen the reader's name grammar (`docs/gws-format.md` §1.3) | #256, web #34, #249, and 35 dictionary rows | 4 + 35 rows |
+| One index authority, one predicate, letters not numbers | #250, #251, #262 | 3 |
+| Move 30 dictionary rows from `Unknown` to `Assigned` | #248, #254 | 2 |
+| Teach the repeat round trip | #267, #268, #269, #270, #264 | 5 |
+
+Fourteen of the twenty-five new issues, and web #34, sit behind four changes. The first is specified
+already and is the one PR #246 is waiting to land.
+
+## The test data, reconsidered
+
+The corpus built in September answers one question — does a GWS string survive — and the twenty-five
+issues above ask six. It is also organised by **format**, while the defects are organised by
+**cause**, so there is nowhere to put the string from #268. The layout is now:
+
+```
+src/test/resources/
+  README.md                       the three rules below
+  gws/                            unchanged: strings, and the fourteen GlycoWorkbench files
+  wurcs/skeleton-codes.tsv        C3
+  wurcs/repeats.tsv               C4
+  wurcs/ring-and-anhydro.tsv      C6
+  residues/heptose.tsv            C1, with today's measurements
+  residues/assigned-residues.tsv  C2, one row per departure from SNFG note 11
+```
+
+Three rules, each of which this project has already paid for once:
+
+**The input comes from the reporter, not from us.** The composition encoder's tests asked for
+residues *by the encoder's own names* and stayed green through four broken releases. Every row is
+the string as it was reported or as another program wrote it — GlycoWorkbench's `KDO` and `Hept`,
+GlyTouCan's WURCS, the reporter's paste. Where a row *is* our own output it says `origin: ours`,
+because that is the weaker question: can we read ourselves back. #268 is the one case where the
+weaker question is the whole finding.
+
+**Every row carries the verdict it gets today**, in a `today` column — `pass`, or the failure as it
+actually comes out. That is what lets the corpus be committed *before* the fixes: a fix is then
+measured by which rows changed, and a row moving the wrong way is a regression found the same hour.
+#238 is a regression we shipped, and this column is the thing that would have caught it.
+
+**What the dictionaries say is read, never transcribed.** The count of unwritable names has been
+given as 6, then 33, and is 35 — all three hand-counts, the first two wrong. So `residues/` holds no
+list of names: the test walks `conf/residue_types`, `conf/non_symbolic_residue_types` and
+`conf/compositions` and asserts the property, which stays true when somebody adds a row. The same
+applies to the style files — a test that walks them would have found `Hept → heptagon` sitting in
+`residue_styles_cfg` unreachable, since `getStyle` keys on the type *name* and no residue is named
+`Hept`.
+
+Two rows are deliberately **absent**: the WURCS for #17's `AUdxxxxxh` and for G79171HQ on #270. Both
+issues name the case and give no string, and a string written from the title is not a corpus. Fetch
+them and add the rows.
+
+What this still does not cover, and should be said rather than discovered: **C2 is a drawing cluster
+and the corpus above cannot test a drawing.** Ten of its rows describe where a symbol or a number
+is. `RecordingRenderer` in glycanbuilder2web answers that kind of question by counting drawing calls,
+and nothing of the sort exists here — which is the same gap recorded in "The classes where a change
+is invisible". The index and the predicate (#250, #251, #262) *are* testable without a renderer,
+because they are arithmetic over the structure; the symbols are not.
+
 ## What is left
 
-Re-counted 2026-09-11: **47 open**, of which 18 arrived after the last pass. "Nothing is actionable"
-was true on 2026-08-15 and is not true now.
+Re-counted 2026-11-09: **72 open**, of which 25 arrived in the two months since the last pass and
+none were closed.
+
+The twenty-five, by cause rather than by filing — the clusters are described above:
+
+| cluster | how many | which |
+|---|---|---|
+| **C1** a name the writer emits and the reader refuses | 4 | #253, #254, #255, #256 |
+| **C2** Assigned: the pentagon nothing routes to | 10 | #248, #250, #251, #252, #254, #258, #260, #261, #262, #263 |
+| **C3** skeleton codes with no case | 2 | #265, #266 |
+| **C4** a repeat does not survive a round trip | 6 | #264, #267, #268, #269, #270, #271 |
+| **C5** the clipboard is GWS | 1 | #249 (the rest of C5 is older) |
+| **C6** unknown ring, spurious anhydro | 3 | #257, #258, #259 |
+| parents, carrying no work of their own | 3 | #247, #253, #260 |
+
+#254 and #258 appear twice on purpose: each needs both its cluster's fixes, and neither closes until
+both land. #253 is counted under C1 as well as under the parents, because the GlycoWorkbench file it
+carries is the only copy of that string we have.
+
+**The September snapshot, 47 open, kept for the comparison:**
 
 | what | how many | which |
 |---|---|---|
@@ -951,10 +1163,12 @@ was true on 2026-08-15 and is not true now.
 | drawing, P3 | 4 | #6, #20, #58, #91 |
 | structure-model changes, neither small | 3 | #200, #181, #230/#231/#234 |
 
-**The nudges are four weeks overdue.** They were held until Monday 2026-08-17 at the maintainer's
-request — I. Yamada, 2026-08-15 — and the hold has long since expired: the questions on the eleven
-waiting issues went out on 2026-08-14 and 08-15, and it is now 2026-09-11 with no reply on any of
-them. #185 came off that list by being answered; the rest are simply waiting.
+**The nudges are now twelve weeks overdue.** They were held until Monday 2026-08-17 at the
+maintainer's request — I. Yamada, 2026-08-15 — and the hold expired that day. The questions on the
+waiting issues went out on 2026-08-14 and 08-15; it is now 2026-11-09 and eight of them have had no
+reply. #185 came off the list by being answered and **#183 by being closed** (R. Ranzinger,
+2026-08-20); #189 was answered by N. Edwards on 08-25. The rest are simply waiting, and the questions
+themselves are now three months old — whatever is sent should say so rather than pretend otherwise.
 
 **There is an open pull request now.** #227, from N. Edwards, turns the conversion's raw
 `NullPointerException`s and `StringIndexOutOfBounds` into a named exception carrying the element that
@@ -966,9 +1180,17 @@ rule — no named type, no cause, no element.
 
 ## Where this stands, for whoever picks it up next
 
-Re-checked against the tracker on **2026-09-11**. The pass below was written on 2026-08-15 after
+Re-checked against the tracker on **2026-11-09**. The pass below was written on 2026-08-15 after
 1.39.0 and is kept because the reasoning still holds; what changed since is at the top of this file -
-eighteen new issues, one of them a regression of ours, and a pull request nobody has answered.
+forty-three new issues in two waves, one of them a regression of ours, and two pull requests nobody
+has answered.
+
+**Nothing on our side moved between 2026-09-11 and 2026-11-09.** `origin/develop` is still 27848de,
+the newest release is still v1.40.0 (2026-08-15), PR #246 is still open and still `MERGEABLE/CLEAN`,
+#227 is still open since 08-19, and glycanbuilder2web — three releases further on, at 1.14.2 — still
+builds against `glycanbuilder2.version` 1.40.0 with the canvas add-on still vendored, because MR !116
+was never merged either. The clusters above are what two months of reports did to the list; the list
+of what to do about them is unchanged, and unstarted.
 
 **1.39.0 is out**, and is the first release a test gate stood in front of. `origin/develop` and
 `origin/master` both read it — checked against the remote, not the local refs, which is the check 1.35.0
