@@ -1097,13 +1097,15 @@ reducing-end label is too narrow", and that is not the same as one fix reaching 
   and `manOct` record an anomeric carbon of `-`, `L-gro-D-glcOct` a chirality of `/` (and its name,
   synonym and description disagree three ways), and `?-gro-D-manHep` and `?-gro-D-glcHep` begin with
   `?`. All five are rows to correct, and that is a chemistry decision — **they are the one thing in
-  C1 that needs an answer rather than code.**
+  C1 that needs an answer rather than code.** Filed as **#273**, with the question each row raises.
 - **`KDO` → `Kdo` is unchanged**, as expected: a dictionary spelling, not a grammar problem.
 - **Found while testing, and not a regression**: the pre-2007 linkage form `-[1-9N?]` does not load,
   and did not on 1.40.0 either. The grammar splits it correctly and `LinkageTypeOptimizer.start` then
-  throws an NPE on a linkage with no parent, so `fromString` returns null. Measured against the
-  unmodified 1.40.0 jar before concluding it was pre-existing. The specification requires every
-  `.gws` ever written to read, so this is a defect of its own and wants an issue.
+  throws an NPE on a linkage with no parent, so `fromString` returns null and **the file opens as
+  empty with no error**. Measured against the unmodified 1.40.0 jar before concluding it was
+  pre-existing. §1.7 requires every `.gws` ever written to read, and §1.3's name grammar was narrowed
+  specifically to keep this form working — so the restriction is being paid for by a path that throws.
+  Filed as **#274**.
 - The test asks the dictionaries rather than a list, and asserts the **exact** set of five, so neither
   a sixth appearing nor one of the five being fixed can pass unnoticed.
 
@@ -1160,7 +1162,9 @@ because they are arithmetic over the structure; the symbols are not.
 ## What is left
 
 Re-counted 2026-11-09: **72 open**, of which 25 arrived in the two months since the last pass and
-none were closed.
+none were closed. Two more were filed the same day out of the C1 work — **#273** (five dictionary rows
+that contradict themselves, a chemistry decision) and **#274** (a file using the pre-2007 linkage form
+opens as empty with no error) — which makes 74, and #256 closes with PR #272.
 
 The twenty-five, by cause rather than by filing — the clusters are described above:
 

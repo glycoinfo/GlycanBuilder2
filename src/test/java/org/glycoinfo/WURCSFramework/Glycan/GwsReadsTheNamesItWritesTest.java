@@ -120,9 +120,9 @@ public class GwsReadsTheNamesItWritesTest {
 	 * </ul>
 	 *
 	 * <p>All five are data to correct rather than code, and correcting them is a chemistry call, so
-	 * they are recorded here and raised rather than quietly edited. This assertion is on the exact
-	 * set: a sixth name appearing fails the test, and a name leaving it fails it too, so neither can
-	 * pass unnoticed.
+	 * they are recorded here and raised rather than quietly edited — <strong>#273</strong>. This
+	 * assertion is on the exact set: a sixth name appearing fails the test, and a name leaving it
+	 * fails it too, so neither can pass unnoticed.
 	 */
 	private static final List<String> KNOWN_BAD_ROWS = java.util.Arrays.asList(
 			"?-gro-D-glcHep", "?-gro-D-manHep", "L-gro-D-glcOct", "araOct", "manOct");
@@ -196,12 +196,13 @@ public class GwsReadsTheNamesItWritesTest {
 	 *
 	 * <p>Measured on 1.40.0 before the grammar was widened: the tree above is built, and then
 	 * {@code LinkageTypeOptimizer.start} throws a {@code NullPointerException} on a linkage with no
-	 * parent, so {@code fromString} hands back null. Recorded here rather than left to be rediscovered
-	 * — a row that goes from fail to pass is the evidence the defect is fixed.
+	 * parent, so {@code fromString} hands back null — <strong>#274</strong>. Recorded here rather than
+	 * left to be rediscovered: when that is fixed this test fails, which is the signal to delete it
+	 * and close the issue.
 	 */
 	@Test
 	public void andStillDoesNotLoad() throws Exception {
-		assertNull("the pre-2007 linkage form loads now - delete this test and close the issue",
+		assertNull("the pre-2007 linkage form loads now - delete this test and close #274",
 				Glycan.fromString("freeEnd-1b1D-GlcNAc,p$MONO,Und,0,0,freeEnd"));
 	}
 

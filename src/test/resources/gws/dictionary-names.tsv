@@ -8,7 +8,7 @@
 #
 # Widening the reader's name class (docs/gws-format.md 1.3) took it from 35 to the 5 below, and not
 # one of the 5 is a grammar problem. Each is a row in conf/non_symbolic_residue_types that no reader
-# can be written to accommodate, and each needs a chemistry decision rather than code.
+# can be written to accommodate, and each needs a chemistry decision rather than code: issue #273.
 #
 # name	bad column	what the row says	what the writer emits	what it needs
 araOct	anomeric carbon	-	freeEnd--??-araOct,p$MONO,Und,0,0,freeEnd	a position, or ? for unknown, in place of the dash

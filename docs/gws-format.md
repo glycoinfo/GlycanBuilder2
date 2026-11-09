@@ -214,7 +214,7 @@ reader can be written to accommodate them — each is a row that contradicts its
 - `?-gro-D-manHep` and `?-gro-D-glcHep` *begin* with `?`, which marks an unknown position everywhere
   else in the format.
 
-All five are data to correct, and correcting them is a chemistry decision.
+All five are data to correct, and correcting them is a chemistry decision — **#273**.
 `GwsReadsTheNamesItWritesTest` asserts the exact set, so a sixth cannot appear unnoticed and these
 five cannot be forgotten.
 
@@ -427,7 +427,7 @@ Three things make textual identity achievable rather than aspirational, all meas
 
 | requirement | status | what fixes it |
 |---|---|---|
-| read every `.gws` ever written | **met for the names** as of 2026-11-09 — 30 of the 35 unreadable names fixed by §1.3, reader only; the remaining five are self-contradicting dictionary rows, not grammar (§1.3.1). **Not met** for the pre-2007 linkage form `-[1-9N?]`: the grammar splits it and the structure build then throws, so the file does not load | correcting five dictionary rows; and the old-style linkage, which is a defect of its own |
+| read every `.gws` ever written | **met for the names** as of 2026-11-09 — 30 of the 35 unreadable names fixed by §1.3, reader only; the remaining five are self-contradicting dictionary rows, not grammar (§1.3.1, #273). **Not met** for the pre-2007 linkage form `-[1-9N?]`: the grammar splits it and the structure build then throws, so the file opens as empty with no error (#274) | #273, five dictionary rows; #274, the old-style linkage path |
 | read and write the identical string | **not met** — the `$` section is normalised on write | §1.6's reproduction rule |
 | a label may carry any character | **not met** — `/`, `,`, space refused; `$` empties the structure with no error; `=` truncates the label and throws on the mass | the escape in §1.3.1 |
 | destroy nothing it does not interpret | **not met** — tail fields past the fifth are dropped | §1.6.1 |
