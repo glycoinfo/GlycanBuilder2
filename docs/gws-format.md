@@ -315,6 +315,11 @@ linkage := "--" ( additional "," )* glycosidic
 glycosidic := ( [1-9N?] "/" )* [1-9N?] ( "=" [1-9N?] )?
 ```
 
+**The pre-2007 form means exactly what the same position written with `--` means.** *(Required, and
+measured since 2026-11-09.)* `freeEnd-1b1D-GlcNAc,p` is `freeEnd--1b1D-GlcNAc,p`. A writer never emits
+it. Until #274 it was accepted by the grammar and then failed to load, so a file in this form opened as
+empty with no error.
+
 `--4b1D-Gal,p` is a bond at position 4. `--3=2,6/4b1D-Glc,p` carries an additional bond and an
 ambiguous position set. The one-dash form is read and never written. *(Read.)*
 
@@ -429,7 +434,7 @@ Three things make textual identity achievable rather than aspirational, all meas
 
 | requirement | status | what fixes it |
 |---|---|---|
-| read every `.gws` ever written | **met for the names** as of 2026-11-09 — 30 of the 35 unreadable names fixed by §1.3, reader only; the remaining five are self-contradicting dictionary rows, not grammar (§1.3.1, #273). **Not met** for the pre-2007 linkage form `-[1-9N?]`: the grammar splits it and the structure build then throws, so the file opens as empty with no error (#274) | #273, five dictionary rows; #274, the old-style linkage path |
+| read every `.gws` ever written | **met for the names** as of 2026-11-09 — 30 of the 35 unreadable names fixed by §1.3, reader only; the remaining five are self-contradicting dictionary rows, not grammar (§1.3.1, #273). **Met for the pre-2007 linkage form** `-[1-9N?]` as of 2026-11-09: it loads as the same structure as its `--` equivalent (#274, §1.4) | #273, five dictionary rows |
 | read and write the identical string | **not met** — the `$` section is normalised on write | §1.6's reproduction rule |
 | a label may carry any character | **not met** — `/`, `,`, space refused; `$` empties the structure with no error; `=` truncates the label and throws on the mass | the escape in §1.3.1 |
 | destroy nothing it does not interpret | **not met** — tail fields past the fifth are dropped | §1.6.1 |

@@ -519,13 +519,21 @@ public class GWSParser implements GlycanParser {
 			throw new Exception("invalid format for linkage: " + str);
 
 		if( m.group(1)!=null ) {
-			// old style
+			// old style: "-4" where a file written today says "--4". Read so that files from before the
+			// double dash still open, which the name grammar above goes out of its way to protect.
 
 			// parse child
 			Residue child = readSubtree(str.substring(m.end()),false,startRep);
 
-			// create linkage
-			return new Linkage(null,child,m.group(1).charAt(0));
+			// create linkage, and tell the child about it. The modern branch below always did the
+			// second half and this one never did, so the child came back with no parent linkage and
+			// the first thing to ask for it - LinkageTypeOptimizer, on every load - threw a
+			// NullPointerException that fromString swallowed. The file opened as empty, with no
+			// message (#274).
+			Linkage ret = new Linkage(null,child,m.group(1).charAt(0));
+			child.setParentLinkage(ret);
+
+			return ret;
 		}
 
 		// parse bonds
