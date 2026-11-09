@@ -11,9 +11,9 @@
 248	unknown residue is a pentagon with a letter	a hexagon with a number	residue_styles_snfg:26 Unknown -> hexagon is reached because the dictionary rows say superclass Unknown
 254	heptose is an Assigned pentagon with an index	an empty Unknown hexagon	the thirty heptose and octose rows say superclass Unknown; moving them to Assigned is a dictionary edit
 258	a 6-deoxy with no SNFG triangle is an Assigned pentagon	a symbol carrying a 6m substituent	the WURCS importer builds a decorated residue rather than an Assigned one
-262	the index is a letter A..Z	the index is an int starting at 1	GlycanRendererAWT.assignID:111 and displayLegend:143 both hold "int id = 1"
-251	the symbol's index and the footnote's index are the same index	they are computed twice, independently	assignID:110 keeps a HashMap keyed by legend, displayLegend:142 keeps its own TreeMap and its own counter; nothing makes the two agree, which is how a footnote can name a residue 3 that no symbol carries
-250	the footnote has room under the structure	it is drawn over the mass text	displayLegend gates on !theResidueStyleDictionary.containsResidue(residue) - "has no style row" - while AbstractGlycanRenderer.addLegendMargin:502 reserves the space on superclass.equals("Assigned"). The two predicates disagree, so a heptose earns a line and no room for it
+262	the index is a letter A..Z	FIXED 2026-11-09 - was an int starting at 1	GlycanRendererAWT.assignID:111 and displayLegend:143 both hold "int id = 1"
+251	the symbol carries its index	FIXED 2026-11-09 - a furanose with no symbol drew "f" where its index belonged	ResidueRendererAWT replaced the symbol's text with the SNFG ring/configuration markers, so the index 3 set on it was overwritten by "f". Measured on G63532WE. NOT, as this row first said, two counters disagreeing: assignID and displayLegend walked the same list in the same order with the same predicate and gave the same numbers. That was read from the code, not measured, and the reporter's own guess - that the f overwrote the 3 - was right
+250	the footnote has room under the structure	it is drawn over the mass text	displayLegend gates on !theResidueStyleDictionary.containsResidue(residue) - "has no style row" - while AbstractGlycanRenderer.addLegendMargin:502 reserves the space on superclass.equals("Assigned"). The two predicates disagree, so a heptose earns a line and no room for it. FIXED 2026-11-09, and the diagnosis was half of it: even with matching predicates the margin only made the image taller - the legend and the mass were both drawn from the structure's bottom edge, so they overlapped regardless. Now one SNFGFootnote is measured for the layout and drawn from, and the mass goes below it
 263	modifications are named in the footnote	they are drawn on the symbol as 2d and 3Me	same importer path as #258
 252	a residue added by hand can be named	it cannot	Residue.setLegend has exactly one caller in the tree, GRESToResidue:84, which is the WURCS importer
 261	an Assigned residue can be written back out	WURCSExchangeException: araHex has no stereo recorded for it	ResidueAnalyzer.stereoOfResidue:239; ResidueToBackbone:78 already special-cases the name "Assigned" and this residue is not called that
@@ -24,6 +24,6 @@
 # to work and will lose the name on save.
 #
 # The order these want to be taken in: one index authority and one predicate first (#250, #251, #262
-# together, in GlycanRendererAWT), then the dictionary superclass edit (#248, #254), then the importer
+# together - done 2026-11-09, and #251 turned out to be in ResidueRendererAWT, not GlycanRendererAWT), then the dictionary superclass edit (#248, #254), then the importer
 # (#258, #263), then #252 and #261, which need the legend to be serialisable and so wait on the GWS
 # work.

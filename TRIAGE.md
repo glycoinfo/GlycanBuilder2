@@ -1019,6 +1019,24 @@ Three faults underneath the ten:
    `superclass.equals("Assigned")`. A heptose satisfies the first and not the second, so it earns a
    footnote line and no room for it. That is **#250**'s overlap, with nothing left over to explain.
 
+**#250, #251 and #262 fixed on 2026-11-09, and two of the three diagnoses above were wrong or
+incomplete.** They were read from the code, not measured, and the measurement disagreed:
+
+- **#251 is not point 2.** Rendered from G63532WE's own WURCS, `assignID` and `displayLegend` gave the
+  same numbers. They walk the same list in the same order with the same predicate, so in practice
+  they cannot disagree. The furanose was given index 3 correctly, and then
+  `ResidueRendererAWT` replaced the symbol's text with the SNFG ring marker, "f". **The reporter's own
+  guess was right and this file's was wrong.** The fix lets a lettered residue keep its letter; its
+  ring is already in the footnote's name, `β-D-Altf`.
+- **#250 was half of point 3.** The mismatched predicates were real, but even matching ones would not
+  have helped: the margin only made the image taller, while the legend and the mass were both drawn
+  from the structure's bottom edge. They overlapped regardless. One `SNFGFootnote` is now measured
+  for the layout and drawn from, and the mass is drawn below it.
+- **#262** was as described. Letters now, continuing AA, AB past Z rather than failing.
+
+The lesson is the one at the top of this file, learned again: *a verified claim outranks a plausible
+one*. Point 2 was plausible, specific, and cited line numbers, which is what made it convincing.
+
 **#252 has a flat answer**: `Residue.setLegend` has exactly one caller, `GRESToResidue:84`, the WURCS
 importer. A residue added from the GUI has no way to be named. And — unreported — the legend is a
 field on `Residue` that GWS does not carry, so a footnote is lost on save and reopen. Any fix for
@@ -1129,6 +1147,16 @@ is. `RecordingRenderer` in glycanbuilder2web answers that kind of question by co
 and nothing of the sort exists here — which is the same gap recorded in "The classes where a change
 is invisible". The index and the predicate (#250, #251, #262) *are* testable without a renderer,
 because they are arithmetic over the structure; the symbols are not.
+
+**Superseded 2026-11-09: a drawing can be tested here, and cheaply.** `SnfgFootnoteTest` subclasses
+Batik's `SVGGraphics2D`, which is already on the classpath for SVG export, and overrides `drawString`
+to record what was drawn and where. The real renderer paints into it, with the same
+`computeBoundingBoxes` then `paint` sequence every export uses. That is how #251 was found to be
+something other than this file had said: the recording showed "f" where the index belonged. As
+written it records text and its position only. Overriding `draw` and `fill` the same way would record
+shapes too, which would reach #248's hexagon-for-pentagon. Every footnote, letter, label and mass
+question in C2 can be asserted on now. An exported SVG cannot be used
+for this, because Batik writes text as outlines and leaves no strings to search.
 
 ## What is left
 
