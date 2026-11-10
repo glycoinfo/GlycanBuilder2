@@ -65,10 +65,9 @@ public class UnknownStereocentresAreReadTest {
 	}
 
 	/**
-	 * The reported structures open, every residue a monosaccharide - bridges aside: the spurious
-	 * anhydro below is one. They are not yet written back
-	 * unchanged: their Kdo has an unknown ring, {@code Aad1122h-2x_2-?}, and gains a second, spurious
-	 * {@code _2-?} on the way - #259, a fault of its own.
+	 * The reported structures open, every residue a monosaccharide - bridges aside - and are written
+	 * back unchanged, weighing what WURCSFramework says. Their Kdo has an unknown ring,
+	 * {@code Aad1122h-2x_2-?}, which needed #259's fix as well.
 	 */
 	@Test
 	public void theReportedStructuresOpen() throws Exception {
@@ -83,9 +82,14 @@ public class UnknownStereocentresAreReadTest {
 			int sugars = 0;
 			for (Residue r : read.getAllResidues()) {
 				if (r.isSaccharide() && !r.isBridge()) sugars++;
-				else if (!r.isReducingEnd() && !"Substituent".equals(r.getType().getSuperclass())) notSugars.add(r.getTypeName());
+				else if (!r.isReducingEnd() && !r.isBridge() && !"Substituent".equals(r.getType().getSuperclass())) notSugars.add(r.getTypeName());
 			}
 			assertEquals(one[0] + " " + notSugars, Integer.parseInt(one[2]), sugars);
+			// G07957FT's phosphoethanolamine is written *OPOCCN, without its ^X - the spelling the MAP
+			// dictionary writes, and the one WURCSFramework's validator calls the normal form of it
+			String expected = new WURCSFactory(one[1].replace("*OP^XOCCN", "*OPOCCN")).getWURCS();
+			assertEquals(one[0], expected, new WURCS2Parser().writeGlycan(read));
+			assertEquals(one[0], wurcsMass(one[1]), underivatized(read).computeMass(), 1e-3);
 		}
 	}
 
