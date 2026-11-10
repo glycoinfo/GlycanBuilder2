@@ -106,8 +106,17 @@ Examples: `?b1D-GalNAc,p` · `freeEnd` · `--3S` (a sulfate at 3) · `?b1D-GlcNA
 **A name is:** *(Required.)*
 
 ```
-name := ( [A-Za-z0-9_#=.] | "-" (?! "-" | [0-9]) | "(" [A-Za-z0-9] ")" )+
+name := ( [A-Za-z0-9_#=.] | "-" (?! "-" | [1-9N?]) | "(" [A-Za-z0-9] ")" )+
 ```
+
+*(Implemented 2026-11-09 in `GWSParser`. The exclusion after `-` is `[-1-9N?]`, not `[-0-9]` as this
+clause first said: the pre-2007 linkage form is `-[1-9N?]`, so `N` and `?` must be excluded too or a
+name swallows an old-style linkage. Measured: no name in either dictionary has a `-` followed by a
+digit, `N` or `?`, so the exclusion costs nothing. The implementation also keeps the historical
+`a-zA-z` span rather than narrowing it to `A-Za-z` — see "Why the historical class is not the
+specification" — because narrowing would stop files reading that read today, which is the one thing
+this format may not do. A reader admitting more than this clause requires is conforming; one
+admitting less is not.)*
 
 Wider than the class any implementation uses today, and wider deliberately: this is what makes
 **every `.gws` ever written** readable. Two additions over the historical class, each carrying names
@@ -173,15 +182,43 @@ reopening:
 | `%` | **no** | not in the class — so percent-encoding is unavailable |
 | `$` | **no**, and silently | taken as the mass-options separator |
 
-**Six of the 134 residue types in `conf/residue_types` have names this grammar cannot write**:
-`L-gro-D-manHep`, `D-gro-D-manHep`, `Tri-P`, `(S)Lac`, `(R)Lac`, `(X)Lac`. Drawing any of them,
-saving, and reopening loses the file. *(Measured: `WURCS=2.0/1,1,0/[a21122h-1a_1-5]/1/` writes
-`freeEnd--1a1D-D-gro-D-galHep,p$…` and reads back as `invalid format for linkage:
--gro-D-galHep,p`.)*
+**Thirty-five rows across the three dictionaries had names this grammar could not write.** *(Read
+from `conf/residue_types`, `conf/non_symbolic_residue_types` and `conf/compositions`, 272 rows, on
+2026-11-09. Stated here as six, and elsewhere as 33, before it was measured rather than counted by
+hand; the first count had scanned only `residue_types`.)*
 
-This is not a fault in the grammar so much as one nobody guarded: the first dictionary had 81 residue
-types and **every one fitted the class**. The six arrived later. *(Measured against the 2007
+| offending character | rows | which |
+|---|---|---|
+| `-` | 30 | the heptoses, the octoses, `Tri-P` |
+| `( )` | 3 | `(S)Lac`, `(R)Lac`, `(X)Lac` |
+| `-` and `?` | 2 | `?-gro-D-manHep`, `?-gro-D-glcHep` |
+
+Drawing any of them, saving, and reopening lost the file. *(Measured:
+`WURCS=2.0/1,1,0/[a21122h-1a_1-5]/1/` writes `freeEnd--1a1D-D-gro-D-galHep,p$…` and read back as
+`invalid format for linkage: -gro-D-galHep,p`.)* That is #256, reported by a user who had drawn a
+heptose.
+
+This was not a fault in the grammar so much as one nobody guarded: the first dictionary had 81
+residue types and **every one fitted the class**. The rest arrived later. *(Measured against the 2007
 dictionary.)*
+
+**Resolved 2026-11-09 for 30 of the 35**, by the widening in §1.3 and with no writer change, so the
+round trip closes on the identical string. The five that remain are **not grammar problems** and no
+reader can be written to accommodate them — each is a row that contradicts itself:
+
+- `araOct` and `manOct` record their anomeric carbon as `-`, where a position or `?` belongs, so the
+  writer emits `freeEnd--??-manOct,p` with a dash standing where the carbon should be.
+- `L-gro-D-glcOct` records its chirality as `/`, which the writer emits as `/-` and a reader must take
+  as the start of a cleavage. The row disagrees with itself three ways: the name says `L-gro-D`, the
+  `iupac_name` column `D-gro-D-glcOct`, the description `D-glycero-L-glcoOctose`. *(The `iupac_name`
+  column is field 5, per `ResidueType(String)`; stated here as the synonym column, which is field 4
+  and holds `-`, until the columns were counted against the parser.)*
+- `?-gro-D-manHep` and `?-gro-D-glcHep` *begin* with `?`, which marks an unknown position everywhere
+  else in the format.
+
+All five are data to correct, and correcting them is a chemistry decision — **#273**.
+`GwsReadsTheNamesItWritesTest` asserts the exact set, so a sixth cannot appear unnoticed and these
+five cannot be forgotten.
 
 An escape using only characters the class already accepts — `_` plus hex digits, so `/` becomes
 `_2F_` — round-trips today on an unmodified parser, and older readers show the escaped form rather
@@ -392,7 +429,7 @@ Three things make textual identity achievable rather than aspirational, all meas
 
 | requirement | status | what fixes it |
 |---|---|---|
-| read every `.gws` ever written | **not met** — 32 dictionary names can be written and not read | the two additions in §1.3, reader only |
+| read every `.gws` ever written | **met for the names** as of 2026-11-09 — 30 of the 35 unreadable names fixed by §1.3, reader only; the remaining five are self-contradicting dictionary rows, not grammar (§1.3.1, #273). **Not met** for the pre-2007 linkage form `-[1-9N?]`: the grammar splits it and the structure build then throws, so the file opens as empty with no error (#274) | #273, five dictionary rows; #274, the old-style linkage path |
 | read and write the identical string | **not met** — the `$` section is normalised on write | §1.6's reproduction rule |
 | a label may carry any character | **not met** — `/`, `,`, space refused; `$` empties the structure with no error; `=` truncates the label and throws on the mass | the escape in §1.3.1 |
 | destroy nothing it does not interpret | **not met** — tail fields past the fifth are dropped | §1.6.1 |
@@ -414,7 +451,7 @@ makes "core" a line somebody can test against rather than a matter of taste.
 Note that core and extended are **not** ordered by which is better. Core has the wider *name* - it
 has to, to read every file ever written - while extended has the wider *structure* syntax. An
 extended reader is not automatically a core reader: GlycanCore refuses `D-gro-D-galHep` and `(S)Lac`
-exactly as this project does *(measured)*.
+*(measured)* — as this project did until 2026-11-09, and no longer does.
 
 ## 2.1 Corrections to the core
 

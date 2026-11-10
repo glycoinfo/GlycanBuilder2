@@ -967,6 +967,8 @@ freeEnd--??1D-GlcNAc,p--??1D-D-gro-D-manHep,p$MONO,Und,0,0,freeEnd
 That is #256 exactly, stack for stack. GlycanBuilder2 wrote that string itself, and GlycanBuilder2
 will not read it back. The cause is the one already written up above and specified in
 `docs/gws-format.md` §1.3: the GWS name class is `[a-zA-z0-9_#=.]+` and `-` is not in it.
+**Fixed 2026-11-09** — see "What the implementation actually did" below; the measurements in this
+section are the ones taken before the fix and are kept as the before.
 
 Re-counted properly, by reading the dictionaries rather than by hand — the count has been given as 6
 and as 33, and both were wrong:
@@ -1072,13 +1074,62 @@ the structure the three were cut out of; #258 rides along here and in C2.
 
 | Do this | and these stop | issues |
 |---|---|---|
-| Widen the reader's name grammar (`docs/gws-format.md` §1.3) | #256, web #34, #249, and 35 dictionary rows | 4 + 35 rows |
+| ~~Widen the reader's name grammar (`docs/gws-format.md` §1.3)~~ **done 2026-11-09** | #256, #249's cause, and 30 of the 35 dictionary rows | 2 + 30 rows |
 | One index authority, one predicate, letters not numbers | #250, #251, #262 | 3 |
 | Move 30 dictionary rows from `Unknown` to `Assigned` | #248, #254 | 2 |
 | Teach the repeat round trip | #267, #268, #269, #270, #264 | 5 |
 
-Fourteen of the twenty-five new issues, and web #34, sit behind four changes. The first is specified
-already and is the one PR #246 is waiting to land.
+Twelve of the twenty-five new issues sit behind these four changes.
+
+**A correction to the row above, made while implementing it.** It said the widening would also fix
+glycanbuilder2web#34. **It does not.** That issue is about `/` in an aglycon label, and `/` opens a
+cleavage; the widening admits `-` and a parenthesised character, nothing else. web#34 needs the
+escape of §1.3.1, which is still unimplemented. The two were put in one row because both are "the
+reducing-end label is too narrow", and that is not the same as one fix reaching both.
+
+### What the implementation actually did, measured
+
+`GWSParser`'s name class, reader only, no writer change. The suite went 226 → 233 tests, all passing.
+
+- **35 unreadable dictionary names → 5.** #256's own string now reads and comes back byte-identical,
+  as do `(S)Lac` and `Tri-P`.
+- **The five that remain are not grammar at all**, which was not known before the change: `araOct`
+  and `manOct` record an anomeric carbon of `-`, `L-gro-D-glcOct` a chirality of `/` (and its name,
+  `iupac_name` and description disagree three ways), and `?-gro-D-manHep` and `?-gro-D-glcHep` begin with
+  `?`. All five are rows to correct, and that is a chemistry decision — **they are the one thing in
+  C1 that needs an answer rather than code.** Filed as **#273**, with the question each row raises.
+- **`KDO` → `Kdo` is unchanged**, as expected: a dictionary spelling, not a grammar problem.
+- **Found while testing, and not a regression**: the pre-2007 linkage form `-[1-9N?]` does not load,
+  and did not on 1.40.0 either. The grammar splits it correctly and `LinkageTypeOptimizer.start` then
+  throws an NPE on a linkage with no parent, so `fromString` returns null and **the file opens as
+  empty with no error**. Measured against the unmodified 1.40.0 jar before concluding it was
+  pre-existing. §1.7 requires every `.gws` ever written to read, and §1.3's name grammar was narrowed
+  specifically to keep this form working — so the restriction is being paid for by a path that throws.
+  Filed as **#274**.
+- The test asks the dictionaries rather than a list, and asserts the **exact** set of five, so neither
+  a sixth appearing nor one of the five being fixed can pass unnoticed.
+
+**Three things learned afterwards, answering a question about #273.**
+
+- **The five are the set that cannot be *read*, not the set that is *wrong*.** Three more rows
+  contradict themselves and are invisible to the round-trip test because their names happen to be
+  readable: `D-gro-D-altHep` is described as `D-glycero-D-TaloHeptose` — **a different sugar** — and
+  `D-gro-D-galOct` and `D-gro-D-talOct` are named `D-` and described `L-`. Eight wrong rows, five
+  unreadable ones, and the two sets only partly overlap.
+- **A column was named wrong here and on #273.** The column that disagrees with `L-gro-D-glcOct`'s
+  own name is `iupac_name`, field 5, not the synonym column, which is field 4 and holds `-`. Counted
+  against `ResidueType(String)` rather than by eye, which is how it should have been done the first
+  time.
+- **The grammar fix made these residues saveable, not usable.** Of the 23 heptose and octose rows,
+  **21 export to WURCS as an empty string** — only `D-gro-D-manHep` and `L-gro-D-manHep` write, and
+  they are the only two with stereo recorded in `NativeMonosaccharideDictionary`. For the rest,
+  `ResidueAnalyzer.stereoOfResidue:239` throws *"has no stereo recorded for it"* — #261's exact
+  message — and it is logged and swallowed, so `writeGlycan` returns `""`. Same shape as #220. Filed
+  separately.
+
+One more thing worth carrying: **`TextUtils.tokenize` drops empty tokens**, so the dictionary format
+cannot express an empty field and a stray second tab shifts every later column silently. It is why
+`residue_types`' physically-26-field rows parse as 24 tokens and pass the parser's own length check.
 
 ## The test data, reconsidered
 
@@ -1133,7 +1184,9 @@ because they are arithmetic over the structure; the symbols are not.
 ## What is left
 
 Re-counted 2026-11-09: **72 open**, of which 25 arrived in the two months since the last pass and
-none were closed.
+none were closed. Two more were filed the same day out of the C1 work — **#273** (five dictionary rows
+that contradict themselves, a chemistry decision) and **#274** (a file using the pre-2007 linkage form
+opens as empty with no error) — which makes 74, and #256 closes with PR #272.
 
 The twenty-five, by cause rather than by filing — the clusters are described above:
 

@@ -1,34 +1,18 @@
-# name	dictionary class	status on 1.40.0	GWS as GlycanBuilder2 writes it
-L-gro-D-manHep	Unknown	読めない	freeEnd--??1L-L-gro-D-manHep,p$MONO,Und,0,0,freeEnd
-D-gro-D-manHep	Unknown	読めない	freeEnd--??1D-D-gro-D-manHep,p$MONO,Und,0,0,freeEnd
-Tri-P	Substituent	読めない	freeEnd--??1Tri-P$MONO,Und,0,0,freeEnd
-(S)Lac	Substituent	読めない	freeEnd--??1(S)Lac$MONO,Und,0,0,freeEnd
-(R)Lac	Substituent	読めない	freeEnd--??1(R)Lac$MONO,Und,0,0,freeEnd
-(X)Lac	Substituent	読めない	freeEnd--??1(X)Lac$MONO,Und,0,0,freeEnd
-L-gro-D-manNon	Nonulosonate	読めない	freeEnd--??2L-gro-D-manNon,p$MONO,Und,0,0,freeEnd
-D-gro-D-galHep	Unknown	読めない	freeEnd--??1D-gro-D-galHep,p$MONO,Und,0,0,freeEnd
-L-gro-D-galHep	Unknown	読めない	freeEnd--??1L-gro-D-galHep,p$MONO,Und,0,0,freeEnd
-D-gro-D-altHep	Unknown	読めない	freeEnd--??1D-gro-D-altHep,p$MONO,Und,0,0,freeEnd
-D-gro-L-altNon	Nonulosonate	読めない	freeEnd--??2D-gro-L-altNon,p$MONO,Und,0,0,freeEnd
-D-gro-D-manNon	Nonulosonate	読めない	freeEnd--??2D-gro-D-manNon,p$MONO,Und,0,0,freeEnd
-D-gro-L-manNon	Nonulosonate	読めない	freeEnd--??2D-gro-L-manNon,p$MONO,Und,0,0,freeEnd
-D-ery-L-glcDEC	Assigned	読めない	freeEnd--??2D-ery-L-glcDEC,p$MONO,Und,0,0,freeEnd
-D-ery-D-glcDEC	Assigned	読めない	freeEnd--??2D-ery-D-glcDEC,p$MONO,Und,0,0,freeEnd
-D-gro-D-talNon	Nonulosonate	読めない	freeEnd--??2D-gro-D-talNon,p$MONO,Und,0,0,freeEnd
-D-gro-D-galOct	Assigned	読めない	freeEnd--??2D-gro-D-galOct,p$MONO,Und,0,0,freeEnd
-?-gro-D-glcHep	Unknown	読めない	freeEnd--??1?-gro-D-glcHep,p$MONO,Und,0,0,freeEnd
-L-gro-D-galNon	Nonulosonate	読めない	freeEnd--??2L-gro-D-galNon,p$MONO,Und,0,0,freeEnd
-L-gro-D-glcOct	Assigned	読めない	freeEnd--??2/-L-gro-D-glcOct,p$MONO,Und,0,0,freeEnd
-L-gro-L-manHep	Unknown	読めない	freeEnd--??1L-gro-L-manHep,p$MONO,Und,0,0,freeEnd
-D-gro-L-manHep	Unknown	読めない	freeEnd--??1D-gro-L-manHep,p$MONO,Und,0,0,freeEnd
-D-gro-L-galNon	Nonulosonate	読めない	freeEnd--??2D-gro-L-galNon,p$MONO,Und,0,0,freeEnd
-L-gro-D-talNon	Nonulosonate	読めない	freeEnd--??2L-gro-D-talNon,p$MONO,Und,0,0,freeEnd
-L-gro-D-glcHep	Unknown	読めない	freeEnd--??1L-gro-D-glcHep,p$MONO,Und,0,0,freeEnd
-L-gro-L-glcNon	Nonulosonate	読めない	freeEnd--??2L-gro-L-glcNon,p$MONO,Und,0,0,freeEnd
-?-gro-D-manHep	Unknown	読めない	freeEnd--??1?-gro-D-manHep,p$MONO,Und,0,0,freeEnd
-L-gro-L-altNon	Nonulosonate	読めない	freeEnd--??2L-gro-L-altNon,p$MONO,Und,0,0,freeEnd
-L-gro-D-idoHep	Unknown	読めない	freeEnd--??1L-gro-D-idoHep,p$MONO,Und,0,0,freeEnd
-L-gro-L-manNon	Nonulosonate	読めない	freeEnd--??2L-gro-L-manNon,p$MONO,Und,0,0,freeEnd
-D-gro-D-talOct	Assigned	読めない	freeEnd--??2D-gro-D-talOct,p$MONO,Und,0,0,freeEnd
-D-gro-D-glcHep	Unknown	読めない	freeEnd--??1D-gro-D-glcHep,p$MONO,Und,0,0,freeEnd
-D-gro-L-glcHep	Unknown	読めない	freeEnd--??1D-gro-L-glcHep,p$MONO,Und,0,0,freeEnd
+# Residue names the GWS writer emits and the reader could not read back.
+#
+# This file used to list 33 names by hand. It is now five rows, because the property is checked
+# rather than transcribed: GwsReadsTheNamesItWritesTest walks conf/residue_types and
+# conf/non_symbolic_residue_types, writes each residue with the writer, reads it back and compares.
+# A hand list was wrong twice - the count was given as 6, then 33, and is 35 - and a list cannot stay
+# true when somebody adds a row. See ../README.md, rule 3.
+#
+# Widening the reader's name class (docs/gws-format.md 1.3) took it from 35 to the 5 below, and not
+# one of the 5 is a grammar problem. Each is a row in conf/non_symbolic_residue_types that no reader
+# can be written to accommodate, and each needs a chemistry decision rather than code: issue #273.
+#
+# name	bad column	what the row says	what the writer emits	what it needs
+araOct	anomeric carbon	-	freeEnd--??-araOct,p$MONO,Und,0,0,freeEnd	a position, or ? for unknown, in place of the dash
+manOct	anomeric carbon	-	freeEnd--??-manOct,p$MONO,Und,0,0,freeEnd	a position, or ? for unknown, in place of the dash
+L-gro-D-glcOct	chirality	/	freeEnd--??2/-L-gro-D-glcOct,p$MONO,Und,0,0,freeEnd	D, L or ?. The row also disagrees with itself: name L-gro-D, iupac_name (field 5) D-gro-D-glcOct, description D-glycero-L-glcoOctose
+?-gro-D-manHep	name	begins with ?	freeEnd--??1?-gro-D-manHep,p$MONO,Und,0,0,freeEnd	a name that does not open with ?, which marks an unknown position everywhere else in the format - or the escape of 1.3.1
+?-gro-D-glcHep	name	begins with ?	freeEnd--??1?-gro-D-glcHep,p$MONO,Und,0,0,freeEnd	as above
