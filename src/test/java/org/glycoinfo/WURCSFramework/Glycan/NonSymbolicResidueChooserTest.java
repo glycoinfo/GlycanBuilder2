@@ -30,7 +30,7 @@ import org.junit.Test;
  *
  * <p>The palette offers the white pentagon, "Assigned", for a residue with no symbol of its own, and
  * there was no way to say which residue it was. The dialog that lists them existed but was on no menu,
- * and listed 36 of them by hand.
+ * and listed 36 of them by hand. The SNFG table it now also shows is {@link SnfgTableInTheChooserTest}'s.
  */
 public class NonSymbolicResidueChooserTest {
 
@@ -43,12 +43,21 @@ public class NonSymbolicResidueChooserTest {
 		workspace = new BuilderWorkspace(new GlycanRendererAWT());
 	}
 
-	/** Every residue in the file is offered, once. */
+	/**
+	 * Every residue in the file is offered, once - but Pse, Leg and 4eLeg, names the main dictionary
+	 * also has. A file reads those names as the residue with the SNFG symbol, so the copy without one
+	 * would not come back as itself; the SNFG table offers them.
+	 */
 	@Test
 	public void everyResidueIsListedOnce() {
 		TreeSet<String> inFile = new TreeSet<String>();
-		for (ResidueType type : NonSymbolicResidueDictionary.getResidues())
-			if (!type.getName().startsWith("#")) inFile.add(type.getName());
+		TreeSet<String> inBoth = new TreeSet<String>();
+		for (ResidueType type : NonSymbolicResidueDictionary.getResidues()) {
+			if (type.getName().startsWith("#")) continue;
+			if (ResidueDictionary.hasResidueType(type.getName())) inBoth.add(type.getName());
+			else inFile.add(type.getName());
+		}
+		assertEquals(new TreeSet<String>(Arrays.asList("4eLeg", "Leg", "Pse")), inBoth);
 
 		List<String> listed = new ArrayList<String>();
 		for (List<ResidueType> section : ResidueDesignDialog.sections().values())

@@ -3315,8 +3315,8 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 	// Edit actions
 
 	/**
-	 * Add a monosaccharide with no symbol of its own, chosen from the list of them, or - when an
-	 * "Assigned" placeholder has the focus - say which one the placeholder is (#252).
+	 * Add a monosaccharide chosen from SNFG's table or from those with no symbol of their own, or -
+	 * when an "Assigned" placeholder has the focus - say which one the placeholder is (#252).
 	 */
 	public void onAddStringNotation() {
 		try {
@@ -3324,7 +3324,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 			a_RDD.setVisible(true);
 			if (a_RDD.isCanceled()) return;
 
-			ResidueType chosen = NonSymbolicResidueDictionary.getResidueType(a_RDD.getReturnStatus());
+			ResidueType chosen = a_RDD.getChosenType();
 			Residue current = getCurrentResidue();
 
 			if (GlycanDocument.isPlaceholder(current)) {
@@ -3344,7 +3344,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 			repaint();
 		} catch(Exception e) {
 			JOptionPane.showMessageDialog(theParent, e.getMessage(),
-					"Error while adding a non-symbolic monosaccharide",
+					"Error while adding a monosaccharide",
 					JOptionPane.ERROR_MESSAGE);
 		}
 	}
