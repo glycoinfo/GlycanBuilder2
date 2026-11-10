@@ -47,7 +47,7 @@ and the 14 `.gws` examples shipped with GlycoWorkbench, in `glycoinfo/eurocarbdb
 | | rule |
 |---|---|
 | **reading** | accept every spelling that has ever been written — old hyphenated names, parenthesised names, escaped names, and structures with no `$` section |
-| **writing** | emit only what another implementation can read: safe characters, or the escape of §1.3 |
+| **writing** | emit only what another implementation can read: safe characters, or the escape of §1.3. **One exception, decided 2026-11-10:** an aglycon's name is written as the user typed it, which an older reader may not open (§1.3.1, "Revised for an aglycon") |
 
 The two halves are not the same grammar, and that is deliberate. A reader that accepts only what it
 writes loses files; a writer that emits everything its reader accepts makes files nobody else can
@@ -170,6 +170,10 @@ the grammar genuinely cannot carry. After the two additions above, that set is s
 /  ,  $  =  space   and every non-ASCII character
 ```
 
+That is the set for a name read by the residue grammar. **An aglycon, the only label a user types
+today, is no longer read by that grammar**, and since 2026-11-10 it needs only `;` `$` `}` `,` `--`
+and control characters encoded (§1.3.1, "Revised for an aglycon").
+
 `-`, `(` and `)` are **not** in it. `GalNAc-Ser` and `(S)Lac` are written literally and read back
 literally, which is both simpler and what a reader of the file would expect to see.
 
@@ -190,7 +194,10 @@ has never been revisited. *(Read, both versions; GlycanCore corrected it to `[a-
 without changing the intended set.)*
 
 What a name may therefore contain, **measured** by writing a reducing end so named, saving and
-reopening:
+reopening. *(Measured before 2026-11-10. A reducing end is now read by a rule of its own, and every
+character here survives in it: `$` and `,` by the escape, the rest as typed; see "Revised for an
+aglycon". The table
+still holds for every other residue name.)*
 
 | character | survives | why |
 |---|---|---|
@@ -243,12 +250,14 @@ five cannot be forgotten.
 
 An escape using only characters the class already accepts — `_` plus hex digits, so `/` becomes
 `_2F_` — round-trips today on an unmodified parser, and older readers show the escaped form rather
-than failing. Not implemented; see [Open questions](#open).
+than failing. Implemented for an aglycon's name on 2026-11-10 (#305), as revised below.
 
 ### Names with any character in them: the escape
 
-Decided 2026-09-11, and narrowed on 2026-09-11 once the reader was widened. **This applies to labels
-a user types, not to names in the dictionaries** — those are read and written literally, per "Writing"
+Decided 2026-09-11, and narrowed on 2026-09-11 once the reader was widened. **For an aglycon, the
+character set below and the stored forms in the worked examples were revised on 2026-11-10; see
+"Revised for an aglycon" after them. The prefix, rules 3 to 5, and the decoding are unchanged.**
+**This applies to labels a user types, not to names in the dictionaries** — those are read and written literally, per "Writing"
 above. A label may contain any character at all; the format does not change to allow it, because the
 label is encoded into characters the grammar already accepts.
 
@@ -305,6 +314,12 @@ Residue names, and field 4 of the `$` section. **Not** to a cleavage name - see 
 belongs wherever a name is shown: `getTypeName()` returns the stored form, and the canvas draws it,
 so without a decode step in the renderer and in the dialog the user is shown `_e_Ser_2F_Thr` where
 they typed `Ser/Thr`.
+
+**As implemented (2026-11-10, #305).** Only an aglycon's name is escaped
+(`ResidueType.escapeAglyconName`), and it is decoded by `ResidueType.getResidueName()`, which the
+label drawn for it and the Mass dialog use. A user-defined residue elsewhere in the tree
+(`name=<mass>u`, superclass `Residue`) is not escaped yet. The m/z line's bracket, which prints the
+`$` section, shows the stored form.
 
 #### Revised for an aglycon: written as typed, 2026-11-10 (#305)
 
@@ -440,8 +455,11 @@ the 14 GlycoWorkbench examples carry `Na`.)*
 **Field 4 is not validated.** No name is refused. Since 2026-11-10 (#305), a name no dictionary
 has is an aglycon whose mass is not known, the same as at the root. A name ending in `=<mass>u` is
 an aglycon of that mass, split at the last `=`. A name holding an `=` that is not followed by a
-mass is a name, and no longer throws. A typo here produces an aglycon, not an error. *(Measured:
-`…,NoSuchReducingEnd` round-trips unchanged.)*
+mass is a name, and no longer throws. A typo here produces an aglycon, not an error.
+
+**A field 4 other than `freeEnd` also sets the root**, before and after this change: the structure
+is given that reducing end. *(Measured: `freeEnd--?b1D-Glc,p$MONO,Und,0,0,NoSuchReducingEnd` reads
+back as `NoSuchReducingEnd--?b1D-Glc,p$…,NoSuchReducingEnd`, an aglycon whose mass is not known.)*
 
 ### 1.6.1 Fields past the fifth: interpret nothing, preserve everything
 
@@ -592,7 +610,9 @@ One remains.
 Settled by Part 1, and recorded here so the history is legible:
 
 - ~~*Escape or widen the name class?*~~ **Both, asymmetrically** — widen the reader, escape the
-  writer (§1.3, "The rule the rest of this follows").
+  writer (§1.3, "The rule the rest of this follows"). For an aglycon, revised on 2026-11-10: the
+  root is read by the whole of its name, and written as typed except for `;` `$` `}` `,` `--`
+  (§1.3.1, #305).
 - ~~*Correct the `a-zA-z` span?*~~ **Moot.** The normative class is derived from what files contain,
   not from that regex; the span's accidental members (`[`, `\`, `]`, `^`, `` ` ``) are simply not in
   it, and a reader that still accepts them is harmlessly liberal.
@@ -613,7 +633,7 @@ a requirement; the other three cover the clauses §1.7 does not.
 | `glycoworkbench/` | 14 `.gws` | C1 — read, and write back the identical string |
 | `dictionary-names.tsv` | 33 | C2, C3 — every dictionary name writable and readable. **33 of 33 unreadable today** |
 | `glycancore-strings.tsv` | 48 | C4 — 26 core rows must read, 22 extended rows must not |
-| `label-escapes.tsv` | 9 | §1.3.1 — a label may carry any character |
+| `label-escapes.tsv` | 9 | §1.3.1 — a label may carry any character. The stored forms are those of the first rule; each still decodes to what was typed (`AglyconNamesRoundTripTest`) |
 | `dollar-section.tsv` | 6 | §1.6, §1.6.1 — reproduce the section's shape, carry what is not interpreted. **5 of 6 fail today** |
 | `must-be-refused.tsv` | 2 | §1.2 — a raw `$` in a name is refused. **Both fail today, silently** |
 
