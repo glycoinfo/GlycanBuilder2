@@ -97,6 +97,12 @@ public class GWSParser implements GlycanParser {
 	public void setTolerateUnknown(boolean f) {
 	}
 
+	/** Whether either dictionary has a residue of this name. */
+	private static boolean isKnownResidue(String _name) {
+		return ResidueDictionary.hasResidueType(_name)
+				|| org.glycoinfo.application.glycanbuilder.dataset.NonSymbolicResidueDictionary.hasResidueType(_name);
+	}
+
 	public String writeGlycan(Glycan structure) {
 		return toString(structure,false,true);
 	}
@@ -483,6 +489,17 @@ public class GWSParser implements GlycanParser {
 
 				// get type name
 				String typename = m.group(5);
+
+				// A residue whose own name begins with a configuration - D-gro-D-galHep, L-gro-D-manNon -
+				// is written with no prefix when its configuration is unknown, and the "D-" was then
+				// read as the configuration: the residue came back as an unknown "gro-D-galHep" of no
+				// mass, though the text written back was the same (#252). The prefix is taken as part
+				// of the name only when the name without it is no residue and the name with it is one,
+				// so nothing that read as a known residue before reads differently now.
+				if( m.group(4)!=null && !isKnownResidue(typename) && isKnownResidue(m.group(4) + typename) ) {
+					typename = m.group(4) + typename;
+					ret_chirality = '?';
+				}
 
 				// get ring size
 				char ret_ring_size = '?';

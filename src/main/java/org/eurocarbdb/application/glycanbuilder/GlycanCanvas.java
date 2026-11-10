@@ -604,7 +604,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 			getTheActionManager().get("alternative").setEnabled((getCurrentStructure() != null));
 			if(altButton != null) altButton.setVisible(true);
 		}*/
-		//getTheActionManager().get("stringNotation").setEnabled(true);
+		getTheActionManager().get("stringNotation").setEnabled(true);
 		
 		getTheActionManager().get("properties").setEnabled(hasCurrentResidue());
 
@@ -1928,6 +1928,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		structure_menu.addSeparator();
 
 		structure_menu.add(createAddResidueMenu());
+		structure_menu.add(getTheActionManager().get("stringNotation"));
 		structure_menu.add(createAddTerminalMenu());
 		structure_menu.add(createInsertResidueMenu());
 		structure_menu.add(createChangeResidueTypeMenu());
@@ -2093,7 +2094,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		//altButton = toolbar.add(getTheActionManager().get("alternative"));
 		toolbar.add(getTheActionManager().get("properties"));
 
-		//toolbar.add(getTheActionManager().get("stringNotation"));
+		toolbar.add(getTheActionManager().get("stringNotation"));
 		
 		toolbar.addSeparator();
 		toolbar.add(getTheActionManager().get("moveccw"));
@@ -3313,48 +3314,41 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 	// ----------------------
 	// Edit actions
 
-	/**Original method*/
+	/**
+	 * Add a monosaccharide with no symbol of its own, chosen from the list of them, or - when an
+	 * "Assigned" placeholder has the focus - say which one the placeholder is (#252).
+	 */
 	public void onAddStringNotation() {
-		try {	
+		try {
 			ResidueDesignDialog a_RDD = new ResidueDesignDialog(theParent);
 			a_RDD.setVisible(true);
-			
-			Residue toadd = null;
-			String a_strStatus = a_RDD.getReturnStatus();
-			if(!a_strStatus.equals("Cancel") && !a_strStatus.equals("Accept")) {
-				toadd = new Residue(NonSymbolicResidueDictionary.getResidueType(a_RDD.getReturnStatus()));
-			}
-			
-			/*if(a_strStatus.equals("Accept")) {
-				if(a_RDD.getResidueCode().equals(""))
-					throw new Exception("Please input the ResidueCode in text box");
-				
-				ResidueCodetoTrivalName a_objRC2TN = new ResidueCodetoTrivalName();
-				a_objRC2TN.start(a_RDD.getResidueCode());
-				
-				/** ResidueCode to monosaccharide trival name*/
-			//	toadd = ResidueDictionary.newResidue(a_objRC2TN.getTrivalName());
-			//}
+			if (a_RDD.isCanceled()) return;
 
-			if(toadd == null && !a_strStatus.equals("Cancel"))
-				throw new Exception("This residue can not handle in GlycanBuilder");
-			
-			if (theDoc.addResidue(getCurrentResidue(), getLinkedResidues(), toadd) != null) {
-				setSelection(toadd);
-				theWorkspace.getResidueHistory().add(toadd);
+			ResidueType chosen = NonSymbolicResidueDictionary.getResidueType(a_RDD.getReturnStatus());
+			Residue current = getCurrentResidue();
+
+			if (GlycanDocument.isPlaceholder(current)) {
+				if (!theDoc.assignPlaceholder(current, getLinkedResidues(), chosen))
+					throw new Exception("The placeholder cannot be made " + chosen.getName() + " where it stands.");
+				setSelection(current);
+				theWorkspace.getResidueHistory().add(current);
+			} else {
+				Residue toadd = new Residue(chosen);
+				if (theDoc.addResidue(current, getLinkedResidues(), toadd) != null) {
+					setSelection(toadd);
+					theWorkspace.getResidueHistory().add(toadd);
+				}
 			}
-			
+
 			this.respondToDocumentChange = true;
 			repaint();
 		} catch(Exception e) {
 			JOptionPane.showMessageDialog(theParent, e.getMessage(),
-					"Error while convert ResidueCode",
+					"Error while adding a non-symbolic monosaccharide",
 					JOptionPane.ERROR_MESSAGE);
 		}
-		
-		return;
 	}
-		
+
 	public void hyperlinkUpdate(HyperlinkEvent e) {
 		if(e.getEventType() != HyperlinkEvent.EventType.ACTIVATED) return;
 		String url = e.getURL().toString();

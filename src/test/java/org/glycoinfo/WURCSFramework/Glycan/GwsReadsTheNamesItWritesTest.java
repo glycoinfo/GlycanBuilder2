@@ -85,6 +85,12 @@ public class GwsReadsTheNamesItWritesTest {
 			}
 			if (!written.equals(readBack.toString())) {
 				renamed.add(type.getName() + " : wrote " + written + ", read back " + readBack);
+			} else if (!written.isEmpty() && !readsAs(readBack, type.getName())) {
+				// (a reducing-end marker hung off a reducing end writes nothing, and there is nothing to read)
+				// The same text is not enough: D-gro-D-galHep and 23 others came back as the same text
+				// and as an unknown residue named gro-D-galHep, of no mass (#252).
+				renamed.add(type.getName() + " : wrote " + written + ", read back the same text as "
+						+ residueNames(readBack));
 			}
 		}
 
@@ -185,6 +191,42 @@ public class GwsReadsTheNamesItWritesTest {
 		assertEquals("the linkage was swallowed into the name", 1, root.getChildrenLinkages().size());
 		assertEquals("GlcNAc", root.getChildrenLinkages().get(0).getChildResidue().getTypeName());
 		assertEquals('1', root.getChildrenLinkages().get(0).getParentPositionsSingle());
+	}
+
+	/**
+	 * A residue whose name begins with a configuration, with none of its own, is read as itself and not
+	 * as that configuration on an unknown residue (#252).
+	 */
+	@Test
+	public void aConfigurationThatBelongsToTheNameStaysInTheName() throws Exception {
+		Glycan unknown = Glycan.fromString("freeEnd--??1D-GlcNAc,p--??1D-gro-D-galHep,p$MONO,Und,0,0,freeEnd");
+		Residue heptose = unknown.getRoot().getChildAt(0).getChildAt(0);
+		assertEquals("D-gro-D-galHep", heptose.getTypeName());
+		assertEquals('?', heptose.getChirality());
+		assertTrue("read as an unknown residue", heptose.isSaccharide());
+
+		// with a configuration of its own, as before
+		Glycan known = Glycan.fromString("freeEnd--??1D-GlcNAc,p--??1L-D-gro-D-galHep,p$MONO,Und,0,0,freeEnd");
+		heptose = known.getRoot().getChildAt(0).getChildAt(0);
+		assertEquals("D-gro-D-galHep", heptose.getTypeName());
+		assertEquals('L', heptose.getChirality());
+
+		// and a configuration on a name that is a residue without it is a configuration, as it always was
+		Residue glcNAc = unknown.getRoot().getChildAt(0);
+		assertEquals("GlcNAc", glcNAc.getTypeName());
+		assertEquals('D', glcNAc.getChirality());
+	}
+
+	private static boolean readsAs(Glycan _read, String _typeName) {
+		for (Residue r : _read.getAllResidues())
+			if (_typeName.equals(r.getTypeName())) return true;
+		return false;
+	}
+
+	private static List<String> residueNames(Glycan _read) {
+		List<String> names = new ArrayList<String>();
+		for (Residue r : _read.getAllResidues()) names.add(r.getTypeName());
+		return names;
 	}
 
 	private void assertReopensUnchanged(String _gws) throws Exception {

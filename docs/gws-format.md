@@ -127,6 +127,8 @@ unambiguous:
   form, so the restriction is precisely enough. *(Measured: `D-gro-D-galHep,p` reads as the name
   `gro-D-galHep` after the `D-` configuration prefix; `Tri-P` reads whole;
   `D-gro-D-galHep,p--4b1D-Gal,p` and `D-gro-D-galHep-4b1D-Gal,p` both split where they should.)*
+  That split is right for the grammar and was wrong for the residue: see "A configuration that
+  belongs to the name" below.
 - **A parenthesised single character**, `"(" [A-Za-z0-9] ")"`, for `(S)Lac`, `(R)Lac`, `(X)Lac`.
 
 **Bare `(` and `)` must not be admitted.** Parentheses delimit branches, and a branch opens with `(`
@@ -135,6 +137,25 @@ unconstrained does collide, and only for residues with **no ring form**, which i
 until it is not. *(Measured, with an unconstrained class: `b1D-Man(--3a1D-Man,p)` reads the name as
 `Man(`, `S(--3a1D-Man,p)` as `S(`, and `GalNAc)--4b1D-Gal,p` as `GalNAc)`. With the constrained form
 all three read correctly.)*
+
+### A configuration that belongs to the name
+
+**When the name read is no residue, and the configuration and the name together are one, the
+configuration is part of the name and the configuration is unknown.** *(Required. Implemented
+2026-11-10 in `GWSParser`, #252.)*
+
+Twenty-four names in `non_symbolic_residue_types` begin with a configuration of their own:
+`D-gro-D-galHep`, `L-gro-D-manNon`, `D-ery-D-glcDEC` and the like. Their rows give no configuration, so
+by default they have none. (`residue_types` has two more, `L-gro-D-manHep` and `D-gro-D-manHep`, whose
+rows do give one.) A writer emits the configuration only when it is known, so one of these
+with its configuration unknown is written `??1D-gro-D-galHep,p`, and the grammar reads `D-` as the
+configuration and `gro-D-galHep` as the name. No dictionary has that name. The residue came back
+unknown, not a saccharide and of no mass, **and was written back as the same text**, so a check that
+compares text could not see it. *(Measured, before the change: all 24, each a child of a glucose.)*
+
+The rule is narrow on purpose. It applies only when the shorter name is unknown and the longer one is
+known, so a file that read as a known residue before reads the same now. `D-D-gro-D-galHep`, with
+the configuration known, is unaffected: its name is already the longer one.
 
 ### Writing: the same names, unchanged
 
