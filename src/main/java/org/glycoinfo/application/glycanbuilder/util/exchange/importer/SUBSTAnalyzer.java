@@ -307,30 +307,50 @@ public class SUBSTAnalyzer {
 			throw new WURCSToGlycanException(_map + " is not handled in GlycanBuilder");
 	}
 
+	/**
+	 * Whether an N-linked group at this position hangs off the residue's own amine - so that what the
+	 * MAP adds is the O-linked equivalent on that nitrogen - rather than bringing a nitrogen of its
+	 * own.
+	 *
+	 * <p>Asked of what the residue's name says it carries: GlcN has its amine at 2, Bac at 2 and 4, Neu
+	 * at 5, Leg at 5 and 7. It was a list of classes and positions - a hexosamine's 2 and 4, a
+	 * nonulosonate's 5 and 7 - which gave GlcN an amine at 4 and every nonulosonate one at 7, so a
+	 * 4-acetamido on a GlcN or a 7-acetamido on a NeuAc was read as an O-acetyl: the nitrogen lost,
+	 * 0.9840 heavy, written back as another molecule (#319).
+	 */
 	private boolean isNSubstituent(Residue _residue, String _map, int _pos) {
-		boolean isNType = false;
-		boolean isNSub = this.isNTypes(_map);
+		if(!this.isNTypes(_map)) return false;
+
+		NativeMonosaccharideDictionary.Entry entry =
+				NativeMonosaccharideDictionary.forResidueName(_residue.getTypeName());
+		if(entry != null) return hasAmineAt(entry, _pos);
+
+		// A type the dictionary does not describe - 8eLeg and the other non-symbolic rows - keeps the
+		// rule it had: they are not the residues #319 found wrong, and changing it for them unmeasured
+		// gave 8eLeg5,7Ac2 two nitrogens at each amine.
+		return legacyAmineAt(_residue, _pos);
+	}
+
+	/** The class-and-position rule this used for every residue before #319. */
+	private static boolean legacyAmineAt(Residue _residue, int _pos) {
 		String superclass = _residue.getType().getSuperclass();
-		
-		if(superclass.equals("Hexuronic acid")) return false;
-		if(superclass.equals("N-Acetylhexosamine")) return false;
-		
-		if(_pos == 2 || _pos == 4) {
-			if(_residue.getTypeName().equals("Bac") && isNSub) isNType = true;
-			if(superclass.equals("Hexosamine") && isNSub) isNType = true;
-			if(_residue.getTypeName().equals("Mur") && isNSub) isNType = true;
-		}
-		if(_pos == 5) {
-			if(_residue.getTypeName().contains("Leg") && isNSub) isNType = true;
-			else if(_residue.getTypeName().equals("Neu") && isNSub) isNType = true;
-			else isNType = _residue.getType().getSuperclass().equals("Nonulosonate") && isNSub;
-		}
-		if(_pos == 7) {
-			if(_residue.getTypeName().contains("Leg") && isNSub) isNType = true;
-			else isNType = _residue.getType().getSuperclass().equals("Nonulosonate") && isNSub;
-		}
-		
-		return isNType;
+		if(superclass.equals("Hexuronic acid") || superclass.equals("N-Acetylhexosamine")) return false;
+		if(_pos == 2 || _pos == 4)
+			return _residue.getTypeName().equals("Bac") || superclass.equals("Hexosamine")
+					|| _residue.getTypeName().equals("Mur");
+		if(_pos == 5)
+			return _residue.getTypeName().contains("Leg") || _residue.getTypeName().equals("Neu")
+					|| superclass.equals("Nonulosonate");
+		if(_pos == 7)
+			return _residue.getTypeName().contains("Leg") || superclass.equals("Nonulosonate");
+		return false;
+	}
+
+	/** Whether the name's own substituents include a bare amine at this position, "2*N". */
+	static boolean hasAmineAt(NativeMonosaccharideDictionary.Entry _entry, int _pos) {
+		for(String unit : _entry.getSubstituents().split("_"))
+			if(unit.equals(_pos + "*N")) return true;
+		return false;
 	}
 
 	private LinkageType checkLinkageTypeOfMAP (SUBST _subst, MS _ms) {
