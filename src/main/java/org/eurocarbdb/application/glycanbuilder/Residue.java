@@ -2023,7 +2023,18 @@ public class Residue {
 	 * the type instead, which every residue of that name shares, made the second overwrite the first
 	 * and destroyed the type's own description along the way.
 	 */
+	/** What glycerol is called in the footnote under an SNFG drawing. */
+	public static final String GLYCEROL = "Glycerol";
+
+	/** Whether this residue is glycerol: Gro, glyceraldehyde, as its alditol. */
+	public boolean isGlycerol() {
+		return this.type != null && "Gro".equals(this.type.getName()) && isAlditol();
+	}
+
 	public String getLegend() {
+		// Glycerol is Gro as its alditol, and is named as the molecule it is rather than as
+		// glyceraldehyde, whichever way it was read or drawn (#282)
+		if (isGlycerol()) return GLYCEROL;
 		if (this.legend != null) return this.legend;
 		if (!this.deoxies.isEmpty()) return deoxyPrefix() + this.type.getDescription();
 		return this.type.getDescription();

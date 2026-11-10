@@ -3341,14 +3341,24 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 			if (a_RDD.isCanceled()) return;
 
 			ResidueType chosen = a_RDD.getChosenType();
+			// glycerol is Gro made an alditol (#282)
+			boolean alditol = a_RDD.isAlditolChosen();
 
 			if (GlycanDocument.isPlaceholder(current)) {
 				if (!theDoc.assignPlaceholder(current, getLinkedResidues(), chosen))
 					throw new Exception("The placeholder cannot be made " + chosen.getName() + " where it stands.");
+				if (alditol) {
+					current.setAnomericState('?');
+					current.setRingSize('o');
+				}
 				setSelection(current);
 				theWorkspace.getResidueHistory().add(current);
 			} else {
 				Residue toadd = new Residue(chosen);
+				if (alditol) {
+					toadd.setAnomericState('?');
+					toadd.setRingSize('o');
+				}
 				if (theDoc.addResidue(current, getLinkedResidues(), toadd) != null) {
 					setSelection(toadd);
 					theWorkspace.getResidueHistory().add(toadd);

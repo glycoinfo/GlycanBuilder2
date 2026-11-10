@@ -167,11 +167,22 @@ public class SnfgTableInTheChooserTest {
 		assertEquals("Assigned", ResidueDesignDialog.tabSymbol(ResidueDesignDialog.NO_SYMBOL));
 	}
 
-	/** Every residue on offer is in the dialog once: each SNFG symbol here, and each without one. */
+	/**
+	 * Every residue on offer is in the dialog once: each SNFG symbol here, and each without one.
+	 * Glycerol is offered besides, as Gro made an alditol (#282), and is counted apart.
+	 */
 	@Test
 	public void everythingIsOnOfferOnce() {
 		List<ResidueType> offered = new ArrayList<ResidueType>();
-		for (ResidueDesignDialog.Choice choice : ResidueDesignDialog.allChoices()) offered.add(choice.getType());
+		int alditols = 0;
+		for (ResidueDesignDialog.Choice choice : ResidueDesignDialog.allChoices()) {
+			if (choice.isAlditol()) {
+				alditols++;
+				continue;
+			}
+			offered.add(choice.getType());
+		}
+		assertEquals(1, alditols);
 
 		List<ResidueType> expected = new ArrayList<ResidueType>();
 		for (SNFGTable.Cell cell : SNFGTable.getCells())

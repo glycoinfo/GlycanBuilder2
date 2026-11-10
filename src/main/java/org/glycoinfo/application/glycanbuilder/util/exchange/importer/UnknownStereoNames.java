@@ -24,7 +24,7 @@ import org.glycoinfo.application.glycanbuilder.dataset.NonSymbolicResidueDiction
  * the skeleton kept on the residue to be written back as read.
  * </ul>
  *
- * <p>Aldoses only, open or closed, ending in a hydroxymethyl, a methyl or an acid. Anything else is
+ * <p>Aldoses only, open or closed, ending in a hydroxymethyl, a methyl or an acid, and glycerol. Anything else is
  * left to the converter, which refuses it as before.
  */
 final class UnknownStereoNames {
@@ -57,6 +57,9 @@ final class UnknownStereoNames {
 	static Naming name(String _skeletonCode) {
 		String s = _skeletonCode;
 		int n = s.length();
+		// glycerol whose C2 is not known: the alditol of glyceraldehyde, Gro, of unknown configuration
+		// (#282). Read as Tri until now, which no dictionary has.
+		if (s.equals("hxh")) return new Naming("Gro", '?', new ArrayList<String>(), false);
 		if (n < 5 || n > 10 || !hasUnknownStereo(s)) return null;
 		char first = s.charAt(0), last = s.charAt(n - 1);
 		if (first != 'a' && first != 'o') return null;

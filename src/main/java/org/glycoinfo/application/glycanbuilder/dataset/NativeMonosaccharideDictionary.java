@@ -203,6 +203,8 @@ public class NativeMonosaccharideDictionary {
 		residues.put("TalNAc",         new Entry("1112",  true,  'D', "2*NAc",          ""));
 		// The tetroses, by their trivial names: the configurational prefixes thr and ery of #261. They
 		// had no stereo, and no configuration or ring in their rows, so they could not be written (#285).
+		// Glyceraldehyde, and glycerol as its alditol (#282): D is h2h, the one centre at C2.
+		residues.put("Gro",            new Entry("2",     true,  'D', "",               ""));
 		residues.put("Thr",            new Entry("12",    true,  'D', "",               ""));
 		residues.put("Ery",            new Entry("22",    true,  'D', "",               ""));
 		residues.put("Tyv",            new Entry("122",   false, 'D', "",               "3*d_6*m"));
