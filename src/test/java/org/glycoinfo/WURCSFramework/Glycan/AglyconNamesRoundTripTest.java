@@ -119,6 +119,20 @@ public class AglyconNamesRoundTripTest {
 		assertEquals(9, read);
 	}
 
+	/**
+	 * Only a name no dictionary has is an aglycon. Kdo, Mur and Bac are of the class "Unknown" too -
+	 * SNFG's flat hexagons - and a name of theirs stays the residue it names.
+	 */
+	@Test
+	public void aResidueOfTheClassUnknownIsNotAnAglycon() {
+		for (String name : new String[] {"Kdo", "Mur", "Bac", "Unknown"}) {
+			ResidueType type = org.eurocarbdb.application.glycanbuilder.dataset.ResidueDictionary.findReducingEndType(name);
+			assertFalse(name, type.isAglycon());
+			assertEquals(name, name, type.getName());
+		}
+		assertTrue(org.eurocarbdb.application.glycanbuilder.dataset.ResidueDictionary.findReducingEndType("NoSuchName").isAglycon());
+	}
+
 	/** A root of a name and no mass, from an older file or another tool, is an aglycon of no mass. */
 	@Test
 	public void aNameWithNoMassIsAnAglyconOfNoKnownMass() throws Exception {

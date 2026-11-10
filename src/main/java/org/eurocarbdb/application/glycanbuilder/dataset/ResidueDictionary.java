@@ -132,7 +132,10 @@ public class ResidueDictionary {
 	 */
 	public static ResidueType findReducingEndType(String type_name) {
 		ResidueType ret = findResidueType(type_name);
-		if( "Unknown".equals(ret.getSuperclass()) )
+		// Only a name no dictionary has. "Unknown" is also the class of Kdo, Mur, Bac and the rest of
+		// SNFG's flat hexagons, which are residues and must stay what they are.
+		if( "Unknown".equals(ret.getSuperclass()) && !hasResidueType(type_name)
+				&& !NonSymbolicResidueDictionary.hasResidueType(type_name) )
 			return ResidueType.createUndefinedReducingEnd(type_name);
 		return ret;
 	}
