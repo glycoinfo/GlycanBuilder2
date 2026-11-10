@@ -178,17 +178,20 @@ public class SUBSTAnalyzer {
 	/**
 	 * The carbons of a double bond as the skeleton writes them: "4,5" in a21eEA is "4*e" and "5*E".
 	 * Null when the positions are not two carbons of the skeleton that are each a double-bond carbon of
-	 * known geometry.
+	 * known geometry - and when either is a terminal carbon or the anomeric one. A double bond there, a
+	 * glycal's C1=C2, changes what a carbon that is not a CHOH has, which the composition measured here
+	 * does not describe: kept, zZ122h_1-5 weighed a water light. It is read as it was before.
 	 */
 	static List<String> doubleBondCarbons(GRES _gres, String _positions) {
 		String skeleton = _gres.getMS().getCoreStructure().getSkeletonCode();
+		int anomeric = _gres.getMS().getCoreStructure().getAnomericPosition();
 		String[] positions = _positions.split(",");
 		if(positions.length != 2) return null;
 		List<String> carbons = new ArrayList<String>();
 		for(String position : positions) {
 			int carbon;
 			try { carbon = Integer.parseInt(position); } catch (NumberFormatException notACarbon) { return null; }
-			if(carbon < 1 || carbon > skeleton.length()) return null;
+			if(carbon <= 1 || carbon >= skeleton.length() || carbon == anomeric) return null;
 			char code = skeleton.charAt(carbon - 1);
 			if(!SkeletonModificationComposition.isDoubleBond(code)) return null;
 			carbons.add(carbon + "*" + code);
