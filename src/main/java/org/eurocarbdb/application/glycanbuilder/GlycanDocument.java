@@ -592,11 +592,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	 */
 
 	public boolean changeResidueType(Residue current, ResidueType new_type) {
-		if (current == null
-				|| (current.hasParent() && !new_type.canHaveParent())
-				|| (!current.hasParent() && !new_type.canBeReducingEnd())
-				|| (current.hasChildren() && !new_type.canHaveChildren())
-				|| isInComposition(current))
+		if (!canTakeType(current, new_type))
 			return false;
 
 		current.setType(new_type);
@@ -614,11 +610,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	 */
 	public boolean changeResidueType(Residue current, ArrayList<Residue> linked,
 									 ResidueType new_type) {
-		if (current == null
-				|| (current.hasParent() && !new_type.canHaveParent())
-				|| (!current.hasParent() && !new_type.canBeReducingEnd())
-				|| (current.hasChildren() && !new_type.canHaveChildren())
-				|| isInComposition(current))
+		if (!canTakeType(current, new_type))
 			return false;
 
 		// change type
@@ -632,6 +624,55 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 
 		fireDocumentChanged();
 		return true;
+	}
+
+	private boolean canTakeType(Residue current, ResidueType new_type) {
+		return !(current == null
+				|| (current.hasParent() && !new_type.canHaveParent())
+				|| (!current.hasParent() && !new_type.canBeReducingEnd())
+				|| (current.hasChildren() && !new_type.canHaveChildren())
+				|| isInComposition(current));
+	}
+
+	/**
+	 * Whether a residue is the "Assigned" placeholder: the white pentagon the palette offers for a
+	 * monosaccharide with no symbol of its own, which says nothing yet about which one it is (#252).
+	 */
+	public static boolean isPlaceholder(Residue residue) {
+		return residue != null && "Assigned".equals(residue.getTypeName());
+	}
+
+	/**
+	 * Say which monosaccharide a placed placeholder is (#252). The placeholder takes the type, and
+	 * keeps its links, its children and whatever of its anomer, configuration and ring was set on it.
+	 * What was left unknown is taken from the type, as it would be for a residue of that type added
+	 * new.
+	 *
+	 * @param placeholder the "Assigned" residue
+	 * @param linked residues drawn at the same position, which take the type with it
+	 * @param type the monosaccharide it is
+	 * @return false, and nothing changed, when the residue is not a placeholder or cannot take the
+	 *         type where it stands
+	 * @see #isPlaceholder
+	 */
+	public boolean assignPlaceholder(Residue placeholder, ArrayList<Residue> linked, ResidueType type) {
+		if (!isPlaceholder(placeholder) || type == null || !canTakeType(placeholder, type))
+			return false;
+
+		takeType(placeholder, type);
+		if (linked != null)
+			for (Residue r : linked)
+				if (isPlaceholder(r)) takeType(r, type);
+
+		fireDocumentChanged();
+		return true;
+	}
+
+	private static void takeType(Residue residue, ResidueType type) {
+		residue.setType(type);
+		if (residue.getAnomericCarbon() == '?') residue.setAnomericCarbon(type.getAnomericCarbon());
+		if (residue.getChirality() == '?') residue.setChirality(type.getChirality());
+		if (residue.getRingSize() == '?') residue.setRingSize(type.getRingSize());
 	}
 
 	private boolean changeReducingEndTypePVT(Glycan structure,

@@ -173,7 +173,7 @@ public class ResidueStyleDictionary {
 		/* set basetype symbol*/
 		String a_sStyle = "";
 		if(a_oRS == null) {
-			a_sStyle = this.styles.get(type.getSuperclass());
+			a_sStyle = this.styles.get(fallbackFor(type.getSuperclass()));
 		}
 		
 		/* set text notation */
@@ -201,6 +201,23 @@ public class ResidueStyleDictionary {
 			a_oRS.setText(org.eurocarbdb.application.glycanbuilder.renderutil.SNFGFootnote.letter(node.getID()));
 
 		return a_oRS;
+	}
+
+	/**
+	 * The row a residue with none of its own is drawn by: its superclass's - the generic white symbol
+	 * of its kind, as SNFG asks - except for the superclass Unknown, which is not a kind.
+	 *
+	 * <p>SNFG draws a monosaccharide absent from its table in the white symbol of its generic type where
+	 * one fits, "otherwise, the white pentagon" (#248). The residues filed under Unknown - the heptoses
+	 * with no SNFG symbol, Sed, Ole, Cym, The - are the "otherwise". The {@code Unknown} row is SNFG's
+	 * Unknown monosaccharide, the white flat hexagon, and is that residue's own; #280 had made it the
+	 * pentagon so that these would fall back to one, which drew the Unknown monosaccharide wrong (#288).
+	 * Where there is no {@code Assigned} row, as in every notation but SNFG, nothing changes.
+	 */
+	private String fallbackFor(String _superclass) {
+		if ("Unknown".equals(_superclass) && this.styles.containsKey("Assigned"))
+			return "Assigned";
+		return _superclass;
 	}
 
 	public boolean containsResidue(Residue node) {

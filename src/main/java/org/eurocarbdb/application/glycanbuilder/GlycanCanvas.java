@@ -604,7 +604,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 			getTheActionManager().get("alternative").setEnabled((getCurrentStructure() != null));
 			if(altButton != null) altButton.setVisible(true);
 		}*/
-		//getTheActionManager().get("stringNotation").setEnabled(true);
+		getTheActionManager().get("stringNotation").setEnabled(true);
 		
 		getTheActionManager().get("properties").setEnabled(hasCurrentResidue());
 
@@ -1928,6 +1928,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		structure_menu.addSeparator();
 
 		structure_menu.add(createAddResidueMenu());
+		structure_menu.add(getTheActionManager().get("stringNotation"));
 		structure_menu.add(createAddTerminalMenu());
 		structure_menu.add(createInsertResidueMenu());
 		structure_menu.add(createChangeResidueTypeMenu());
@@ -1984,12 +1985,27 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		
 		if (hasCurrentSelection()) buf.append("1");
 		else buf.append("0");
+
+		// a placeholder's menu leads with naming it, so it is cached apart
+		boolean placeholder = GlycanDocument.isPlaceholder(getCurrentResidue());
+		buf.append(placeholder ? "1" : "0");
 		
 		String key=buf.toString();
 		if(cachedMenus.containsKey(key)) return cachedMenus.get(key);
 		
 		JPopupMenu menu = new JPopupMenu();
 		menu.setDoubleBuffered(true);
+
+		// A placed "Assigned" placeholder is there to be named (#252): saying which monosaccharide it
+		// is comes first, where the question is asked, rather than only on the toolbar.
+		if (placeholder) {
+			JMenuItem name = new JMenuItem("Set monosaccharide\u2026",
+					new ImageIcon(ResidueDesignDialog.chooserImage(16)));
+			name.setToolTipText("Choose which monosaccharide this placeholder is");
+			name.addActionListener(e -> onAddStringNotation());
+			menu.add(name);
+			menu.addSeparator();
+		}
 
 		// edit actions
 		menu.add(getTheActionManager().get("cut"));
@@ -2093,7 +2109,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		//altButton = toolbar.add(getTheActionManager().get("alternative"));
 		toolbar.add(getTheActionManager().get("properties"));
 
-		//toolbar.add(getTheActionManager().get("stringNotation"));
+		toolbar.add(getTheActionManager().get("stringNotation"));
 		
 		toolbar.addSeparator();
 		toolbar.add(getTheActionManager().get("moveccw"));
@@ -3313,48 +3329,41 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 	// ----------------------
 	// Edit actions
 
-	/**Original method*/
+	/**
+	 * Add a monosaccharide chosen from SNFG's table or from those with no symbol of their own, or -
+	 * when an "Assigned" placeholder has the focus - say which one the placeholder is (#252).
+	 */
 	public void onAddStringNotation() {
-		try {	
-			ResidueDesignDialog a_RDD = new ResidueDesignDialog(theParent);
+		try {
+			Residue current = getCurrentResidue();
+			ResidueDesignDialog a_RDD = new ResidueDesignDialog(theParent, GlycanDocument.isPlaceholder(current), getTheGlycanRenderer());
 			a_RDD.setVisible(true);
-			
-			Residue toadd = null;
-			String a_strStatus = a_RDD.getReturnStatus();
-			if(!a_strStatus.equals("Cancel") && !a_strStatus.equals("Accept")) {
-				toadd = new Residue(NonSymbolicResidueDictionary.getResidueType(a_RDD.getReturnStatus()));
-			}
-			
-			/*if(a_strStatus.equals("Accept")) {
-				if(a_RDD.getResidueCode().equals(""))
-					throw new Exception("Please input the ResidueCode in text box");
-				
-				ResidueCodetoTrivalName a_objRC2TN = new ResidueCodetoTrivalName();
-				a_objRC2TN.start(a_RDD.getResidueCode());
-				
-				/** ResidueCode to monosaccharide trival name*/
-			//	toadd = ResidueDictionary.newResidue(a_objRC2TN.getTrivalName());
-			//}
+			if (a_RDD.isCanceled()) return;
 
-			if(toadd == null && !a_strStatus.equals("Cancel"))
-				throw new Exception("This residue can not handle in GlycanBuilder");
-			
-			if (theDoc.addResidue(getCurrentResidue(), getLinkedResidues(), toadd) != null) {
-				setSelection(toadd);
-				theWorkspace.getResidueHistory().add(toadd);
+			ResidueType chosen = a_RDD.getChosenType();
+
+			if (GlycanDocument.isPlaceholder(current)) {
+				if (!theDoc.assignPlaceholder(current, getLinkedResidues(), chosen))
+					throw new Exception("The placeholder cannot be made " + chosen.getName() + " where it stands.");
+				setSelection(current);
+				theWorkspace.getResidueHistory().add(current);
+			} else {
+				Residue toadd = new Residue(chosen);
+				if (theDoc.addResidue(current, getLinkedResidues(), toadd) != null) {
+					setSelection(toadd);
+					theWorkspace.getResidueHistory().add(toadd);
+				}
 			}
-			
+
 			this.respondToDocumentChange = true;
 			repaint();
 		} catch(Exception e) {
 			JOptionPane.showMessageDialog(theParent, e.getMessage(),
-					"Error while convert ResidueCode",
+					"Error while adding a monosaccharide",
 					JOptionPane.ERROR_MESSAGE);
 		}
-		
-		return;
 	}
-		
+
 	public void hyperlinkUpdate(HyperlinkEvent e) {
 		if(e.getEventType() != HyperlinkEvent.EventType.ACTIVATED) return;
 		String url = e.getURL().toString();
@@ -4533,7 +4542,11 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		lastMouseButton = e.getButton();
 		Residue r = getResidueAtPoint(e.getPoint());
 		if (r != null) {
-			if (MouseUtils.isSelectTrigger(e)) {
+			if (isPlainDoubleClick(e) && GlycanDocument.isPlaceholder(r)) {
+				// a double click on a placeholder names it (#252); later, so the click finishes first
+				setSelection(r);
+				SwingUtilities.invokeLater(this::onAddStringNotation);
+			} else if (MouseUtils.isSelectTrigger(e)) {
 				setSelection(r);
 			} else if (MouseUtils.isAddSelectTrigger(e)) {
 				addSelection(r);
@@ -4549,6 +4562,12 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		}
 		lastMouseButton = null;
 
+	}
+
+	private static boolean isPlainDoubleClick(MouseEvent e) {
+		return e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() == 2
+				&& (e.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK
+						| InputEvent.META_DOWN_MASK | InputEvent.ALT_DOWN_MASK)) == 0;
 	}
 
 	private void dragAndScroll(MouseEvent e) {
