@@ -20,6 +20,7 @@
 
 package org.eurocarbdb.application.glycanbuilder.converterGWS;
 
+import org.glycoinfo.application.glycanbuilder.util.SkeletonModificationComposition;
 import org.glycoinfo.application.glycanbuilder.converterWURCS2.LinkageTypeOptimizer;
 
 import java.awt.Rectangle;
@@ -223,6 +224,12 @@ public class GWSParser implements GlycanParser {
 			}
 		}
 
+		// Deoxies written as children "--6m" go back onto their residue (#258, #263). Before the
+		// linkage types are worked out, which would otherwise be worked out for children that are
+		// about to go.
+		foldDeoxies(ret.getRoot());
+		foldDeoxies(ret.getBracket());
+
 		// Say what each bond is made of, rather than leaving every one of them UNVALIDATED (#4).
 		// A structure read from WURCS has its linkage types worked out; one read from GWS did not,
 		// so the same glycan carried different bonds depending on which format it arrived in, and
@@ -316,12 +323,20 @@ public class GWSParser implements GlycanParser {
 		// linkage, meets a sentence and stops - so a composition's own GWS could not be read back
 		// (#162). It is left out here, as it is left out of the drawing and of the mass.
 		ArrayList<String> str_children = new ArrayList();
+		boolean deoxiesWritten = !r.hasDeoxies();
 		for( Linkage l : r.getChildrenLinkages() ) {
 			if( l.getChildResidue()!=null && l.getChildResidue().isCompositionMarker() )
 				continue;
+			// before the first monosaccharide child, which is where the WURCS reader used to attach them
+			if( !deoxiesWritten && l.getChildResidue()!=null && l.getChildResidue().isSaccharide() ) {
+				str_children.addAll(deoxiesAsChildren(r));
+				deoxiesWritten = true;
+			}
 			str_children.add("--" + toStringLinkage(l)
 					+ writeSubtree(l.getChildResidue(), ordered, bboxManager, visited));
 		}
+		if( !deoxiesWritten )
+			str_children.addAll(deoxiesAsChildren(r));
 
 		if( ordered ) 
 			Collections.sort(str_children);    
@@ -340,6 +355,50 @@ public class GWSParser implements GlycanParser {
 		}    
 
 		return str;
+	}
+
+	/**
+	 * A residue's deoxies, written the way this file has always carried them: as children, "--6m".
+	 *
+	 * <p>Before #258 and #263 the WURCS reader built a deoxy the residue's name does not imply as a
+	 * child residue named "m" or "d", and GWS wrote it like any child. The model keeps it on the residue
+	 * now, which GWS has no other way to say - so it is written exactly as it was, and {@link
+	 * #foldDeoxies} takes it back onto the residue when the file is read. A file is the same text
+	 * whichever version wrote it, and one written before the change reads correctly after it.
+	 */
+	static private ArrayList<String> deoxiesAsChildren(Residue r) {
+		ArrayList<String> ret = new ArrayList<String>();
+		for( String deoxy : r.getDeoxies() ) {
+			Character position = SkeletonModificationComposition.positionOf(deoxy);
+			Character code = SkeletonModificationComposition.codeOf(deoxy);
+			if( position!=null && code!=null )
+				ret.add("--" + position + code);
+		}
+		return ret;
+	}
+
+	/**
+	 * Put back onto their residue the deoxies GWS carries as children - see {@link #deoxiesAsChildren}.
+	 *
+	 * <p>A child is taken to be one when it is named as a deoxy code, "d" or "m", has nothing attached to
+	 * it, is not a monosaccharide, hangs off a monosaccharide, and is attached at a single position. No
+	 * dictionary has a residue of either name, so nothing that is a residue can be mistaken for one.
+	 */
+	static void foldDeoxies(Residue r) {
+		if( r==null ) return;
+
+		for( Linkage l : new ArrayList<Linkage>(r.getChildrenLinkages()) ) {
+			Residue child = l.getChildResidue();
+			if( r.isSaccharide() && child!=null && !child.isSaccharide() && !child.hasChildren()
+					&& child.getTypeName().length()==1
+					&& SkeletonModificationComposition.isDeoxy(child.getTypeName().charAt(0))
+					&& l.getBonds().size()==1 && l.getParentPositionsSingle()!='?' ) {
+				r.addDeoxy(l.getParentPositionsSingle() + "*" + child.getTypeName());
+				r.getChildrenLinkages().remove(l);
+				continue;
+			}
+			foldDeoxies(child);
+		}
 	}
 
 	static public String writeSubtree(Linkage l, boolean ordered) {
