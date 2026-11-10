@@ -53,6 +53,8 @@ public class GRESToResidue {
 		this.anomSymbol = mscore.getAnomericSymbol();
 		this.ringSize = makeRingSize(mscore);
 
+		refuseUnknownDoubleBond(mscore.getSkeletonCode());
+
 		// This builder's own dictionary answers first: it knows every residue the exporter can
 		// write, which is more than the naming converter covers - a substituent it does not know,
 		// a skeleton it cannot read, or a bridge across the anomeric carbon each made it throw.
@@ -255,6 +257,26 @@ public class GRESToResidue {
 		}
 		
 		return String.valueOf(this.anomPosition).charAt(0);
+	}
+
+	/**
+	 * Refuse a skeleton with a carbon-carbon double bond of unknown geometry, WURCS's {@code F} and
+	 * {@code f}, saying so (#266).
+	 *
+	 * <p>A residue here has no way to carry a double bond, and the naming converter refused these with
+	 * "hxFFxh could not handled", which named nothing. Until a double bond can be held - the same
+	 * question as #292's 4,5-unsaturated uronic acids - the refusal at least says what is not
+	 * supported, and where.
+	 */
+	static void refuseUnknownDoubleBond(String _skeletonCode) throws WURCSToGlycanException {
+		java.util.List<String> carbons = new java.util.ArrayList<String>();
+		for (int i = 0; i < _skeletonCode.length(); i++) {
+			char c = _skeletonCode.charAt(i);
+			if (c == 'F' || c == 'f') carbons.add("C" + (i + 1));
+		}
+		if (carbons.isEmpty()) return;
+		throw new WURCSToGlycanException(_skeletonCode + " has a carbon-carbon double bond of unknown geometry at "
+				+ String.join(" and ", carbons) + " (F and f in WURCS), which GlycanBuilder2 cannot represent");
 	}
 
 	/** Whether a skeleton has a stereocentre of absolute configuration, a 1 or a 2. */
