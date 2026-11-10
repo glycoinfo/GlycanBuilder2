@@ -1,0 +1,101 @@
+% The white SNFG symbol for each saccharide residue with no SNFG symbol of its own (#279).
+%
+% SNFG: a monosaccharide absent from its Table 1 is drawn as a white symbol with a letter, in the
+% white symbol of its generic type where one fits - a circle for a hexose, a triangle for a
+% deoxyhexose - and otherwise in the white pentagon. Which type fits is decided here, residue by
+% residue, because the dictionaries' superclasses do not say it reliably: Rho, a 2,3,6-trideoxy sugar,
+% is filed under Hexose, and Ole, Cym and The under Unknown.
+%
+% Columns, tab-separated: the residue's name; the residue_styles_snfg row whose white symbol it is
+% drawn in (Hex, HexA, dHex, ddHex, Pen, ddNon, Unknown, or Assigned for the pentagon); why.
+%
+% Every saccharide residue with no SNFG row of its own is listed, so that each is a decision made and
+% not a default; the tests hold this file to that.
+araHex	Hex	a hexose whose name gives part of its stereo: SNFG's white circle, a hexose of undefined type
+eryHex	Hex	a hexose whose name gives part of its stereo: SNFG's white circle, a hexose of undefined type
+groHex	Hex	a hexose whose name gives part of its stereo: SNFG's white circle, a hexose of undefined type
+gulHex	Hex	a hexose whose name gives part of its stereo: SNFG's white circle, a hexose of undefined type
+lyxHex	Hex	a hexose whose name gives part of its stereo: SNFG's white circle, a hexose of undefined type
+ribHex	Hex	a hexose whose name gives part of its stereo: SNFG's white circle, a hexose of undefined type
+thrHex	Hex	a hexose whose name gives part of its stereo: SNFG's white circle, a hexose of undefined type
+xylHex	Hex	a hexose whose name gives part of its stereo: SNFG's white circle, a hexose of undefined type
+MeH	Hex	3-O-methyl hexose: a hexose, the methyl part of the type
+araHexA	HexA	a hexuronic acid whose name gives three of its four stereocentres
+eryHexA	Assigned	undecided: the WURCS reader also gives this name to a 4,5-unsaturated hexuronic acid (deltaUA), whose double bond it does not keep
+ribHexA	HexA	a hexuronic acid whose name gives three of its four stereocentres
+thrHexA	Assigned	undecided: the WURCS reader also gives this name to a 4,5-unsaturated hexuronic acid (deltaUA), whose double bond it does not keep
+The	dHex	6-deoxy-3-O-methyl-glucose: a deoxyhexose
+Asc	ddHex	3,6-dideoxyhexose
+Boi	ddHex	2,6-dideoxyhexose
+Ole	ddHex	2,6-dideoxy-3-O-methyl-hexose
+Cym	ddHex	2,6-dideoxy-3-O-methyl-hexose
+eryPen	Pen	an aldopentose whose name gives part of its stereo
+groPen	Pen	an aldopentose whose name gives part of its stereo
+lyxPen	Pen	an aldopentose whose name gives part of its stereo
+thrPen	Pen	an aldopentose whose name gives part of its stereo
+D-gro-D-manNon	ddNon	5,7-diamino-3,5,7,9-tetradeoxy-non-2-ulosonic acid, as Pse and Leg (C9H18N2O6): a 3,9-dideoxy-nonulosonic acid
+D-gro-D-talNon	ddNon	5,7-diamino-3,5,7,9-tetradeoxy-non-2-ulosonic acid, as Pse and Leg (C9H18N2O6): a 3,9-dideoxy-nonulosonic acid
+D-gro-L-altNon	ddNon	5,7-diamino-3,5,7,9-tetradeoxy-non-2-ulosonic acid, as Pse and Leg (C9H18N2O6): a 3,9-dideoxy-nonulosonic acid
+D-gro-L-galNon	ddNon	5,7-diamino-3,5,7,9-tetradeoxy-non-2-ulosonic acid, as Pse and Leg (C9H18N2O6): a 3,9-dideoxy-nonulosonic acid
+D-gro-L-manNon	ddNon	5,7-diamino-3,5,7,9-tetradeoxy-non-2-ulosonic acid, as Pse and Leg (C9H18N2O6): a 3,9-dideoxy-nonulosonic acid
+L-gro-D-galNon	ddNon	5,7-diamino-3,5,7,9-tetradeoxy-non-2-ulosonic acid, as Pse and Leg (C9H18N2O6): a 3,9-dideoxy-nonulosonic acid
+L-gro-D-manNon	ddNon	5,7-diamino-3,5,7,9-tetradeoxy-non-2-ulosonic acid, as Pse and Leg (C9H18N2O6): a 3,9-dideoxy-nonulosonic acid
+L-gro-D-talNon	ddNon	5,7-diamino-3,5,7,9-tetradeoxy-non-2-ulosonic acid, as Pse and Leg (C9H18N2O6): a 3,9-dideoxy-nonulosonic acid
+L-gro-L-altNon	ddNon	5,7-diamino-3,5,7,9-tetradeoxy-non-2-ulosonic acid, as Pse and Leg (C9H18N2O6): a 3,9-dideoxy-nonulosonic acid
+L-gro-L-glcNon	ddNon	5,7-diamino-3,5,7,9-tetradeoxy-non-2-ulosonic acid, as Pse and Leg (C9H18N2O6): a 3,9-dideoxy-nonulosonic acid
+L-gro-L-manNon	ddNon	5,7-diamino-3,5,7,9-tetradeoxy-non-2-ulosonic acid, as Pse and Leg (C9H18N2O6): a 3,9-dideoxy-nonulosonic acid
+8eLeg	ddNon	8-epi-legionaminic acid; SNFG would also accept Leg's yellow flat diamond marked 8L
+Sugar	Unknown	a monosaccharide of which nothing is known: SNFG's white flat hexagon
+?-gro-D-glcHep	Assigned	a heptose: no SNFG class, the pentagon by the maintainer's decision on #248
+?-gro-D-manHep	Assigned	a heptose: no SNFG class, the pentagon by the maintainer's decision on #248
+araHep	Assigned	a heptose: no SNFG class, the pentagon by the maintainer's decision on #248
+D-gro-D-altHep	Assigned	a heptose: no SNFG class, the pentagon by the maintainer's decision on #248
+D-gro-D-galHep	Assigned	a heptose: no SNFG class, the pentagon by the maintainer's decision on #248
+D-gro-D-glcHep	Assigned	a heptose: no SNFG class, the pentagon by the maintainer's decision on #248
+D-gro-L-glcHep	Assigned	a heptose: no SNFG class, the pentagon by the maintainer's decision on #248
+D-gro-L-manHep	Assigned	a heptose: no SNFG class, the pentagon by the maintainer's decision on #248
+gulHep	Assigned	a heptose: no SNFG class, the pentagon by the maintainer's decision on #248
+L-gro-D-galHep	Assigned	a heptose: no SNFG class, the pentagon by the maintainer's decision on #248
+L-gro-D-glcHep	Assigned	a heptose: no SNFG class, the pentagon by the maintainer's decision on #248
+L-gro-D-idoHep	Assigned	a heptose: no SNFG class, the pentagon by the maintainer's decision on #248
+L-gro-L-manHep	Assigned	a heptose: no SNFG class, the pentagon by the maintainer's decision on #248
+lyxHep	Assigned	a heptose: no SNFG class, the pentagon by the maintainer's decision on #248
+manHep	Assigned	a heptose: no SNFG class, the pentagon by the maintainer's decision on #248
+talHep	Assigned	a heptose: no SNFG class, the pentagon by the maintainer's decision on #248
+Hept	Assigned	a heptose: no SNFG class, the pentagon by the maintainer's decision on #248
+Sed	Assigned	a heptose: no SNFG class, the pentagon by the maintainer's decision on #248
+araOct	Assigned	an octose: no SNFG class
+manOct	Assigned	an octose: no SNFG class
+D-gro-D-galOct	Assigned	an octose: no SNFG class
+D-gro-D-talOct	Assigned	an octose: no SNFG class
+L-gro-D-glcOct	Assigned	an octose: no SNFG class
+D-ery-D-glcDEC	Assigned	a decose: no SNFG class
+D-ery-L-glcDEC	Assigned	a decose: no SNFG class
+Ery	Assigned	a tetrose: no SNFG class
+Thr	Assigned	a tetrose: no SNFG class
+eryTet	Assigned	a tetrose: no SNFG class
+thrTet	Assigned	a tetrose: no SNFG class
+Eru	Assigned	a tetrose: no SNFG class
+Gro	Assigned	a triose: no SNFG class
+Rul	Assigned	a ketopentose: SNFG puts the ketoses (Fru, Tag, Sor, Psi) in its pentagon row
+Xul	Assigned	a ketopentose: SNFG puts the ketoses (Fru, Tag, Sor, Psi) in its pentagon row
+2dPen	Assigned	a deoxypentose: no SNFG class
+4dPen	Assigned	a deoxypentose: no SNFG class
+dRib	Assigned	a deoxypentose: no SNFG class
+4dPenN	Assigned	a deoxypentose: no SNFG class
+4uGalA	Assigned	a 4,5-unsaturated hexuronic acid (deltaUA): no SNFG class, undecided
+4uGlcA	Assigned	a 4,5-unsaturated hexuronic acid (deltaUA): no SNFG class, undecided
+4uHexA	Assigned	a 4,5-unsaturated hexuronic acid (deltaUA): no SNFG class, undecided
+4uIdoA	Assigned	a 4,5-unsaturated hexuronic acid (deltaUA): no SNFG class, undecided
+4uManA	Assigned	a 4,5-unsaturated hexuronic acid (deltaUA): no SNFG class, undecided
+GalNA	Assigned	a hexosaminuronic acid: hexuronate or hexosamine, undecided
+GlcNA	Assigned	a hexosaminuronic acid: hexuronate or hexosamine, undecided
+HexNA	Assigned	a hexosaminuronic acid: hexuronate or hexosamine, undecided
+IdoNA	Assigned	a hexosaminuronic acid: hexuronate or hexosamine, undecided
+ManNA	Assigned	a hexosaminuronic acid: hexuronate or hexosamine, undecided
+NeuAcLac	Assigned	a lactonised sialic acid: SNFG draws it as its sialic acid marked "on", not in a generic white symbol
+NeuGcLac	Assigned	a lactonised sialic acid: SNFG draws it as its sialic acid marked "on", not in a generic white symbol
+Ko	Assigned	an octulosonic acid: no white SNFG class
+galNon	Assigned	a nonose by its composition (C9H18O9), not a nonulosonic acid: no SNFG class
+Ami	Assigned	a 2,3,6-trideoxyhexose: no SNFG class
+Rho	Assigned	a 2,3,6-trideoxyhexose: no SNFG class
