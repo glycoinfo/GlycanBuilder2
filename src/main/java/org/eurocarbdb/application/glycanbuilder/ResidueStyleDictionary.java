@@ -123,7 +123,7 @@ public class ResidueStyleDictionary {
 		// A residue carrying a deoxy its type's name does not imply is not that type: a 6-deoxy allose
 		// is not an allose, and drawn as one it said something false (#258). It falls through to the
 		// white symbol a residue without its own row gets, and its legend names it.
-		if( styles.containsKey(type_name) && !node.hasDeoxies() ) {
+		if( styles.containsKey(type_name) && !node.hasSkeletonModifications() ) {
 			try {
 				return new ResidueStyle(this.styles.get(type_name));
 			} catch (Exception e) {
@@ -227,7 +227,7 @@ public class ResidueStyleDictionary {
 
 	public boolean containsResidue(Residue node) {
 		// see getStyle: a residue with a deoxy its name does not imply has no symbol of its own
-		return this.styles.containsKey(node.getTypeName()) && !node.hasDeoxies();
+		return this.styles.containsKey(node.getTypeName()) && !node.hasSkeletonModifications();
 	}
 	
 	/**

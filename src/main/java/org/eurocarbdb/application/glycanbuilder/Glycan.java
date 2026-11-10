@@ -1340,7 +1340,20 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 	 */
 	private int noSubstitutions(Residue node) {
 		int ofType = noSubstitutions(node.getType());
-		return (ofType == 0) ? 0 : ofType - extraDeoxies(node);
+		return (ofType == 0) ? 0 : ofType - extraDeoxies(node) - hydroxylsLostToDoubleBonds(node);
+	}
+
+	/**
+	 * The hydroxyls a double bond on this residue took away (#292): one for each carbon of it that is a
+	 * CH, e or z. A carbon that keeps its oxygen, E or Z, keeps its site - the maintainer's rule,
+	 * 2026-11-10, to count the hydroxyls the skeleton has. So a 4,5-unsaturated uronic acid, a21eEA, has
+	 * one site fewer than its saturated acid, as the dictionary's 4uHexA has one fewer than HexA.
+	 */
+	private static int hydroxylsLostToDoubleBonds(Residue node) {
+		int lost = 0;
+		for (String carbon : node.getDoubleBonds())
+			if (org.glycoinfo.application.glycanbuilder.util.SkeletonModificationComposition.removesAHydroxyl(carbon)) lost++;
+		return lost;
 	}
 
 	/**
@@ -1358,12 +1371,15 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 	 */
 	private Molecule moleculeOf(Residue node) throws Exception {
 		Molecule ofType = node.getType().getMolecule();
-		if (ofType == null || !node.hasDeoxies()) return ofType;
+		if (ofType == null || !node.hasSkeletonModifications()) return ofType;
 
 		Molecule ret = new Molecule();
 		ret.add(ofType);
 		for (String deoxy : node.getDeoxies())
 			ret.add(org.glycoinfo.application.glycanbuilder.util.SkeletonModificationComposition.deltaOf(deoxy));
+		// and the double bond's carbons (#292), measured the same way
+		for (String carbon : node.getDoubleBonds())
+			ret.add(org.glycoinfo.application.glycanbuilder.util.SkeletonModificationComposition.deltaOf(carbon));
 		return ret;
 	}
 
@@ -1371,13 +1387,13 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 	private double massOf(Residue node) {
 		// A type with no composition is weighed as it always was; the deoxy cannot make it right, and
 		// throwing here would take the painting down with it. That such types exist is its own fault.
-		if (!node.hasDeoxies() || node.getType().getMolecule() == null) return massOf(node.getType());
+		if (!node.hasSkeletonModifications() || node.getType().getMolecule() == null) return massOf(node.getType());
 		try {
 			return massOf(moleculeOf(node));
 		} catch (Exception cannotBeWeighed) {
 			// a constant computed by WURCSFramework from two fixed skeletons; if it cannot be had, a
 			// mass without it would be wrong by an oxygen per deoxy and look right
-			throw new IllegalStateException("cannot weigh the deoxy on " + node.getTypeName(), cannotBeWeighed);
+			throw new IllegalStateException("cannot weigh the deoxy or double bond on " + node.getTypeName(), cannotBeWeighed);
 		}
 	}
 

@@ -111,7 +111,7 @@ public class GRESToResidue {
 		// 6-deoxy allose is not an allose - so it is named the same way (#258).
 		boolean carriesDeoxy = false;
 		for (String modification : leftOver)
-			if (SkeletonModificationComposition.isDeoxy(modification)) carriesDeoxy = true;
+			if (SkeletonModificationComposition.isDeoxy(modification) || modification.endsWith("*en")) carriesDeoxy = true;
 		if(NonSymbolicResidueDictionary.hasResidueType(trivialName) || carriesDeoxy) {
 			String legend = this.makeLegend(_gres);
 			if(legend != null) residue.setLegend(legend);

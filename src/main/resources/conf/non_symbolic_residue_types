@@ -89,8 +89,8 @@ gulHex	Assigned		Hex		C6H12O6	-	gulHex$		1	?	p	yes	yes	no	0	5	no	5	no	6	1,2,3,4,
 groHex	Assigned		Hex		C6H12O6	-	groHex$		1	?	p	yes	yes	no	0	5	no	5	no	6	1,2,3,4,5,6	-	no	no	yes	GroHexose
 araHexA	Hexuronic acid	Hex		C6H10O7	-	araHex$A	1	?	p	yes	yes	no	0	4	no	4	no	5	1,2,3,4,5	6	no	no	yes	ArabinoHexanoic acid
 ribHexA	Hexuronic acid	Hex		C6H10O7	-	ribHex$A	1	?	p	yes	yes	no	0	4	no	4	no	5	1,2,3,4,5	6	no	no	yes	RiboHexanoic acid
-thrHexA	Hexuronic acid	Hex		C6H10O7	-	thrHex$A	1	?	p	yes	yes	no	0	4	no	4	no	5	1,2,3,4,5	6	no	no	yes	ThroHexanoic acid
-eryHexA	Hexuronic acid	Hex		C6H10O7	-	eryHex$A	1	?	p	yes	yes	no	0	4	no	4	no	5	1,2,3,4,5	6	no	no	yes	ErythroHexanoic acid
+thrHexA	Hexuronic acid	Hex		C6H10O7	-	thrHex$A	1	?	p	yes	yes	no	0	5	no	4	no	5	1,2,3,4,5	6	no	no	yes	threo-Hexuronic acid
+eryHexA	Hexuronic acid	Hex		C6H10O7	-	eryHex$A	1	?	p	yes	yes	no	0	5	no	4	no	5	1,2,3,4,5	6	no	no	yes	erythro-Hexuronic acid
 	
 %heptose
 araHep	Unknown	Hep	C7H14O7	-	araHep$	1	?	p	yes	yes	no	0	6	no	6	no	7	1,2,3,4,5,6,7	-	no	no	yes	ArabinoHeptose

@@ -252,8 +252,18 @@ public class NativeMonosaccharideDictionary {
 		PREFIX_STEREO = Collections.unmodifiableMap(prefixes);
 	}
 
+	// with an "A" for the uronic acid: thrHexA and eryHexA had no stereo, and could be written to WURCS
+	// neither saturated nor as the 4,5-unsaturated acid read from G63532WE (#292)
 	private static final java.util.regex.Pattern PREFIX_NAMED = java.util.regex.Pattern.compile(
-			"^(gro|ery|thr|rib|ara|xyl|lyx|all|alt|glc|man|gul|ido|gal|tal)(Tet|Pen|Hex|Hep|Oct|Non|Dec)$");
+			"^(gro|ery|thr|rib|ara|xyl|lyx|all|alt|glc|man|gul|ido|gal|tal)(Tet|Pen|Hex|Hep|Oct|Non|Dec)(A?)$");
+
+	private static final Map<String, Integer> CHAIN_LENGTH;
+	static {
+		Map<String, Integer> lengths = new LinkedHashMap<String, Integer>();
+		lengths.put("Tet", 4); lengths.put("Pen", 5); lengths.put("Hex", 6); lengths.put("Hep", 7);
+		lengths.put("Oct", 8); lengths.put("Non", 9); lengths.put("Dec", 10);
+		CHAIN_LENGTH = Collections.unmodifiableMap(lengths);
+	}
 
 	/**
 	 * What a name made of a configurational prefix and a chain length says: araHex, lyxHex, eryPen,
@@ -290,6 +300,8 @@ public class NativeMonosaccharideDictionary {
 		if (_residueName == null) return null;
 		java.util.regex.Matcher named = PREFIX_NAMED.matcher(_residueName);
 		if (!named.matches()) return null;
-		return new Entry(PREFIX_STEREO.get(named.group(1)), true, 'D', "", "");
+		// the acid is at the last carbon, as GlcA's is at C6
+		String acid = named.group(3).isEmpty() ? "" : CHAIN_LENGTH.get(named.group(2)) + "*A";
+		return new Entry(PREFIX_STEREO.get(named.group(1)), true, 'D', "", acid);
 	}
 }

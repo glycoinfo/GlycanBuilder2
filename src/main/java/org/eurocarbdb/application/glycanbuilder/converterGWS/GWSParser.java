@@ -329,7 +329,7 @@ public class GWSParser implements GlycanParser {
 		// linkage, meets a sentence and stops - so a composition's own GWS could not be read back
 		// (#162). It is left out here, as it is left out of the drawing and of the mass.
 		ArrayList<String> str_children = new ArrayList();
-		boolean deoxiesWritten = !r.hasDeoxies();
+		boolean deoxiesWritten = !r.hasSkeletonModifications();
 		for( Linkage l : r.getChildrenLinkages() ) {
 			if( l.getChildResidue()!=null && l.getChildResidue().isCompositionMarker() )
 				continue;
@@ -374,7 +374,11 @@ public class GWSParser implements GlycanParser {
 	 */
 	static private ArrayList<String> deoxiesAsChildren(Residue r) {
 		ArrayList<String> ret = new ArrayList<String>();
-		for( String deoxy : r.getDeoxies() ) {
+		// and the carbons of a double bond, "--4e" and "--5E", the same way (#292). GWS has no other way
+		// to say one; an older reader sees a child it does not know, as it did a deoxy's
+		ArrayList<String> carbons = new ArrayList<String>(r.getDeoxies());
+		carbons.addAll(r.getDoubleBonds());
+		for( String deoxy : carbons ) {
 			Character position = SkeletonModificationComposition.positionOf(deoxy);
 			Character code = SkeletonModificationComposition.codeOf(deoxy);
 			if( position!=null && code!=null )
@@ -390,6 +394,11 @@ public class GWSParser implements GlycanParser {
 	 * it, is not a monosaccharide, hangs off a monosaccharide, and is attached at a single position. No
 	 * dictionary has a residue of either name, so nothing that is a residue can be mistaken for one.
 	 */
+	/** A deoxy, d or m, or a carbon of a double bond, e E z Z - each written as a child of one letter. */
+	private static boolean isSkeletonCode(char c) {
+		return SkeletonModificationComposition.isDeoxy(c) || SkeletonModificationComposition.isDoubleBond(c);
+	}
+
 	static void foldDeoxies(Residue r) {
 		if( r==null ) return;
 
@@ -397,9 +406,11 @@ public class GWSParser implements GlycanParser {
 			Residue child = l.getChildResidue();
 			if( r.isSaccharide() && child!=null && !child.isSaccharide() && !child.hasChildren()
 					&& child.getTypeName().length()==1
-					&& SkeletonModificationComposition.isDeoxy(child.getTypeName().charAt(0))
+					&& isSkeletonCode(child.getTypeName().charAt(0))
 					&& l.getBonds().size()==1 && l.getParentPositionsSingle()!='?' ) {
-				r.addDeoxy(l.getParentPositionsSingle() + "*" + child.getTypeName());
+				String carbon = l.getParentPositionsSingle() + "*" + child.getTypeName();
+				if( SkeletonModificationComposition.isDeoxy(child.getTypeName().charAt(0)) ) r.addDeoxy(carbon);
+				else r.addDoubleBond(carbon);
 				r.getChildrenLinkages().remove(l);
 				continue;
 			}

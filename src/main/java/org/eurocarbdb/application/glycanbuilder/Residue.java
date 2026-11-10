@@ -72,6 +72,8 @@ public class Residue {
 	//annotation
 	private final ArrayList<String> modifications = new ArrayList<>();
 	private final ArrayList<String> deoxies = new ArrayList<>();
+	/** The carbons of a double bond in the skeleton, "4*e" and "5*E" (#292). */
+	private final ArrayList<String> doubleBonds = new ArrayList<>();
 
 	/** The skeleton read from WURCS when the type cannot say it alone; see {@link #getReadSkeleton}. */
 	private String readSkeleton = null;
@@ -230,6 +232,37 @@ public class Residue {
 	/** Whether this residue carries a deoxy its type's name does not imply. */
 	public boolean hasDeoxies() {
 		return !this.deoxies.isEmpty();
+	}
+
+	/**
+	 * Record a carbon of a double bond in this residue's skeleton: "4*e", "5*E", as WURCS writes the
+	 * carbon - e or z a CH, E or Z a C carrying its oxygen, e and E one geometry and z and Z the other
+	 * (#292). A 4,5-unsaturated uronic acid read from WURCS lost its double bond: read as the
+	 * saturated acid, two hydrogens heavy, with nothing but the footnote's text to say otherwise.
+	 *
+	 * <p>Kept on the residue, as a deoxy is: it changes the composition by what WURCSFramework says it
+	 * changes, takes away a derivatization site where it takes away a hydroxyl (e and z), takes the
+	 * residue's own symbol away, and is written back by the WURCS writer as part of the skeleton.
+	 * Also added to {@link #getModifications()}, which is what that writer reads.
+	 */
+	public void addDoubleBond(String a_sCarbon) {
+		if (!this.doubleBonds.contains(a_sCarbon)) this.doubleBonds.add(a_sCarbon);
+		if (!this.modifications.contains(a_sCarbon)) this.modifications.add(a_sCarbon);
+	}
+
+	/** The carbons recorded by {@link #addDoubleBond}, in the order they were added. */
+	public java.util.List<String> getDoubleBonds() {
+		return java.util.Collections.unmodifiableList(this.doubleBonds);
+	}
+
+	/** Whether this residue's skeleton has a double bond its type's name does not imply. */
+	public boolean hasDoubleBonds() {
+		return !this.doubleBonds.isEmpty();
+	}
+
+	/** Whether this residue's skeleton differs from its type's: a deoxy or a double bond it does not imply. */
+	public boolean hasSkeletonModifications() {
+		return hasDeoxies() || hasDoubleBonds();
 	}
 
 	/**
@@ -2066,6 +2099,7 @@ public class Residue {
 		// an allose, and the export of the copy wrote a different residue from the one copied.
 		ret.modifications.addAll(this.modifications);
 		ret.deoxies.addAll(this.deoxies);
+		ret.doubleBonds.addAll(this.doubleBonds);
 		ret.readSkeleton = this.readSkeleton;
 
 		ret.cleaved_residue = (this.cleaved_residue!=null) ?this.cleaved_residue.cloneResidue() :null;
@@ -2094,6 +2128,8 @@ public class Residue {
 		this.modifications.addAll(other.modifications);
 		this.deoxies.clear();
 		this.deoxies.addAll(other.deoxies);
+		this.doubleBonds.clear();
+		this.doubleBonds.addAll(other.doubleBonds);
 		this.readSkeleton = other.readSkeleton;
 
 		this.cleaved_residue = (other.cleaved_residue!=null) ?other.cleaved_residue.cloneResidue() :null;

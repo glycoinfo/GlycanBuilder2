@@ -23,6 +23,7 @@ import org.glycoinfo.application.glycanbuilder.util.exchange.WURCSToGlycanExcept
 
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import org.eurocarbdb.application.glycanbuilder.ResidueType;
 import org.glycoinfo.application.glycanbuilder.dataset.SubstituentMAPDictionary;
 
@@ -174,6 +175,27 @@ public class SUBSTAnalyzer {
 		_residue.addChild(bridge, linkage.getBonds());
 	}
 	
+	/**
+	 * The carbons of a double bond as the skeleton writes them: "4,5" in a21eEA is "4*e" and "5*E".
+	 * Null when the positions are not two carbons of the skeleton that are each a double-bond carbon of
+	 * known geometry.
+	 */
+	static List<String> doubleBondCarbons(GRES _gres, String _positions) {
+		String skeleton = _gres.getMS().getCoreStructure().getSkeletonCode();
+		String[] positions = _positions.split(",");
+		if(positions.length != 2) return null;
+		List<String> carbons = new ArrayList<String>();
+		for(String position : positions) {
+			int carbon;
+			try { carbon = Integer.parseInt(position); } catch (NumberFormatException notACarbon) { return null; }
+			if(carbon < 1 || carbon > skeleton.length()) return null;
+			char code = skeleton.charAt(carbon - 1);
+			if(!SkeletonModificationComposition.isDoubleBond(code)) return null;
+			carbons.add(carbon + "*" + code);
+		}
+		return carbons;
+	}
+
 	private char[] makePosition(LinkedList<Integer> _positions) {
 		char[] position = new char[_positions.size()];
 		
@@ -210,6 +232,18 @@ public class SUBSTAnalyzer {
 			if(SkeletonModificationComposition.isDeoxy(mod)) {
 				deoxies.add(mod);
 				continue;
+			}
+
+			// A double bond, "4,5*en", stays on the residue too, carbon by carbon as the skeleton has
+			// it - "4*e" and "5*E" - since which of them keeps its oxygen is what the composition and
+			// the derivatization sites depend on, and "en" does not say (#292). It was neither kept
+			// nor built: the residue was the saturated acid, two hydrogens heavy.
+			if(subNotations.length == 2 && subNotations[1].equals("en")) {
+				List<String> carbons = doubleBondCarbons(_gres, subNotations[0]);
+				if(carbons != null) {
+					for(String carbon : carbons) _residue.addDoubleBond(carbon);
+					continue;
+				}
 			}
 
 			if(subNotations[0].contains(",")) {
