@@ -113,7 +113,7 @@ public class GRESToResidue {
 		for (String modification : leftOver)
 			if (SkeletonModificationComposition.isDeoxy(modification)) carriesDeoxy = true;
 		if(NonSymbolicResidueDictionary.hasResidueType(trivialName) || carriesDeoxy) {
-			String legend = this.makeLegend(_gres);
+			String legend = nameOf(_gres);
 			if(legend != null) residue.setLegend(legend);
 		}
 
@@ -151,7 +151,7 @@ public class GRESToResidue {
 	 * @param _gres Residue being read.
 	 * @return Returns the legend, or null when none could be built.
 	 */
-	private String makeLegend(GRES _gres) {
+	public static String nameOf(GRES _gres) {
 		try {
 			GRES core = new WURCSFactory("WURCS=2.0/1,1,0/[" + coreOf(_gres) + "]/1/")
 					.getSequence().getGRESs().getFirst();
@@ -168,7 +168,7 @@ public class GRESToResidue {
 	 * bridge, without the substituents and the other bridges, which this builder draws as residues of
 	 * their own.
 	 */
-	static String coreOf(GRES _gres) {
+	public static String coreOf(GRES _gres) {
 		String[] parts = _gres.getMS().getString().split("_");
 		BRIDGE ring = RingBridge.find(_gres.getMS().getCoreStructure());
 		String ringText = (ring == null) ? null
