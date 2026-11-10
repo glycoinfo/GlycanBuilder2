@@ -72,6 +72,9 @@ public class Residue {
 	//annotation
 	private final ArrayList<String> modifications = new ArrayList<>();
 	private final ArrayList<String> deoxies = new ArrayList<>();
+
+	/** The skeleton read from WURCS when its stereo is relative only; see {@link #getRelativeSkeleton}. */
+	private String relativeSkeleton = null;
 	
 	// cleavage
 	private String legend = null;
@@ -227,6 +230,27 @@ public class Residue {
 	/** Whether this residue carries a deoxy its type's name does not imply. */
 	public boolean hasDeoxies() {
 		return !this.deoxies.isEmpty();
+	}
+
+	/**
+	 * The skeleton code this residue was read from, when its stereo is written relative only - 3 and
+	 * 4, no 1 or 2 - or null.
+	 *
+	 * <p>A relative skeleton can be written either way round, {@code ad3dh} or {@code ad4dh}, and
+	 * WURCSFramework keeps each as a normal form of its own. The residue has D, L and unknown, and
+	 * nothing to say which of the two it was given, so the writer wrote one representative and half
+	 * the time it was the other one (#286). The writer writes this back instead, when what it would
+	 * write is this turned the other way round - that is, while the residue is still what was read.
+	 *
+	 * <p>GWS has no place for it. A residue saved and reopened has lost it, and is written as the
+	 * writer's representative again.
+	 */
+	public String getRelativeSkeleton() {
+		return this.relativeSkeleton;
+	}
+
+	public void setRelativeSkeleton(String _skeletonCode) {
+		this.relativeSkeleton = _skeletonCode;
 	}
 	
 	public void isComposition(boolean _isComposition) {
@@ -2035,6 +2059,7 @@ public class Residue {
 		// an allose, and the export of the copy wrote a different residue from the one copied.
 		ret.modifications.addAll(this.modifications);
 		ret.deoxies.addAll(this.deoxies);
+		ret.relativeSkeleton = this.relativeSkeleton;
 
 		ret.cleaved_residue = (this.cleaved_residue!=null) ?this.cleaved_residue.cloneResidue() :null;
 
@@ -2062,6 +2087,7 @@ public class Residue {
 		this.modifications.addAll(other.modifications);
 		this.deoxies.clear();
 		this.deoxies.addAll(other.deoxies);
+		this.relativeSkeleton = other.relativeSkeleton;
 
 		this.cleaved_residue = (other.cleaved_residue!=null) ?other.cleaved_residue.cloneResidue() :null;
 
