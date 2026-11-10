@@ -2,7 +2,6 @@ package org.glycoinfo.WURCSFramework.Glycan;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
@@ -174,18 +173,11 @@ public class GwsReadsTheNamesItWritesTest {
 	 * {@code ?}. No name in either dictionary has a {@code -} followed by one of those, so the
 	 * exclusion costs nothing, and this test is what it buys.
 	 *
-	 * <p><strong>The form does not actually load, and did not before this change either.</strong> The
-	 * grammar splits it correctly and then {@code LinkageTypeOptimizer.start} throws a
-	 * {@code NullPointerException}, because the old-style branch builds a {@code Linkage} with no
-	 * parent. Measured on 1.40.0 before the grammar was touched, so it is a defect of its own and not
-	 * a regression of this one - filed separately. What this test pins is the distinction that
-	 * matters here: the failure is in building the structure, never in reading the name. If the
-	 * grammar regressed, the message would be a format error instead.
+	 * <p>This pins the grammar alone, through {@code readSubtree}. Whether the form then loads as a
+	 * whole structure is {@link PreDoubleDashLinkagesLoadTest}'s question (#274).
 	 */
 	@Test
 	public void theOldStyleLinkageIsStillReadAsALinkage() throws Exception {
-		// readSubtree, not fromString: the grammar is what is under test, and fromString would go on
-		// to the structure build that throws for reasons of its own.
 		Residue root = GWSParser.readSubtree("freeEnd-1b1D-GlcNAc,p", false);
 
 		assertNotNull("the pre-2007 linkage form no longer parses", root);
@@ -193,22 +185,6 @@ public class GwsReadsTheNamesItWritesTest {
 		assertEquals("the linkage was swallowed into the name", 1, root.getChildrenLinkages().size());
 		assertEquals("GlcNAc", root.getChildrenLinkages().get(0).getChildResidue().getTypeName());
 		assertEquals('1', root.getChildrenLinkages().get(0).getParentPositionsSingle());
-	}
-
-	/**
-	 * And the form still does not <em>load</em>, which is a separate defect this change does not
-	 * touch.
-	 *
-	 * <p>Measured on 1.40.0 before the grammar was widened: the tree above is built, and then
-	 * {@code LinkageTypeOptimizer.start} throws a {@code NullPointerException} on a linkage with no
-	 * parent, so {@code fromString} hands back null — <strong>#274</strong>. Recorded here rather than
-	 * left to be rediscovered: when that is fixed this test fails, which is the signal to delete it
-	 * and close the issue.
-	 */
-	@Test
-	public void andStillDoesNotLoad() throws Exception {
-		assertNull("the pre-2007 linkage form loads now - delete this test and close #274",
-				Glycan.fromString("freeEnd-1b1D-GlcNAc,p$MONO,Und,0,0,freeEnd"));
 	}
 
 	private void assertReopensUnchanged(String _gws) throws Exception {

@@ -1105,7 +1105,11 @@ reducing-end label is too narrow", and that is not the same as one fix reaching 
   empty with no error**. Measured against the unmodified 1.40.0 jar before concluding it was
   pre-existing. §1.7 requires every `.gws` ever written to read, and §1.3's name grammar was narrowed
   specifically to keep this form working — so the restriction is being paid for by a path that throws.
-  Filed as **#274**.
+  Filed as **#274**, and **fixed the same day**. The cause was narrower than this paragraph said: the
+  linkage's parent *residue* is null in both branches and filled in later. The real difference is
+  that the old-style branch never told the child residue about its linkage, which the modern branch
+  always did. One line. All six old-form strings tried, including an N-glycan core written entirely
+  in the old form, now load as the same structure and mass as their `--` equivalents.
 - The test asks the dictionaries rather than a list, and asserts the **exact** set of five, so neither
   a sixth appearing nor one of the five being fixed can pass unnoticed.
 
