@@ -1340,7 +1340,15 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 	 */
 	private int noSubstitutions(Residue node) {
 		int ofType = noSubstitutions(node.getType());
-		return (ofType == 0) ? 0 : ofType - node.getDeoxies().size();
+		return (ofType == 0) ? 0 : ofType - extraDeoxies(node);
+	}
+
+	/**
+	 * The deoxies on this residue, every one of which its type lacks: the WURCS reader records only
+	 * those (see SUBSTAnalyzer.extraDeoxies), and a deoxy implied by the type is not recorded at all.
+	 */
+	private static int extraDeoxies(Residue node) {
+		return node.getDeoxies().size();
 	}
 
 	/**
@@ -1361,7 +1369,9 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 
 	/** @return Returns a residue's own mass, of the kind this structure is being weighed in. */
 	private double massOf(Residue node) {
-		if (!node.hasDeoxies()) return massOf(node.getType());
+		// A type with no composition is weighed as it always was; the deoxy cannot make it right, and
+		// throwing here would take the painting down with it. That such types exist is its own fault.
+		if (!node.hasDeoxies() || node.getType().getMolecule() == null) return massOf(node.getType());
 		try {
 			return massOf(moleculeOf(node));
 		} catch (Exception cannotBeWeighed) {
@@ -1739,7 +1749,7 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 			if( node.getType().isDroppedWithMethylation() )
 				ret -= 1;
 			else 
-				ret += node.getType().getNoMethyls()-node.getDeoxies().size()-no_bonds;        
+				ret += node.getType().getNoMethyls()-extraDeoxies(node)-no_bonds;        
 		}    
 
 		// add children
@@ -1764,7 +1774,7 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 			if( node.getType().isDroppedWithAcetylation() )
 				ret -= 1;
 			else 
-				ret += node.getType().getNoAcetyls()-node.getDeoxies().size()-no_bonds;        
+				ret += node.getType().getNoAcetyls()-extraDeoxies(node)-no_bonds;        
 		}    
 
 		// add children

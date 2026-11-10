@@ -175,7 +175,7 @@ public class DeoxyStaysOnTheResidueTest {
 		// Not asserted here: that Glycan.clone() keeps the mass. It does not, for any structure with an
 		// O-methyl, deoxy or not - the clone's linkages come back UNVALIDATED and the methyl is weighed
 		// an oxygen light. Measured on the unmodified 1.40.0 jar with a 3-O-methyl glucose (194.0790,
-		// cloned 178.0841); a defect of its own, recorded in TRIAGE.md.
+		// cloned 178.0841); a defect of its own, #281.
 	}
 
 	/** The guard: a deoxy the name implies - fucose's 6-deoxy - is not recorded as an extra one. */
