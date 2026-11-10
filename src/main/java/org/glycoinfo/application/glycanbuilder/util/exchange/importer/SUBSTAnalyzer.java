@@ -120,9 +120,32 @@ public class SUBSTAnalyzer {
 		if(entry != null && entry.getOwnMAPs().contains(positions[0] + "*" + _subst.getMAP().substring(1)))
 			return;
 
+		// A bare star is a hydroxyl taken away and nothing put in its place: a deoxy, written as a MAP
+		// where its carbon is not known - "?*", as compositions of dHex have it. It is the residue's,
+		// as the deoxies of #258 are, not a substituent of no kind.
+		if(_subst.getMAP().equals("*")) {
+			_residue.addDeoxy(positions[0] + "*d");
+			return;
+		}
+
 		ResidueType substituentType = SubstituentMAPDictionary.findResidueTypeByMAP(_subst.getMAP());
 		if(substituentType == null)
 			throw new Exception("This MAP is not support in the GlycanBuilder2:" + _subst.getMAP());
+
+		// A C-linked group, *C or *CO, here replaces the hydroxyl, as N-linked ones do. On a carbon
+		// whose descriptor has no hydrogen - 5 to 8, X - the hydroxyl stays and the group takes the
+		// hydrogen's place, a branch this builder has no way to hold: read as the other, it weighed
+		// an oxygen wrong and wrote a different skeleton back. Refused, saying so.
+		if("C-type".equals(substituentType.getCompositionClass()) && _subst.getPositions().size() == 1
+				&& _subst.getPositions().getFirst() > 0) {
+			String skeleton = _ms.getSkeletonCode();
+			int at = _subst.getPositions().getFirst();
+			char carbon = (at <= skeleton.length()) ? skeleton.charAt(at - 1) : '?';
+			if("5678X".indexOf(carbon) >= 0)
+				throw new Exception(skeleton + " has a C-linked " + substituentType.getDescription()
+						+ " on carbon " + at + ", which keeps its hydroxyl (" + carbon + " in WURCS): a branch "
+						+ "GlycanBuilder2 cannot represent");
+		}
 
 		String subNotation = positions[0] + "*" + substituentType.getName();
 

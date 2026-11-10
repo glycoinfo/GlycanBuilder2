@@ -199,7 +199,8 @@ public class ResidueAnalyzer {
 		if(a_sModification.contains(",")) return;
 
 		String[] mod = a_sModification.split("\\*");
-		int pos = Integer.parseInt(mod[0]);
+		// a carbon not known, ?, is -1 here, and goes out as a MAP at ? - a deoxy as "?*"
+		int pos = mod[0].equals("?") ? -1 : Integer.parseInt(mod[0]);
 		boolean isTerminal = (pos == 1 || pos == this.backbone);
 		char carbonDescriptor = this.convertModificationNameToCarbonDescriptor(mod[1]);
 

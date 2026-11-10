@@ -91,6 +91,24 @@ final class UnknownStereoNames {
 		return (generic == null) ? null : new Naming(generic, '?', deoxies, true);
 	}
 
+	/**
+	 * Why a skeleton with unknown stereocentres is not one named here, in words a user can act on. The
+	 * converter's own refusal - "partially contains the wild card", "could not handled" - named nothing.
+	 * What is missing is a type of unknown stereo to read it as; which ones to add is #298's question.
+	 */
+	static String whyNot(String _skeletonCode) {
+		String s = _skeletonCode;
+		int n = s.length();
+		String what;
+		if (n == 0) what = "an empty skeleton";
+		else if (s.charAt(0) != 'a' && s.charAt(0) != 'o') what = "a ketose or another monosaccharide that is not an aldose";
+		else if (s.charAt(n - 1) == 'A' && n != 6) what = "a uronic acid of " + n + " carbons";
+		else if (n < 5 || n > 7) what = "a chain of " + n + " carbons";
+		else what = "a monosaccharide of this form";
+		return s + " has stereocentres of unknown configuration (x in WURCS) in " + what
+				+ ", for which GlycanBuilder2 has no type of unknown stereo to read it as";
+	}
+
 	/** The type of unknown stereo for a chain: Pen, Hex, HexA, Hept. */
 	private static String genericFor(int _length, char _last) {
 		if (_last == 'A') return (_length == 6) ? "HexA" : null;
