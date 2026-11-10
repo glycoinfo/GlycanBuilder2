@@ -14,6 +14,11 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<github.global.server>github</github.global.server>
+		<!-- The tests' JVM. Once a method is hot, HotSpot may throw a NullPointerException it has made
+		     in advance, with no message and no stack. Tests that tell one known failure from another
+		     by its message then pass or fail by how warm the JIT got: DeoxyExhaustiveTest did on CI,
+		     where its K5 cases came through blank (#289). Every exception keeps its message here. -->
+		<argLine>-XX:-OmitStackTraceInFastThrow</argLine>
 	</properties>
 
 	<repositories>
