@@ -245,6 +245,23 @@ public class SnfgTableInTheChooserTest {
 		assertEquals(colour("White"), new Color(icon.getRGB(18, 18)));
 	}
 
+	/**
+	 * When the canvas is not in SNFG the dialog says so, naming the notation as the View menu does; in
+	 * SNFG it says nothing, as what it shows is what will be drawn.
+	 */
+	@Test
+	public void theDialogSaysWhenTheCanvasIsNotSnfg() {
+		assertEquals(null, ResidueDesignDialog.canvasNote("snfg"));
+		assertEquals(null, ResidueDesignDialog.canvasNote(null));
+		for (String[] notation : new String[][] { { "cfg", "CFG" }, { "cfgbw", "CFG black and white" },
+				{ "cfglink", "CFG with linkage placement" }, { "uoxf", "UOXF" }, { "uoxfcol", "UOXFCOL" },
+				{ "text", "Text only" } }) {
+			String note = ResidueDesignDialog.canvasNote(notation[0]);
+			assertNotNull(notation[0], note);
+			assertTrue(note, note.contains("shown in SNFG") && note.contains("in " + notation[1] + " notation"));
+		}
+	}
+
 	// ------------------------------------------------------------------------------------------------
 
 	private static int[] pixels(java.awt.Image image) {

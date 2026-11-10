@@ -151,6 +151,11 @@ public class ResidueDesignDialog extends EscapeDialog implements ActionListener 
 	private JLabel resultCount;
 	private JLabel status;
 	private JLabel hint;
+	private JLabel preview;
+
+	/** The canvas's renderer, to show how a residue will be drawn there; null when it is SNFG or unknown. */
+	private final org.eurocarbdb.application.glycanbuilder.renderutil.GlycanRenderer canvasRenderer;
+	private final Map<ResidueType, Icon> canvasIcons = new HashMap<ResidueType, Icon>();
 
 	private String return_status = CANCEL;
 	private ResidueType chosen = null;
@@ -159,13 +164,22 @@ public class ResidueDesignDialog extends EscapeDialog implements ActionListener 
 		this(parent, false);
 	}
 
+	public ResidueDesignDialog(Frame parent, boolean forPlaceholder) {
+		this(parent, forPlaceholder, null);
+	}
+
 	/**
 	 * @param forPlaceholder whether the residue chosen will become a placed placeholder rather than be
 	 *        added; it changes only what the dialog says
+	 * @param canvas the renderer of the canvas the residue goes to. The dialog shows SNFG's symbols
+	 *        whatever it is; when it is another notation the dialog says so, and shows how the residue
+	 *        under the pointer will be drawn there.
 	 */
-	public ResidueDesignDialog(Frame parent, boolean forPlaceholder) {
+	public ResidueDesignDialog(Frame parent, boolean forPlaceholder,
+			org.eurocarbdb.application.glycanbuilder.renderutil.GlycanRenderer canvas) {
 		super(parent, forPlaceholder ? "Set the placeholder's monosaccharide" : "Add a monosaccharide", true);
 
+		this.canvasRenderer = (canvas == null || canvasNote(canvas.getGraphicOptions().NOTATION) == null) ? null : canvas;
 		initComponents(forPlaceholder);
 
 		setResizable(true);
@@ -363,6 +377,51 @@ public class ResidueDesignDialog extends EscapeDialog implements ActionListener 
 		return snfgRenderer().getResidueRenderer().getIcon(type, SYMBOL_SIZE);
 	}
 
+	/** A notation's name as the View menu gives it. */
+	public static String notationName(String notation) {
+		if (notation == null) return "unknown";
+		switch (notation) {
+		case GraphicOptions.NOTATION_SNFG: return "SNFG";
+		case GraphicOptions.NOTATION_CFG: return "CFG";
+		case GraphicOptions.NOTATION_CFGBW: return "CFG black and white";
+		case GraphicOptions.NOTATION_CFGLINK: return "CFG with linkage placement";
+		case GraphicOptions.NOTATION_UOXF: return "UOXF";
+		case GraphicOptions.NOTATION_UOXFCOL: return "UOXFCOL";
+		case GraphicOptions.NOTATION_TEXT: return "Text only";
+		default: return notation;
+		}
+	}
+
+	/**
+	 * What the dialog says when the canvas is not in SNFG, or null when it is. The tables are SNFG's -
+	 * its shapes and colours are what they are laid out by - and in another notation some residues are
+	 * drawn otherwise: in CFG, UOXF and Text, Kdo, Api, Assigned and Sed are text, for instance.
+	 */
+	public static String canvasNote(String notation) {
+		if (notation == null || GraphicOptions.NOTATION_SNFG.equals(notation)) return null;
+		return "Symbols are shown in SNFG. The canvas is in " + notationName(notation)
+				+ " notation, where some are drawn differently: point at one to see how.";
+	}
+
+	/** How a residue will be drawn on the canvas, in the canvas's notation. */
+	private Icon canvasIconOf(ResidueType type) {
+		Icon icon = canvasIcons.get(type);
+		if (icon == null) {
+			icon = canvasRenderer.getResidueRenderer().getIcon(type, SYMBOL_SIZE);
+			canvasIcons.put(type, icon);
+		}
+		return icon;
+	}
+
+	/** The residue under the pointer or the keyboard: its description, and how the canvas will draw it. */
+	private void describe(ResidueType type, String description) {
+		status.setText(description);
+		if (canvasRenderer != null && type != null) {
+			preview.setIcon(canvasIconOf(type));
+			preview.setVisible(true);
+		}
+	}
+
 	private Icon iconOf(ResidueType type) {
 		Icon icon = icons.get(type);
 		if (icon == null) {
@@ -396,9 +455,18 @@ public class ResidueDesignDialog extends EscapeDialog implements ActionListener 
 		hint.setFont(hint.getFont().deriveFont(11f));
 		searchRow.add(hint);
 
+		JPanel heading = new JPanel(new BorderLayout(0, 4));
+		heading.add(what, BorderLayout.NORTH);
+		if (canvasRenderer != null) {
+			JLabel note = new JLabel(canvasNote(canvasRenderer.getGraphicOptions().NOTATION));
+			note.setForeground(new Color(140, 90, 0));
+			note.setFont(note.getFont().deriveFont(12f));
+			heading.add(note, BorderLayout.CENTER);
+		}
+
 		JPanel top = new JPanel(new BorderLayout(0, 6));
 		top.setBorder(BorderFactory.createEmptyBorder(10, 10, 6, 10));
-		top.add(what, BorderLayout.NORTH);
+		top.add(heading, BorderLayout.NORTH);
 		top.add(searchRow, BorderLayout.CENTER);
 
 		// the tabs, and the results that replace them while there is a search
@@ -420,10 +488,19 @@ public class ResidueDesignDialog extends EscapeDialog implements ActionListener 
 		JButton cancel = new JButton(CANCEL);
 		cancel.setActionCommand(CANCEL);
 		cancel.addActionListener(this);
+		preview = new JLabel(canvasRenderer == null ? ""
+				: "On the canvas (" + notationName(canvasRenderer.getGraphicOptions().NOTATION) + "):");
+		preview.setHorizontalTextPosition(SwingConstants.LEFT);
+		preview.setIconTextGap(6);
+		preview.setForeground(Color.DARK_GRAY);
+		preview.setVisible(false);
+		JPanel right = new JPanel(new FlowLayout(FlowLayout.RIGHT, 12, 0));
+		right.add(preview);
+		right.add(cancel);
 		JPanel bottom = new JPanel(new BorderLayout(8, 0));
 		bottom.setBorder(BorderFactory.createEmptyBorder(6, 10, 10, 10));
 		bottom.add(status, BorderLayout.CENTER);
-		bottom.add(cancel, BorderLayout.EAST);
+		bottom.add(right, BorderLayout.EAST);
 
 		JPanel center = new JPanel(new BorderLayout());
 		center.setBorder(BorderFactory.createEmptyBorder(0, 10, 0, 10));
@@ -590,6 +667,10 @@ public class ResidueDesignDialog extends EscapeDialog implements ActionListener 
 				return label;
 			}
 		});
+		results.addListSelectionListener(e -> {
+			Choice choice = results.getSelectedValue();
+			if (choice != null) describe(choice.type, choice.label + " — " + choice.type.getDescription());
+		});
 		results.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
 				if (e.getClickCount() == 2 && results.getSelectedValue() != null)
@@ -677,10 +758,10 @@ public class ResidueDesignDialog extends EscapeDialog implements ActionListener 
 		final Border lit = BorderFactory.createCompoundBorder(
 				BorderFactory.createLineBorder(HIGHLIGHT_EDGE, 1, true), BorderFactory.createEmptyBorder(3, 5, 3, 5));
 		button.setBorder(rest);
-		button.getModel().addChangeListener(e -> light(button, button.getModel().isRollover() || button.hasFocus(), rest, lit, description));
+		button.getModel().addChangeListener(e -> light(button, type, button.getModel().isRollover() || button.hasFocus(), rest, lit, description));
 		button.addFocusListener(new java.awt.event.FocusAdapter() {
-			public void focusGained(java.awt.event.FocusEvent e) { light(button, true, rest, lit, description); }
-			public void focusLost(java.awt.event.FocusEvent e) { light(button, button.getModel().isRollover(), rest, lit, description); }
+			public void focusGained(java.awt.event.FocusEvent e) { light(button, type, true, rest, lit, description); }
+			public void focusLost(java.awt.event.FocusEvent e) { light(button, type, button.getModel().isRollover(), rest, lit, description); }
 		});
 		button.addActionListener(e -> choose(type));
 		return button;
@@ -689,11 +770,11 @@ public class ResidueDesignDialog extends EscapeDialog implements ActionListener 
 	private static final Color HIGHLIGHT_EDGE = new Color(66, 133, 244);
 	private static final Color HIGHLIGHT_FILL = new Color(232, 240, 254);
 
-	private void light(JButton button, boolean on, Border rest, Border lit, String description) {
+	private void light(JButton button, ResidueType type, boolean on, Border rest, Border lit, String description) {
 		button.setBorder(on ? lit : rest);
 		button.setOpaque(on);
 		button.setBackground(on ? HIGHLIGHT_FILL : null);
-		if (on) status.setText(description);
+		if (on) describe(type, description);
 	}
 
 	private static JComponent padded(JComponent content) {
