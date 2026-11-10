@@ -200,9 +200,9 @@ public class SnfgTableInTheChooserTest {
 	}
 
 	/**
-	 * The chooser's symbols - its table, and the white pentagon that is its toolbar icon - are SNFG's
-	 * whatever notation the canvas is in: they are drawn by a renderer of the chooser's own. Checked by
-	 * drawing the pentagon with the workspace in SNFG and again in UOXF, which has other shapes.
+	 * The chooser's symbols are SNFG's whatever notation the canvas is in: its table is drawn by a
+	 * renderer of its own, checked by drawing a symbol with the workspace in SNFG and again in UOXF,
+	 * which has other shapes.
 	 */
 	@Test
 	public void theChoosersSymbolsAreSnfgWhateverTheNotation() {
@@ -219,9 +219,30 @@ public class SnfgTableInTheChooserTest {
 			workspace.setNotation(before);
 		}
 		assertTrue("nothing was drawn", inSnfg.length > 0);
-		assertTrue("the icon changed with the notation", Arrays.equals(inSnfg, inUoxf));
-		assertEquals("pentagon", new GlycanRendererAWT().getResidueStyleDictionary()
-				.getStyle(new Residue(placeholder)).getShape());
+		assertTrue("the symbol changed with the notation", Arrays.equals(inSnfg, inUoxf));
+	}
+
+	/**
+	 * The chooser's icon is a small table of SNFG symbols - blue, yellow, red and the white pentagon - in
+	 * SNFG's colours, with the workspace in another notation. A single symbol beside the toolbar's
+	 * residue buttons read as one more of them.
+	 */
+	@Test
+	public void theChoosersIconIsASmallSnfgTable() {
+		String before = workspace.getGraphicOptions().NOTATION;
+		java.awt.image.BufferedImage icon;
+		try {
+			workspace.setNotation(org.eurocarbdb.application.glycanbuilder.util.GraphicOptions.NOTATION_UOXF);
+			icon = (java.awt.image.BufferedImage) ResidueDesignDialog.chooserImage(24);
+		} finally {
+			workspace.setNotation(before);
+		}
+		assertEquals(24, icon.getWidth());
+		// the middle of each quarter, and for the triangle a little below it, where it is widest
+		assertEquals(colour("Blue"), new Color(icon.getRGB(6, 6)));
+		assertEquals(colour("Yellow"), new Color(icon.getRGB(18, 6)));
+		assertEquals(colour("Red"), new Color(icon.getRGB(6, 19)));
+		assertEquals(colour("White"), new Color(icon.getRGB(18, 18)));
 	}
 
 	// ------------------------------------------------------------------------------------------------

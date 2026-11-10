@@ -297,6 +297,62 @@ public class ResidueDesignDialog extends EscapeDialog implements ActionListener 
 		return renderer;
 	}
 
+	/**
+	 * The chooser's own icon: four SNFG symbols in a two-by-two table - a blue circle, a yellow square,
+	 * a red triangle and the white pentagon, Glc, GalNAc, Fuc and Assigned. A single symbol, beside the toolbar's buttons that each add
+	 * one residue, read as one more of them; the white pentagon in particular is also what the toolbar
+	 * shows for the Assigned residue last added. A small table reads as "choose from the table", and
+	 * keeps the pentagon, the placeholder the chooser names.
+	 */
+	public static java.awt.Image chooserImage(int size) {
+		java.awt.image.BufferedImage icon = new java.awt.image.BufferedImage(size, size,
+				java.awt.image.BufferedImage.TYPE_INT_ARGB);
+		java.awt.Graphics2D g = icon.createGraphics();
+		g.setRenderingHint(java.awt.RenderingHints.KEY_ANTIALIASING, java.awt.RenderingHints.VALUE_ANTIALIAS_ON);
+		g.setRenderingHint(java.awt.RenderingHints.KEY_STROKE_CONTROL, java.awt.RenderingHints.VALUE_STROKE_PURE);
+
+		// Drawn at the icon's own size rather than scaled down from the renderer's symbols, whose
+		// one-pixel outlines do not survive being halved. The colours are SNFG's, from its Table 2.
+		double cell = size / 2.0;
+		double pad = Math.max(1.5, size / 12.0);
+		double side = cell - 2 * pad;
+		java.awt.Shape[] shapes = new java.awt.Shape[4];
+		shapes[0] = new java.awt.geom.Ellipse2D.Double(pad, pad, side, side);
+		shapes[1] = new java.awt.geom.Rectangle2D.Double(cell + pad, pad, side, side);
+		java.awt.geom.Path2D triangle = new java.awt.geom.Path2D.Double();
+		triangle.moveTo(cell / 2, cell + pad);
+		triangle.lineTo(cell - pad, 2 * cell - pad);
+		triangle.lineTo(pad, 2 * cell - pad);
+		triangle.closePath();
+		shapes[2] = triangle;
+		java.awt.geom.Path2D pentagon = new java.awt.geom.Path2D.Double();
+		double cx = cell + cell / 2, cy = cell + cell / 2 + side * 0.05, r = side / 2 * 1.04;
+		for (int k = 0; k < 5; k++) {
+			double angle = -Math.PI / 2 + k * 2 * Math.PI / 5;
+			double px = cx + r * Math.cos(angle), py = cy + r * Math.sin(angle);
+			if (k == 0) pentagon.moveTo(px, py); else pentagon.lineTo(px, py);
+		}
+		pentagon.closePath();
+		shapes[3] = pentagon;
+
+		java.awt.Color[] fills = { colour("Blue"), colour("Yellow"), colour("Red"), colour("White") };
+		g.setStroke(new java.awt.BasicStroke(Math.max(1f, size / 24f)));
+		for (int k = 0; k < shapes.length; k++) {
+			g.setColor(fills[k]);
+			g.fill(shapes[k]);
+			g.setColor(java.awt.Color.BLACK);
+			g.draw(shapes[k]);
+		}
+		g.dispose();
+		return icon;
+	}
+
+	private static java.awt.Color colour(String name) {
+		for (SNFGTable.Colour colour : SNFGTable.getColours())
+			if (colour.getName().equals(name)) return colour.getRGB();
+		throw new IllegalArgumentException(name);
+	}
+
 	/** The symbol of a residue as this application draws it in SNFG, at a size. */
 	public static java.awt.Image snfgImage(ResidueType type, int size) {
 		return snfgRenderer().getResidueRenderer().getImage(type, size);

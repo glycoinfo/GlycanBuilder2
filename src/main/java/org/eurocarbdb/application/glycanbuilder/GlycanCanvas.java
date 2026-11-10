@@ -1985,12 +1985,27 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		
 		if (hasCurrentSelection()) buf.append("1");
 		else buf.append("0");
+
+		// a placeholder's menu leads with naming it, so it is cached apart
+		boolean placeholder = GlycanDocument.isPlaceholder(getCurrentResidue());
+		buf.append(placeholder ? "1" : "0");
 		
 		String key=buf.toString();
 		if(cachedMenus.containsKey(key)) return cachedMenus.get(key);
 		
 		JPopupMenu menu = new JPopupMenu();
 		menu.setDoubleBuffered(true);
+
+		// A placed "Assigned" placeholder is there to be named (#252): saying which monosaccharide it
+		// is comes first, where the question is asked, rather than only on the toolbar.
+		if (placeholder) {
+			JMenuItem name = new JMenuItem("Set monosaccharide\u2026",
+					new ImageIcon(ResidueDesignDialog.chooserImage(16)));
+			name.setToolTipText("Choose which monosaccharide this placeholder is");
+			name.addActionListener(e -> onAddStringNotation());
+			menu.add(name);
+			menu.addSeparator();
+		}
 
 		// edit actions
 		menu.add(getTheActionManager().get("cut"));
@@ -4527,7 +4542,11 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		lastMouseButton = e.getButton();
 		Residue r = getResidueAtPoint(e.getPoint());
 		if (r != null) {
-			if (MouseUtils.isSelectTrigger(e)) {
+			if (isPlainDoubleClick(e) && GlycanDocument.isPlaceholder(r)) {
+				// a double click on a placeholder names it (#252); later, so the click finishes first
+				setSelection(r);
+				SwingUtilities.invokeLater(this::onAddStringNotation);
+			} else if (MouseUtils.isSelectTrigger(e)) {
 				setSelection(r);
 			} else if (MouseUtils.isAddSelectTrigger(e)) {
 				addSelection(r);
@@ -4543,6 +4562,12 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		}
 		lastMouseButton = null;
 
+	}
+
+	private static boolean isPlainDoubleClick(MouseEvent e) {
+		return e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() == 2
+				&& (e.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK
+						| InputEvent.META_DOWN_MASK | InputEvent.ALT_DOWN_MASK)) == 0;
 	}
 
 	private void dragAndScroll(MouseEvent e) {

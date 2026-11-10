@@ -48,21 +48,19 @@ public class CanvasAction {
 	}
 
 	/**
-	 * The monosaccharide chooser, with SNFG's white pentagon for its icon: the symbol of a monosaccharide
-	 * yet to be named, which is what the chooser names. Drawn by an SNFG renderer of its own, so it stays
-	 * the pentagon whichever notation the canvas is in, as the chooser itself is SNFG.
+	 * The monosaccharide chooser. Its icon is a small table of SNFG symbols, drawn by an SNFG renderer of
+	 * its own so it is the same whichever notation the canvas is in, as the chooser itself is SNFG.
 	 */
 	private void createChooserAction(ActionManager a_oActionManager, ThemeManager a_oTheme, ICON_SIZE defaultMenuIconSize, ActionListener a_oListener) {
-		ResidueType placeholder = ResidueDictionary.findResidueType("Assigned");
 		ImageResizableIconReducedMem icon = new ImageResizableIconReducedMem(
-				ResidueDesignDialog.snfgImage(placeholder, defaultMenuIconSize.getSize()),
+				ResidueDesignDialog.chooserImage(defaultMenuIconSize.getSize()),
 				defaultMenuIconSize.getSize(), defaultMenuIconSize.getSize());
 		EurocarbResizableIcon eu_icon = new EurocarbResizableIcon(a_oTheme, null, icon);
 		eu_icon.setResizableIcon(icon);
 
 		a_oActionManager.add("stringNotation", eu_icon, "Add monosaccharide from SNFG table or list", -1, "", a_oListener);
 		a_oActionManager.get("stringNotation").putValue(Action.SMALL_ICON,
-				new ImageIcon(ResidueDesignDialog.snfgImage(placeholder, ICON_SIZE.L3.getSize())));
+				new ImageIcon(ResidueDesignDialog.chooserImage(ICON_SIZE.L3.getSize())));
 	}
 	
 	private void createStructureAction (ActionManager a_oActionManager, ThemeManager themeManager, ICON_SIZE defaultMenuIconSize, ActionListener a_oListener) {
