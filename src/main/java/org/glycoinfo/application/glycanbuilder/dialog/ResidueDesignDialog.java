@@ -628,7 +628,7 @@ public class ResidueDesignDialog extends EscapeDialog implements ActionListener 
 		JScrollPane sideScroll = new JScrollPane(side);
 		sideScroll.setPreferredSize(new Dimension(130, 10));
 
-		JLabel note = new JLabel("SNFG draws these as a white pentagon, with a letter explained beneath the structure.");
+		JLabel note = new JLabel("SNFG draws these as a white symbol with a letter explained beneath the structure: their kind's where one fits, else the pentagon.");
 		note.setForeground(Color.GRAY);
 		note.setFont(note.getFont().deriveFont(11f));
 		note.setBorder(BorderFactory.createEmptyBorder(6, 8, 6, 8));

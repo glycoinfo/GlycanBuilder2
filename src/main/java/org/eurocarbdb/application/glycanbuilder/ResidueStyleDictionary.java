@@ -173,7 +173,12 @@ public class ResidueStyleDictionary {
 		/* set basetype symbol*/
 		String a_sStyle = "";
 		if(a_oRS == null) {
-			a_sStyle = this.styles.get(fallbackFor(type.getSuperclass()));
+			// In SNFG, the white symbol of the residue's generic type where one fits (#279); the
+			// superclass's row, as before, for a residue the table does not name.
+			String generic = this.styles.containsKey("Assigned")
+					? org.glycoinfo.application.glycanbuilder.dataset.SNFGGenericSymbols.symbolFor(node) : null;
+			a_sStyle = (generic != null && this.styles.containsKey(generic))
+					? this.styles.get(generic) : this.styles.get(fallbackFor(type.getSuperclass()));
 		}
 		
 		/* set text notation */
