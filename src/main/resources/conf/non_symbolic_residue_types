@@ -1,8 +1,8 @@
 %Name	SuperClass      Class	Composition	Synonim	IUPAC	AnomC	Chir	Ring	IsSacc	IsCleav	Labile	BarOrdr	NoMe	DropMe	NoAc	DropAc	noLinks	LinkPos	ChargesPos	Alditol RedEnd 	Parent	Description
 Gro			Assigned	Tri		C3H6O3	-	Gro$	1	?	?	yes	no	no	0	2	no	2	no	2	1,2,3	-	yes	no	yes	Grose
-Ery			Assigned	Tet		C4H8O4	-	Ery$	1	?	?	yes	no	yes	0	3	no	3	no	3	2,3,4	-	yes	no	yes	Erythrose
+Ery			Assigned	Tet		C4H8O4	-	Ery$	1	D	f	yes	no	yes	0	3	no	3	no	3	2,3,4	-	yes	no	yes	Erythrose
 Eru			Assigned	Tet		C4H8O4	-	Eru$	1	?	?	yes	no	yes	0	3	no	2	no	3	3,4	-	yes	no	yes	Erythrulose
-Thr			Assigned	Tet		C4H8O4	-	Thr$	1	?	?	yes	no	yes	0	3	no	3	no	3	2,3,4	-	yes	no	yes	Threose
+Thr			Assigned	Tet		C4H8O4	-	Thr$	1	D	f	yes	no	yes	0	3	no	3	no	3	2,3,4	-	yes	no	yes	Threose
 Rul			Assigned	Pen		C5H10O5	-	Rul$	2	?	f	yes	yes	yes	0	3	no	3	no	3	1,3,4	-	yes	no	yes	Ribulose
 Xul			Assigned	Pen		C5H10O5	-	Xul$	2	?	f	yes	yes	yes	0	3	no	3	no	3	1,3,4	-	yes	no	yes	Xylulose
 Ami			Di-deoxyhexose	Hex		C6H12O3	-	Ami$	1	?	p	yes	yes	yes	0	2	no	2	no	2	1,4	-	yes	no	yes	Amicetose
@@ -69,8 +69,8 @@ D-ery-D-glcDEC	Assigned	Dec	C10H20O10	-	D-ery-D-glcDec$	2	?	p	yes	yes	no	0	5	no	
 %DERYDGALDEC(),
 
 %tetrose
-eryTet	Assigned	Tet	C4H804	-	eryTet$	1	?	p	yes	yes	no	0	3	no	3	no	4	1,2,3,4	-	no	no	yes	ErythroTetrose
-thrTet	Assigned	Tet	C4H804	-	thrTet$	1	?	p	yes	yes	no	0	3	no	3	no	4	1,2,3,4	-	no	no	yes	ThreoTetrose
+eryTet	Assigned	Tet	C4H8O4	-	eryTet$	1	?	f	yes	yes	no	0	3	no	3	no	4	1,2,3,4	-	no	no	yes	ErythroTetrose
+thrTet	Assigned	Tet	C4H8O4	-	thrTet$	1	?	f	yes	yes	no	0	3	no	3	no	4	1,2,3,4	-	no	no	yes	ThreoTetrose
 	
 %pentose
 groPen	Assigned	Pen	C5H10O5	-	groPen$	1	?	p	yes	yes	no	0	4	no	4	no	5	1,2,3,4,5	-	no	no	yes	GrosePentose

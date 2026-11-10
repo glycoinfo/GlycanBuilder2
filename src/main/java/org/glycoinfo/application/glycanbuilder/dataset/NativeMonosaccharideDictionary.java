@@ -199,6 +199,10 @@ public class NativeMonosaccharideDictionary {
 		residues.put("TalA",           new Entry("1112",  true,  'D', "",               ""));
 		residues.put("TalN",           new Entry("1112",  true,  'D', "2*N",            ""));
 		residues.put("TalNAc",         new Entry("1112",  true,  'D', "2*NAc",          ""));
+		// The tetroses, by their trivial names: the configurational prefixes thr and ery of #261. They
+		// had no stereo, and no configuration or ring in their rows, so they could not be written (#285).
+		residues.put("Thr",            new Entry("12",    true,  'D', "",               ""));
+		residues.put("Ery",            new Entry("22",    true,  'D', "",               ""));
 		residues.put("Tyv",            new Entry("122",   false, 'D', "",               "3*d_6*m"));
 		residues.put("Xyl",            new Entry("212",   true,  'D', "",               ""));
 		residues.put("dHex",           new Entry("",      false, 'X', "",               ""));
