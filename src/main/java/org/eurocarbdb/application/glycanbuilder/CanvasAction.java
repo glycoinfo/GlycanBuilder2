@@ -13,6 +13,7 @@ import org.eurocarbdb.application.glycanbuilder.renderutil.ResidueRenderer;
 import org.eurocarbdb.application.glycanbuilder.util.ActionManager;
 import org.eurocarbdb.application.glycanbuilder.util.GraphicOptions;
 import org.glycoinfo.application.glycanbuilder.dataset.CrossLinkedSubstituentDictionary;
+import org.glycoinfo.application.glycanbuilder.dialog.ResidueDesignDialog;
 
 public class CanvasAction {
 
@@ -43,7 +44,25 @@ public class CanvasAction {
 		a_oActionManager.add("gotoend", a_oTheme.getResizableIcon("go-last", defaultMenuIconSize), "Show end of the canvas", KeyEvent.VK_E, "ctrl END", a_oListener);
 		
 		// #252: SNFG's table and the monosaccharides with no symbol of their own, which also says which one an "Assigned" placeholder is
-		a_oActionManager.add("stringNotation", a_oTheme.getResizableIcon("glycandoc", defaultMenuIconSize), "Add monosaccharide from SNFG table or list", -1, "", a_oListener);
+		createChooserAction(a_oActionManager, a_oTheme, defaultMenuIconSize, a_oListener);
+	}
+
+	/**
+	 * The monosaccharide chooser, with SNFG's white pentagon for its icon: the symbol of a monosaccharide
+	 * yet to be named, which is what the chooser names. Drawn by an SNFG renderer of its own, so it stays
+	 * the pentagon whichever notation the canvas is in, as the chooser itself is SNFG.
+	 */
+	private void createChooserAction(ActionManager a_oActionManager, ThemeManager a_oTheme, ICON_SIZE defaultMenuIconSize, ActionListener a_oListener) {
+		ResidueType placeholder = ResidueDictionary.findResidueType("Assigned");
+		ImageResizableIconReducedMem icon = new ImageResizableIconReducedMem(
+				ResidueDesignDialog.snfgImage(placeholder, defaultMenuIconSize.getSize()),
+				defaultMenuIconSize.getSize(), defaultMenuIconSize.getSize());
+		EurocarbResizableIcon eu_icon = new EurocarbResizableIcon(a_oTheme, null, icon);
+		eu_icon.setResizableIcon(icon);
+
+		a_oActionManager.add("stringNotation", eu_icon, "Add monosaccharide from SNFG table or list", -1, "", a_oListener);
+		a_oActionManager.get("stringNotation").putValue(Action.SMALL_ICON,
+				new ImageIcon(ResidueDesignDialog.snfgImage(placeholder, ICON_SIZE.L3.getSize())));
 	}
 	
 	private void createStructureAction (ActionManager a_oActionManager, ThemeManager themeManager, ICON_SIZE defaultMenuIconSize, ActionListener a_oListener) {

@@ -297,6 +297,11 @@ public class ResidueDesignDialog extends EscapeDialog implements ActionListener 
 		return renderer;
 	}
 
+	/** The symbol of a residue as this application draws it in SNFG, at a size. */
+	public static java.awt.Image snfgImage(ResidueType type, int size) {
+		return snfgRenderer().getResidueRenderer().getImage(type, size);
+	}
+
 	/** The symbol of a residue, as this application draws it in SNFG. */
 	public static Icon snfgIcon(ResidueType type) {
 		return snfgRenderer().getResidueRenderer().getIcon(type, SYMBOL_SIZE);

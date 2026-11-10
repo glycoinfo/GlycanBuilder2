@@ -199,7 +199,42 @@ public class SnfgTableInTheChooserTest {
 		assertTrue(flatHexagons.toString(), flatHexagons.containsAll(Arrays.asList("Unknown", "Kdo", "Mur")));
 	}
 
+	/**
+	 * The chooser's symbols - its table, and the white pentagon that is its toolbar icon - are SNFG's
+	 * whatever notation the canvas is in: they are drawn by a renderer of the chooser's own. Checked by
+	 * drawing the pentagon with the workspace in SNFG and again in UOXF, which has other shapes.
+	 */
+	@Test
+	public void theChoosersSymbolsAreSnfgWhateverTheNotation() {
+		ResidueType placeholder = ResidueDictionary.findResidueType("Assigned");
+		String before = workspace.getGraphicOptions().NOTATION;
+		int[] inSnfg;
+		int[] inUoxf;
+		try {
+			workspace.setNotation(org.eurocarbdb.application.glycanbuilder.util.GraphicOptions.NOTATION_SNFG);
+			inSnfg = pixels(ResidueDesignDialog.snfgImage(placeholder, 24));
+			workspace.setNotation(org.eurocarbdb.application.glycanbuilder.util.GraphicOptions.NOTATION_UOXF);
+			inUoxf = pixels(ResidueDesignDialog.snfgImage(placeholder, 24));
+		} finally {
+			workspace.setNotation(before);
+		}
+		assertTrue("nothing was drawn", inSnfg.length > 0);
+		assertTrue("the icon changed with the notation", Arrays.equals(inSnfg, inUoxf));
+		assertEquals("pentagon", new GlycanRendererAWT().getResidueStyleDictionary()
+				.getStyle(new Residue(placeholder)).getShape());
+	}
+
 	// ------------------------------------------------------------------------------------------------
+
+	private static int[] pixels(java.awt.Image image) {
+		javax.swing.ImageIcon loaded = new javax.swing.ImageIcon(image);  // waits for the image to load
+		java.awt.image.BufferedImage b = new java.awt.image.BufferedImage(
+				loaded.getIconWidth(), loaded.getIconHeight(), java.awt.image.BufferedImage.TYPE_INT_ARGB);
+		java.awt.Graphics2D g = b.createGraphics();
+		g.drawImage(loaded.getImage(), 0, 0, null);
+		g.dispose();
+		return b.getRGB(0, 0, b.getWidth(), b.getHeight(), null, 0, b.getWidth());
+	}
 
 	private static List<String> labels(List<ResidueDesignDialog.Choice> choices) {
 		List<String> labels = new ArrayList<String>();
