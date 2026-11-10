@@ -667,7 +667,10 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
 		if( doc==null ) return false;
 
 		Boolean saved = saveToItsOwnFile(doc);
-		if( saved!=null ) return saved.booleanValue();
+		if( saved!=null ) {
+			if( saved.booleanValue() ) warnOfWhatGWSLost(doc);
+			return saved.booleanValue();
+		}
 
 		// non e' stato possibile salvare il file nella posizione da cui e' stato aperto. Richiedo il salvataggio con scelta file
 		if( ask_filename ) return onSaveAs(doc);
@@ -696,6 +699,26 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
 			return null;
 
 		return Boolean.valueOf(doc.save(cur.getAbsolutePath()));
+	}
+
+	/**
+	 * Say what the file just saved does not hold: a monosaccharide read from WURCS in relative stereo
+	 * keeps which way round it was written only until the document is closed, as GWS has no place for
+	 * it, and reopened it is exported to WURCS the other way round (#286).
+	 */
+	private void warnOfWhatGWSLost(BaseDocument doc) {
+		if( !(doc instanceof GlycanDocument) ) return;
+		java.util.List<String> lost = org.glycoinfo.application.glycanbuilder.converterWURCS2.RelativeStereoInGWS
+				.lostOnSave(((GlycanDocument) doc).getStructures());
+		if( lost.isEmpty() ) return;
+
+		StringBuilder message = new StringBuilder("Saved. The file does not hold which way round the relative stereo of\n"
+				+ "these monosaccharides, read from WURCS, was written:\n\n");
+		for( String one : lost ) message.append("    ").append(one).append('\n');
+		message.append("\nReopened from this file, they will be exported to WURCS as shown on the right.\n"
+				+ "To keep them as read, export to WURCS before closing this document.");
+		JOptionPane.showMessageDialog(this, message.toString(), "Relative stereo not saved",
+				JOptionPane.WARNING_MESSAGE);
 	}
 
 	/**
@@ -733,6 +756,7 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
 
 			// salvo il documento su file
 			if( !doc.save(filename) ) return false;
+			warnOfWhatGWSLost(doc);
 
 			// update history
 			theWorkspace.getFileHistory().add(filename,doc.getName());     

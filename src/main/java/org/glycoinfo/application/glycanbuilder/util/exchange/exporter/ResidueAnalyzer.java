@@ -109,8 +109,23 @@ public class ResidueAnalyzer {
 			this.skeletonCode += this.pos2char.get(i + 1);
 		}
 
+		// A residue read in relative stereo is written back the way round it was read (#286). Only when
+		// what was built is exactly that turned over: a residue changed since it was read builds
+		// something else, and is written as built.
+		String read = _residue.getRelativeSkeleton();
+		if(read != null && !read.equals(this.skeletonCode) && read.equals(turnedOver(this.skeletonCode)))
+			this.skeletonCode = read;
+
 		if(stereo.length() != 0 && pos2char.size() != backbone)
 			throw new WURCSExchangeException("error");
+	}
+
+	/** A skeleton code with every relative digit the other way round, 3 for 4 and 4 for 3. */
+	static String turnedOver(String _skeletonCode) {
+		StringBuilder turned = new StringBuilder(_skeletonCode.length());
+		for (char carbon : _skeletonCode.toCharArray())
+			turned.append(carbon == '3' ? '4' : carbon == '4' ? '3' : carbon);
+		return turned.toString();
 	}
 
 	private ArrayList<String> extractNativeModification(Residue _residue) {

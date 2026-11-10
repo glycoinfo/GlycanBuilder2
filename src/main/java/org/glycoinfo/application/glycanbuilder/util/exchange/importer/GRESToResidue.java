@@ -110,6 +110,9 @@ public class GRESToResidue {
 		residue.setAnomericCarbon(this.checkAnomerPosition());
 		residue.setAnomericState(this.checkAnomerSymbol());
 		residue.setChirality(configuration);
+		// which way round a relative skeleton was written, which the configuration cannot say (#286)
+		String skeleton = _gres.getMS().getCoreStructure().getSkeletonCode();
+		if(isRelativeOnly(skeleton)) residue.setRelativeSkeleton(skeleton);
 		// The ring letter carries the acyclic forms now, and setting it sets the flags that go with
 		// them - so the two are set together here rather than either being able to undo the other.
 		residue.setRingSize(this.isAlditol() ? 'o' : this.isAldehyde() ? 'a' : this.ringSize);
