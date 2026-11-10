@@ -294,19 +294,34 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 
 	abstract protected void assignID (Glycan structure);
 
+	/** What is written beneath a structure for its m/z. */
+	public static final String UNWEIGHED = "\u2014 (contains an unassigned residue)";
+
 	protected String getMassText(Glycan structure) {
 		StringBuilder sb = new StringBuilder();
 		DecimalFormat df = new DecimalFormat("0.0000");
-		double mz = structure.computeMZ();
 
 		sb.append("m/z: ");
-		if (mz < 0.) sb.append("???");
-		else sb.append(df.format(mz));
+		// An Assigned placeholder says only that some monosaccharide is there, not which, so the
+		// structure has no mass to give. Its row weighs it as one hydrogen, and the figure that came of
+		// that looked like a measurement (#285).
+		if (hasPlaceholder(structure)) sb.append(UNWEIGHED);
+		else {
+			double mz = structure.computeMZ();
+			if (mz < 0.) sb.append("???");
+			else sb.append(df.format(mz));
+		}
 		sb.append(" [");
 		sb.append(structure.getMassOptions().toString());
 		sb.append("]");
 
 		return sb.toString();
+	}
+
+	private static boolean hasPlaceholder(Glycan structure) {
+		for (Residue r : structure.getAllResidues())
+			if (org.eurocarbdb.application.glycanbuilder.GlycanDocument.isPlaceholder(r)) return true;
+		return false;
 	}
 
 	abstract protected void paintQuantity(Paintable paintable, Residue antennae, int quantity,BBoxManager bboxManager);

@@ -325,12 +325,6 @@ public class DeoxyExhaustiveTest {
 				&& detail.contains(invertRelative(c.ms)))
 			return "K6 #286 the relative stereo comes back the other way round";
 
-		// thrTet and eryTet are written with a composition of "C4H804" - a zero for the O - and a
-		// pyranose ring a four-carbon sugar cannot close; Thr and Ery, the tetroses they are read back
-		// as, have no configuration or ring to write.
-		if (c.base.name.equals("thrTet") || c.base.name.equals("eryTet"))
-			return "K7 #285 the tetrose rows are malformed";
-
 		// The reader names the residue by a type with no stereo recorded - eryPen, lyxHex, Rho - and
 		// the writer cannot build its skeleton: #275, as #261 is for araHex.
 		if (check.equals("not written to WURCS") && detail.contains("has no stereo recorded for it"))
@@ -343,13 +337,14 @@ public class DeoxyExhaustiveTest {
 		if (check.equals("not written to WURCS") && detail.contains("TreeMap.get") && c.base.anomericPosition == 2)
 			return "K5 #275 a deoxy ketose loses its carbonyl";
 
-		// The reader names the residue by a heptose the dictionaries do not have - galHep, altHep,
-		// xylHep, ribHep - so it is made by createUnknown: no composition, and not a saccharide.
+		// The reader names the residue by a monosaccharide the dictionaries do not have - galHep,
+		// altHep, xylHep, ribHep for a deoxy heptose, groTet for a tetrose with one stereocentre left -
+		// so it is made by createUnknown: no composition, and not a saccharide.
 		boolean weighing = check.startsWith("mass ") || check.startsWith(MassOptions.PERMETHYLATED)
 				|| check.startsWith(MassOptions.PERACETYLATED);
 		boolean writing = check.equals("not written to WURCS") && detail.contains("has neither a configuration nor a ring");
 		if ((weighing || writing) && c.readAs != null && readsAsATypeNoDictionaryHas(c.readAs))
-			return "K3 #282 the reader names a heptose no dictionary has";
+			return "K3 #282 the reader names a monosaccharide no dictionary has";
 
 		// L-gro-D-manHep and D-gro-D-manHep record 5 methylation and 3 acetylation sites; a
 		// heptopyranose has six hydroxyls (1, 2, 3, 4, 6, 7). Derivatized, they are wrong with or
@@ -367,14 +362,16 @@ public class DeoxyExhaustiveTest {
 	 */
 	private static final Map<String, Integer> KNOWN_COUNTS = new java.util.TreeMap<String, Integer>();
 	static {
-		KNOWN_COUNTS.put("K1 #265 the reader refuses an unknown stereocentre", 204);
+		// 204 until Thr and Ery could be written (#285) and so became bases
+		KNOWN_COUNTS.put("K1 #265 the reader refuses an unknown stereocentre", 216);
 		// 1,404 before #261, when no configurational-prefix name could be written at all
 		KNOWN_COUNTS.put("K2 #275 the type has no stereo recorded", 150);
-		KNOWN_COUNTS.put("K3 #282 the reader names a heptose no dictionary has", 5 * 96);
+		// 480, all heptoses, until the tetrose rows were corrected (#285): the deoxy tetroses then read
+		// and fail the same way, as groTet - 90 cases on each of Thr, Ery, thrTet and eryTet
+		KNOWN_COUNTS.put("K3 #282 the reader names a monosaccharide no dictionary has", 5 * 96 + 4 * 90);
 		KNOWN_COUNTS.put("K4 #283 the heptose rows record too few derivatization sites", 2 * 24 + 2 * 24);
 		KNOWN_COUNTS.put("K5 #275 a deoxy ketose loses its carbonyl", 216);
 		KNOWN_COUNTS.put("K6 #286 the relative stereo comes back the other way round", 30);
-		KNOWN_COUNTS.put("K7 #285 the tetrose rows are malformed", 504);
 	}
 
 	private static boolean hasStereocentre(String skeleton) {
