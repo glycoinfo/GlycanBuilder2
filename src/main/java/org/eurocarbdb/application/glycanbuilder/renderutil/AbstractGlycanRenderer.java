@@ -470,19 +470,28 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 				bboxManager.translate(cur_left - bbox.x, cur_top - bbox.y, bracket);
 				bbox.translate(cur_left - bbox.x, cur_top - bbox.y);
 
-				// add masses
+				// the SNFG footnote, directly under the structure. Measured from the same SNFGFootnote the
+				// legend is drawn from: this used to add a fixed margin per residue whose superclass is
+				// "Assigned", which is neither the right count (one line per letter, not per residue) nor
+				// the right set (a residue with no symbol is lettered whatever its superclass), so a
+				// footnote line could get no room and be drawn over the mass (#250).
+				int below = bottom(bbox);
+				SNFGFootnote footnote = SNFGFootnote.of(structure, theResidueStyleDictionary, theGraphicOptions);
+				if (!footnote.isEmpty()) {
+					bbox = union(bbox, new Rectangle(cur_left, below, footnote.width(), footnote.height()));
+					below += footnote.height();
+				}
+
+				// and the mass below that
 				if (show_mass) {
 					Dimension d = textBounds(getMassText(structure),
 							theGraphicOptions.MASS_TEXT_FONT_FACE,
 							theGraphicOptions.MASS_TEXT_SIZE);
-					Rectangle text_bbox = new Rectangle(cur_left, bottom(bbox)
+					Rectangle text_bbox = new Rectangle(cur_left, below
 							+ theGraphicOptions.MASS_TEXT_SPACE, d.width,
 							d.height);
 					bbox = union(bbox, text_bbox);
 				}
-
-				// add legend margin bottom
-				this.addLegendMargin(bbox, structure);
 
 				return bbox;
 				//}
@@ -495,14 +504,6 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		// instead it defaults to a tiny rectangle.
 
 		return new Rectangle(cur_left, cur_top, 0, 0);
-	}
-
-	private void addLegendMargin (Rectangle _bbox, Glycan _glycan) {
-		for (Residue res : _glycan.getAllResidues()) {
-			if (!res.getType().getSuperclass().equals("Assigned")) continue;
-			if (res.isCompositionMarker()) continue;
-			_bbox.height = _bbox.height + theGraphicOptions.MASS_TEXT_SPACE;
-		}
 	}
 
 	/* (non-Javadoc)
