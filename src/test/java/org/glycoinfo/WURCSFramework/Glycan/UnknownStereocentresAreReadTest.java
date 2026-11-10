@@ -89,6 +89,21 @@ public class UnknownStereocentresAreReadTest {
 		}
 	}
 
+	/**
+	 * And what was written before still is. An open-chain residue of relative or unknown stereo has no
+	 * configuration and no ring of its own; its type has a ring, and that is enough for the writer.
+	 * Asking the residue alone wrote these empty - 117 registered structures in GlyGen's dump, three
+	 * of them here.
+	 */
+	@Test
+	public void openChainsAreStillWritten() throws Exception {
+		for (String registered : new String[] {
+				"WURCS=2.0/2,4,3/[u4444h][a2122h-1x_1-5]/1-2-2-2/a?-b1_b?-c1_b?-d1",                       // G00479NZ
+				"WURCS=2.0/3,3,2/[uxxxxh][a2112h-1b_1-5][Aad21122h-2a_2-6_5*NCC/3=O]/1-2-3/b3-c2_a?-b1",  // G02123VE
+				"WURCS=2.0/2,2,1/[u4334h][a4334h-1b_1-4]/1-2/a6-b1" })                                  // G02350ZD
+			assertEquals(registered, new WURCSFactory(registered).getWURCS(), new WURCS2Parser().writeGlycan(read(registered)));
+	}
+
 	/** What a save to GWS cannot hold is said, with what it will become. */
 	@Test
 	public void aSaveSaysWhatItCannotHold() throws Exception {
