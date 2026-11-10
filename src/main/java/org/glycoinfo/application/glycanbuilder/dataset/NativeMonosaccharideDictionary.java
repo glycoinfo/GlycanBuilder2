@@ -214,6 +214,59 @@ public class NativeMonosaccharideDictionary {
 	 * definition never names.
 	 */
 	public static Entry forResidueName(String _residueName) {
-		return RESIDUES.get(_residueName);
+		Entry named = RESIDUES.get(_residueName);
+		return (named != null) ? named : byPrefix(_residueName);
+	}
+
+	/**
+	 * The D configuration each configurational prefix names, over the stereocentres it covers, as the
+	 * entries above write it: a digit per centre, 2 for a hydroxyl on the right of the Fischer
+	 * projection, 1 for one on the left. Read off the entries above rather than written afresh - Rib is
+	 * 222, Ara 122, Xyl 212, Lyx 112, Glc 2122 and so on - and extended down to the tetroses and
+	 * glyceraldehyde by the same rule.
+	 */
+	private static final Map<String, String> PREFIX_STEREO;
+	static {
+		Map<String, String> prefixes = new LinkedHashMap<String, String>();
+		prefixes.put("gro", "2");
+		prefixes.put("ery", "22");
+		prefixes.put("thr", "12");
+		prefixes.put("rib", "222");
+		prefixes.put("ara", "122");
+		prefixes.put("xyl", "212");
+		prefixes.put("lyx", "112");
+		prefixes.put("all", "2222");
+		prefixes.put("alt", "1222");
+		prefixes.put("glc", "2122");
+		prefixes.put("man", "1122");
+		prefixes.put("gul", "2212");
+		prefixes.put("ido", "1212");
+		prefixes.put("gal", "2112");
+		prefixes.put("tal", "1112");
+		PREFIX_STEREO = Collections.unmodifiableMap(prefixes);
+	}
+
+	private static final java.util.regex.Pattern PREFIX_NAMED = java.util.regex.Pattern.compile(
+			"^(gro|ery|thr|rib|ara|xyl|lyx|all|alt|glc|man|gul|ido|gal|tal)(Tet|Pen|Hex|Hep|Oct|Non|Dec)$");
+
+	/**
+	 * What a name made of a configurational prefix and a chain length says: araHex, lyxHex, eryPen,
+	 * manHep. Such a name gives the configuration of the centres it covers and nothing about the rest -
+	 * an arabino-hexose has three of a hexose's four, and the fourth is what the residue's own
+	 * modifications say it is, a deoxy most often. So the stereo is the prefix's, written into whichever
+	 * centres the residue leaves free, which is how the writer fills it in.
+	 *
+	 * <p>These are the names the WURCS reader gives a monosaccharide with a deoxy its dictionary types
+	 * do not cover, and none of them was here, so none could be written back: a 2-deoxy arabino-hexose
+	 * read from WURCS failed with "araHex has no stereo recorded for it" (#261). The rule is not new -
+	 * Abe, the 3,6-dideoxy xylo-hexose above, is the xylo prefix's 212 in the three centres it leaves.
+	 *
+	 * @return the entry, or null when the name is not of that form
+	 */
+	private static Entry byPrefix(String _residueName) {
+		if (_residueName == null) return null;
+		java.util.regex.Matcher named = PREFIX_NAMED.matcher(_residueName);
+		if (!named.matches()) return null;
+		return new Entry(PREFIX_STEREO.get(named.group(1)), true, 'D', "", "");
 	}
 }

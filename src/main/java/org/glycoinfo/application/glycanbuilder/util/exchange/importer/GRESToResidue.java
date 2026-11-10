@@ -73,6 +73,13 @@ public class GRESToResidue {
 			trinConv.start(_gres);
 			trivialName = trinConv.getTrivialName().replace("5", "");
 			configuration = getConfiguration(((Monosaccharide) trinConv.getNode()).getStereos());
+			// A skeleton whose stereo is relative only - 3 and 4, which say how the centres stand to
+			// one another and not which enantiomer this is - has no D or L. The converter names one
+			// anyway, and the residue was then written back with absolute digits: ad3dh came back as
+			// ad1dh, a different molecule, with nothing to say so. Found once araHex and its kind could
+			// be written at all (#261); until then the write failed instead.
+			if(isRelativeOnly(_gres.getMS().getCoreStructure().getSkeletonCode()))
+				configuration = '?';
 		}
 
 		ResidueType newType = ResidueDictionary.findResidueType(trivialName);
@@ -230,6 +237,16 @@ public class GRESToResidue {
 		}
 		
 		return String.valueOf(this.anomPosition).charAt(0);
+	}
+
+	/** Whether a skeleton's stereocentres are all written relative, 3 or 4, and at least one is there. */
+	static boolean isRelativeOnly(String _skeletonCode) {
+		boolean relative = false;
+		for (char carbon : _skeletonCode.toCharArray()) {
+			if (carbon == '1' || carbon == '2') return false;
+			if (carbon == '3' || carbon == '4') relative = true;
+		}
+		return relative;
 	}
 
 	private char getConfiguration (LinkedList<String> _stereos) {

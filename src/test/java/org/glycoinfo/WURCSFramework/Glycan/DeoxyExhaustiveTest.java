@@ -313,6 +313,23 @@ public class DeoxyExhaustiveTest {
 		if (check.equals("does not read") && detail.contains("could not handled")
 				&& c.base.skeleton.indexOf('x') >= 0)
 			return "K1 #265 the reader refuses an unknown stereocentre";
+		// The same refusal for a skeleton the deoxies have left with no stereocentre at all - addh,
+		// a tetrose with both of its taken.
+		if (check.equals("does not read") && detail.contains("could not handled") && !hasStereocentre(c.skeleton))
+			return "K1 #265 the reader refuses an unknown stereocentre";
+
+		// A skeleton written in relative stereo only can be written either way round - a33dh or a44dh
+		// - and WURCSFramework keeps the two as different strings. This application has D, L and
+		// unknown, and no way to keep which of the two it was given, so it writes the other one back.
+		if (check.equals("WURCS written back differs") && isRelativeOnly(c.skeleton)
+				&& detail.contains(invertRelative(c.ms)))
+			return "K6 #286 the relative stereo comes back the other way round";
+
+		// thrTet and eryTet are written with a composition of "C4H804" - a zero for the O - and a
+		// pyranose ring a four-carbon sugar cannot close; Thr and Ery, the tetroses they are read back
+		// as, have no configuration or ring to write.
+		if (c.base.name.equals("thrTet") || c.base.name.equals("eryTet"))
+			return "K7 #285 the tetrose rows are malformed";
 
 		// The reader names the residue by a type with no stereo recorded - eryPen, lyxHex, Rho - and
 		// the writer cannot build its skeleton: #275, as #261 is for araHex.
@@ -350,11 +367,40 @@ public class DeoxyExhaustiveTest {
 	 */
 	private static final Map<String, Integer> KNOWN_COUNTS = new java.util.TreeMap<String, Integer>();
 	static {
-		KNOWN_COUNTS.put("K1 #265 the reader refuses an unknown stereocentre", 192);
-		KNOWN_COUNTS.put("K2 #275 the type has no stereo recorded", 1404);
+		KNOWN_COUNTS.put("K1 #265 the reader refuses an unknown stereocentre", 204);
+		// 1,404 before #261, when no configurational-prefix name could be written at all
+		KNOWN_COUNTS.put("K2 #275 the type has no stereo recorded", 150);
 		KNOWN_COUNTS.put("K3 #282 the reader names a heptose no dictionary has", 5 * 96);
 		KNOWN_COUNTS.put("K4 #283 the heptose rows record too few derivatization sites", 2 * 24 + 2 * 24);
 		KNOWN_COUNTS.put("K5 #275 a deoxy ketose loses its carbonyl", 216);
+		KNOWN_COUNTS.put("K6 #286 the relative stereo comes back the other way round", 30);
+		KNOWN_COUNTS.put("K7 #285 the tetrose rows are malformed", 504);
+	}
+
+	private static boolean hasStereocentre(String skeleton) {
+		for (char carbon : skeleton.toCharArray())
+			if ("1234x".indexOf(carbon) >= 0) return true;
+		return false;
+	}
+
+	private static boolean isRelativeOnly(String skeleton) {
+		boolean relative = false;
+		for (char carbon : skeleton.toCharArray()) {
+			if (carbon == '1' || carbon == '2') return false;
+			if (carbon == '3' || carbon == '4') relative = true;
+		}
+		return relative;
+	}
+
+	/** The skeleton of a monosaccharide description with every relative digit turned the other way. */
+	private static String invertRelative(String ms) {
+		int end = ms.indexOf('-');
+		StringBuilder inverted = new StringBuilder();
+		for (int i = 0; i < end; i++) {
+			char carbon = ms.charAt(i);
+			inverted.append(carbon == '3' ? '4' : carbon == '4' ? '3' : carbon);
+		}
+		return "[" + inverted + ms.substring(end);
 	}
 
 	/** Whether any residue but the reducing end was read as a type neither dictionary holds. */
