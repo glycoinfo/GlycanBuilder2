@@ -23,7 +23,8 @@ ddHex	flatsquare		0,0,0	full		no	255,255,255	-	0,0,0
 Pen		star			0,0,0	full		no	255,255,255	-	0,0,0
 Non		diamond			0,0,0	full		no	255,255,255	-	0,0,0
 ddNon	flatdiamond		0,0,0	full		no	255,255,255	-	0,0,0
-Unknown	hexagon			0,0,0	full		no	255,255,255	-	0,0,0
+%Unknown is defined once, below with the flat hexagons. A second row here (a pointed hexagon) was
+%never read, because the later row with the same name wins.
 Assigned	pentagon	0,0,0	full		no	255,255,255	-	0,0,0
 
 dHexA	diamond	0,0,0	top	no	255,255,255	d	0,0,0
@@ -116,7 +117,15 @@ D-gro-D-manHep	flathexagon	0,0,0	full	no	246,158,161	-	0,0,0
 MurNAc			flathexagon	0,0,0	full	no	165,67,153	-	0,0,0
 MurNGc			flathexagon	0,0,0	full	no	143,204,233	-	0,0,0
 Mur				flathexagon	0,0,0	full	no	161,122,77	-	0,0,0
-Unknown			flathexagon	0,0,0	full	no	255,255,255	-	0,0,0
+%The white fallback for a residue whose superclass is Unknown and which has no row of its own -
+%the heptoses other than LDmanHep and DDmanHep, Sed, Ole, Cym, The, and any name the dictionaries
+%do not know, such as GlycoWorkbench's Hept. SNFG draws a monosaccharide absent from its Table 1
+%as a white symbol carrying a letter, fitting its generic type where one fits and otherwise the
+%white pentagon. The heptoses and Sed have no generic shape, so the pentagon (#248, #254). Ole, Cym
+%and The do have one - they are deoxy and dideoxy hexoses, a white triangle or rectangle - and are
+%still drawn wrongly here, as a pentagon rather than as the flat hexagon before; that is #279. The flat hexagon is SNFG's mark for an unknown or partially defined monosaccharide, and the
+%named residues above keep it in their own colours.
+Unknown			pentagon	0,0,0	full	no	255,255,255	-	0,0,0
 
 %Di-deoxy-nonulosonate
 Pse		flatdiamond	0,0,0	full	no	0,166,81	-	0,0,0

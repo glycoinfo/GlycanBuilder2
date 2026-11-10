@@ -103,6 +103,14 @@ Dha				Unknown	Hep	C7H10O8		-	Dha$			2	D	p	yes	yes	no	0	5	no	3	no	5	4,5,6,7			-	
 Bac				Unknown	Hex	C6H14N2O3	-	Bac$			1	D	p	yes	yes	no	0	6	no	4	no	3	3,5				-	no	no	yes	Bacillosamine
 %Heptose
 %Hep	Heptose	Hep	C7H14O7	-	Hep$	1	?	?	yes	yes	no	0	6	no	5	no	5	1,2,3,4,5,6,7	-	no	no	yes	Heptose
+%A heptose of undefined stereochemistry, under the name GlycoWorkbench writes for it. Without this
+%row Hept was in no dictionary, so it was made by createUnknown: not a saccharide, no composition.
+%It was drawn on its parent's border as text, like a substituent (#255), given no SNFG letter
+%(#254), and weighed nothing - a GlycoWorkbench structure with two of them read 420.15 Da light.
+%Named Hept rather than Hep because Hep is already a type in conf/compositions, and a row here of
+%that name would shadow it. The other columns are those of the generic Hep row above, which has
+%been commented out since 2020.
+Hept	Heptose	Hep	C7H14O7	-	Hept$	1	?	?	yes	yes	no	0	6	no	5	no	5	1,2,3,4,5,6,7	-	no	no	yes	Heptose
 %
 % Nonulosonate
 Non		Nonulosonate	Non	C9H16O9		-	3-deoxy-Non$2ulo-onic		2	?	p	yes	yes	no	0	7	no	6	no	7	1,3,4,5,6,7,8,9	1	no	no	yes	Deoxynonulosonate
