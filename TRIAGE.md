@@ -996,6 +996,11 @@ Three things this cluster turned up that are not in any issue:
   `superclass=Unknown, isSubstituent=false`. Whatever makes one look like a substituent happens in
   placement or drawing. A fix aimed at the parser will miss it. Verify before fixing; this is the
   second time an issue in this tracker has named the wrong layer.
+  **Found and fixed 2026-11-09**: `Hept` was in no dictionary, so `createUnknown` made it, and
+  `createUnknown` never sets `is_saccharide`. A non-saccharide on a saccharide is placed on its border
+  (`AbstractGlycanRenderer:561`), which is the "7Hept" text on KDO. The same cause gave it no SNFG
+  letter and a mass of zero. A structure with two of them read 420.15 Da light, silently. A `Hept` row
+  now exists, named as GlycoWorkbench writes it, because `Hep` is taken by `conf/compositions`.
 
 ### C2 — The white pentagon exists, and nothing routes to it
 
@@ -1010,6 +1015,13 @@ Three faults underneath the ten:
 1. **The dictionary says the wrong superclass.** The thirty heptose and octose rows say `Unknown`,
    so `residue_styles_snfg:26` — `Unknown → hexagon` — is what they get. #248 and #254 are a
    dictionary edit, not a renderer change.
+   **Corrected and fixed 2026-11-09.** It is twenty rows, not thirty: sixteen heptoses, Sed, Ole, Cym
+   and The. The octoses were `Assigned` already. Line 26 was never read either, because a later
+   `Unknown` row (a flat hexagon) won. The fix was not a dictionary edit: the `Unknown` fallback in the
+   style file is now the white pentagon, which is SNFG's choice for a monosaccharide absent from its
+   table with no generic shape (the maintainer's decision, over moving rows between superclasses). Ole,
+   Cym and The have a generic shape, a white triangle or rectangle, and are still wrong: a pentagon now,
+   a flat hexagon before. That, and the same gap for some 70 other residues, is #279. #254 as reported needed more than this; see #255 above.
 2. **The index is computed twice.** `GlycanRendererAWT.assignID` (line 109) and `displayLegend`
    (line 131) each walk the structure with their own counter starting at 1 and their own map, a
    `HashMap` in one and a `TreeMap` in the other. Nothing makes the two agree, which is precisely how
