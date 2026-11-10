@@ -149,6 +149,18 @@ public class ResidueDictionary {
 	}
 
 	/**
+       The name a residue class is shown by in a menu (#182). "Unknown" is shown as "Others": the
+       class holds the residues SNFG draws as flat hexagons - Bac, Kdo, Dha, Mur, MurNAc, MurNGc, the
+       two manno-heptoses - and the Unknown placeholder. SNFG's "Unknown" is the white flat hexagon
+       alone, a monosaccharide of unknown structure; the coloured ones share its shape and nothing
+       else, and the menu called Kdo unknown. Only the label changes: "Unknown" is still the class's
+       name everywhere it is looked up.
+	 */
+	public static String displayNameOf(String superclass) {
+		return "Unknown".equals(superclass) ? "Others" : superclass;
+	}
+
+	/**
        Return the collection of all residue types in a specific
        class.
 	 */

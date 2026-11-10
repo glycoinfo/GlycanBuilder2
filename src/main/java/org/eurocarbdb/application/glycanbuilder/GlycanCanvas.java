@@ -1465,7 +1465,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 						}
 					}
 					
-					galleryButtons.add(new StringValuePair<>(superclass, galleryButtonsList));
+					galleryButtons.add(new StringValuePair<>(ResidueDictionary.displayNameOf(superclass), galleryButtonsList));
 				}
 			}
 
@@ -1528,7 +1528,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 					if(galleryButtonsList.size()>0){
 						galleryButtons
 						.add(new StringValuePair<List<JCommandToggleButton>>(
-								superclass, galleryButtonsList));
+								ResidueDictionary.displayNameOf(superclass), galleryButtonsList));
 						
 					}
 				}
@@ -1593,7 +1593,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 					if(galleryButtonsList.size()>0){
 						galleryButtons
 						.add(new StringValuePair<List<JCommandToggleButton>>(
-								superclass, galleryButtonsList));
+								ResidueDictionary.displayNameOf(superclass), galleryButtonsList));
 					}
 				}
 			}
@@ -1652,7 +1652,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 					
 					if(galleryButtonsList.size()>0){
 						galleryButtons.add(new StringValuePair<List<JCommandToggleButton>>(
-							superclass, galleryButtonsList));
+							ResidueDictionary.displayNameOf(superclass), galleryButtonsList));
 					}
 				}
 			}
