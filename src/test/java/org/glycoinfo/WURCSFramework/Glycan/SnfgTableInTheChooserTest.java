@@ -42,17 +42,14 @@ public class SnfgTableInTheChooserTest {
 	private static final TreeSet<String> NOT_HERE = new TreeSet<String>(Arrays.asList("Sia"));
 
 	/**
-	 * Symbols this application draws differently from SNFG, and how. Each is a decision recorded
-	 * elsewhere, or a fault not yet corrected; either way it is listed so a change is noticed.
+	 * Symbols this application draws differently from SNFG, and how: none. Listed so that one appearing
+	 * is noticed.
 	 *
-	 * <p>Unknown, SNFG's white flat hexagon, is drawn as the white pentagon: the {@code Unknown} row of
-	 * {@code residue_styles_snfg} is also what every residue of superclass Unknown with no row of its
-	 * own falls back to, and #280 made that row the pentagon, by the maintainer's choice.
+	 * <p>Unknown, SNFG's white flat hexagon, was drawn as the white pentagon: #280 had made the
+	 * {@code Unknown} row the pentagon so that the residues filed under Unknown with no symbol would fall
+	 * back to it. They now fall back to the {@code Assigned} row, and Unknown is its hexagon again.
 	 */
 	private static final TreeMap<String, String> DRAWN_DIFFERENTLY = new TreeMap<String, String>();
-	static {
-		DRAWN_DIFFERENTLY.put("Unknown", "shape pentagon/full, SNFG flathexagon/full");
-	}
 
 	private static BuilderWorkspace workspace;
 
@@ -149,7 +146,66 @@ public class SnfgTableInTheChooserTest {
 		assertTrue(failures.size() + " failed:\n" + String.join("\n", failures), failures.isEmpty());
 	}
 
+	/** The tabs follow SNFG's table: every row in one tab, in SNFG's order. */
+	@Test
+	public void everyRowIsInOneTabInSnfgsOrder() {
+		List<SNFGTable.Shape> inTabs = new ArrayList<SNFGTable.Shape>();
+		for (List<SNFGTable.Shape> tab : ResidueDesignDialog.snfgTabs().values()) inTabs.addAll(tab);
+		assertEquals(SNFGTable.getShapes(), inTabs);
+		assertEquals(Arrays.asList("Hexoses", "Deoxyhexoses", "Pentoses", "Nonulosonic acids", "Other SNFG"),
+				new ArrayList<String>(ResidueDesignDialog.snfgTabs().keySet()));
+	}
+
+	/** A tab's icon is the white symbol of its class, SNFG's symbol for a class rather than one residue. */
+	@Test
+	public void aTabsIconIsTheWhiteSymbolOfItsClass() {
+		for (java.util.Map.Entry<String, List<SNFGTable.Shape>> tab : ResidueDesignDialog.snfgTabs().entrySet()) {
+			SNFGTable.Cell white = tab.getValue().get(0).getCells().get(0);
+			assertEquals(tab.getKey(), "White", white.getColour().getName());
+			assertEquals(tab.getKey(), white.getTypeName(), ResidueDesignDialog.tabSymbol(tab.getKey()));
+		}
+		assertEquals("Assigned", ResidueDesignDialog.tabSymbol(ResidueDesignDialog.NO_SYMBOL));
+	}
+
+	/** Every residue on offer is in the dialog once: each SNFG symbol here, and each without one. */
+	@Test
+	public void everythingIsOnOfferOnce() {
+		List<ResidueType> offered = new ArrayList<ResidueType>();
+		for (ResidueDesignDialog.Choice choice : ResidueDesignDialog.allChoices()) offered.add(choice.getType());
+
+		List<ResidueType> expected = new ArrayList<ResidueType>();
+		for (SNFGTable.Cell cell : SNFGTable.getCells())
+			if (cell.getType() != null) expected.add(cell.getType());
+		for (List<ResidueType> section : ResidueDesignDialog.sections().values()) expected.addAll(section);
+
+		assertEquals(expected, offered);
+		assertEquals(86 + 87, offered.size());
+	}
+
+	/** One search finds across every tab, the best match first. */
+	@Test
+	public void searchFindsAcrossTheTabsBestFirst() {
+		assertTrue(ResidueDesignDialog.search("  ").isEmpty());
+		assertEquals("Glc", ResidueDesignDialog.search("glc").get(0).getType().getName());
+		assertEquals("Kdo", ResidueDesignDialog.search("KDO").get(0).getType().getName());
+		// SNFG's name finds this application's: Neu5Ac is NeuAc here
+		assertEquals("NeuAc", ResidueDesignDialog.search("neu5ac").get(0).getType().getName());
+
+		List<String> heptoses = labels(ResidueDesignDialog.search("hep"));
+		assertTrue(heptoses.toString(), heptoses.containsAll(Arrays.asList("LDmanHep", "D-gro-D-galHep", "Sed")));
+
+		// and by shape or colour
+		List<String> flatHexagons = labels(ResidueDesignDialog.search("flat hexagon"));
+		assertTrue(flatHexagons.toString(), flatHexagons.containsAll(Arrays.asList("Unknown", "Kdo", "Mur")));
+	}
+
 	// ------------------------------------------------------------------------------------------------
+
+	private static List<String> labels(List<ResidueDesignDialog.Choice> choices) {
+		List<String> labels = new ArrayList<String>();
+		for (ResidueDesignDialog.Choice choice : choices) labels.add(choice.getLabel());
+		return labels;
+	}
 
 	/** SNFG's shapes as this application's styles name them: shape/fill. */
 	private static List<String> shapesOf(String snfgShape) {

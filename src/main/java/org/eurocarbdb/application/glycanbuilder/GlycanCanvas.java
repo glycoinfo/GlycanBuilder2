@@ -3320,12 +3320,12 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 	 */
 	public void onAddStringNotation() {
 		try {
-			ResidueDesignDialog a_RDD = new ResidueDesignDialog(theParent);
+			Residue current = getCurrentResidue();
+			ResidueDesignDialog a_RDD = new ResidueDesignDialog(theParent, GlycanDocument.isPlaceholder(current));
 			a_RDD.setVisible(true);
 			if (a_RDD.isCanceled()) return;
 
 			ResidueType chosen = a_RDD.getChosenType();
-			Residue current = getCurrentResidue();
 
 			if (GlycanDocument.isPlaceholder(current)) {
 				if (!theDoc.assignPlaceholder(current, getLinkedResidues(), chosen))

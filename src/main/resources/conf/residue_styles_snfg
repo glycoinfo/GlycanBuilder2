@@ -125,7 +125,7 @@ Mur				flathexagon	0,0,0	full	no	161,122,77	-	0,0,0
 %and The do have one - they are deoxy and dideoxy hexoses, a white triangle or rectangle - and are
 %still drawn wrongly here, as a pentagon rather than as the flat hexagon before; that is #279. The flat hexagon is SNFG's mark for an unknown or partially defined monosaccharide, and the
 %named residues above keep it in their own colours.
-Unknown			pentagon	0,0,0	full	no	255,255,255	-	0,0,0
+Unknown			flathexagon	0,0,0	full	no	255,255,255	-	0,0,0
 
 %Di-deoxy-nonulosonate
 Pse		flatdiamond	0,0,0	full	no	0,166,81	-	0,0,0
