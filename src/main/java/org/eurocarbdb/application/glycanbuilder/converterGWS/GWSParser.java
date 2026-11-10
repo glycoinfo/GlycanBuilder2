@@ -31,6 +31,7 @@ import org.eurocarbdb.application.glycanbuilder.Glycan;
 import org.eurocarbdb.application.glycanbuilder.Residue;
 import org.eurocarbdb.application.glycanbuilder.ResidueHolder;
 import org.eurocarbdb.application.glycanbuilder.ResiduePlacement;
+import org.eurocarbdb.application.glycanbuilder.ResidueType;
 import org.eurocarbdb.application.glycanbuilder.converter.GlycanParser;
 import org.eurocarbdb.application.glycanbuilder.dataset.CrossRingFragmentDictionary;
 import org.eurocarbdb.application.glycanbuilder.dataset.ResidueDictionary;
@@ -95,6 +96,46 @@ public class GWSParser implements GlycanParser {
 	}
 
 	public void setTolerateUnknown(boolean f) {
+	}
+
+	/**
+	 * Where the root's name ends: at the first "--", which begins its first linkage, or at the "(" of
+	 * "(--" before it, which begins a branch. A name cannot hold "--" (ResidueType.escapeAglyconName).
+	 * With no "--" the root is alone, which only a composition's is - a structure of one reducing end
+	 * is no structure, and text of no "--" at all is more likely not GWS than an aglycon. Then, unless
+	 * the file is of the pre-2007 form, "-4" for "--4", which is read as it always was, the whole of it
+	 * is the root's; otherwise -1.
+	 */
+	private static int endOfRoot(String _tree, boolean _beforeABracket) {
+		int dash = _tree.indexOf("--");
+		if( dash>0 )
+			return ( _tree.charAt(dash-1)=='(' ) ? dash-1 : dash;
+		if( dash==0 || _tree.isEmpty() || !_beforeABracket )
+			return -1;
+
+		Matcher m = residue_pattern.matcher(_tree);
+		if( m.lookingAt() ) {
+			String rest = _tree.substring(m.end());
+			if( rest.matches("^\\(?-[1-9N?].*") )
+				return -1;
+		}
+		return _tree.length();
+	}
+
+	/**
+	 * Whether a root reads as the residue it has always read as: the residue grammar takes all of it,
+	 * and names something a dictionary has - freeEnd, redEnd, 2AB, a cleavage. Anything else is an
+	 * aglycon named by the whole of it, "Ser/Thr=87.0320u", "Cer(d18:1/16:0)", "D-Ser", as GlycanCore
+	 * reads it (#305), where the grammar used to take it apart: "/" as a cleavage, "D-" as a
+	 * configuration, "," as a ring.
+	 */
+	private static boolean readsAsAResidue(String _root) {
+		Matcher m = residue_pattern.matcher(_root);
+		if( !m.matches() || m.group(5)==null ) return false;
+		String typename = m.group(5);
+		if( m.group(4)!=null && !isKnownResidue(typename) && isKnownResidue(m.group(4) + typename) )
+			typename = m.group(4) + typename;
+		return isKnownResidue(typename);
 	}
 
 	/** Whether either dictionary has a residue of this name. */
@@ -205,14 +246,27 @@ public class GWSParser implements GlycanParser {
 		// read structure
 		Glycan ret = null;
 		int ind2 = str.indexOf('}');
-		if( ind2==-1 ) 
-			ret = new Glycan(readSubtree(str,true),false,mass_opt);
+		String tree = ( ind2==-1 ) ? str : str.substring(0,ind2);
+
+		// A root that does not read as a residue is an aglycon, by the whole of its name (#305).
+		ResidueType aglycon = null;
+		int rootEnd = endOfRoot(tree, ind2!=-1);
+		if( rootEnd>0 && !readsAsAResidue(tree.substring(0,rootEnd)) ) {
+			aglycon = ResidueDictionary.findReducingEndType(tree.substring(0,rootEnd));
+			tree = "freeEnd" + tree.substring(rootEnd);
+		}
+		Residue treeRoot = readSubtree(tree,true);
+		if( aglycon!=null && treeRoot!=null )
+			treeRoot.setType(aglycon);
+
+		if( ind2==-1 )
+			ret = new Glycan(treeRoot,false,mass_opt);
 		else {
 			// read structure with bracket
-			ret = new Glycan(readSubtree(str.substring(0,ind2),true),
+			ret = new Glycan(treeRoot,
 					readSubtree(str.substring(ind2),true),
-					false,mass_opt);        
-		}    
+					false,mass_opt);
+		}
 
 		// The reducing end's type implies the sugar's form: redEnd and every reductive-amination
 		// label reduce their sugar, leaving it acyclic. A file saved since the ring letter began

@@ -167,7 +167,7 @@ public class ResidueStyleDictionary {
 			return ResidueStyle.createYCleavage();
 		if( type_name.equals("#zcleavage") )
 			return ResidueStyle.createZCleavage();
-		if( type.isCustomType() ) 
+		if( type.isCustomType() || type.isAglycon() ) 
 			return ResidueStyle.createText(type.getResidueName());    
 
 		/* set basetype symbol*/

@@ -26,6 +26,8 @@ import java.util.Iterator;
 import java.util.TreeMap;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -108,15 +110,31 @@ public class ResidueDictionary {
 		if( ret!=null ) return ret;
 		else ret = checkNoDefinedData(type_name);
 
-		if( type_name.indexOf('=')!=-1 ) {
-			String[] tokens = type_name.split("=");
-			String name = tokens[0];
-			double mass = Double.valueOf(tokens[1].substring(0,tokens[1].length()-1));
-			return ResidueType.createOtherReducingEnd(name,mass);
+		// "name=mass u", up to the last "=", since the name of an aglycon may hold one; and only when
+		// what follows is a mass - a name of someone else's with an "=" in it no longer throws (#305).
+		Matcher named = NAME_AND_MASS.matcher(type_name);
+		if( named.matches() ) {
+			// as stored: the name is escaped already, and NaN is a mass not known
+			return ResidueType.otherReducingEndFromStoredName(named.group(1), Double.valueOf(named.group(2)));
 		}
 
 		if(ret != null) return ret;
 		else return ResidueType.createUnknown(type_name);
+	}
+
+	/** An aglycon's name and its mass as a type's name carries them: "Ser/Thr=87.0320u", "Ser=NaNu". */
+	private static final Pattern NAME_AND_MASS = Pattern.compile("(.+)=(NaN|-?[0-9]+(?:\\.[0-9]+)?)u?");
+
+	/**
+       The reducing end a name stands for: a type of that name, or else the aglycon of that name
+       (#305). A root no dictionary has is an aglycon whose mass is not known, which is how GlycanCore
+       reads one, rather than an unknown residue that weighs nothing and says nothing about it.
+	 */
+	public static ResidueType findReducingEndType(String type_name) {
+		ResidueType ret = findResidueType(type_name);
+		if( "Unknown".equals(ret.getSuperclass()) )
+			return ResidueType.createUndefinedReducingEnd(type_name);
+		return ret;
 	}
 
 	/**

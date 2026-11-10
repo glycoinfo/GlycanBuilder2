@@ -297,6 +297,9 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 	/** What is written beneath a structure for its m/z. */
 	public static final String UNWEIGHED = "\u2014 (contains an unassigned residue)";
 
+	/** What is written for the m/z of a structure whose aglycon has no mass given, as Ser/Thr (#305). */
+	public static final String AGLYCON_UNWEIGHED = "\u2014 (the aglycon's mass is not known)";
+
 	protected String getMassText(Glycan structure) {
 		StringBuilder sb = new StringBuilder();
 		DecimalFormat df = new DecimalFormat("0.0000");
@@ -306,6 +309,9 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		// structure has no mass to give. Its row weighs it as one hydrogen, and the figure that came of
 		// that looked like a measurement (#285).
 		if (hasPlaceholder(structure)) sb.append(UNWEIGHED);
+		// An aglycon of no mass, Ser/Thr, weighs as nothing; the figure would be the glycan's alone,
+		// read as the glycoconjugate's.
+		else if (structure.hasAglyconOfUnknownMass()) sb.append(AGLYCON_UNWEIGHED);
 		else {
 			double mz = structure.computeMZ();
 			if (mz < 0.) sb.append("???");
