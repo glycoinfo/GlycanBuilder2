@@ -100,7 +100,11 @@ public class ResidueAnalyzer {
 		int j = 0;
 		for(int i = 2; i < this.backbone; i++) {
 			if(this.pos2char.containsKey(i)) continue;
-			char cd = (stereo.length() == 0) ? 'x' : stereo.charAt(j);
+			// A configurational-prefix name covers the centres nearest C1 and says nothing of the rest:
+			// manHep gives C2 to C5, and C6 is unknown (#265).
+			char cd = (stereo.length() == 0) ? 'x'
+					: (j >= stereo.length() && NativeMonosaccharideDictionary.isPrefixName(_residue.getTypeName())) ? 'x'
+					: stereo.charAt(j);
 			this.pos2char.put(i, cd);
 			j++;
 		}
@@ -109,15 +113,30 @@ public class ResidueAnalyzer {
 			this.skeletonCode += this.pos2char.get(i + 1);
 		}
 
-		// A residue read in relative stereo is written back the way round it was read (#286). Only when
-		// what was built is exactly that turned over: a residue changed since it was read builds
-		// something else, and is written as built.
-		String read = _residue.getRelativeSkeleton();
-		if(read != null && !read.equals(this.skeletonCode) && read.equals(turnedOver(this.skeletonCode)))
+		// A residue read from a skeleton its type cannot say alone is written back as read: relative
+		// stereo the way round it was read (#286), and the centres an unknown-stereo type leaves as x
+		// (#265). Only while what was built still agrees with it: a residue changed since it was read
+		// builds something else, and is written as built.
+		String read = _residue.getReadSkeleton();
+		if(read != null && !read.equals(this.skeletonCode)
+				&& (read.equals(turnedOver(this.skeletonCode)) || refines(read, this.skeletonCode)))
 			this.skeletonCode = read;
 
 		if(stereo.length() != 0 && pos2char.size() != backbone)
 			throw new WURCSExchangeException("error");
+	}
+
+	/** Whether a skeleton says the same as another and more: a digit where the other has x, and the rest alike. */
+	static boolean refines(String _read, String _built) {
+		if (_read.length() != _built.length()) return false;
+		boolean more = false;
+		for (int i = 0; i < _read.length(); i++) {
+			char r = _read.charAt(i), b = _built.charAt(i);
+			if (r == b) continue;
+			if ((b == 'x' || b == 'X') && "1234".indexOf(r) >= 0) { more = true; continue; }
+			return false;
+		}
+		return more;
 	}
 
 	/** A skeleton code with every relative digit the other way round, 3 for 4 and 4 for 3. */

@@ -702,22 +702,23 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
 	}
 
 	/**
-	 * Say what the file just saved does not hold: a monosaccharide read from WURCS in relative stereo
-	 * keeps which way round it was written only until the document is closed, as GWS has no place for
-	 * it, and reopened it is exported to WURCS the other way round (#286).
+	 * Say what the file just saved does not hold: a monosaccharide read from WURCS keeps the skeleton it
+	 * was read from - relative stereo the way round it was written (#286), the known centres among
+	 * unknown ones (#265) - only until the document is closed, as GWS has no place for it. Reopened
+	 * from the file, it is exported to WURCS otherwise.
 	 */
 	private void warnOfWhatGWSLost(BaseDocument doc) {
 		if( !(doc instanceof GlycanDocument) ) return;
-		java.util.List<String> lost = org.glycoinfo.application.glycanbuilder.converterWURCS2.RelativeStereoInGWS
+		java.util.List<String> lost = org.glycoinfo.application.glycanbuilder.converterWURCS2.SkeletonInGWS
 				.lostOnSave(((GlycanDocument) doc).getStructures());
 		if( lost.isEmpty() ) return;
 
-		StringBuilder message = new StringBuilder("Saved. The file does not hold which way round the relative stereo of\n"
-				+ "these monosaccharides, read from WURCS, was written:\n\n");
+		StringBuilder message = new StringBuilder("Saved. The file does not hold the stereo of these monosaccharides\n"
+				+ "exactly as it was read from WURCS:\n\n");
 		for( String one : lost ) message.append("    ").append(one).append('\n');
 		message.append("\nReopened from this file, they will be exported to WURCS as shown on the right.\n"
 				+ "To keep them as read, export to WURCS before closing this document.");
-		JOptionPane.showMessageDialog(this, message.toString(), "Relative stereo not saved",
+		JOptionPane.showMessageDialog(this, message.toString(), "Stereo not saved as read",
 				JOptionPane.WARNING_MESSAGE);
 	}
 

@@ -63,11 +63,18 @@ public class GRESToResidue {
 		char configuration;
 		TrivialNameConverter trinConv = null;
 
+		UnknownStereoNames.Naming unknownStereo = (match == null)
+				? UnknownStereoNames.name(mscore.getSkeletonCode()) : null;
+
 		if(match != null) {
 			trivialName = match.getResidueType().getName();
 			// from the description rather than from the type: the same residue writes a different
 			// skeleton in each configuration, and only the description says which one this is
 			configuration = match.getConfiguration();
+		} else if(unknownStereo != null) {
+			// stereocentres of unknown configuration, which the converter refuses (#265)
+			trivialName = unknownStereo.typeName;
+			configuration = unknownStereo.configuration;
 		} else {
 			trinConv = new TrivialNameConverter();
 			trinConv.start(_gres);
@@ -82,11 +89,17 @@ public class GRESToResidue {
 				configuration = '?';
 		}
 
+		// A skeleton with no absolute stereo - no 1 or 2, only 3 and 4, x, or no centres at all - has
+		// no D or L, whichever way it was named. The dictionary's match gave one for a heptose of
+		// unknown stereo, a "D-Hept", only because that is the configuration it was indexed under.
+		if(!hasAbsoluteStereo(mscore.getSkeletonCode())) configuration = '?';
+
 		ResidueType newType = ResidueDictionary.findResidueType(trivialName);
 		Residue residue = new Residue(newType);
 
 		// the skeleton is matched whole, so a recognised residue leaves no core modification behind
-		ArrayList<String> leftOver = (trinConv == null) ? new ArrayList<String>() : trinConv.getModifications();
+		ArrayList<String> leftOver = (trinConv != null) ? trinConv.getModifications()
+				: (unknownStereo != null) ? new ArrayList<String>(unknownStereo.deoxies) : new ArrayList<String>();
 
 		// The legend names this residue in the box drawn beside the structure, for a residue with no
 		// symbol of its own. It belongs to the residue: writing it onto the type, which every residue
@@ -110,9 +123,11 @@ public class GRESToResidue {
 		residue.setAnomericCarbon(this.checkAnomerPosition());
 		residue.setAnomericState(this.checkAnomerSymbol());
 		residue.setChirality(configuration);
-		// which way round a relative skeleton was written, which the configuration cannot say (#286)
+		// what the type and configuration cannot say: which way round a relative skeleton was written
+		// (#286), and the known centres among unknown ones (#265)
 		String skeleton = _gres.getMS().getCoreStructure().getSkeletonCode();
-		if(isRelativeOnly(skeleton)) residue.setRelativeSkeleton(skeleton);
+		if(isRelativeOnly(skeleton) || (unknownStereo != null && unknownStereo.keepSkeleton))
+			residue.setReadSkeleton(skeleton);
 		// The ring letter carries the acyclic forms now, and setting it sets the flags that go with
 		// them - so the two are set together here rather than either being able to undo the other.
 		residue.setRingSize(this.isAlditol() ? 'o' : this.isAldehyde() ? 'a' : this.ringSize);
@@ -240,6 +255,11 @@ public class GRESToResidue {
 		}
 		
 		return String.valueOf(this.anomPosition).charAt(0);
+	}
+
+	/** Whether a skeleton has a stereocentre of absolute configuration, a 1 or a 2. */
+	static boolean hasAbsoluteStereo(String _skeletonCode) {
+		return _skeletonCode.indexOf('1') >= 0 || _skeletonCode.indexOf('2') >= 0;
 	}
 
 	/** Whether a skeleton's stereocentres are all written relative, 3 or 4, and at least one is there. */

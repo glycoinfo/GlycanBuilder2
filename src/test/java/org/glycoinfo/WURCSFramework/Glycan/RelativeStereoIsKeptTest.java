@@ -13,7 +13,7 @@ import org.eurocarbdb.application.glycanbuilder.Residue;
 import org.eurocarbdb.application.glycanbuilder.massutil.MassOptions;
 import org.eurocarbdb.application.glycanbuilder.renderutil.GlycanRendererAWT;
 import org.glycoinfo.WURCSFramework.util.WURCSFactory;
-import org.glycoinfo.application.glycanbuilder.converterWURCS2.RelativeStereoInGWS;
+import org.glycoinfo.application.glycanbuilder.converterWURCS2.SkeletonInGWS;
 import org.glycoinfo.application.glycanbuilder.converterWURCS2.WURCS2Parser;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -51,8 +51,8 @@ public class RelativeStereoIsKeptTest {
 	public void aCopyKeepsIt() throws Exception {
 		Glycan read = read("WURCS=2.0/1,1,0/[ad3dh-1b_1-5_3*OC]/1/");
 		Residue sugar = sugarOf(read);
-		assertEquals("ad3dh", sugar.getRelativeSkeleton());
-		assertEquals("ad3dh", sugar.cloneResidue().getRelativeSkeleton());
+		assertEquals("ad3dh", sugar.getReadSkeleton());
+		assertEquals("ad3dh", sugar.cloneResidue().getReadSkeleton());
 	}
 
 	/** A residue changed since it was read is written as it now is, not as it was read. */
@@ -66,7 +66,7 @@ public class RelativeStereoIsKeptTest {
 	/** Nothing is recorded for a residue with absolute stereo. */
 	@Test
 	public void absoluteStereoRecordsNothing() throws Exception {
-		assertNull(sugarOf(read("WURCS=2.0/1,1,0/[a2122h-1b_1-5]/1/")).getRelativeSkeleton());
+		assertNull(sugarOf(read("WURCS=2.0/1,1,0/[a2122h-1b_1-5]/1/")).getReadSkeleton());
 	}
 
 	/**
@@ -77,18 +77,18 @@ public class RelativeStereoIsKeptTest {
 	public void whatASaveLosesIsSaid() throws Exception {
 		Glycan threeWay = read("WURCS=2.0/1,1,0/[ad3dh-1b_1-5_3*OC]/1/");
 		Glycan reopened = Glycan.fromString(threeWay.toString());
-		assertNull(sugarOf(reopened).getRelativeSkeleton());
+		assertNull(sugarOf(reopened).getReadSkeleton());
 		assertEquals("WURCS=2.0/1,1,0/[ad4dh-1b_1-5_3*OC]/1/", write(reopened));
 
 		assertEquals(Arrays.asList(sugarOf(threeWay).getTypeName() + ": ad3dh -> ad4dh"),
-				RelativeStereoInGWS.lostOnSave(Collections.singletonList(threeWay)));
+				SkeletonInGWS.lostOnSave(Collections.singletonList(threeWay)));
 		assertEquals(Arrays.asList("Glc: a3433h -> a4344h"),
-				RelativeStereoInGWS.lostOnSave(Collections.singletonList(read("WURCS=2.0/1,1,0/[a3433h-1b_1-5]/1/"))));
+				SkeletonInGWS.lostOnSave(Collections.singletonList(read("WURCS=2.0/1,1,0/[a3433h-1b_1-5]/1/"))));
 
 		// the way round the writer writes anyway loses nothing, and nothing is said
-		assertTrue(RelativeStereoInGWS.lostOnSave(Collections.singletonList(
+		assertTrue(SkeletonInGWS.lostOnSave(Collections.singletonList(
 				read("WURCS=2.0/1,1,0/[ad4dh-1b_1-5_3*OC]/1/"))).isEmpty());
-		assertTrue(RelativeStereoInGWS.lostOnSave(Collections.singletonList(
+		assertTrue(SkeletonInGWS.lostOnSave(Collections.singletonList(
 				read("WURCS=2.0/1,1,0/[a2122h-1b_1-5]/1/"))).isEmpty());
 	}
 

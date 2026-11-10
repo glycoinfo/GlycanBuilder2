@@ -186,6 +186,8 @@ public class NativeMonosaccharideDictionary {
 		residues.put("Oli",            new Entry("122",   true,  'D', "",               "2*d_6*m"));
 		residues.put("Par",            new Entry("222",   false, 'D', "",               "3*d_6*m"));
 		residues.put("Pen",            new Entry("",      false, 'X', "",               ""));
+		// the heptose of unknown stereo, as Hex and Pen are the hexose and pentose (#265)
+		residues.put("Hept",           new Entry("",      false, 'X', "",               ""));
 		residues.put("Pse",            new Entry("22111", false, 'L', "5*N_7*N",        "2*O_3*d_9*m"));
 		residues.put("Psi",            new Entry("222",   true,  'D', "",               "1*h_2*O"));
 		residues.put("Qui",            new Entry("2122",  true,  'D', "",               "6*m"));
@@ -267,6 +269,23 @@ public class NativeMonosaccharideDictionary {
 	 *
 	 * @return the entry, or null when the name is not of that form
 	 */
+	/** Whether a name is a configurational prefix and a chain length, as manHep or araHex. */
+	public static boolean isPrefixName(String _residueName) {
+		return _residueName != null && PREFIX_NAMED.matcher(_residueName).matches();
+	}
+
+	/**
+	 * The prefix whose D configuration is these digits, and whether it is D or L: "1122" is man in D,
+	 * "2211" man in L. Null when no prefix covers them.
+	 */
+	public static String[] prefixFor(String _digits) {
+		for (Map.Entry<String, String> prefix : PREFIX_STEREO.entrySet()) {
+			if (prefix.getValue().equals(_digits)) return new String[] { prefix.getKey(), "D" };
+			if (Entry.map(prefix.getValue(), '1', '2', '2', '1').equals(_digits)) return new String[] { prefix.getKey(), "L" };
+		}
+		return null;
+	}
+
 	private static Entry byPrefix(String _residueName) {
 		if (_residueName == null) return null;
 		java.util.regex.Matcher named = PREFIX_NAMED.matcher(_residueName);

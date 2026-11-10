@@ -73,8 +73,8 @@ public class Residue {
 	private final ArrayList<String> modifications = new ArrayList<>();
 	private final ArrayList<String> deoxies = new ArrayList<>();
 
-	/** The skeleton read from WURCS when its stereo is relative only; see {@link #getRelativeSkeleton}. */
-	private String relativeSkeleton = null;
+	/** The skeleton read from WURCS when the type cannot say it alone; see {@link #getReadSkeleton}. */
+	private String readSkeleton = null;
 	
 	// cleavage
 	private String legend = null;
@@ -233,24 +233,31 @@ public class Residue {
 	}
 
 	/**
-	 * The skeleton code this residue was read from, when its stereo is written relative only - 3 and
-	 * 4, no 1 or 2 - or null.
+	 * The skeleton code this residue was read from, when its type and configuration cannot say it
+	 * alone, or null. Two cases:
 	 *
-	 * <p>A relative skeleton can be written either way round, {@code ad3dh} or {@code ad4dh}, and
-	 * WURCSFramework keeps each as a normal form of its own. The residue has D, L and unknown, and
-	 * nothing to say which of the two it was given, so the writer wrote one representative and half
-	 * the time it was the other one (#286). The writer writes this back instead, when what it would
-	 * write is this turned the other way round - that is, while the residue is still what was read.
+	 * <ul>
+	 * <li><b>Relative stereo only</b>, 3 and 4 and no 1 or 2 (#286). It can be written either way
+	 * round, {@code ad3dh} or {@code ad4dh}, and WURCSFramework keeps each as a normal form of its own;
+	 * the residue has D, L and unknown, and nothing to say which of the two it was given.
+	 * <li><b>Some stereocentres unknown</b>, {@code x}, where no name says which (#265): a
+	 * {@code a1x22h} is read as a hexose of unknown stereo, and the three centres it does give are kept
+	 * here.
+	 * </ul>
+	 *
+	 * <p>The writer writes this back instead of what it builds, while what it builds still agrees with
+	 * it - the same skeleton turned over, or the same with {@code x} where this has a digit - that is,
+	 * while the residue is still what was read.
 	 *
 	 * <p>GWS has no place for it. A residue saved and reopened has lost it, and is written as the
-	 * writer's representative again.
+	 * writer builds it; the save says so.
 	 */
-	public String getRelativeSkeleton() {
-		return this.relativeSkeleton;
+	public String getReadSkeleton() {
+		return this.readSkeleton;
 	}
 
-	public void setRelativeSkeleton(String _skeletonCode) {
-		this.relativeSkeleton = _skeletonCode;
+	public void setReadSkeleton(String _skeletonCode) {
+		this.readSkeleton = _skeletonCode;
 	}
 	
 	public void isComposition(boolean _isComposition) {
@@ -2059,7 +2066,7 @@ public class Residue {
 		// an allose, and the export of the copy wrote a different residue from the one copied.
 		ret.modifications.addAll(this.modifications);
 		ret.deoxies.addAll(this.deoxies);
-		ret.relativeSkeleton = this.relativeSkeleton;
+		ret.readSkeleton = this.readSkeleton;
 
 		ret.cleaved_residue = (this.cleaved_residue!=null) ?this.cleaved_residue.cloneResidue() :null;
 
@@ -2087,7 +2094,7 @@ public class Residue {
 		this.modifications.addAll(other.modifications);
 		this.deoxies.clear();
 		this.deoxies.addAll(other.deoxies);
-		this.relativeSkeleton = other.relativeSkeleton;
+		this.readSkeleton = other.readSkeleton;
 
 		this.cleaved_residue = (other.cleaved_residue!=null) ?other.cleaved_residue.cloneResidue() :null;
 

@@ -335,19 +335,27 @@ public class DeoxyExhaustiveTest {
 		// so it is made by createUnknown: no composition, and not a saccharide.
 		boolean weighing = check.startsWith("mass ") || check.startsWith(MassOptions.PERMETHYLATED)
 				|| check.startsWith(MassOptions.PERACETYLATED);
-		boolean writing = check.equals("not written to WURCS") && detail.contains("has neither a configuration nor a ring");
+		boolean writing = check.equals("not written to WURCS") && (detail.contains("has neither a configuration nor a ring")
+				|| detail.contains("is no residue this application knows"));
 		if ((weighing || writing) && c.readAs != null && readsAsATypeNoDictionaryHas(c.readAs))
 			return "K3 #282 the reader names a monosaccharide no dictionary has";
 
-		// L-gro-D-manHep and D-gro-D-manHep record 5 methylation and 3 acetylation sites; a
-		// heptopyranose has six hydroxyls (1, 2, 3, 4, 6, 7). Derivatized, they are wrong with or
-		// without a deoxy.
+		// The heptose rows #283 lists record too few methylation and acetylation sites - L-gro-D-manHep
+		// and D-gro-D-manHep 5 and 3 - where a heptopyranose has six hydroxyls (1, 2, 3, 4, 6, 7).
+		// Derivatized, they are wrong with or without a deoxy. The prefix-named ones, araHep and the
+		// rest, became bases once a prefix name could be written with its far centres unknown (#265).
 		boolean derivatized = check.startsWith(MassOptions.PERMETHYLATED) || check.startsWith(MassOptions.PERACETYLATED);
-		if (derivatized && (c.base.name.equals("L-gro-D-manHep") || c.base.name.equals("D-gro-D-manHep")))
+		if (derivatized && HEPTOSE_ROWS_283.contains(c.base.name))
 			return "K4 #283 the heptose rows record too few derivatization sites";
 
 		return UNEXPLAINED;
 	}
+
+	/** The heptose rows #283 records too few derivatization sites for. */
+	private static final java.util.Set<String> HEPTOSE_ROWS_283 = new java.util.HashSet<String>(java.util.Arrays.asList(
+			"L-gro-D-manHep", "D-gro-D-manHep", "?-gro-D-glcHep", "?-gro-D-manHep", "D-gro-D-altHep", "D-gro-D-galHep",
+			"D-gro-D-glcHep", "D-gro-L-glcHep", "D-gro-L-manHep", "L-gro-D-galHep", "L-gro-D-glcHep", "L-gro-D-idoHep",
+			"L-gro-L-manHep", "araHep", "gulHep", "lyxHep", "manHep", "talHep", "Hept"));
 
 	/**
 	 * The known failures, counted exactly. Each moves when its cause is fixed, and then this is
@@ -355,14 +363,17 @@ public class DeoxyExhaustiveTest {
 	 */
 	private static final Map<String, Integer> KNOWN_COUNTS = new java.util.TreeMap<String, Integer>();
 	static {
-		// 204 until Thr and Ery could be written (#285) and so became bases
-		KNOWN_COUNTS.put("K1 #265 the reader refuses an unknown stereocentre", 216);
+		// 216 until #265: a deoxy on a type of unknown stereo, adxxh, now reads. What is left is a
+		// tetrose with both its centres taken, addh, which has no stereocentre and no type to be.
+		KNOWN_COUNTS.put("K1 #265 the reader refuses an unknown stereocentre", 24);
 		// 1,404 before #261, when no configurational-prefix name could be written at all
 		KNOWN_COUNTS.put("K2 #275 the type has no stereo recorded", 150);
 		// 480, all heptoses, until the tetrose rows were corrected (#285): the deoxy tetroses then read
-		// and fail the same way, as groTet - 90 cases on each of Thr, Ery, thrTet and eryTet
-		KNOWN_COUNTS.put("K3 #282 the reader names a monosaccharide no dictionary has", 5 * 96 + 4 * 90);
-		KNOWN_COUNTS.put("K4 #283 the heptose rows record too few derivatization sites", 2 * 24 + 2 * 24);
+		// and fail the same way, as groTet - 90 cases on each of Thr, Ery, thrTet and eryTet. 840 until
+		// #265 made gulHep a base, whose deoxies read as xylHep and ribHep: 150 more.
+		KNOWN_COUNTS.put("K3 #282 the reader names a monosaccharide no dictionary has", 5 * 96 + 4 * 90 + 150);
+		// 96, the two manHeps, until #265 made araHep, lyxHep, manHep, talHep and gulHep bases
+		KNOWN_COUNTS.put("K4 #283 the heptose rows record too few derivatization sites", 96 + 2 * 162 + 3 * 108);
 		KNOWN_COUNTS.put("K5 #275 a deoxy ketose loses its carbonyl", 216);
 	}
 
