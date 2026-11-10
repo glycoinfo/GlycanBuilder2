@@ -18,6 +18,7 @@ import org.glycoinfo.WURCSFramework.wurcs.sequence2.GRES;
 import org.glycoinfo.WURCSFramework.wurcs.sequence2.SUBST;
 import org.glycoinfo.application.glycanbuilder.dataset.CrossLinkedSubstituentDictionary;
 import org.glycoinfo.application.glycanbuilder.dataset.NativeMonosaccharideDictionary;
+import org.glycoinfo.application.glycanbuilder.util.SkeletonModificationComposition;
 import org.glycoinfo.application.glycanbuilder.util.exchange.WURCSToGlycanException;
 
 import java.util.ArrayList;
@@ -198,6 +199,16 @@ public class SUBSTAnalyzer {
 			if(entry != null) {
 				_residue.addModification(mod);
 				if(entry.getModifications().contains(mod)) continue;
+			}
+
+			// A deoxy the name does not imply stays on the residue too. It was built as a child named
+			// "d" or "m", which no dictionary knows: drawn as "2d" or "6m", weighed as nothing while
+			// its bond still took a water away, and refused by the WURCS writer (#258, #263). Other
+			// skeleton modifications are still built as before: what they do to the hydroxyls a
+			// derivatization reaches is not yet settled here, and a deoxy's is.
+			if(SkeletonModificationComposition.isDeoxy(mod)) {
+				_residue.addDeoxy(mod);
+				continue;
 			}
 
 			if(subNotations[0].contains(",")) {

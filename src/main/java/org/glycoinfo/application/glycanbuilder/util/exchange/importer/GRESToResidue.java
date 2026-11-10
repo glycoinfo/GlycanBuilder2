@@ -11,6 +11,8 @@ import org.glycoinfo.application.glycanbuilder.dataset.MonosaccharideMSDictionar
 import org.glycoinfo.application.glycanbuilder.dataset.NonSymbolicResidueDictionary;
 
 import org.glycoinfo.application.glycanbuilder.util.exchange.WURCSToGlycanException;
+import org.glycoinfo.application.glycanbuilder.util.SkeletonModificationComposition;
+import org.glycoinfo.WURCSFramework.util.WURCSFactory;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -76,11 +78,20 @@ public class GRESToResidue {
 		ResidueType newType = ResidueDictionary.findResidueType(trivialName);
 		Residue residue = new Residue(newType);
 
+		// the skeleton is matched whole, so a recognised residue leaves no core modification behind
+		ArrayList<String> leftOver = (trinConv == null) ? new ArrayList<String>() : trinConv.getModifications();
+
 		// The legend names this residue in the box drawn beside the structure, for a residue with no
 		// symbol of its own. It belongs to the residue: writing it onto the type, which every residue
 		// of that name shares, meant reading a second structure changed what the first one said.
-		if(NonSymbolicResidueDictionary.hasResidueType(trivialName)) {
-			String legend = this.makeLegend(_gres, trinConv);
+		//
+		// A residue carrying a deoxy its name does not imply has no symbol of its own either - a
+		// 6-deoxy allose is not an allose - so it is named the same way (#258).
+		boolean carriesDeoxy = false;
+		for (String modification : leftOver)
+			if (SkeletonModificationComposition.isDeoxy(modification)) carriesDeoxy = true;
+		if(NonSymbolicResidueDictionary.hasResidueType(trivialName) || carriesDeoxy) {
+			String legend = this.makeLegend(_gres);
 			if(legend != null) residue.setLegend(legend);
 		}
 
@@ -96,8 +107,7 @@ public class GRESToResidue {
 		// them - so the two are set together here rather than either being able to undo the other.
 		residue.setRingSize(this.isAlditol() ? 'o' : this.isAldehyde() ? 'a' : this.ringSize);
 
-		// the skeleton is matched whole, so a recognised residue leaves no core modification behind
-		this.modifications = (trinConv == null) ? new ArrayList<String>() : trinConv.getModifications();
+		this.modifications = leftOver;
 		this.residue = residue;
 	}
 
@@ -105,22 +115,46 @@ public class GRESToResidue {
 	 * The IUPAC name shown as a legend under residues drawn without a symbol. It comes from a
 	 * converter that does not cover every residue this builder can draw, so one it cannot name goes
 	 * without a legend rather than taking the structure down.
+	 *
+	 * <p>Named from the monosaccharide alone - skeleton, anomer and ring - and not from the whole
+	 * residue as written. A substituent is drawn beside the symbol, "3Me", and naming it in the footnote
+	 * as well said it twice: "2d 3Me" on the symbol and "2-deoxy-D-araHexp3Me" below (#263). What
+	 * belongs in the footnote is what the symbol cannot show, which is the monosaccharide.
+	 *
 	 * @param _gres Residue being read.
-	 * @param _trivialNameConverter Converter already run for this residue, or null.
 	 * @return Returns the legend, or null when none could be built.
 	 */
-	private String makeLegend(GRES _gres, TrivialNameConverter _trivialNameConverter) {
+	private String makeLegend(GRES _gres) {
 		try {
-			TrivialNameConverter converter = _trivialNameConverter;
-			if(converter == null) {
-				converter = new TrivialNameConverter();
-				converter.start(_gres);
-			}
-
+			GRES core = new WURCSFactory("WURCS=2.0/1,1,0/[" + coreOf(_gres) + "]/1/")
+					.getSequence().getGRESs().getFirst();
+			TrivialNameConverter converter = new TrivialNameConverter();
+			converter.start(core);
 			return converter.getIUPACNotation();
 		} catch (Exception cannotBeNamed) {
 			return null;
 		}
+	}
+
+	/**
+	 * The monosaccharide part of a residue as WURCS writes it: the skeleton and anomer, and the ring
+	 * bridge, without the substituents and the other bridges, which this builder draws as residues of
+	 * their own.
+	 */
+	static String coreOf(GRES _gres) {
+		String[] parts = _gres.getMS().getString().split("_");
+		BRIDGE ring = RingBridge.find(_gres.getMS().getCoreStructure());
+		String ringText = (ring == null) ? null
+				: position(ring.getStartPositions().getFirst()) + "-" + position(ring.getEndPositions().getFirst());
+
+		StringBuilder core = new StringBuilder(parts[0]);
+		for (int i = 1; i < parts.length; i++)
+			if (!parts[i].contains("*") && parts[i].equals(ringText)) core.append('_').append(parts[i]);
+		return core.toString();
+	}
+
+	private static String position(Integer _position) {
+		return (_position == null || _position < 0) ? "?" : String.valueOf(_position);
 	}
 	
 	private boolean isSticky(String _trivialName) {

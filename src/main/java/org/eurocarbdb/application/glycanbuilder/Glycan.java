@@ -1332,6 +1332,45 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 		return false;                
 	}
 
+	/**
+	 * How many groups a derivatization puts on this residue: its type's count, less one for each deoxy
+	 * the residue carries beyond its type's name, since a deoxy is a hydroxyl that is not there.
+	 * Checked against the dictionary, where fucose, the 6-deoxy galactose, has one fewer methylation
+	 * and acetylation site than galactose.
+	 */
+	private int noSubstitutions(Residue node) {
+		int ofType = noSubstitutions(node.getType());
+		return (ofType == 0) ? 0 : ofType - node.getDeoxies().size();
+	}
+
+	/**
+	 * A residue's own composition: its type's, changed by any deoxy it carries beyond its type's name
+	 * (#258, #263). The change is WURCSFramework's, see {@link
+	 * org.glycoinfo.application.glycanbuilder.util.SkeletonModificationComposition}.
+	 */
+	private Molecule moleculeOf(Residue node) throws Exception {
+		Molecule ofType = node.getType().getMolecule();
+		if (ofType == null || !node.hasDeoxies()) return ofType;
+
+		Molecule ret = new Molecule();
+		ret.add(ofType);
+		for (String deoxy : node.getDeoxies())
+			ret.add(org.glycoinfo.application.glycanbuilder.util.SkeletonModificationComposition.deltaOf(deoxy));
+		return ret;
+	}
+
+	/** @return Returns a residue's own mass, of the kind this structure is being weighed in. */
+	private double massOf(Residue node) {
+		if (!node.hasDeoxies()) return massOf(node.getType());
+		try {
+			return massOf(moleculeOf(node));
+		} catch (Exception cannotBeWeighed) {
+			// a constant computed by WURCSFramework from two fixed skeletons; if it cannot be had, a
+			// mass without it would be wrong by an oxygen per deoxy and look right
+			throw new IllegalStateException("cannot weigh the deoxy on " + node.getTypeName(), cannotBeWeighed);
+		}
+	}
+
 	private int noSubstitutions(ResidueType type) {
 		if( mass_options.DERIVATIZATION.equals(MassOptions.PERMETHYLATED) ||
 				mass_options.DERIVATIZATION.equals(MassOptions.PERDMETHYLATED) ||
@@ -1408,7 +1447,7 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 		int no_bonds = node.getNoBonds();
 
 		// add mass of the saccharide    
-		double mass =  massOf(type);
+		double mass =  massOf(node);
 
 		// modify for alditol
 		if( node.isReducingEnd() && node.getType().makesAlditol() )
@@ -1431,7 +1470,7 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 			if( isDropped(type) )
 				mass -= (massOf(type) - massOf(MassUtils.water) - substitutionMass());
 			else
-				mass += (noSubstitutions(type)-no_bonds)*substitutionMass();
+				mass += (noSubstitutions(node)-no_bonds)*substitutionMass();
 		}    
 
 		// add children
@@ -1502,7 +1541,7 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 		double mass=0.;
 		
 		if(!node.isRepetition() || checkCompositionResidue(node)){
-			mass =  massOf(type);
+			mass =  massOf(node);
 		}
 		
 		// modify for alditol
@@ -1574,7 +1613,7 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 				if( isDropped(type) )
 					mass -= (massOf(type) - massOf(MassUtils.water) - substitutionMass());
 				else
-					mass += ((noSubstitutions(type)-no_bonds)*substitutionMass());
+					mass += ((noSubstitutions(node)-no_bonds)*substitutionMass());
 			}
 		}
 
@@ -1649,7 +1688,7 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 		// add residue
 		if( type.getMolecule()==null )
 			throw new Exception("Cannot compute molecule for residue: " + node.getTypeName());
-		ret.add(type.getMolecule());    
+		ret.add(moleculeOf(node));    
 
 		// modify for alditol
 		if( node.isReducingEnd() && node.getType().makesAlditol() )
@@ -1675,7 +1714,7 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 				ret.add(substitution_molecule);
 			}
 			else 
-				ret.add(substitution_molecule,noSubstitutions(type)-no_bonds);
+				ret.add(substitution_molecule,noSubstitutions(node)-no_bonds);
 		}    
 
 		// add children
@@ -1700,7 +1739,7 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 			if( node.getType().isDroppedWithMethylation() )
 				ret -= 1;
 			else 
-				ret += node.getType().getNoMethyls()-no_bonds;        
+				ret += node.getType().getNoMethyls()-node.getDeoxies().size()-no_bonds;        
 		}    
 
 		// add children
@@ -1725,7 +1764,7 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 			if( node.getType().isDroppedWithAcetylation() )
 				ret -= 1;
 			else 
-				ret += node.getType().getNoAcetyls()-no_bonds;        
+				ret += node.getType().getNoAcetyls()-node.getDeoxies().size()-no_bonds;        
 		}    
 
 		// add children
