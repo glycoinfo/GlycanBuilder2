@@ -1,0 +1,65 @@
+# Heptose, in every direction it is asked for.
+#
+# Measured on 1.40.0 (jar-with-dependencies, dictionaries loaded through BuilderWorkspace),
+# 2026-11-09. The first two strings are the reporter's own: the first is what GlycanBuilder2 wrote
+# when asked to save a heptose, the second is the GlycoWorkbench file in #253.
+#
+# today: pass | the failure as it actually comes out
+#
+# issue	origin	gws	today	measured
+256	ours	freeEnd--??1D-GlcNAc,p--??1D-D-gro-D-manHep,p$MONO,Und,0,0,freeEnd	pass	FIXED 2026-11-09 by widening the reader's name class. Reads, and comes back byte-identical. Was: java.lang.Exception: invalid format for linkage: -gro-D-manHep,p (GWSParser.readSubtreeLinkage:504)
+253	glycoworkbench	freeEnd--5?2KDO--7?1D-Hept,p(((--?Hept--??1D-GlcNAc,p)--??1D-Glc,p--??1D-Glc,p--??1D-Gal,p--??1D-GlcNAc,p)--??1D-Glc,p)--??1PEtn$MONO,Und,H,Na-H,freeEnd	renamed	reads, and comes back as ...--5?2Kdo--... : KDO is silently respelled Kdo. Unchanged by the grammar fix, because it is a dictionary spelling and not a grammar problem. Both Hept residues come back superclass=Unknown, isSubstituent=false
+#
+# What #255 says is happening, and is not. The issue reads "the first Heptose residue becomes a
+# Substituent of the KDO residue". Parsed from the string above, neither Hept is a substituent in the
+# model - both are plain unknown saccharides. Whatever makes one look like a substituent happens in
+# placement or drawing, not in the parser, and a fix aimed at the parser will miss it.
+#
+# What the dictionaries actually offer for a heptose:
+#   residue_types:100-101        L-gro-D-manHep, D-gro-D-manHep        superclass Unknown
+#   residue_types:105            %Hep                                  commented out - % is this
+#                                                                      file's comment marker, so the
+#                                                                      generic heptose row is off
+#   non_symbolic_residue_types   thirteen more X-gro-Y-zzzHep          superclass Unknown
+#   (nowhere)                    Hept                                  the spelling GlycoWorkbench
+#                                                                      writes; created on the fly by
+#                                                                      createUnknown
+#   residue_styles_cfg:71        Hept -> heptagon                      never reached: getStyle keys
+#   residue_styles_cfgbw:59      Hept -> heptagon                      on the type NAME, and no
+#                                                                      residue is named Hept
+#   residue_styles_snfg          (no heptose row)                      so it falls back to the
+#                                                                      superclass row, Unknown ->
+#                                                                      hexagon, which is #254/#248
+#
+# So heptose fails in all three directions at once: the generic row is disabled, the fifteen specific
+# rows cannot survive a GWS round trip, and the spelling another program writes is in no dictionary.
+#
+# The second of those is FIXED (2026-11-09): the reader's name class now admits the dash, so every
+# heptose and octose name but five survives the round trip byte-identically. The five that do not are
+# bad dictionary rows, listed in ../gws/dictionary-names.tsv, and each needs a chemistry decision.
+#
+# The other two are untouched and still want a chemistry opinion rather than code: whether to
+# uncomment the generic Hep row, and whether Hept should be a synonym of it so that a GlycoWorkbench
+# file names a heptose rather than an unknown residue.
+#
+# And a fourth direction, found 2026-11-09 after the grammar fix and worse than the other three:
+# OF THE 23 HEPTOSE AND OCTOSE ROWS, 21 EXPORT TO WURCS AS AN EMPTY STRING.
+#
+#   L-gro-D-manHep     ok   WURCS=2.0/1,1,0/[a11221h-1x_1-5]/1/
+#   D-gro-D-manHep     ok   WURCS=2.0/1,1,0/[a11222h-1x_1-5]/1/
+#   the other 21       empty string, and no exception reaches the caller
+#
+# Those two are the only heptose or octose names in NativeMonosaccharideDictionary
+# (NativeMonosaccharideDictionary.java:144 and :172). For every other name
+# ResidueAnalyzer.stereoOfResidue:239 throws
+#
+#   WURCSExchangeException: D-gro-D-galHep has no stereo recorded for it, so it has no skeleton
+#   to write.
+#
+# which is logged and swallowed, so writeGlycan returns "". Same exception as #261 and the same shape
+# as #220 - an empty file where the reason should be. So the grammar fix made these residues
+# save and reopen; it did not make them usable, and nothing in GWS was ever going to.
+#
+# Note also that a chirality of "/" does not throw: getStereo maps anything that is not D or L to the
+# unknown-configuration stereo (1->3, 2->4), so L-gro-D-glcOct would be written as configuration
+# unknown while its name says L. A quiet wrong answer rather than a loud one.

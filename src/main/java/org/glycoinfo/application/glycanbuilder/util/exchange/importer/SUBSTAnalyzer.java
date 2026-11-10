@@ -18,6 +18,7 @@ import org.glycoinfo.WURCSFramework.wurcs.sequence2.GRES;
 import org.glycoinfo.WURCSFramework.wurcs.sequence2.SUBST;
 import org.glycoinfo.application.glycanbuilder.dataset.CrossLinkedSubstituentDictionary;
 import org.glycoinfo.application.glycanbuilder.dataset.NativeMonosaccharideDictionary;
+import org.glycoinfo.application.glycanbuilder.util.SkeletonModificationComposition;
 import org.glycoinfo.application.glycanbuilder.util.exchange.WURCSToGlycanException;
 
 import java.util.ArrayList;
@@ -72,7 +73,7 @@ public class SUBSTAnalyzer {
 			this.analyzeBRIDGE(bridge, _residue);
 		}
 
-		this.analyzeModificaitons(_residue);
+		this.analyzeModificaitons(_gres, _residue);
 	}
 	
 	/** 
@@ -185,9 +186,10 @@ public class SUBSTAnalyzer {
 		return position;
 	}
 		
-	private void analyzeModificaitons(Residue _residue) throws Exception {
+	private void analyzeModificaitons(GRES _gres, Residue _residue) throws Exception {
 		NativeMonosaccharideDictionary.Entry entry =
 				NativeMonosaccharideDictionary.forResidueName(_residue.getTypeName());
+		ArrayList<String> deoxies = new ArrayList<String>();
 
 		for(String mod : this.modifications) {
 			Linkage linkage = new Linkage();
@@ -198,6 +200,16 @@ public class SUBSTAnalyzer {
 			if(entry != null) {
 				_residue.addModification(mod);
 				if(entry.getModifications().contains(mod)) continue;
+			}
+
+			// A deoxy the name does not imply stays on the residue too. It was built as a child named
+			// "d" or "m", which no dictionary knows: drawn as "2d" or "6m", weighed as nothing while
+			// its bond still took a water away, and refused by the WURCS writer (#258, #263). Other
+			// skeleton modifications are still built as before: what they do to the hydroxyls a
+			// derivatization reaches is not yet settled here, and a deoxy's is.
+			if(SkeletonModificationComposition.isDeoxy(mod)) {
+				deoxies.add(mod);
+				continue;
 			}
 
 			if(subNotations[0].contains(",")) {
@@ -213,6 +225,65 @@ public class SUBSTAnalyzer {
 			Residue substituent = ResidueDictionary.newResidue(subNotations[1]);
 			this.checkNode(substituent, subNotations[1]);
 			_residue.addChild(substituent, linkage.getBonds());
+		}
+
+		// Not every deoxy the reader reports is one the type lacks. It is told which modifications a
+		// name implies only for the names it has a descriptor for, so a 2,3,6-trideoxy hexose comes
+		// back as Rho - whose composition already has all three - together with all three deoxies. Kept
+		// as extra, they were taken away a second time.
+		int extra = extraDeoxies(_gres, _residue, deoxies.size());
+		for(int i = 0; i < deoxies.size(); i++) {
+			if(i < extra)
+				_residue.addDeoxy(deoxies.get(i));
+			else if(!_residue.getModifications().contains(deoxies.get(i)))
+				_residue.addModification(deoxies.get(i));  // implied by the type; the writer reads it
+		}
+	}
+
+	/**
+	 * How many of the reported deoxies the residue's type does not already account for.
+	 *
+	 * <p>Answered by weighing, against WURCSFramework: the residue as built so far - its type, with the
+	 * substituents hung off it and no deoxy - and the monosaccharide as the WURCS describes it. Every
+	 * oxygen the model has too many is a deoxy the type lacks. Weighing is what makes this exact for a
+	 * type whose composition carries more than its skeleton: Cym, a 2,6-dideoxy 3-O-methyl hexose, has
+	 * its methyl in its composition, C7H14O4, and no reading of the formula alone tells that apart from
+	 * a seven-carbon skeleton.
+	 *
+	 * <p>Answered here, at reading, because this is the only point at which the WURCS is in hand. When
+	 * the difference is not a whole number of oxygens - another modification the model does not yet
+	 * weigh correctly, a type with no composition - every deoxy is taken as extra, as before.
+	 */
+	private static int extraDeoxies(GRES _gres, Residue _residue, int _reported) {
+		if(_reported == 0) return 0;
+		try {
+			if(_residue.getType().getMolecule() == null) return _reported;
+
+			double described = org.glycoinfo.WURCSFramework.util.array.mass.WURCSMassCalculator.calcMassWURCS(
+					new org.glycoinfo.WURCSFramework.util.WURCSFactory(
+							"WURCS=2.0/1,1,0/[" + _gres.getMS().getString() + "]/1/").getArray()).doubleValue();
+
+			Residue root = ResidueDictionary.createReducingEnd("freeEnd");
+			root.addChild(_residue.cloneSubtree());
+			// underivatized: a new MassOptions is permethylated, and weighed that way the difference was
+			// methyls, not oxygens
+			org.eurocarbdb.application.glycanbuilder.massutil.MassOptions underivatized =
+					new org.eurocarbdb.application.glycanbuilder.massutil.MassOptions();
+			underivatized.setDerivatization(org.eurocarbdb.application.glycanbuilder.massutil.MassOptions.NO_DERIVATIZATION);
+			org.eurocarbdb.application.glycanbuilder.Glycan built = new org.eurocarbdb.application.glycanbuilder.Glycan(
+					root, false, underivatized);
+			// a clone's linkages come back untyped, and an untyped bond to a methyl weighs it an oxygen
+			// light (#281); typed as the readers type them, it weighs what it is
+			new org.glycoinfo.application.glycanbuilder.converterWURCS2.LinkageTypeOptimizer().start(built);
+			double modelled = built.computeMass();
+
+			double oxygen = org.eurocarbdb.application.glycanbuilder.massutil.MassUtils.getAtom("O").getMainMass();
+			long extra = Math.round((modelled - described) / oxygen);
+			if(extra < 0 || extra > _reported || Math.abs(modelled - described - extra * oxygen) > 1e-3)
+				return _reported;
+			return (int) extra;
+		} catch (Exception cannotBeWeighed) {
+			return _reported;
 		}
 	}
 	

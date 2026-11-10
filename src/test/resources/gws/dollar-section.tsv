@@ -1,0 +1,7 @@
+# input	required output (spec §1.6, §1.6.1)	status on 1.40.0
+freeEnd--?b1D-GalNAc,p	freeEnd--?b1D-GalNAc,p	FAILS - writer adds $MONO,Und,0,0,freeEnd
+freeEnd--?b1D-GalNAc,p$MONO,Und,Na,0	freeEnd--?b1D-GalNAc,p$MONO,Und,Na,0	FAILS - writer adds ,freeEnd
+freeEnd--?b1D-GalNAc,p$MONO,Und,0,0,freeEnd	freeEnd--?b1D-GalNAc,p$MONO,Und,0,0,freeEnd	passes
+freeEnd--?b1D-GalNAc,p$MONO,Und,0,0,freeEnd,writer=x	freeEnd--?b1D-GalNAc,p$MONO,Und,0,0,freeEnd,writer=x	FAILS - writer drops ",writer=x"
+freeEnd--?b1D-GalNAc,p$MONO,Und,0,0,freeEnd,writer=x,ver=1	freeEnd--?b1D-GalNAc,p$MONO,Und,0,0,freeEnd,writer=x,ver=1	FAILS - writer drops both
+freeEnd--?b1D-GalNAc,p$MONO,Und,0	(refused)	passes - IndexOutOfBoundsException

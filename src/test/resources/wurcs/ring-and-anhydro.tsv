@@ -1,0 +1,12 @@
+# An unknown ring form, and the anhydro nobody asked for.
+#
+# From #259 and #257, verbatim. Three of these are one-residue structures, which is what makes the
+# cluster cheap to test: the fault needs no tree around it.
+#
+# issue	wurcs	today	note
+259	WURCS=2.0/1,1,0/[ad122m-1x_1-?_3*OC]/1/	spurious-anhydro	ring reads back as ? correctly, and a 1,? Anhydro is added as well
+259	WURCS=2.0/1,1,0/[ad122h-1a_1-?_3*OC]/1/	spurious-anhydro	same, with a defined anomer
+259	WURCS=2.0/1,1,0/[a2122h-1x_1-?_2*NCC/3=O]/1/	spurious-anhydro	same, on a GlcNAc skeleton
+257	WURCS=2.0/3,3,2/[ad122m-1x_1-?_3*OC][a2222m-1b_1-5_3*OC][a2122h-1b_1-5]/1-2-3/a4-b1_b4-c1	wrong-drawing	G81298PX, the structure the three rows above were cut out of
+258	WURCS=2.0/1,1,0/[a2222m-1b_1-5_3*OC]/1/	wrong-symbol	a 6-deoxy that is not Fuc or Rha: drawn as a symbol with a 6m substituent, where SNFG has no triangle and asks for a white pentagon with an index
+260	WURCS=2.0/1,1,0/[ad122h-1x_1-5_3*OC]/1/	wrong-index	imports as Assigned, which is right, and then numbers it 1 and decorates it (#262, #263); it also cannot be exported again (#261)

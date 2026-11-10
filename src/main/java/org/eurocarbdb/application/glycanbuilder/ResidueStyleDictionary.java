@@ -120,7 +120,10 @@ public class ResidueStyleDictionary {
 		ResidueType type = node.getType();
 		String type_name = type.getName();
 
-		if( styles.containsKey(type_name)) {
+		// A residue carrying a deoxy its type's name does not imply is not that type: a 6-deoxy allose
+		// is not an allose, and drawn as one it said something false (#258). It falls through to the
+		// white symbol a residue without its own row gets, and its legend names it.
+		if( styles.containsKey(type_name) && !node.hasDeoxies() ) {
 			try {
 				return new ResidueStyle(this.styles.get(type_name));
 			} catch (Exception e) {
@@ -192,13 +195,17 @@ public class ResidueStyleDictionary {
 			LogUtils.report(e);
 		}
 
-		if(node.getID() != 0) a_oRS.setText(String.valueOf(node.getID()));
+		// A residue with no symbol of its own carries its footnote letter - A, B, C - as SNFG note 11
+		// asks. It carried the ordinal as a number (#262).
+		if(node.getID() != 0)
+			a_oRS.setText(org.eurocarbdb.application.glycanbuilder.renderutil.SNFGFootnote.letter(node.getID()));
 
 		return a_oRS;
 	}
 
 	public boolean containsResidue(Residue node) {
-		return this.styles.containsKey(node.getTypeName());
+		// see getStyle: a residue with a deoxy its name does not imply has no symbol of its own
+		return this.styles.containsKey(node.getTypeName()) && !node.hasDeoxies();
 	}
 	
 	/**

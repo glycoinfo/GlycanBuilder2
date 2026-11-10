@@ -1,0 +1,10 @@
+# user types	stored label (spec §1.3.1)	status on 1.40.0 when given the stored form
+Ser_Thr	Ser_Thr	round-trips, renders 412x111
+Ser_2F_Thr	Ser_2F_Thr	round-trips, renders 436x111
+Ser/Thr	_e_Ser_2F_Thr	round-trips, renders 436x111
+GalNAc-Ser/Thr	_e_GalNAc-Ser_2F_Thr	'-' needs the widened reader of §1.3
+Ser$Thr	_e_Ser_24_Thr	round-trips, renders 437x111
+Ser=Thr	_e_Ser_3D_Thr	round-trips, renders 438x111
+_e_Ser	_e__5F_e_5F_Ser	round-trips, renders 473x111
+セリン	_e__E3__82__BB__E3__83__AA__E3__83__B3_	round-trips, renders 665x111
+/-	_e__2F__2D_	round-trips, renders 445x111

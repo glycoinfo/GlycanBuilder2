@@ -71,6 +71,7 @@ public class Residue {
 	
 	//annotation
 	private final ArrayList<String> modifications = new ArrayList<>();
+	private final ArrayList<String> deoxies = new ArrayList<>();
 	
 	// cleavage
 	private String legend = null;
@@ -195,9 +196,37 @@ public class Residue {
 	public void addModification(String a_sMOD) {
 		this.modifications.add(a_sMOD);
 	}
-	
+
 	public ArrayList<String> getModifications() {
 		return this.modifications;
+	}
+
+	/**
+	 * Record a deoxy this residue carries beyond what its type's name implies - {@code 6*m} on an
+	 * allose, {@code 2*d} on an arabino-hexose.
+	 *
+	 * <p>It stays on the residue rather than becoming a child. The WURCS reader used to build it as a
+	 * child residue named {@code m} or {@code d}, which no dictionary knows: drawn as "6m" or "2d" beside
+	 * the symbol, weighed as nothing while the bond to it still took away a water, and refused by the
+	 * WURCS writer (#258, #263). Here it changes the residue's composition and its derivatizable
+	 * hydroxyls, takes away its own symbol so that SNFG draws it as a white symbol with a letter, and is
+	 * written back by the WURCS writer as part of the skeleton.
+	 *
+	 * <p>Also added to {@link #getModifications()}, which is what the WURCS writer reads.
+	 */
+	public void addDeoxy(String a_sMOD) {
+		if (!this.deoxies.contains(a_sMOD)) this.deoxies.add(a_sMOD);
+		if (!this.modifications.contains(a_sMOD)) this.modifications.add(a_sMOD);
+	}
+
+	/** The deoxies recorded by {@link #addDeoxy}, in the order they were added. */
+	public java.util.List<String> getDeoxies() {
+		return java.util.Collections.unmodifiableList(this.deoxies);
+	}
+
+	/** Whether this residue carries a deoxy its type's name does not imply. */
+	public boolean hasDeoxies() {
+		return !this.deoxies.isEmpty();
 	}
 	
 	public void isComposition(boolean _isComposition) {
@@ -1964,7 +1993,30 @@ public class Residue {
 	 * and destroyed the type's own description along the way.
 	 */
 	public String getLegend() {
-		return (this.legend != null) ? this.legend : this.type.getDescription();
+		if (this.legend != null) return this.legend;
+		if (!this.deoxies.isEmpty()) return deoxyPrefix() + this.type.getDescription();
+		return this.type.getDescription();
+	}
+
+	/**
+	 * "6-deoxy-", "2,6-dideoxy-": what a residue's deoxies add to its type's name when nothing better
+	 * is known.
+	 *
+	 * <p>The WURCS reader names such a residue from its skeleton. A structure reopened from GWS has no
+	 * skeleton to name it from - the legend is not saved - and its type's description alone, "Allose",
+	 * would name a 6-deoxy allose as an allose in the footnote.
+	 */
+	private String deoxyPrefix() {
+		java.util.List<String> positions = new java.util.ArrayList<String>();
+		for (String deoxy : this.deoxies) {
+			int star = deoxy.indexOf('*');
+			if (star > 0) positions.add(deoxy.substring(0, star));
+		}
+		java.util.Collections.sort(positions);
+
+		String[] multiplier = { "", "", "di", "tri", "tetra" };
+		String count = (positions.size() < multiplier.length) ? multiplier[positions.size()] : "poly";
+		return String.join(",", positions) + "-" + count + "deoxy-";
 	}
 
 	public void setLegend(String a_sLegend) {
@@ -1979,6 +2031,10 @@ public class Residue {
 		ret.chirality = this.chirality;
 		ret.ring_size = this.ring_size;
 		ret.legend = this.legend;
+		// what the WURCS reader recorded about the skeleton. Not copied, a copy of a 6-deoxy allose was
+		// an allose, and the export of the copy wrote a different residue from the one copied.
+		ret.modifications.addAll(this.modifications);
+		ret.deoxies.addAll(this.deoxies);
 
 		ret.cleaved_residue = (this.cleaved_residue!=null) ?this.cleaved_residue.cloneResidue() :null;
 
@@ -2000,6 +2056,12 @@ public class Residue {
 		this.anomeric_carbon = other.anomeric_carbon;
 		this.chirality = other.chirality;
 		this.ring_size = other.ring_size;
+		// the skeleton goes with the type: a residue changed into another must not keep the deoxy of
+		// what it was
+		this.modifications.clear();
+		this.modifications.addAll(other.modifications);
+		this.deoxies.clear();
+		this.deoxies.addAll(other.deoxies);
 
 		this.cleaved_residue = (other.cleaved_residue!=null) ?other.cleaved_residue.cloneResidue() :null;
 

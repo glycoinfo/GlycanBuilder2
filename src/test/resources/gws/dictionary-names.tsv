@@ -1,0 +1,18 @@
+# Residue names the GWS writer emits and the reader could not read back.
+#
+# This file used to list 33 names by hand. It is now five rows, because the property is checked
+# rather than transcribed: GwsReadsTheNamesItWritesTest walks conf/residue_types and
+# conf/non_symbolic_residue_types, writes each residue with the writer, reads it back and compares.
+# A hand list was wrong twice - the count was given as 6, then 33, and is 35 - and a list cannot stay
+# true when somebody adds a row. See ../README.md, rule 3.
+#
+# Widening the reader's name class (docs/gws-format.md 1.3) took it from 35 to the 5 below, and not
+# one of the 5 is a grammar problem. Each is a row in conf/non_symbolic_residue_types that no reader
+# can be written to accommodate, and each needs a chemistry decision rather than code: issue #273.
+#
+# name	bad column	what the row says	what the writer emits	what it needs
+araOct	anomeric carbon	-	freeEnd--??-araOct,p$MONO,Und,0,0,freeEnd	a position, or ? for unknown, in place of the dash
+manOct	anomeric carbon	-	freeEnd--??-manOct,p$MONO,Und,0,0,freeEnd	a position, or ? for unknown, in place of the dash
+L-gro-D-glcOct	chirality	/	freeEnd--??2/-L-gro-D-glcOct,p$MONO,Und,0,0,freeEnd	D, L or ?. The row also disagrees with itself: name L-gro-D, iupac_name (field 5) D-gro-D-glcOct, description D-glycero-L-glcoOctose
+?-gro-D-manHep	name	begins with ?	freeEnd--??1?-gro-D-manHep,p$MONO,Und,0,0,freeEnd	a name that does not open with ?, which marks an unknown position everywhere else in the format - or the escape of 1.3.1
+?-gro-D-glcHep	name	begins with ?	freeEnd--??1?-gro-D-glcHep,p$MONO,Und,0,0,freeEnd	as above
