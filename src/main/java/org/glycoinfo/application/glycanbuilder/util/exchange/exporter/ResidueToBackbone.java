@@ -62,7 +62,17 @@ public class ResidueToBackbone {
 		// What a residue does need is a configuration and a ring. Without both, the skeleton comes
 		// out indeterminate at the anomeric carbon and does not read back as itself - Dha is
 		// written this way in residue_types and is the only saccharide it applies to.
-		if (_residue.getType().getChirality() == '?' && _residue.getType().getRingSize() == '?')
+		//
+		// The residue's own, not its type's defaults: a heptose of unknown stereo read from WURCS has
+		// the ring it was read with, and was refused for the row's "?" (#265).
+		// A residue the reader made up a name for - galHep, groTet, none of them in a dictionary - has
+		// no class to build a backbone from (#282).
+		if (_residue.getType().getCompositionClass() == null
+				|| org.eurocarbdb.MolecularFramework.sugar.Superclass.forName(
+						_residue.getType().getCompositionClass().equals("Sugar") ? "sug" : _residue.getType().getCompositionClass().toLowerCase()) == null)
+			throw new Exception (_residue.getTypeName()
+					+ " is no residue this application knows, so it has no skeleton to write.");
+		if (_residue.getChirality() == '?' && _residue.getRingSize() == '?')
 			throw new Exception (_residue.getTypeName()
 					+ " has neither a configuration nor a ring, so it has no skeleton to write.");
 
