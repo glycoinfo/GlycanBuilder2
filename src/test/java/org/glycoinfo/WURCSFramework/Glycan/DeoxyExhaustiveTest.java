@@ -339,6 +339,10 @@ public class DeoxyExhaustiveTest {
 				|| detail.contains("is no residue this application knows"));
 		if ((weighing || writing) && c.readAs != null && readsAsATypeNoDictionaryHas(c.readAs))
 			return "K3 #282 the reader names a monosaccharide no dictionary has";
+		// and since #236, which refuses a structure that reads fewer monosaccharides than it has, the
+		// same is refused at reading, naming the residue
+		if (check.equals("does not read") && detail.contains("no residue this application knows"))
+			return "K3 #282 the reader names a monosaccharide no dictionary has";
 
 		// The heptose rows #283 lists record too few methylation and acetylation sites - L-gro-D-manHep
 		// and D-gro-D-manHep 5 and 3 - where a heptopyranose has six hydroxyls (1, 2, 3, 4, 6, 7).
@@ -371,7 +375,10 @@ public class DeoxyExhaustiveTest {
 		// 480, all heptoses, until the tetrose rows were corrected (#285): the deoxy tetroses then read
 		// and fail the same way, as groTet - 90 cases on each of Thr, Ery, thrTet and eryTet. 840 until
 		// #265 made gulHep a base, whose deoxies read as xylHep and ribHep: 150 more.
-		KNOWN_COUNTS.put("K3 #282 the reader names a monosaccharide no dictionary has", 5 * 96 + 4 * 90 + 150);
+		// Since #236 each of these cases - 198 of them - is refused when it is read, as it reads fewer
+		// monosaccharides than it has, and so fails once and not at each of the five checks after: 990
+		// is 5 x 198.
+		KNOWN_COUNTS.put("K3 #282 the reader names a monosaccharide no dictionary has", (5 * 96 + 4 * 90 + 150) / 5);
 		// 96, the two manHeps, until #265 made araHep, lyxHep, manHep, talHep and gulHep bases
 		KNOWN_COUNTS.put("K4 #283 the heptose rows record too few derivatization sites", 96 + 2 * 162 + 3 * 108);
 		KNOWN_COUNTS.put("K5 #275 a deoxy ketose loses its carbonyl", 216);

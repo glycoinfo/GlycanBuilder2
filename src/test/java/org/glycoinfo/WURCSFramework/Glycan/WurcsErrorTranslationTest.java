@@ -34,7 +34,14 @@ public class WurcsErrorTranslationTest {
 		new BuilderWorkspace(new GlycanRendererAWT());
 	}
 
-	/** The failure names the failure, the sequence, and carries the original underneath. */
+	/**
+	 * The failure names the failure and the sequence.
+	 *
+	 * <p>This sequence used to reach the conversion and come out of it as a StringIndexOutOfBounds,
+	 * which this test held to being translated - and the translation is still there for whatever
+	 * else the conversion throws. Since #236 it does not get that far: it is not valid WURCS, and
+	 * WURCSFramework's validator says why before the conversion is tried.
+	 */
 	@Test
 	public void aConversionFailureSpeaksWurcs() throws Exception {
 		try {
@@ -43,14 +50,11 @@ public class WurcsErrorTranslationTest {
 		} catch (StringIndexOutOfBoundsException raw) {
 			fail("still a raw StringIndexOutOfBoundsException");
 		} catch (WURCSToGlycanException translated) {
-			assertTrue(translated.getMessage(),
-					translated.getMessage().contains("could not convert this WURCS"));
-			assertTrue("does not say what kind of failure it was",
-					translated.getMessage().contains("StringIndexOutOfBounds"));
+			assertTrue(translated.getMessage(), translated.getMessage().contains("this WURCS is not valid"));
+			assertTrue("does not say what is wrong: " + translated.getMessage(),
+					translated.getMessage().contains("wrong linkage position") && translated.getMessage().contains("9"));
 			assertTrue("does not name the sequence",
 					translated.getMessage().contains("WURCS=2.0/1,1,0/[axxxxh"));
-			assertTrue("the original trace was lost",
-					translated.getCause() instanceof StringIndexOutOfBoundsException);
 		}
 	}
 
