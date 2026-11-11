@@ -398,7 +398,7 @@ public class GWSParser implements GlycanParser {
 			if( r.isSaccharide() && child!=null && !child.isSaccharide() && !child.hasChildren()
 					&& child.getTypeName().length()==1
 					&& SkeletonModificationComposition.isDeoxy(child.getTypeName().charAt(0))
-					&& l.getBonds().size()==1 && l.getParentPositionsSingle()!='?' ) {
+					&& l.getBonds().size()==1 ) {
 				r.addDeoxy(l.getParentPositionsSingle() + "*" + child.getTypeName());
 				r.getChildrenLinkages().remove(l);
 				continue;
