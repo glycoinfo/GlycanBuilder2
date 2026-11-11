@@ -65,10 +65,9 @@ public class UnknownStereocentresAreReadTest {
 	}
 
 	/**
-	 * The reported structures open, every residue a monosaccharide - bridges aside: the spurious
-	 * anhydro below is one. They are not yet written back
-	 * unchanged: their Kdo has an unknown ring, {@code Aad1122h-2x_2-?}, and gains a second, spurious
-	 * {@code _2-?} on the way - #259, a fault of its own.
+	 * The reported structures open, every residue a monosaccharide - bridges aside - and are written
+	 * back unchanged, weighing what WURCSFramework says. Their Kdo has an unknown ring,
+	 * {@code Aad1122h-2x_2-?}, which needed #259's fix as well.
 	 */
 	@Test
 	public void theReportedStructuresOpen() throws Exception {
@@ -83,10 +82,30 @@ public class UnknownStereocentresAreReadTest {
 			int sugars = 0;
 			for (Residue r : read.getAllResidues()) {
 				if (r.isSaccharide() && !r.isBridge()) sugars++;
-				else if (!r.isReducingEnd() && !"Substituent".equals(r.getType().getSuperclass())) notSugars.add(r.getTypeName());
+				else if (!r.isReducingEnd() && !r.isBridge() && !"Substituent".equals(r.getType().getSuperclass())) notSugars.add(r.getTypeName());
 			}
 			assertEquals(one[0] + " " + notSugars, Integer.parseInt(one[2]), sugars);
+			// G07957FT's phosphoethanolamine is written *OPOCCN, without its ^X - the spelling the MAP
+			// dictionary writes, and the one WURCSFramework's validator calls the normal form of it
+			String expected = new WURCSFactory(one[1].replace("*OP^XOCCN", "*OPOCCN")).getWURCS();
+			assertEquals(one[0], expected, new WURCS2Parser().writeGlycan(read));
+			assertEquals(one[0], wurcsMass(one[1]), underivatized(read).computeMass(), 1e-3);
 		}
+	}
+
+	/**
+	 * And what was written before still is. An open-chain residue of relative or unknown stereo has no
+	 * configuration and no ring of its own; its type has a ring, and that is enough for the writer.
+	 * Asking the residue alone wrote these empty - 117 registered structures in GlyGen's dump, three
+	 * of them here.
+	 */
+	@Test
+	public void openChainsAreStillWritten() throws Exception {
+		for (String registered : new String[] {
+				"WURCS=2.0/2,4,3/[u4444h][a2122h-1x_1-5]/1-2-2-2/a?-b1_b?-c1_b?-d1",                       // G00479NZ
+				"WURCS=2.0/3,3,2/[uxxxxh][a2112h-1b_1-5][Aad21122h-2a_2-6_5*NCC/3=O]/1-2-3/b3-c2_a?-b1",  // G02123VE
+				"WURCS=2.0/2,2,1/[u4334h][a4334h-1b_1-4]/1-2/a6-b1" })                                  // G02350ZD
+			assertEquals(registered, new WURCSFactory(registered).getWURCS(), new WURCS2Parser().writeGlycan(read(registered)));
 	}
 
 	/** What a save to GWS cannot hold is said, with what it will become. */
