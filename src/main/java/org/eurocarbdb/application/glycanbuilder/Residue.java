@@ -1673,12 +1673,42 @@ public class Residue {
 		// position names the site, and what sits there is the group being modified - which is how the
 		// exporter has always read it, writing exactly GlcNAc's WURCS for a GlcN with an Ac at 2, up
 		// until 1.37.0 refused the attachment (#211).
+		if( amineRefuses(position,child) )
+			return false;
 		if( substitutesOwnNitrogen(position,child) )
 			return !positionHeldByAChild(position,child);
 
 		for( char available : availableLinkagePositions() )
 			if( available==position ) return true;
 
+		return false;
+	}
+
+	/**
+	 * Whether this residue can hold this child at this position at all: its type offers the position,
+	 * or the child substitutes the residue's own nitrogen there. Unlike {@link #acceptsPosition}, what
+	 * else is attached is not asked - this is a question about the carbon, for a structure that already
+	 * has the child (#320, #321).
+	 */
+	public boolean canHoldAt(char position, Residue child) {
+		if( position=='?' || type==null )
+			return true;
+		if( child!=null && child.getType()!=null && child.getType().isBridge() )
+			return true;
+		// The anomeric carbon is in no type's list - it is the residue's own bond - but one that is not
+		// bonded holds a group well enough: Man-1-P, Gal-1-Br, a glycosylamine. The corpus has them.
+		if( position==getAnomericCarbon() )
+			return true;
+		// an alditol has no anomeric centre, and its C1 is an ordinary hydroxyl: mannitol-1-P, a
+		// ribitol phosphate - as availableLinkagePositions has it
+		if( position=='1' && isAlditol() )
+			return true;
+		if( amineRefuses(position,child) )
+			return false;
+		if( substitutesOwnNitrogen(position,child) )
+			return true;
+		for( char offered : type.getLinkagePositions() )
+			if( offered==position ) return true;
 		return false;
 	}
 
@@ -1705,13 +1735,42 @@ public class Residue {
 	private boolean substitutesOwnNitrogen(char position, Residue child) {
 		if( child==null || !child.isSubstituent() || type==null )
 			return false;
-		if( position!=nitrogenPosition() )
+		if( !isAmine(position) )
 			return false;
 
 		for( char offered : type.getLinkagePositions() )
 			if( offered=='N' ) return true;
 
 		return false;
+	}
+
+	/**
+	 * Whether this position is one of this residue's own amines: the one its IUPAC name declares, as
+	 * {@code Glc$2N}, or one its configuration's entry records as a bare amine - Bac's 2 and 4,
+	 * Leg's, Pse's and Aci's 5 and 7, which declare no group in their IUPAC name (#323).
+	 */
+	private boolean isAmine(char position) {
+		if( position!='\0' && position==nitrogenPosition() )
+			return true;
+		org.glycoinfo.application.glycanbuilder.dataset.NativeMonosaccharideDictionary.Entry entry =
+				org.glycoinfo.application.glycanbuilder.dataset.NativeMonosaccharideDictionary.forResidueName(getTypeName());
+		if( entry==null )
+			return false;
+		for( String unit : entry.getSubstituents().split("_") )
+			if( unit.equals(position + "*N") ) return true;
+		return false;
+	}
+
+	/**
+	 * Whether a substituent is refused at an amine: one that brings a nitrogen of its own - N, NAc,
+	 * NS and the rest - which would be a second nitrogen on the carbon, and a phosphate, which WURCS
+	 * has no N-linked form of. Writing either failed with only "Invalide residue." (#321).
+	 */
+	private boolean amineRefuses(char position, Residue child) {
+		if( child==null || !child.isSubstituent() || child.getType()==null || !isAmine(position) )
+			return false;
+		String name = child.getTypeName();
+		return name.startsWith("N") || name.equals("P");
 	}
 
 	/**

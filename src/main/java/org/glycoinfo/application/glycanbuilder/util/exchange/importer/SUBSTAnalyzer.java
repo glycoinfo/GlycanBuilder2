@@ -152,7 +152,7 @@ public class SUBSTAnalyzer {
 		Residue substituent = ResidueDictionary.newResidue(substituentType.getName());
 		this.checkNode(substituent, substituentType.getName());
 		substituent.setParentLinkage(linkage);
-		_residue.addChild(substituent, substituent.getParentLinkage().getBonds());
+		attach(_residue, substituent, substituent.getParentLinkage().getBonds(), String.valueOf(positions));
 	}
 	
 	private void analyzeBRIDGE(BRIDGE _bridge, Residue _residue) throws Exception {
@@ -171,9 +171,28 @@ public class SUBSTAnalyzer {
 		
 		Residue bridge = new Residue(CrossLinkedSubstituentDictionary.getCrossLinkedSubstituent(crossTemp.getIUPACnotation()));
 		this.checkNode(bridge, crossTemp.getIUPACnotation());
-		_residue.addChild(bridge, linkage.getBonds());
+		attach(_residue, bridge, linkage.getBonds(), new String(startPos) + "-" + new String(endPos));
 	}
 	
+	/**
+	 * Attach a group the WURCS gives this residue, or refuse the structure saying why.
+	 *
+	 * <p>The answer of addChild was not looked at, so a group the residue would not take was left out
+	 * and the structure read without it: a Leg5,7Ac2 came back as a bare Leg, 84 Da light, because
+	 * Leg did not offer 5 and 7 (#323). A structure that cannot be read as written is refused, never
+	 * read as something else.
+	 */
+	private static void attach(Residue _residue, Residue _group, java.util.List<org.eurocarbdb.application.glycanbuilder.linkage.Bond> _bonds, String _where)
+			throws WURCSToGlycanException {
+		if(_residue.addChild(_group, _bonds)) return;
+		// A row the writer has no entry for - Ole, Cym, whose composition already holds the 3-O-methyl
+		// the WURCS gives them - is left as it was: the group was dropped and the mass came out right,
+		// and what these rows should be is their own question (#312).
+		if(NativeMonosaccharideDictionary.forResidueName(_residue.getTypeName()) == null) return;
+		throw new WURCSToGlycanException(_group.getTypeName() + " at " + _where + " of " + _residue.getTypeName()
+				+ " cannot be attached, as " + _residue.getTypeName() + " takes no group there, so it is not read");
+	}
+
 	private char[] makePosition(LinkedList<Integer> _positions) {
 		char[] position = new char[_positions.size()];
 		
@@ -224,6 +243,8 @@ public class SUBSTAnalyzer {
 			
 			Residue substituent = ResidueDictionary.newResidue(subNotations[1]);
 			this.checkNode(substituent, subNotations[1]);
+			// a skeleton modification built as a child, "en": kept as it was - what to do with one is
+			// #292's, and refusing it here would refuse every structure with one
 			_residue.addChild(substituent, linkage.getBonds());
 		}
 
