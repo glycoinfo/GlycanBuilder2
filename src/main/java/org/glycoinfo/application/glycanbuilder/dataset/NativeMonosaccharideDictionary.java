@@ -143,7 +143,9 @@ public class NativeMonosaccharideDictionary {
 		residues.put("Col",            new Entry("121",   false, 'L', "",               "3*d_6*m"));
 		residues.put("D-gro-D-manHep", new Entry("11222", false, 'D', "",               ""));
 		residues.put("Dha",            new Entry("112",   false, 'D', "",               "1*A_2*O_3*d_7*A"));
-		residues.put("Dig",            new Entry("222",   false, 'D', "",               "2*d_6*m"));
+		// follows its configuration since #313: an L-Dig was written as D-digitoxose, and L-digitoxose and
+		// L-cymarose read from WURCS were not recognised as Dig at all (#312)
+		residues.put("Dig",            new Entry("222",   true,  'D', "",               "2*d_6*m"));
 		residues.put("Fru",            new Entry("122",   true,  'D', "",               "1*h_2*O"));
 		residues.put("Fuc",            new Entry("2112",  true,  'L', "",               "6*m"));
 		residues.put("FucNAc",         new Entry("2112",  true,  'L', "2*NAc",          "6*m"));
