@@ -236,6 +236,9 @@ public class GWSParser implements GlycanParser {
 		foldDeoxies(ret.getRoot());
 		foldDeoxies(ret.getBracket());
 
+		// The repeat markers carry the carbon the repeat closes on (#301)
+		giveRepeatsTheirCarbon(ret);
+
 		// Say what each bond is made of, rather than leaving every one of them UNVALIDATED (#4).
 		// A structure read from WURCS has its linkage types worked out; one read from GWS did not,
 		// so the same glycan carried different bonds depending on which format it arrived in, and
@@ -385,6 +388,53 @@ public class GWSParser implements GlycanParser {
 				ret.add("--" + position + code);
 		}
 		return ret;
+	}
+
+	/**
+	 * Tell each repeat's markers which residue the repeat starts with, and the carbon it closes on.
+	 *
+	 * <p>The WURCS writer closes a repeat on the residue its end marker names as the repeat's first,
+	 * at the carbon the markers hold as their anomeric carbon. Drawing a repeat sets both, and so does
+	 * reading one from WURCS. GWS writes "[" and "]" with neither, and reading it paired the two markers
+	 * and no more. So a repeat read from GWS was written open - {@code c4~n}, with nothing on its other
+	 * side, a WURCS that WURCSFramework calls invalid - and a structure with a repeat, saved and opened
+	 * again, could not be exported (#301).
+	 */
+	static void giveRepeatsTheirCarbon(Glycan _structure) {
+		for (Residue marker : _structure.getAllResidues()) {
+			if (!marker.isStartRepetition() && !marker.isEndRepetition()) continue;
+
+			Residue start = marker.isStartRepetition() ? marker : startOf(marker);
+			Residue first = firstOf(start);
+			if (first == null) continue;
+
+			if (marker.isEndRepetition() && marker.getStartResidue() == null) marker.setStartResidue(first);
+			if (marker.isStartRepetition() && first.getStartRepetitionResidue() == null)
+				first.setStartRepetiionResidue(marker);
+
+			char carbon = first.getAnomericCarbon();
+			if (marker.getAnomericCarbon() != '?' || !Character.isDigit(carbon)) continue;
+			marker.setAnomericCarbon(carbon);
+			if (marker.getParentLinkage() != null) marker.getParentLinkage().setAnomericCarbon(carbon);
+		}
+	}
+
+	/** The start of the repeat an end marker closes: the one it was paired with, or the nearest above it. */
+	private static Residue startOf(Residue _end) {
+		if (_end.getStartRepetitionResidue() != null) return _end.getStartRepetitionResidue();
+		for (Residue up = _end.getParent(); up != null; up = up.getParent())
+			if (up.isStartRepetition()) return up;
+		return null;
+	}
+
+	/** A repeat's first monosaccharide, or null when there is none. */
+	private static Residue firstOf(Residue _start) {
+		if (_start == null) return null;
+		for (Linkage link : _start.getChildrenLinkages()) {
+			Residue first = link.getChildResidue();
+			if (first.isSaccharide() && !first.isRepetition()) return first;
+		}
+		return null;
 	}
 
 	/**

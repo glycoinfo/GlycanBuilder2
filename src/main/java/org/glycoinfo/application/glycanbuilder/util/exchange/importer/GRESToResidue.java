@@ -99,6 +99,8 @@ public class GRESToResidue {
 		if(!hasAbsoluteStereo(mscore.getSkeletonCode())) configuration = '?';
 
 		ResidueType newType = ResidueDictionary.findResidueType(trivialName);
+		if(trinConv != null)
+			refuseANameOfAnotherSkeleton(newType, mscore.getSkeletonCode(), this.anomPosition, trivialName);
 		Residue residue = new Residue(newType);
 
 		// the skeleton is matched whole, so a recognised residue leaves no core modification behind
@@ -138,6 +140,52 @@ public class GRESToResidue {
 
 		this.modifications = leftOver;
 		this.residue = residue;
+	}
+
+	/**
+	 * Refuse a name the converter gave to a skeleton it does not describe (#310).
+	 *
+	 * <p>The naming converter names a hept-2-ulose by the aldohexose whose four stereocentres match its
+	 * C3 to C6: ha1122h, D-manno-hept-2-ulose, came back as Man, with nothing left over to say that it
+	 * has a seventh carbon and a ketone. The residue was a hexose, weighed CH2O light and could not be
+	 * written back, and nothing said so. A type that has another number of carbons, or its carbonyl at
+	 * another carbon, is not this monosaccharide; and GlycanBuilder2 refuses what it cannot read rather
+	 * than reading it as something else.
+	 *
+	 * <p>Refused when the type differs in both, its number of carbons and the carbon its carbonyl is at.
+	 *
+	 * @param _type The type the converter's name resolves to.
+	 * @param _skeleton The skeleton read, "ha1122h".
+	 * @param _carbonyl Where the skeleton's ring closes from - its anomeric carbon - or 0 or less when it
+	 *        has none.
+	 */
+	static void refuseANameOfAnotherSkeleton(ResidueType _type, String _skeleton, int _carbonyl, String _name)
+			throws WURCSToGlycanException {
+		if (_type == null || _skeleton == null) return;
+
+		Integer carbons = null;
+		try {
+			String compositionClass = _type.getCompositionClass();
+			org.eurocarbdb.MolecularFramework.sugar.Superclass superclass = (compositionClass == null) ? null
+					: org.eurocarbdb.MolecularFramework.sugar.Superclass.forName(compositionClass.toLowerCase());
+			if (superclass != null) carbons = superclass.getCAtomCount();
+		} catch (Exception noClass) {
+			// a class the framework does not know says nothing either way
+		}
+		char anomeric = _type.getAnomericCarbon();
+
+		boolean otherLength = carbons != null && carbons.intValue() > 0 && carbons.intValue() != _skeleton.length();
+		boolean otherCarbonyl = _carbonyl > 0 && Character.isDigit(anomeric) && (anomeric - '0') != _carbonyl;
+		// Both, and not either. A type of another carbonyl alone - araHep for a deoxy heptulose, eryHex
+		// for a deoxy hexulose - is an isomer: it weighs right, and araHep is written back as read.
+		// Another length alone is a row's composition class counting a substituent's carbon, as Cym's
+		// does. A hexose for a heptulose is neither: it is another monosaccharide.
+		if (!(otherLength && otherCarbonyl)) return;
+
+		throw new WURCSToGlycanException(_skeleton + " has " + _skeleton.length() + " carbons and its anomeric"
+				+ " carbon at C" + _carbonyl + ", and the name it was given, " + _name + ", is a residue of "
+				+ (carbons != null ? carbons + " carbons" : "another skeleton") + " with its anomeric carbon at C"
+				+ anomeric + ": no residue this application knows is this monosaccharide, so it is not read");
 	}
 
 	/**

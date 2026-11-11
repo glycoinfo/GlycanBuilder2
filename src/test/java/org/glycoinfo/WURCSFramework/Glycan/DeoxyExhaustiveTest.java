@@ -380,10 +380,15 @@ public class DeoxyExhaustiveTest {
 		// Since #236 each of these cases - 198 of them - is refused when it is read, as it reads fewer
 		// monosaccharides than it has, and so fails once and not at each of the five checks after: 990
 		// is 5 x 198.
-		KNOWN_COUNTS.put("K3 #282 the reader names a monosaccharide no dictionary has", (5 * 96 + 4 * 90 + 150) / 5);
+		// And 36 more since #310 made Sed a base, writable: its deoxies with relative stereo are named
+		// ribHep and the like, which no dictionary has.
+		KNOWN_COUNTS.put("K3 #282 the reader names a monosaccharide no dictionary has", (5 * 96 + 4 * 90 + 150) / 5 + 36);
 		// 96, the two manHeps, until #265 made araHep, lyxHep, manHep, talHep and gulHep bases
 		KNOWN_COUNTS.put("K4 #283 the heptose rows record too few derivatization sites", 96 + 2 * 162 + 3 * 108);
-		KNOWN_COUNTS.put("K5 #275 a deoxy ketose loses its carbonyl", 216);
+		// 216 until #310 made Sed a base, writable: 48 of its deoxies are named as an aldoheptose,
+		// araHep and the like, with the anomeric carbon at 2, and fail the same way
+		KNOWN_COUNTS.put("K5 #275 a deoxy ketose loses its carbonyl", 216 + 48);
+
 	}
 
 	private static boolean hasStereocentre(String skeleton) {
