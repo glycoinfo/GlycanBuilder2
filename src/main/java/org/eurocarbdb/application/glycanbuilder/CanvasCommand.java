@@ -131,7 +131,7 @@ public class CanvasCommand {
 				if(superclass.equals("Substituent")) continue;
 			}
 
-			JMenu class_menu = new JMenu(superclass);
+			JMenu class_menu = new JMenu(ResidueDictionary.displayNameOf(superclass));
 
 			if(superclass.equals("Substituent")) {
 				// grouped by SubstituentTypeDescriptor (O-type/N-type/Deoxy-type/
