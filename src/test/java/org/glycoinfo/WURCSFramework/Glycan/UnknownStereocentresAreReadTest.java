@@ -85,10 +85,7 @@ public class UnknownStereocentresAreReadTest {
 				else if (!r.isReducingEnd() && !r.isBridge() && !"Substituent".equals(r.getType().getSuperclass())) notSugars.add(r.getTypeName());
 			}
 			assertEquals(one[0] + " " + notSugars, Integer.parseInt(one[2]), sugars);
-			// G07957FT's phosphoethanolamine is written *OPOCCN, without its ^X - the spelling the MAP
-			// dictionary writes, and the one WURCSFramework's validator calls the normal form of it
-			String expected = new WURCSFactory(one[1].replace("*OP^XOCCN", "*OPOCCN")).getWURCS();
-			assertEquals(one[0], expected, new WURCS2Parser().writeGlycan(read));
+			assertEquals(one[0], new WURCSFactory(one[1]).getWURCS(), new WURCS2Parser().writeGlycan(read));
 			assertEquals(one[0], wurcsMass(one[1]), underivatized(read).computeMass(), 1e-3);
 		}
 	}

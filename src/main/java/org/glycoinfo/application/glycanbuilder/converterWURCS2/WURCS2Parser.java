@@ -103,10 +103,13 @@ public class WURCS2Parser implements GlycanParser{
 
 		GlycanToWURCSGraph glycan2graph = new GlycanToWURCSGraph();
 		glycan2graph.start(structure);
-		// MAPs go out in their normalized form: that is what a validator asks for, and readGlycan
-		// accepts either spelling, so the round trip still holds
+		// MAPs go out as the dictionaries spell them, and the WURCS as WURCSFramework normalizes it -
+		// which is the canonical WURCS. They used to be rewritten first, dropping the ^X of a
+		// phosphorus of unknown configuration because the validator's warning said it "could be
+		// normalized": *OP^XOCCN went out as *OPOCCN. WURCSFramework's normal form keeps the ^X, and
+		// so does every phosphoethanolamine registered in GlyGen's dump, 3,015 of them, against none
+		// without it.
 		WURCSGraph graph = glycan2graph.getGraph();
-		this.rewriteMAPs(graph, true);
 
 		return new WURCSFactory(graph).getWURCS();
 	}
