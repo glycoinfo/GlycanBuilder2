@@ -205,6 +205,8 @@ public class NativeMonosaccharideDictionary {
 		residues.put("Rha",            new Entry("1122",  true,  'L', "",               "6*m"));
 		residues.put("RhaNAc",         new Entry("1122",  true,  'L', "2*NAc",          "6*m"));
 		residues.put("Rib",            new Entry("222",   true,  'D', "",               ""));
+		// D-altro-hept-2-ulose, as Fru is D-arabino-hex-2-ulose: read, and not writable, until #310
+		residues.put("Sed",            new Entry("1222",  true,  'D', "",               "1*h_2*O"));
 		residues.put("Sor",            new Entry("212",   true,  'L', "",               "1*h_2*O"));
 		residues.put("Tag",            new Entry("112",   true,  'D', "",               "1*h_2*O"));
 		residues.put("Tal",            new Entry("1112",  true,  'D', "",               ""));
