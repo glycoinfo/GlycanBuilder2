@@ -3590,8 +3590,14 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 			if(!dig.isCanceled()) {
 				Collection<Glycan> exported = this.getSelectedStructures().isEmpty()
 						? this.theDoc.getStructures() : this.getSelectedStructures();
-				if( this.theDoc.exportFromStructure(exported, dig.getFormat()) )
+				if( this.theDoc.exportFromStructure(exported, dig.getFormat()) ) {
 					warnAboutExportFailures(exported, dig.getFormat());
+					// WURCS leaves an aglycon out, and nothing in the string shows it (#305)
+					String aglycons = org.glycoinfo.application.glycanbuilder.converterWURCS2.AglyconInWURCS
+							.warning(exported, theDoc.getLastExportFailures(), dig.getFormat());
+					if( aglycons!=null )
+						JOptionPane.showMessageDialog(theParent, aglycons, "Aglycon not exported", JOptionPane.WARNING_MESSAGE);
+				}
 			}
 
 			if(this.theDoc.getString().size() > 0)	{

@@ -412,7 +412,8 @@ public class MassOptions {
 		ret.ION_CLOUD = IonCloud.fromString(tokens.get(2));
 		ret.NEUTRAL_EXCHANGES = IonCloud.fromString(tokens.get(3));
 		if (tokens.size() > 4)
-			ret.REDUCING_END_TYPE = ResidueDictionary.findResidueType(tokens
+			// a reducing end by definition: a name no dictionary has is an aglycon (#305)
+			ret.REDUCING_END_TYPE = ResidueDictionary.findReducingEndType(tokens
 					.get(4));
 
 		// ret.updateIsotope();
@@ -441,7 +442,7 @@ public class MassOptions {
 			ISOTOPE = config.get("MassOptions", "isotope", ISOTOPE);
 			DERIVATIZATION = config.get("MassOptions", "derivatization",
 					DERIVATIZATION);
-			REDUCING_END_TYPE = ResidueDictionary.findResidueType(config.get(
+			REDUCING_END_TYPE = ResidueDictionary.findReducingEndType(config.get(
 					"MassOptions", "reducing_end_type",
 					REDUCING_END_TYPE.getName()));
 

@@ -75,6 +75,15 @@ public class ResidueType {
 	protected String  description;
 	/** WURCS MAP code of a substituent or bridge, empty when the type has none. */
 	protected String  map = "";
+	/**
+	 * Whether this is an aglycon of the user's, a reducing end no dictionary defines: one given a name
+	 * and a mass, "Ser=87.0320u", or one known only by its name, "Ser" (#305).
+	 */
+	protected boolean is_aglycon = false;
+	/** Whether this aglycon's mass is not known - "Ser/Thr=NaNu", or a name with no mass at all. */
+	protected boolean mass_unknown = false;
+	/** Whether this aglycon's name carries its mass, "=87.0320u" or "=NaNu", as one the user named does. */
+	protected boolean named_mass = false;
 
 	protected Molecule molecule;
 
@@ -277,23 +286,65 @@ public class ResidueType {
 	 /**
        Create a generic reducing end type with name <code>name</code>
        and mass <code>mass</code>.
+
+       <p>The name is the user's - an aglycon, "Ser/Thr", "Cer(d18:1/16:0)" - and is kept in the type's
+       name as typed, which is what GWS writes, but for the few characters GWS cannot hold anywhere
+       (see {@link #escapeAglyconName}). {@link #getResidueName} gives it back as typed. A mass that is
+       not known, as for Ser/Thr, is {@link Double#NaN}.
 	  */
 	 static public ResidueType createOtherReducingEnd(String name, double mass) {
 		 name = TextUtils.trim(name);
 		 if( name==null || name.length()==0 )
 			 name = "XXX";
 
+		 return otherReducingEnd(escapeAglyconName(name), mass);
+	 }
+
+	 /**
+       The reducing end a stored name stands for: "Ser/Thr=87.0320u", as GWS writes it, whose name is
+       already escaped where it needs to be and is not escaped again.
+	  */
+	 static public ResidueType otherReducingEndFromStoredName(String storedName, double mass) {
+		 return otherReducingEnd(storedName, mass);
+	 }
+
+	 private static ResidueType otherReducingEnd(String escapedName, double mass) {
+		 ResidueType ret = aglycon(escapedName + "=" + massText(mass) + "u", mass);
+		 ret.named_mass = true;
+		 ret.description = "Other reducing end";
+		 return ret;
+	 }
+
+	 /**
+       A reducing end known only by its name, as GlycanCore reads one: a root no dictionary has, "Ser",
+       "Cer(d18:1/16:0)", is the aglycon of that name, whose mass is not known (#305). The name is kept
+       as it was read and written back the same.
+	  */
+	 static public ResidueType createUndefinedReducingEnd(String storedName) {
+		 ResidueType ret = aglycon(storedName, Double.NaN);
+		 ret.description = "Undefined reducing end";
+		 return ret;
+	 }
+
+	 /**
+       An aglycon of the user's. One whose mass is not known weighs as nothing but its water, the
+       glycan's own mass, and says so through {@link #hasUnknownMass}: a NaN would reach every sum the
+       structure is part of, and a figure is not shown for it anyway.
+	  */
+	 private static ResidueType aglycon(String name, double mass) {
 		 ResidueType ret = new ResidueType();
-		 ret.name = name +"=" + new java.text.DecimalFormat("0.0000").format(mass) + "u";
+		 ret.name = name;
 		 ret.superclass = "Reducing end";
-		 ret.res_mass_main = mass + MassUtils.water.getMainMass();
-		 ret.res_mass_avg = mass + MassUtils.water.getAverageMass();
+		 ret.is_aglycon = true;
+		 ret.mass_unknown = Double.isNaN(mass);
+		 double known = ret.mass_unknown ? 0. : mass;
+		 ret.res_mass_main = known + MassUtils.water.getMainMass();
+		 ret.res_mass_avg = known + MassUtils.water.getAverageMass();
 		 ret.nmethyls = 1;
 		 ret.nacetyls = 1;
-		 ret.nlinkages = 1;    
+		 ret.nlinkages = 1;
 		 ret.can_redend = true;
 		 ret.can_parent = true;
-		 ret.description = "Other reducing end";
 		 return ret;
 	 }
 
@@ -834,7 +885,15 @@ public class ResidueType {
        with an optional name and mass.
 	  */
 	 public boolean isCustomType() {
+		 // An aglycon read by its name alone is not one, whatever its name holds (#305).
+		 if( is_aglycon )
+			 return !(mass_unknown && !named_mass);
 		 return ( name.indexOf("=")!=-1 );        
+	 }
+
+	 /** The name of a custom type without its "=mass u": up to the last "=", since a name may hold one. */
+	 private String customName() {
+		 return name.substring(0, name.lastIndexOf('='));
 	 }
 
 	 /**
@@ -850,8 +909,102 @@ public class ResidueType {
 	  */
 	 public String getResidueName() {
 		 if( isCustomType() )
-			 return name.split("=")[0];
+			 return unescapeAglyconName(customName());
+		 if( is_aglycon )
+			 return unescapeAglyconName(name);
 		 return name;
+	 }
+
+	 /**
+       Whether this is an aglycon of the user's: a reducing end given a name and a mass, or one read
+       by a name no dictionary has (#305).
+	  */
+	 public boolean isAglycon() {
+		 return is_aglycon;
+	 }
+
+	 /** Whether this is an aglycon whose mass is not known, as for Ser/Thr (#305). */
+	 public boolean hasUnknownMass() {
+		 return mass_unknown;
+	 }
+
+	 /** A mass as the type's name carries it: four decimals with a point, whatever the locale, or NaN. */
+	 private static String massText(double mass) {
+		 if( Double.isNaN(mass) )
+			 return "NaN";
+		 return new java.text.DecimalFormat("0.0000", java.text.DecimalFormatSymbols.getInstance(java.util.Locale.ROOT)).format(mass);
+	 }
+
+	 /**
+       An aglycon's name as GWS writes it: as typed, "Ser/Thr", "Cer(d18:1/16:0)", "β-Ala", but for the
+       few characters GWS cannot hold anywhere in it (#305; docs/gws-format.md, "the escape").
+
+       <p>The reader takes the root's name to run up to the first "--", so the name may hold what a
+       residue name may not - a "/", a space, brackets, any letter. What it may not hold is what splits
+       the string before the name is looked at: ";" separates the structures of a document, "$" opens
+       the mass options, "}" closes a composition's bracket, "," separates the mass options' fields,
+       and "--" begins a linkage. A name holding any of those, or a control character, is written with
+       each of them as "_XX_" in hexadecimal and the whole prefixed "_e_": "Ser,Thr" is
+       "_e_Ser_2C_Thr". Within it a "_" that would read as an escape is escaped too, and a name typed
+       with "_e_" at its start is escaped for that alone.
+
+       <p>Only a name so prefixed is ever decoded, so a name written before - "Ser_2F_Thr", meant as
+       typed - reads as it always did.
+	  */
+	 public static String escapeAglyconName(String _name) {
+		 boolean prefixed = _name.startsWith(ESCAPED);
+		 boolean needed = prefixed || _name.contains("--");
+		 for( int i = 0; i < _name.length() && !needed; i++ )
+			 needed = splitsTheText(_name.charAt(i));
+		 if( !needed )
+			 return _name;
+
+		 StringBuilder escaped = new StringBuilder(ESCAPED);
+		 for( int i = 0; i < _name.length(); i++ ) {
+			 char c = _name.charAt(i);
+			 boolean secondDash = c == '-' && i > 0 && _name.charAt(i - 1) == '-';
+			 boolean looksEscaped = c == '_' && i + 3 < _name.length() && _name.charAt(i + 3) == '_'
+					 && isHex(_name.charAt(i + 1)) && isHex(_name.charAt(i + 2));
+			 if( splitsTheText(c) || secondDash || looksEscaped || (prefixed && i == 0) )
+				 escaped.append('_').append(String.format("%02X", (int) c)).append('_');
+			 else
+				 escaped.append(c);
+		 }
+		 return escaped.toString();
+	 }
+
+	 /** What marks a name as escaped. */
+	 private static final String ESCAPED = "_e_";
+
+	 private static boolean splitsTheText(char _c) {
+		 return _c == ';' || _c == '$' || _c == '}' || _c == ',' || _c < 0x20;
+	 }
+
+	 /** The name as typed, from {@link #escapeAglyconName}; a name not prefixed "_e_" is itself. */
+	 public static String unescapeAglyconName(String _stored) {
+		 if( !_stored.startsWith(ESCAPED) )
+			 return _stored;
+		 // as bytes, decoded as UTF-8: this writes only ASCII escaped, and a name escaped byte by byte,
+		 // "_e__E3__82__BB_", as the format's notes first proposed, reads as the letter it was
+		 String escaped = _stored.substring(ESCAPED.length());
+		 java.io.ByteArrayOutputStream typed = new java.io.ByteArrayOutputStream();
+		 int i = 0;
+		 while( i < escaped.length() ) {
+			 if( i + 3 < escaped.length() && escaped.charAt(i) == '_' && escaped.charAt(i + 3) == '_'
+					 && isHex(escaped.charAt(i + 1)) && isHex(escaped.charAt(i + 2)) ) {
+				 typed.write(Integer.parseInt(escaped.substring(i + 1, i + 3), 16));
+				 i += 4;
+				 continue;
+			 }
+			 byte[] literal = escaped.substring(i, i + 1).getBytes(java.nio.charset.StandardCharsets.UTF_8);
+			 typed.write(literal, 0, literal.length);
+			 i++;
+		 }
+		 return new String(typed.toByteArray(), java.nio.charset.StandardCharsets.UTF_8);
+	 }
+
+	 private static boolean isHex(char _c) {
+		 return (_c >= '0' && _c <= '9') || (_c >= 'A' && _c <= 'F');
 	 }
 
 	 /**

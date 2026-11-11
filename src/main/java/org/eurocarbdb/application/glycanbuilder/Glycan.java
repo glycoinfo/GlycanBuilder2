@@ -534,6 +534,20 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 	}
 
 	/**
+	 * Whether this structure ends in an aglycon whose mass is not known - Ser/Thr, or a root named
+	 * by something no dictionary has (#305). Its mass is then the glycan's alone, and is not a figure
+	 * to show as the glycoconjugate's.
+	 */
+	public boolean hasAglyconOfUnknownMass() {
+		return root!=null && root.getType().hasUnknownMass();
+	}
+
+	/** Whether this structure ends in an aglycon of the user's, which WURCS has no way to write (#305). */
+	public boolean hasAglycon() {
+		return root!=null && root.getType().isAglycon();
+	}
+
+	/**
 	   Bring every residue's {@link Residue#isComposition} flag in line with
 	   {@link #isComposition}. Residues attached directly to a composition's
 	   bracket form a flat, unordered list rather than a linked structure, and

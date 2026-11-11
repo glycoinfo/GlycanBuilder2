@@ -847,6 +847,7 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
 
 				setLastExportedFile(filename);
 				warnAboutExportFailures(theDoc, format);
+				warnOfAglyconsLeftOut(theDoc, format);
 				return true;
 			}
 			else if( SVGUtils.export((GlycanRendererAWT) theWorkspace.getGlycanRenderer(),filename,theDoc.getStructures(),theWorkspace.getGraphicOptions().SHOW_MASSES,theWorkspace.getGraphicOptions().SHOW_REDEND,format) ) {
@@ -880,6 +881,14 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
        compositions exported to a format that can't represent them yet), so a blank
        entry in the file doesn't go unnoticed.
 	 */
+	/** Say that WURCS has left an aglycon out, which nothing in the file shows (#305). */
+	private void warnOfAglyconsLeftOut(GlycanDocument doc, String format) {
+		String warning = org.glycoinfo.application.glycanbuilder.converterWURCS2.AglyconInWURCS
+				.warning(doc.getStructures(), doc.getLastExportFailures(), format);
+		if( warning!=null )
+			JOptionPane.showMessageDialog(this, warning, "Aglycon not exported", JOptionPane.WARNING_MESSAGE);
+	}
+
 	private void warnAboutExportFailures(GlycanDocument doc, String format) {
 		ArrayList<Glycan> failures = doc.getLastExportFailures();
 		if( failures.isEmpty() ) return;
