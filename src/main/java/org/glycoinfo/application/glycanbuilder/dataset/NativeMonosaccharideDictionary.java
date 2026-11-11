@@ -86,6 +86,22 @@ public class NativeMonosaccharideDictionary {
 			return this.modifications;
 		}
 
+		/**
+		 * The carbon that carries the residue's own amine: 2 for GlcN, GlcNAc and MurNAc, 5 for the
+		 * neuraminic acids. '\0' when the name owns no nitrogen, or when it owns two, as Bac does at 2
+		 * and 4, and the amine is not one carbon.
+		 */
+		public char getAminePosition() {
+			char found = '\0';
+			for (String unit : this.substituents.split("_")) {
+				int star = unit.indexOf('*');
+				if (star != 1 || !unit.startsWith("N", 2)) continue;
+				if (found != '\0') return '\0';
+				found = unit.charAt(0);
+			}
+			return found;
+		}
+
 		/** The substituents the name owns, as "2*N_3*(R)Lac", or "" when it owns none. */
 		public String getSubstituents() {
 			return this.substituents;

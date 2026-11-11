@@ -181,7 +181,8 @@ public class ResidueToBackbone {
 		if(_linkage.getParentResidue().isRepetition())
 			parentLink = _linkage.getParentResidue().getParentLinkage();
 		
-		int pos = positions.iterator().next() == '?' ? -1 : Integer.parseInt(String.valueOf(positions.iterator().next()));
+		char position = AminePosition.of(_linkage.getParentResidue(), positions.iterator().next());
+		int pos = position == '?' ? -1 : Integer.parseInt(String.valueOf(position));
 		
 		if(pos == -1) return;
 		char cd = _scNotation.charAt(pos - 1);
