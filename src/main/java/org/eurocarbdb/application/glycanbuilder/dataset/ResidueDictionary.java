@@ -176,9 +176,17 @@ public class ResidueDictionary {
        alone, a monosaccharide of unknown structure; the coloured ones share its shape and nothing
        else, and the menu called Kdo unknown. Only the label changes: "Unknown" is still the class's
        name everywhere it is looked up.
+
+       <p>"Assigned" is shown as "Pentagon", the maintainer's choice (2026-11-11). The class is SNFG's
+       pentagon row - Api, Fru, Tag, Sor, Psi - and the white pentagon placeholder, whose type is
+       itself named "Assigned" (#252): a menu "Assigned" holding a residue "Assigned" read as the
+       placeholder's own heading. "Pentagon" is SNFG's name for the row's shape, and fits every
+       residue in it. Here too only the label changes.
 	 */
 	public static String displayNameOf(String superclass) {
-		return "Unknown".equals(superclass) ? "Others" : superclass;
+		if ("Unknown".equals(superclass)) return "Others";
+		if ("Assigned".equals(superclass)) return "Pentagon";
+		return superclass;
 	}
 
 	/**
