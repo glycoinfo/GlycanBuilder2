@@ -7,9 +7,78 @@ are not the one picking up the next piece of work.
 Written to be edited. When an issue is opened, closed, or turns out to be something other than what
 it said, change this file in the same breath.
 
+## GB2 or GB3: the first question, decided 2026-11-10
+
+**GlycanBuilder2 fixes bugs and security problems. New features are built in GB3.** *(The
+maintainer, I. Yamada, 2026-11-10.)* So before an issue is placed in a band, decide which of the two
+it belongs to. The bands below order GB2's work only.
+
+| | What belongs | Label |
+|---|---|---|
+| **GB2** | a wrong answer, given silently (mass, WURCS, a name); lost work (a file that will not reopen, our own output we cannot read back); a crash or a freeze; a security problem | `bug` (and `dependencies` for #175) |
+| **GB2, up to refusing it** | input GB2 does not support. It is refused with the reason, never misread. Being able to read it is an extension | `bug` while it is misread |
+| **GB2: an SNFG rule** | a drawing or naming point that SNFG has an explicit rule for. Checked against the SNFG notes before deciding (2026-11-10: #263, #293, #182) | `bug` |
+| **GB3** | a new operation, display mode or model extension, or a usability improvement | `GB3` |
+
+**Work already started stays in GB2 until its natural break.** That break is the scope of its PR as
+it stands. Anything beyond that goes to GB3. *(The maintainer, 2026-11-10.)* For the open PRs:
+
+| PR | Finished in GB2 | Beyond it, GB3 |
+|---|---|---|
+| #300 | reading a deoxy at an unknown carbon, and C-linked methyl and hydroxymethyl | the rest of #298: ketoses of unknown stereo, Kdo in compositions, other chain lengths |
+| #304 | glycerol read, weighed, written, drawn and chosen; alditols inside a chain weighed right | drawing other alditols and polyols (#181, #190) |
+| #306 | aglycon names read and written, mass not known, the WURCS warning | — (and in the web application, typing a mass not known, which !135 leaves out) |
+
+### Where every open issue stands, 2026-11-10
+
+Placed from the issue texts and from which PR closes what. Not re-measured one by one. The labels
+on the tracker were set to match on the same day.
+
+**Fixed, waiting for a release.** These are on develop, not yet in master: #236, #252, #260, #261,
+#265, #279, #285, #286. #266 is done as far as GB2 goes: an unknown double-bond geometry is refused
+with a sentence, and reading it is GB3. #256 and #258 were fixed in master and still open; they were
+closed by hand on 2026-11-10.
+
+**GB2 — a PR is open.**
+
+| Issue | PR |
+|---|---|
+| #123 | #227, a contributor's patches, unreviewed since 2026-08-19. Take this first; see "Not a priority band" |
+| #259, #239, #257 | #297 |
+| #301 | #303 |
+| #222 (and #189) | #302 |
+| #305 | #306 |
+| #282 | #304 |
+
+**GB2 — not started.**
+
+| Kind | Issues |
+|---|---|
+| a wrong answer, silently (P1) | #269 an internal repeat is exported wrong · #281 `clone()` weighs an oxygen light · #242 copy and paste changes the mass · #292 ΔUA loses its double bond · #283, #273 dictionary rows (chemistry decisions) · #307 Sed's footnote name (decisions recorded on the issue; the name itself is still open) · #275, #220 an empty WURCS or composition with no reason · #238, #264 GlyTouCan structures drawn wrong |
+| lost work, unusable output (P2) | repeats #268, #270, #271 (freezes) · copy and paste #231, #240, #241, #249 · #230 uncertain terminal linkages · #237 the WURCS file extension · #243 the ring is not restored when PA is removed · #267 no refresh after a failed import |
+| visibly wrong (P3) | #91 · #235 · #228 · #83 (waiting on the reporter) |
+| SNFG rules (checked 2026-11-10) | #263: double bond and acid in an Assigned residue's footnote (note 11), `en` inside a symbol (note 4); take it with #292 · #293: a lactonised sialic acid is its own symbol with `on` inside (note 4) |
+| security | #175 jdom (Dependabot #8) |
+
+**GB3.** #6, #7, #20, #41, #58, #93, #95, #100, #109, #177, #181, #184, #190 (an instance of #181),
+#200, #229, #232, #233, #234, #244, #245, and #298 beyond #300.
+
+**Answers, retests, umbrellas.**
+
+- Waiting on a retest, and probably fixed: #17, #57, #187, #253, and #66, whose `GB3` label was
+  wrong; it is a bug, and it has not reproduced since 1.36.0.
+- An umbrella: #247 closes once #249 and #239 do. #16 should be re-measured modification by
+  modification: what is misread is a GB2 issue of its own, and what is refused goes to GB3.
+- An answer rather than a change: #117 (what a composition is), #189 (GlcNS or not, the reporter's
+  question), #226 (the fork's drift, a project question). #182: "Unknown" is SNFG's own name for the
+  flat-hexagon row, and GB2's group holds exactly its members, so the name stays. Whether the menu
+  should add "(SNFG)" is the maintainer's call.
+
+---
+
 ## How an issue is placed
 
-Rank by **what a wrong answer costs the person receiving it**, not by how hard it looks or how
+For an issue that belongs to GB2 (above), rank by **what a wrong answer costs the person receiving it**, not by how hard it looks or how
 recently it was filed.
 
 | Band | What belongs in it | The question it answers |
@@ -310,6 +379,8 @@ waits for the reporter's retest rather than being done in a hurry.
 
 ## P4 — not there yet
 
+**Since 2026-11-10, this band is GB3's**, not GB2's: these are features (see "GB2 or GB3" at the top). Kept as a record of what each one asked for.
+
 | # | Title | Note |
 |---|---|---|
 | #95 | Validate a drawn structure | Before submitting to GlyTouCan. Validation code exists elsewhere and could be called |
@@ -372,6 +443,8 @@ Contribution questions are answered ahead of the queue, whatever band the code w
 ---
 
 ## The order to take them in
+
+*Written before 2026-11-10. For what GB2 takes on now, "GB2 or GB3" at the top of this file governs.*
 
 The bands say what a thing costs. This says what to pick up, and it is the bands applied twice: once
 for cost, once for what it costs to leave the tracker saying something untrue.
