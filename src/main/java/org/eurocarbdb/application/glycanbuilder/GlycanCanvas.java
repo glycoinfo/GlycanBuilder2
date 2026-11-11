@@ -20,6 +20,7 @@
 
 package org.eurocarbdb.application.glycanbuilder;
 
+import org.glycoinfo.application.glycanbuilder.dataset.OfferedTypes;
 import org.eurocarbdb.application.glycanbuilder.dataset.CoreDictionary;
 import org.eurocarbdb.application.glycanbuilder.dataset.ResidueDictionary;
 import org.eurocarbdb.application.glycanbuilder.dataset.TerminalDictionary;
@@ -976,6 +977,8 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		no_recent_residues_buttons = 0;
 		for (String typename : theWorkspace.getResidueHistory()
 				.getRecentResidues()) {
+			// a residue used before it was withdrawn from the menus is not offered here either
+			if (!OfferedTypes.residue(ResidueDictionary.findResidueType(typename))) continue;
 			JButton b = new JButton(getTheActionManager().get("add=" + typename));
 			b.setText(null);
 			tb.add(b, recent_residues_index + no_recent_residues_buttons++);
@@ -1430,7 +1433,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 			ICON_SIZE iconSize = ICON_SIZE.L6;
 			final List<StringValuePair<List<JCommandToggleButton>>> galleryButtons = new ArrayList<>();
 			for (String superclass : CoreDictionary.getSuperclasses()) {
-				Collection<CoreType> core_types = CoreDictionary.getCores(superclass);
+				Collection<CoreType> core_types = OfferedTypes.cores(CoreDictionary.getCores(superclass));
 				if (core_types.size() > 0) {
 					List<JCommandToggleButton> galleryButtonsList = new ArrayList<>();
 					
@@ -1504,12 +1507,10 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 			ICON_SIZE iconSize = ICON_SIZE.L6;
 			final List<StringValuePair<List<JCommandToggleButton>>> galleryButtons = new ArrayList<StringValuePair<List<JCommandToggleButton>>>();
 			for (String superclass : ResidueDictionary.getSuperclasses()) {
-				Collection<ResidueType> core_types = ResidueDictionary
-						.getResidues(superclass);
+				Collection<ResidueType> core_types = OfferedTypes.residues(ResidueDictionary.getResidues(superclass));
 				if (core_types.size() > 0) {
 					List<JCommandToggleButton> galleryButtonsList = new ArrayList<JCommandToggleButton>();
-					for (ResidueType t : ResidueDictionary
-							.getResidues(superclass)) {
+					for (ResidueType t : core_types) {
 						if (t.canHaveParent() && t.canHaveChildren()) {
 							// && t.getMaxLinkages() >= 2
 							ResizableIcon icon = new ImageResizableIconReducedMem(this.getGlycanRenderer()
@@ -1570,12 +1571,10 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 			ICON_SIZE iconSize = ICON_SIZE.L6;
 			final List<StringValuePair<List<JCommandToggleButton>>> galleryButtons = new ArrayList<StringValuePair<List<JCommandToggleButton>>>();
 			for (String superclass : ResidueDictionary.getSuperclasses()) {
-				Collection<ResidueType> core_types = ResidueDictionary
-						.getResidues(superclass);
+				Collection<ResidueType> core_types = OfferedTypes.residues(ResidueDictionary.getResidues(superclass));
 				if (core_types.size() > 0) {
 					List<JCommandToggleButton> galleryButtonsList = new ArrayList<JCommandToggleButton>();
-					for (ResidueType t : ResidueDictionary
-							.getResidues(superclass)) {
+					for (ResidueType t : core_types) {
 						// if (t.canHaveParent() && t.canHaveChildren()) {
 						// && t.getMaxLinkages() >= 2
 						ResizableIcon icon = new ImageResizableIconReducedMem(
@@ -1633,10 +1632,10 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 			ICON_SIZE iconSize = ICON_SIZE.L6;
 			final List<StringValuePair<List<JCommandToggleButton>>> galleryButtons = new ArrayList<StringValuePair<List<JCommandToggleButton>>>();
 			for (String superclass : ResidueDictionary.getSuperclasses()) {
-				Collection<ResidueType> core_types = ResidueDictionary.getResidues(superclass);
+				Collection<ResidueType> core_types = OfferedTypes.residues(ResidueDictionary.getResidues(superclass));
 				if (core_types.size() > 0) {
 					List<JCommandToggleButton> galleryButtonsList = new ArrayList<JCommandToggleButton>();
-					for (ResidueType t : ResidueDictionary.getResidues(superclass)) {
+					for (ResidueType t : core_types) {
 						if (t.canHaveParent()) {
 							// && t.getMaxLinkages() >= 2
 							ResizableIcon icon = new ImageResizableIconReducedMem(
@@ -2093,7 +2092,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		toolbar.setFloatable(false);
 		for (Iterator<ResidueType> i = ResidueDictionary.directResidues().iterator(); i.hasNext();) {
 			ResidueType t = i.next();
-			if (t.canHaveParent()) toolbar.add(getTheActionManager().get("add=" + t.getName()));
+			if (t.canHaveParent() && OfferedTypes.residue(t)) toolbar.add(getTheActionManager().get("add=" + t.getName()));
 		}
 
 		toolbar.addSeparator();

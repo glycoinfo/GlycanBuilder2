@@ -20,6 +20,7 @@ import org.eurocarbdb.application.glycanbuilder.ResidueType;
 import org.eurocarbdb.application.glycanbuilder.dataset.ResidueDictionary;
 import org.eurocarbdb.application.glycanbuilder.renderutil.GlycanRendererAWT;
 import org.glycoinfo.application.glycanbuilder.dataset.NonSymbolicResidueDictionary;
+import org.glycoinfo.application.glycanbuilder.dataset.OfferedTypes;
 import org.glycoinfo.application.glycanbuilder.dialog.ResidueDesignDialog;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -63,19 +64,33 @@ public class NonSymbolicResidueChooserTest {
 		for (List<ResidueType> section : ResidueDesignDialog.sections().values())
 			for (ResidueType type : section) listed.add(type.getName());
 
+		// what cannot be written once drawn is not offered (#315); OfferedTypesTest names them
+		TreeSet<String> writable = new TreeSet<String>();
+		for (ResidueType type : NonSymbolicResidueDictionary.getResidues())
+			if (inFile.contains(type.getName()) && OfferedTypes.residue(type)) writable.add(type.getName());
+
 		assertEquals("listed twice: " + listed, new TreeSet<String>(listed).size(), listed.size());
-		assertEquals(inFile, new TreeSet<String>(listed));
-		assertTrue("the old dialog listed 36: " + listed.size(), listed.size() > 36);
+		assertEquals(writable, new TreeSet<String>(listed));
+		assertEquals(27, listed.size());
 	}
 
 	/** Grouped by backbone, in order; a residue the dialog's own list does not anticipate is still shown. */
 	@Test
 	public void theResiduesAreGroupedByBackbone() {
-		Map<String, List<ResidueType>> sections = ResidueDesignDialog.sections();
+		Map<String, List<ResidueType>> sections = ResidueDesignDialog.sections(NonSymbolicResidueDictionary.getResidues());
 		assertEquals(Arrays.asList("Triose", "Tetrose", "Pentose", "Hexose", "Heptose", "Octose", "Nonose", "Decose", "Other"),
 				new ArrayList<String>(sections.keySet()));
 		assertTrue(names(sections.get("Hexose")).containsAll(Arrays.asList("araHex", "4uGlcA", "GlcNA", "Rho")));
 		assertTrue(names(sections.get("Pentose")).containsAll(Arrays.asList("dRib", "4dPenN", "lyxPen")));
+
+		// what the chooser shows, which is only what can be written (#315): glycerol's section stays
+		// for glycerol, which is offered apart, as Gro made an alditol
+		Map<String, List<ResidueType>> offered = ResidueDesignDialog.sections();
+		assertEquals(Arrays.asList("Triose", "Tetrose", "Pentose", "Hexose", "Heptose", "Nonose"),
+				new ArrayList<String>(offered.keySet()));
+		assertTrue(offered.get("Triose").isEmpty());
+		assertTrue(names(offered.get("Hexose")).containsAll(Arrays.asList("araHex", "thrHexA")));
+		assertFalse(names(offered.get("Hexose")).contains("4uGlcA"));
 	}
 
 	/** A placeholder becomes the residue chosen, where it stands. */
@@ -141,7 +156,8 @@ public class NonSymbolicResidueChooserTest {
 	public void everyChoiceIsSavedToGwsAndReadBack() throws Exception {
 		TreeSet<String> failed = new TreeSet<String>();
 		List<String> failures = new ArrayList<String>();
-		for (List<ResidueType> section : ResidueDesignDialog.sections().values()) {
+		// every residue of the file, offered or not: a file can hold one the chooser no longer offers
+		for (List<ResidueType> section : ResidueDesignDialog.sections(NonSymbolicResidueDictionary.getResidues()).values()) {
 			for (ResidueType type : section) {
 				GlycanDocument doc = document();
 				Residue placeholder = ResidueDictionary.newResidue("Assigned");

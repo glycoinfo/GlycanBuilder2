@@ -20,6 +20,7 @@
 
 package org.eurocarbdb.application.glycanbuilder;
 
+import org.glycoinfo.application.glycanbuilder.dataset.OfferedTypes;
 import java.io.*;
 
 import javax.swing.*;
@@ -338,7 +339,7 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
 		new_menu.add(theActionManager.get("empty"));
 		for( String superclass : CoreDictionary.getSuperclasses() ) {
 			JMenu class_menu = new JMenu(superclass);        
-			for( CoreType core_type : CoreDictionary.getCores(superclass) ) 
+			for( CoreType core_type : OfferedTypes.cores(CoreDictionary.getCores(superclass)) ) 
 				class_menu.add(theActionManager.get("new=" + core_type.getName()));        
 
 			if( class_menu.getItemCount()>0 ) new_menu.add(class_menu);

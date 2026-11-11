@@ -1,6 +1,7 @@
 package org.glycoinfo.WURCSFramework.Glycan;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
@@ -21,6 +22,7 @@ import org.eurocarbdb.application.glycanbuilder.ResidueStyle;
 import org.eurocarbdb.application.glycanbuilder.ResidueType;
 import org.eurocarbdb.application.glycanbuilder.dataset.ResidueDictionary;
 import org.eurocarbdb.application.glycanbuilder.renderutil.GlycanRendererAWT;
+import org.glycoinfo.application.glycanbuilder.dataset.OfferedTypes;
 import org.glycoinfo.application.glycanbuilder.dataset.SNFGTable;
 import org.glycoinfo.application.glycanbuilder.dialog.ResidueDesignDialog;
 import org.junit.BeforeClass;
@@ -184,13 +186,14 @@ public class SnfgTableInTheChooserTest {
 		}
 		assertEquals(1, alditols);
 
+		// what cannot be written once drawn is not offered (#315): of SNFG's symbols, Unknown
 		List<ResidueType> expected = new ArrayList<ResidueType>();
 		for (SNFGTable.Cell cell : SNFGTable.getCells())
-			if (cell.getType() != null) expected.add(cell.getType());
+			if (cell.getType() != null && OfferedTypes.residue(cell.getType())) expected.add(cell.getType());
 		for (List<ResidueType> section : ResidueDesignDialog.sections().values()) expected.addAll(section);
 
 		assertEquals(expected, offered);
-		assertEquals(86 + 87, offered.size());
+		assertEquals(85 + 27, offered.size());
 	}
 
 	/** One search finds across every tab, the best match first. */
@@ -203,11 +206,14 @@ public class SnfgTableInTheChooserTest {
 		assertEquals("NeuAc", ResidueDesignDialog.search("neu5ac").get(0).getType().getName());
 
 		List<String> heptoses = labels(ResidueDesignDialog.search("hep"));
-		assertTrue(heptoses.toString(), heptoses.containsAll(Arrays.asList("LDmanHep", "D-gro-D-galHep", "Sed")));
+		assertTrue(heptoses.toString(), heptoses.containsAll(Arrays.asList("LDmanHep", "manHep", "Sed")));
+		// and not what is not offered (#315)
+		assertFalse(heptoses.toString(), heptoses.contains("D-gro-D-galHep"));
 
 		// and by shape or colour
 		List<String> flatHexagons = labels(ResidueDesignDialog.search("flat hexagon"));
-		assertTrue(flatHexagons.toString(), flatHexagons.containsAll(Arrays.asList("Unknown", "Kdo", "Mur")));
+		assertTrue(flatHexagons.toString(), flatHexagons.containsAll(Arrays.asList("Kdo", "Mur")));
+		assertFalse(flatHexagons.toString(), flatHexagons.contains("Unknown"));
 	}
 
 	/**
