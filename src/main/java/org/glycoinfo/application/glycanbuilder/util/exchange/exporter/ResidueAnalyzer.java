@@ -1,5 +1,7 @@
 package org.glycoinfo.application.glycanbuilder.util.exchange.exporter;
 
+import org.glycoinfo.application.glycanbuilder.util.SkeletonModificationComposition;
+
 import org.eurocarbdb.MolecularFramework.sugar.BaseType;
 import org.eurocarbdb.MolecularFramework.sugar.GlycoconjugateException;
 import org.eurocarbdb.MolecularFramework.sugar.ModificationType;
@@ -223,6 +225,8 @@ public class ResidueAnalyzer {
 	}
 
 	private char convertModificationNameToCarbonDescriptor(String _mod) {
+		// a carbon of a double bond is written as the skeleton had it (#292)
+		if (_mod.length() == 1 && SkeletonModificationComposition.isDoubleBond(_mod.charAt(0))) return _mod.charAt(0);
 		try {
 		    ModificationType modType = null;
 		    if (_mod.equals("O")) modType = ModificationType.KETO;
