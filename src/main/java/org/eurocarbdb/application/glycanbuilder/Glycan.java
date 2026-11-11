@@ -1340,7 +1340,8 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 	 */
 	private int noSubstitutions(Residue node) {
 		int ofType = noSubstitutions(node.getType());
-		return (ofType == 0) ? 0 : ofType - extraDeoxies(node) - hydroxylsLostToDoubleBonds(node);
+		return (ofType == 0) ? 0 : ofType - extraDeoxies(node) - hydroxylsLostToDoubleBonds(node)
+				+ (isReducedInChain(node) ? 1 : 0);
 	}
 
 	/**
@@ -1354,6 +1355,23 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 		for (String carbon : node.getDoubleBonds())
 			if (org.glycoinfo.application.glycanbuilder.util.SkeletonModificationComposition.removesAHydroxyl(carbon)) lost++;
 		return lost;
+	}
+
+	/**
+	 * Whether this residue is an alditol whose reduction no reducing end accounts for: a ribitol or a
+	 * glycerol inside a chain, as in teichoic acids, rather than the reduced sugar at the end of one.
+	 *
+	 * <p>At the reducing end, the reducing end's type carries the reduction - redEnd and the labels of
+	 * reductive amination add the two hydrogens, and count the hydroxyl the reduction makes. An alditol
+	 * anywhere else had neither: a ribitol between two phosphates weighed 2.016 light, and was
+	 * permethylated at one site too few, the hydroxyl of its C1 (#282). The residue's type is that of
+	 * the sugar it was reduced from, so it is the residue that adds what the reduction does.
+	 */
+	private static boolean isReducedInChain(Residue node) {
+		if( !node.isSaccharide() || !node.isAlditol() )
+			return false;
+		Residue parent = node.getParent();
+		return !(parent != null && parent.isReducingEnd() && parent.getType().makesAlditol());
 	}
 
 	/**
@@ -1478,6 +1496,8 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 		// modify for alditol
 		if( node.isReducingEnd() && node.getType().makesAlditol() )
 			mass += 2*massOf(MassUtils.hydrogen);
+		if( isReducedInChain(node) )
+			mass += 2*massOf(MassUtils.hydrogen);
 
 		if( node.isBracket() ) {
 			int no_linked_labiles = Math.min(countLabilePositions(),countDetachedLabiles());
@@ -1572,6 +1592,8 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 		
 		// modify for alditol
 		if( node.isReducingEnd() && node.getType().makesAlditol() )
+			mass += 2*massOf(MassUtils.hydrogen);
+		if( isReducedInChain(node) )
 			mass += 2*massOf(MassUtils.hydrogen);
 
 		if( node.isBracket() ) {
@@ -1719,6 +1741,8 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 		// modify for alditol
 		if( node.isReducingEnd() && node.getType().makesAlditol() )
 			ret.add(MassUtils.hydrogen,2);
+		if( isReducedInChain(node) )
+			ret.add(MassUtils.hydrogen,2);
 
 		// fix for persubstitutions
 		if( node.isBracket() ) {
@@ -1765,7 +1789,7 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 			if( node.getType().isDroppedWithMethylation() )
 				ret -= 1;
 			else 
-				ret += node.getType().getNoMethyls()-extraDeoxies(node)-no_bonds;        
+				ret += node.getType().getNoMethyls()-extraDeoxies(node)+(isReducedInChain(node) ? 1 : 0)-no_bonds;        
 		}    
 
 		// add children
@@ -1790,7 +1814,7 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 			if( node.getType().isDroppedWithAcetylation() )
 				ret -= 1;
 			else 
-				ret += node.getType().getNoAcetyls()-extraDeoxies(node)-no_bonds;        
+				ret += node.getType().getNoAcetyls()-extraDeoxies(node)+(isReducedInChain(node) ? 1 : 0)-no_bonds;        
 		}    
 
 		// add children

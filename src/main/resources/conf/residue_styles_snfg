@@ -142,3 +142,4 @@ Psi	pentagon	0,0,0	full	no	246,158,161	-	0,0,0
 
 %
 freeEnd	end	0,0,0	empty	no	0,0,0	-	0,0,0
+CCH2OH	-	0,0,0	empty	no	255,255,255	C(CH2OH)	0,0,0

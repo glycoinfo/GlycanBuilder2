@@ -119,8 +119,13 @@ public class ResidueToModification {
 	}
 
 	/**
-	 * Puts the MAP into the form a validator asks for - notably without the {@code ^X} that marks a
-	 * phosphorus of unknown configuration.
+	 * Puts the MAP into the form WURCSFramework's normal WURCS has.
+	 *
+	 * <p>That keeps the {@code ^X} of an atom of unknown configuration. The MAP normalizer drops it,
+	 * {@code *OP^XOCCN} to {@code *OPOCCN}, and this used to take its word; but WURCSFramework's
+	 * normal form of a whole WURCS keeps it, and the normal form is the canonical WURCS, as every
+	 * phosphoethanolamine registered in GlyGen's dump has it - 3,015 to none. So a normalization
+	 * that does nothing but drop {@code ^X} is not taken.
 	 *
 	 * <p>Normalizing can also introduce the star indices that mark the two ends of a divalent MAP,
 	 * and WURCS then requires each linkage to name the end it attaches to. The two go together: a
@@ -132,6 +137,7 @@ public class ResidueToModification {
 
 		String normalized = SubstituentMAPDictionary.normalize(this.map);
 		if(normalized.equals(this.map)) return;
+		if(normalized.equals(this.map.replace("^X", ""))) return;
 
 		if(this.hasStarIndices(normalized) && !this.hasStarIndices(this.map)) {
 			// only a divalent MAP has two ends to tell apart: within one monosaccharide both bonds

@@ -74,6 +74,10 @@ public final class GlycanComposition {
 			if (residue.isReducingEnd() || residue.isBracket()) continue;
 
 			String name = residue.getType().getName();
+			// A residue carrying a deoxy its name does not imply (#258) - a Hex with one at a carbon
+			// not known, read from "?*" - is not its name, and counted as one it would be written as
+			// a plain Hex, the deoxy gone without a word.
+			if (residue.hasDeoxies()) throw new CannotBeWrittenException(name + " with a deoxy at " + residue.getDeoxies());
 			CompositionResidue counts = CompositionResidue.named(name);
 			if (counts == null) throw new CannotBeWrittenException(name);
 

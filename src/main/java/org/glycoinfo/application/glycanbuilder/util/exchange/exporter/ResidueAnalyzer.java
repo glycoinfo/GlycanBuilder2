@@ -201,7 +201,8 @@ public class ResidueAnalyzer {
 		if(a_sModification.contains(",")) return;
 
 		String[] mod = a_sModification.split("\\*");
-		int pos = Integer.parseInt(mod[0]);
+		// a carbon not known, ?, is -1 here, and goes out as a MAP at ? - a deoxy as "?*"
+		int pos = mod[0].equals("?") ? -1 : Integer.parseInt(mod[0]);
 		boolean isTerminal = (pos == 1 || pos == this.backbone);
 		char carbonDescriptor = this.convertModificationNameToCarbonDescriptor(mod[1]);
 
@@ -278,6 +279,11 @@ public class ResidueAnalyzer {
 					+ " has no stereo recorded for it, so it has no skeleton to write.");
 
 		this.isomer = entry.getIsomer();
-		return entry.getStereo(_residue.getChirality());
+		// A glycerol whose C2 is not known is hxh, as it was read and as the registry writes it - 1,365
+		// times in GlyGen's dump, h4h never. The relative form the writer gives any other residue of
+		// unknown configuration says how its centres stand to one another, and glycerol has one (#282).
+		char configuration = _residue.getChirality();
+		if (_residue.isGlycerol() && configuration != 'D' && configuration != 'L') return "x";
+		return entry.getStereo(configuration);
 	}
 }
