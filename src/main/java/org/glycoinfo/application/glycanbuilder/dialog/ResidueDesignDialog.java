@@ -54,6 +54,7 @@ import org.eurocarbdb.application.glycanbuilder.renderutil.GlycanRendererAWT;
 import org.eurocarbdb.application.glycanbuilder.util.EscapeDialog;
 import org.eurocarbdb.application.glycanbuilder.util.GraphicOptions;
 import org.glycoinfo.application.glycanbuilder.dataset.NonSymbolicResidueDictionary;
+import org.glycoinfo.application.glycanbuilder.dataset.OfferedTypes;
 import org.glycoinfo.application.glycanbuilder.dataset.SNFGTable;
 
 /**
@@ -251,8 +252,19 @@ public class ResidueDesignDialog extends EscapeDialog implements ActionListener 
 		return sections;
 	}
 
+	/**
+	 * The sections the chooser shows: only the residues that can be written once drawn (#315).
+	 * Glycerol's section stays when Gro on its own is left out, since glycerol is offered as Gro's
+	 * alditol, which writes.
+	 */
 	public static Map<String, List<ResidueType>> sections() {
-		return sections(NonSymbolicResidueDictionary.getResidues());
+		Map<String, List<ResidueType>> offered = sections(OfferedTypes.residues(NonSymbolicResidueDictionary.getResidues()));
+		if (glycerolType() == null || offered.containsKey(GLYCEROL_SECTION)) return offered;
+
+		Map<String, List<ResidueType>> withGlycerol = new LinkedHashMap<String, List<ResidueType>>();
+		withGlycerol.put(GLYCEROL_SECTION, new ArrayList<ResidueType>());
+		withGlycerol.putAll(offered);
+		return withGlycerol;
 	}
 
 	private static final String GLYCEROL_SECTION = "Triose";
@@ -279,7 +291,7 @@ public class ResidueDesignDialog extends EscapeDialog implements ActionListener 
 		for (Map.Entry<String, List<SNFGTable.Shape>> tab : snfgTabs().entrySet())
 			for (SNFGTable.Shape shape : tab.getValue())
 				for (SNFGTable.Cell cell : shape.getCells()) {
-					if (cell == null || cell.getType() == null) continue;
+					if (cell == null || cell.getType() == null || !OfferedTypes.residue(cell.getType())) continue;
 					ResidueType type = cell.getType();
 					String where = tab.getKey() + " · " + cell.getColour().getName() + " " + shape.getName();
 					all.add(new Choice(type, labelOf(cell), where,
@@ -612,6 +624,16 @@ public class ResidueDesignDialog extends EscapeDialog implements ActionListener 
 			absent.setFont(absent.getFont().deriveFont(10f));
 			absent.setToolTipText(cell.getSNFGName() + " (" + where + ") is not in this application's dictionary");
 			return absent;
+		}
+		// a symbol whose residue cannot be written once drawn is shown, as SNFG's table has it, but
+		// not offered (#315)
+		if (!OfferedTypes.residue(type)) {
+			JLabel withheld = new JLabel(cell.getSNFGName(), SwingConstants.CENTER);
+			withheld.setPreferredSize(CELL);
+			withheld.setForeground(Color.LIGHT_GRAY);
+			withheld.setFont(withheld.getFont().deriveFont(10f));
+			withheld.setToolTipText(cell.getSNFGName() + " (" + where + ") cannot yet be written to WURCS, so it is not offered");
+			return withheld;
 		}
 		String description = cell.getSNFGName()
 				+ (cell.getSNFGName().equals(type.getName()) ? "" : " (" + type.getName() + " here)")

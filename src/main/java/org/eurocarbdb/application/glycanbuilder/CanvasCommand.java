@@ -1,5 +1,6 @@
 package org.eurocarbdb.application.glycanbuilder;
 
+import org.glycoinfo.application.glycanbuilder.dataset.OfferedTypes;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
@@ -40,7 +41,7 @@ public class CanvasCommand {
 		
 		for (String superclass : CoreDictionary.getSuperclasses()) {
 			JMenu class_menu = new JMenu(superclass);
-			for (CoreType t : CoreDictionary.getCores(superclass)) {
+			for (CoreType t : OfferedTypes.cores(CoreDictionary.getCores(superclass))) {
 				String a_sDescription = t.getDescription();
 				if((!a_sDescription.contains("Dermatan sulfate") && 
 						!a_sDescription.contains("Heparan sulfate")) && a_bIsSet == true) a_bIsSet = false;
@@ -66,7 +67,7 @@ public class CanvasCommand {
 		// from its icon-bearing siblings, misaligning the label text
 		a_oGAGsMenu.setIcon(ThemeManager.getResizableEmptyIcon(ICON_SIZE.L3).getResizableIcon());
 
-		for(CoreType a_oCore : CoreDictionary.getCores("GAGs")) {
+		for(CoreType a_oCore : OfferedTypes.cores(CoreDictionary.getCores("GAGs"))) {
 			if(a_oCore.getDescription().contains(a_sUnitType))
 				a_oGAGsMenu.add(a_oActionManager.get("addstructure=" + a_oCore.getName()));
 		}
@@ -138,7 +139,7 @@ public class CanvasCommand {
 				// P/S-type/Unknown)
 				for(SubstituentTypeDescriptor a_enumSub : SubstituentTypeDescriptor.values()) {
 					JMenu a_Item = new JMenu(a_enumSub.getClassName());
-					for(ResidueType t : ResidueDictionary.getResidues(superclass)) {
+					for(ResidueType t : OfferedTypes.residues(ResidueDictionary.getResidues(superclass))) {
 						if(a_enumSub.getClassName().equals(t.getCompositionClass())) {
 							a_Item.add(new JMenuItem(a_oActionManager.get(a_sActionType + t.getName())));
 						}
@@ -146,7 +147,7 @@ public class CanvasCommand {
 					if (a_Item.getItemCount() > 0) class_menu.add(a_Item);
 				}
 			}else {
-				for (ResidueType t : ResidueDictionary.getResidues(superclass)) {
+				for (ResidueType t : OfferedTypes.residues(ResidueDictionary.getResidues(superclass))) {
 					if (t.canHaveParent())
 						class_menu.add(a_oActionManager.get(a_sActionType + t.getName()));
 				}
