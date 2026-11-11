@@ -126,9 +126,12 @@ final class UnknownStereoNames {
 
 	/** What the name would leave unsaid: the rest of the first block, or the blocks after it. */
 	private static String whatIsUnknown(int _known, int _centres) {
-		if (_known < Math.min(4, _centres))
-			return "only " + _known + " of the " + Math.min(4, _centres) + " centres of the block a prefix names are known";
-		return "the centres past C5 are not known, and a name has to say them";
+		int block = Math.min(4, _centres);
+		if (_known < block)
+			return "only " + _known + " of the " + block + " centres of the block a prefix names "
+					+ (_known == 1 ? "is" : "are") + " known";
+		// a deoxy carbon in the first block moves where it ends, so it is not given as a carbon number
+		return "the centres after the first block are not known, and a name has to say them";
 	}
 
 	/** How many of the skeleton's inner carbons are deoxies, which are no stereocentres. */
