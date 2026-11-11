@@ -373,7 +373,9 @@ public class DeoxyExhaustiveTest {
 		// 1,404 before #261, when no configurational-prefix name could be written at all
 		// 150 until #313 made Dig follow its configuration: the 12 L-cymaroses, a 3-O-methyl on an L
 		// 2,6-dideoxy ribo-hexose, read as Cym and could not be written; they read as L-Dig now
-		KNOWN_COUNTS.put("K2 #275 the type has no stereo recorded", 150 - 12);
+		// and 6 fewer since #313: a 3,6-dideoxy L-arabino-hexose, ascarylose, read as Asc, a row with no
+		// stereo, until Tyv followed its configuration; it reads as L-Tyv now, and is written
+		KNOWN_COUNTS.put("K2 #275 the type has no stereo recorded", 150 - 12 - 6);
 		// 480, all heptoses, until the tetrose rows were corrected (#285): the deoxy tetroses then read
 		// and fail the same way, as groTet - 90 cases on each of Thr, Ery, thrTet and eryTet. 840 until
 		// #265 made gulHep a base, whose deoxies read as xylHep and ribHep: 150 more.

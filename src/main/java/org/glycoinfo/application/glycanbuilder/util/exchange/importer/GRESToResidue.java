@@ -97,6 +97,7 @@ public class GRESToResidue {
 		if(!hasAbsoluteStereo(mscore.getSkeletonCode())) configuration = '?';
 
 		ResidueType newType = ResidueDictionary.findResidueType(trivialName);
+		configuration = configurationOfTheSkeleton(trivialName, mscore.getSkeletonCode(), configuration);
 		Residue residue = new Residue(newType);
 
 		// the skeleton is matched whole, so a recognised residue leaves no core modification behind
@@ -136,6 +137,31 @@ public class GRESToResidue {
 
 		this.modifications = leftOver;
 		this.residue = residue;
+	}
+
+	/**
+	 * The configuration whose stereo, as the writer will write it, is the skeleton's own (#313).
+	 *
+	 * <p>A residue is written in the configuration it carries since #313, so the configuration read
+	 * must be the one that writes the skeleton back. Taken from the last stereocentre, it was not
+	 * always: a 7-deoxy L-gro-D-manHep, a11221m, came back as L by its C6, and an acetylated apiose,
+	 * a26h, as D - harmless while those names ignored their configuration, the other enantiomer once
+	 * they followed it. So the skeleton's stereo digits are compared with the name's in D and in L; when
+	 * one matches and the other does not, that is the configuration. Otherwise what was read stands.
+	 */
+	static char configurationOfTheSkeleton(String _name, String _skeleton, char _read) {
+		org.glycoinfo.application.glycanbuilder.dataset.NativeMonosaccharideDictionary.Entry entry =
+				org.glycoinfo.application.glycanbuilder.dataset.NativeMonosaccharideDictionary.forResidueName(_name);
+		if (entry == null || _skeleton == null) return _read;
+		StringBuilder digits = new StringBuilder();
+		for (char c : _skeleton.toCharArray())
+			if ("12345678".indexOf(c) >= 0) digits.append(c);
+		String inD = entry.getStereo('D'), inL = entry.getStereo('L');
+		if (inD.equals(inL) || inD.isEmpty()) return _read;
+		boolean isD = digits.toString().equals(inD), isL = digits.toString().equals(inL);
+		if (isD && !isL) return 'D';
+		if (isL && !isD) return 'L';
+		return _read;
 	}
 
 	/**

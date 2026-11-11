@@ -26,13 +26,17 @@ import java.util.Map;
  *       in relation to each other without saying which way round the molecule is</li>
  * </ul>
  *
- * <p>Residues marked as not following the residue's configuration keep their digits whatever the
- * drawing says. For the nonulosonates and the heptoses that is the chemistry - their names fix both
- * stereo blocks, so there is nothing left for a D or an L to change. For the dideoxyhexoses and for
- * Kdo and Dha it is inherited behaviour: the table this replaced answered them with a name that
- * already carried its configuration, so flipping the residue never reached them. That is recorded as
- * measured rather than corrected, so that replacing the table changed nothing. Whether it ought to
- * be corrected is a separate question.
+ * <p>Since #313 every residue follows the configuration it is drawn in, and is written as drawn. The
+ * nonulosonates, the heptoses, the dideoxyhexoses, Kdo and Dha did not: the table this replaced
+ * answered them with a name that already carried its configuration, so an L-NeuAc or an L-Abe was
+ * written as the D one, silently the other enantiomer. The maintainer's rule (2026-11-10) is to write
+ * the configuration drawn. Their digits are recorded in D, as every other residue's are - Col, Aci and
+ * Pse, whose own configuration is L, by the D form of their skeleton - so the configuration a residue
+ * is drawn in by default is written exactly as before. An L-Abe is then written as colitose, which is
+ * what it is.
+ *
+ * <p>Apiose's C3 is a branched carbon, whose S and R WURCS writes 5 and 6; they are swapped with the
+ * rest. Its default is L, as SNFG's note 1 has it, and that is what a26h is.
  */
 public class NativeMonosaccharideDictionary {
 
@@ -68,8 +72,11 @@ public class NativeMonosaccharideDictionary {
 		public String getStereo(char _configuration) {
 			if (!this.followsConfiguration) return this.stereo;
 			if (_configuration == 'D') return this.stereo;
-			if (_configuration == 'L') return map(this.stereo, '1', '2', '2', '1');
-			return map(this.stereo, '1', '3', '2', '4');
+			// 5 and 6 are a branched carbon's S and R (WURCSFramework's SZ3_STEREO_S_U and R_U), as 1
+			// and 2 are an ordinary one's: apiose's C3. An enantiomer swaps them too, and the relative
+			// form of each is 7 and 8 (#313)
+			if (_configuration == 'L') return map(map(this.stereo, '1', '2', '2', '1'), '5', '6', '6', '5');
+			return map(map(this.stereo, '1', '3', '2', '4'), '5', '7', '6', '8');
 		}
 
 		/** The D or L this residue reports as its own, which is not always the drawn one. */
@@ -121,14 +128,14 @@ public class NativeMonosaccharideDictionary {
 	private static final Map<String, Entry> RESIDUES;
 	static {
 		Map<String, Entry> residues = new LinkedHashMap<String, Entry>();
-		residues.put("4eLeg",          new Entry("11122", false, 'D', "5*N_7*N",        "1*A_2*O_3*d_9*m"));
+		residues.put("4eLeg",          new Entry("11122", true,  'D', "5*N_7*N",        "1*A_2*O_3*d_9*m"));
 		residues.put("6dAlt",          new Entry("1222",  true,  'L', "",               "6*m"));
 		residues.put("6dAltNAc",       new Entry("1222",  true,  'L', "2*NAc",          "6*m"));
 		residues.put("6dGul",          new Entry("2212",  true,  'D', "",               "6*m"));
 		residues.put("6dTal",          new Entry("1112",  true,  'D', "",               "6*m"));
 		residues.put("6dTalNAc",       new Entry("1112",  true,  'D', "2*NAc",          "6*m"));
-		residues.put("Abe",            new Entry("212",   false, 'D', "",               "3*d_6*m"));
-		residues.put("Aci",            new Entry("21111", false, 'L', "5*N_7*N",        "1*A_2*O_3*d_9*m"));
+		residues.put("Abe",            new Entry("212",   true,  'D', "",               "3*d_6*m"));
+		residues.put("Aci",            new Entry("12222", true,  'L', "5*N_7*N",        "1*A_2*O_3*d_9*m"));
 		residues.put("All",            new Entry("2222",  true,  'D', "",               ""));
 		residues.put("AllA",           new Entry("2222",  true,  'D', "",               ""));
 		residues.put("AllN",           new Entry("2222",  true,  'D', "2*N",            ""));
@@ -137,12 +144,13 @@ public class NativeMonosaccharideDictionary {
 		residues.put("AltA",           new Entry("1222",  true,  'L', "",               ""));
 		residues.put("AltN",           new Entry("1222",  true,  'L', "2*N",            ""));
 		residues.put("AltNAc",         new Entry("1222",  true,  'L', "2*NAc",          ""));
-		residues.put("Api",            new Entry("26",    false, 'L', "",               "", "3*CO"));
+		// L by SNFG's default (note 1), and recorded in D as every other residue is: a15h, whose L is a26h
+		residues.put("Api",            new Entry("15",    true,  'L', "",               "", "3*CO"));
 		residues.put("Ara",            new Entry("122",   true,  'L', "",               ""));
 		residues.put("Bac",            new Entry("2122",  true,  'D', "2*N_4*N",        "6*m"));
-		residues.put("Col",            new Entry("121",   false, 'L', "",               "3*d_6*m"));
-		residues.put("D-gro-D-manHep", new Entry("11222", false, 'D', "",               ""));
-		residues.put("Dha",            new Entry("112",   false, 'D', "",               "1*A_2*O_3*d_7*A"));
+		residues.put("Col",            new Entry("212",   true,  'L', "",               "3*d_6*m"));
+		residues.put("D-gro-D-manHep", new Entry("11222", true,  'D', "",               ""));
+		residues.put("Dha",            new Entry("112",   true,  'D', "",               "1*A_2*O_3*d_7*A"));
 		// follows its configuration since #313: an L-Dig was written as D-digitoxose, and L-digitoxose and
 		// L-cymarose read from WURCS were not recognised as Dig at all (#312)
 		residues.put("Dig",            new Entry("222",   true,  'D', "",               "2*d_6*m"));
@@ -169,10 +177,10 @@ public class NativeMonosaccharideDictionary {
 		residues.put("IdoA",           new Entry("1212",  true,  'L', "",               ""));
 		residues.put("IdoN",           new Entry("1212",  true,  'L', "2*N",            ""));
 		residues.put("IdoNAc",         new Entry("1212",  true,  'L', "2*NAc",          ""));
-		residues.put("Kdn",            new Entry("21122", false, 'D', "",               "1*A_2*O_3*d"));
-		residues.put("Kdo",            new Entry("1122",  false, 'D', "",               "1*A_2*O_3*d"));
-		residues.put("L-gro-D-manHep", new Entry("11221", false, 'D', "",               ""));
-		residues.put("Leg",            new Entry("21122", false, 'D', "5*N_7*N",        "1*A_2*O_3*d_9*m"));
+		residues.put("Kdn",            new Entry("21122", true,  'D', "",               "1*A_2*O_3*d"));
+		residues.put("Kdo",            new Entry("1122",  true,  'D', "",               "1*A_2*O_3*d"));
+		residues.put("L-gro-D-manHep", new Entry("11221", true,  'D', "",               ""));
+		residues.put("Leg",            new Entry("21122", true,  'D', "5*N_7*N",        "1*A_2*O_3*d_9*m"));
 		residues.put("Lyx",            new Entry("112",   true,  'D', "",               ""));
 		residues.put("Man",            new Entry("1122",  true,  'D', "",               ""));
 		residues.put("ManA",           new Entry("1122",  true,  'D', "",               ""));
@@ -181,16 +189,16 @@ public class NativeMonosaccharideDictionary {
 		residues.put("Mur",            new Entry("2122",  true,  'D', "2*N_3*(R)Lac",   ""));
 		residues.put("MurNAc",         new Entry("2122",  true,  'D', "2*NAc_3*(R)Lac", ""));
 		residues.put("MurNGc",         new Entry("2122",  true,  'D', "2*NGc_3*(R)Lac", ""));
-		residues.put("Neu",            new Entry("21122", false, 'D', "5*N",            "1*A_2*O_3*d"));
-		residues.put("NeuAc",          new Entry("21122", false, 'D', "5*NAc",          "1*A_2*O_3*d"));
-		residues.put("NeuGc",          new Entry("21122", false, 'D', "5*NGc",          "1*A_2*O_3*d"));
+		residues.put("Neu",            new Entry("21122", true,  'D', "5*N",            "1*A_2*O_3*d"));
+		residues.put("NeuAc",          new Entry("21122", true,  'D', "5*NAc",          "1*A_2*O_3*d"));
+		residues.put("NeuGc",          new Entry("21122", true,  'D', "5*NGc",          "1*A_2*O_3*d"));
 		residues.put("Non",            new Entry("",      false, 'X', "",               ""));
 		residues.put("Oli",            new Entry("122",   true,  'D', "",               "2*d_6*m"));
-		residues.put("Par",            new Entry("222",   false, 'D', "",               "3*d_6*m"));
+		residues.put("Par",            new Entry("222",   true,  'D', "",               "3*d_6*m"));
 		residues.put("Pen",            new Entry("",      false, 'X', "",               ""));
 		// the heptose of unknown stereo, as Hex and Pen are the hexose and pentose (#265)
 		residues.put("Hept",           new Entry("",      false, 'X', "",               ""));
-		residues.put("Pse",            new Entry("22111", false, 'L', "5*N_7*N",        "2*O_3*d_9*m"));
+		residues.put("Pse",            new Entry("11222", true,  'L', "5*N_7*N",        "2*O_3*d_9*m"));
 		residues.put("Psi",            new Entry("222",   true,  'D', "",               "1*h_2*O"));
 		residues.put("Qui",            new Entry("2122",  true,  'D', "",               "6*m"));
 		residues.put("QuiNAc",         new Entry("2122",  true,  'D', "2*NAc",          "6*m"));
@@ -207,7 +215,7 @@ public class NativeMonosaccharideDictionary {
 		// had no stereo, and no configuration or ring in their rows, so they could not be written (#285).
 		residues.put("Thr",            new Entry("12",    true,  'D', "",               ""));
 		residues.put("Ery",            new Entry("22",    true,  'D', "",               ""));
-		residues.put("Tyv",            new Entry("122",   false, 'D', "",               "3*d_6*m"));
+		residues.put("Tyv",            new Entry("122",   true,  'D', "",               "3*d_6*m"));
 		residues.put("Xyl",            new Entry("212",   true,  'D', "",               ""));
 		residues.put("dHex",           new Entry("",      false, 'X', "",               ""));
 		residues.put("dHexNAc",        new Entry("",      false, 'X', "2*NAc",          ""));
