@@ -50,6 +50,11 @@ public final class FootnoteName {
 	public static String of(Residue _residue) {
 		if (_residue == null || _residue.getType() == null) return "";
 
+		// An alditol keeps the residue's own name. The WURCS naming has none for an open chain that
+		// reads - a glycerol came back "?-Gro" one way and "?-?-Gro?" another, two letters for one
+		// residue - and the residue's name, "Glycerol", is the one #282 settled on.
+		if (_residue.isAlditol()) return _residue.getLegend();
+
 		String trivial = ketoseByTrivialName(_residue);
 		if (trivial != null) return trivial;
 
