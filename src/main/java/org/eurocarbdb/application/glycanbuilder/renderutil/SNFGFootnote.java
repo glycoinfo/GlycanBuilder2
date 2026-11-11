@@ -59,7 +59,7 @@ public final class SNFGFootnote {
 				}
 				if (!isLettered(residue, styles, options)) continue;
 
-				String legend = residue.getLegend();
+				String legend = FootnoteName.of(residue);
 				if (!this.ordinalByLegend.containsKey(legend))
 					this.ordinalByLegend.put(legend, this.ordinalByLegend.size() + 1);
 			}
@@ -92,18 +92,19 @@ public final class SNFGFootnote {
 	/**
 	 * The ordinal of this residue's letter, 1 for A, or 0 when it has none.
 	 *
-	 * <p>Residues with the same footnote name share a letter: two β-D-Altp are one footnote line, and a
-	 * β-D-Altf beside them is another.
+	 * <p>Residues with the same footnote name share a letter, and the name is built from the residue
+	 * (FootnoteName, #307): two β-D-Sedoheptulopyranoses are one footnote line, and a
+	 * β-D-Sedoheptulofuranose beside them is another, whichever format the structure was read from.
 	 */
 	public int ordinalOf(Residue residue) {
 		if (residue == null) return 0;
-		Integer ordinal = this.ordinalByLegend.get(residue.getLegend());
+		Integer ordinal = this.ordinalByLegend.get(FootnoteName.of(residue));
 		return (ordinal == null) ? 0 : ordinal.intValue();
 	}
 
 	/**
 	 * The footnote's lines, top to bottom: the composition marker's line first when there is one, as it
-	 * always has been, then one line per letter - "A=β-D-Altp".
+	 * always has been, then one line per letter - "A=β-D-Sedoheptulopyranose".
 	 */
 	public List<String> lines() {
 		List<String> lines = new ArrayList<String>();
