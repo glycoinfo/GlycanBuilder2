@@ -15,7 +15,7 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
- * The residue class "Unknown" is shown as "Others" (#182).
+ * The residue class "Unknown" is shown as "Others" (#182), and "Assigned" as "Pentagon".
  *
  * <p>It holds the monosaccharides SNFG draws as flat hexagons - Kdo, Bac, Mur and the rest - and the
  * Unknown placeholder. SNFG's "Unknown" is the white flat hexagon alone; the menu called Kdo unknown.
@@ -38,6 +38,23 @@ public class UnknownClassShownAsOthersTest {
 			shown.add(ResidueDictionary.displayNameOf(superclass));
 		assertTrue(shown.toString(), shown.contains("Others"));
 		assertFalse(shown.toString(), shown.contains("Unknown"));
+	}
+
+	/** And the class "Assigned", SNFG's pentagon row, is shown as "Pentagon". */
+	@Test
+	public void thePentagonClassIsShownAsPentagon() {
+		assertEquals("Pentagon", ResidueDictionary.displayNameOf("Assigned"));
+
+		List<String> shown = new ArrayList<String>();
+		for (String superclass : ResidueDictionary.getSuperclasses())
+			shown.add(ResidueDictionary.displayNameOf(superclass));
+		assertTrue(shown.toString(), shown.contains("Pentagon"));
+		assertFalse(shown.toString(), shown.contains("Assigned"));
+
+		// it keeps its name, and holds the coloured pentagons and the placeholder
+		List<String> members = new ArrayList<String>();
+		for (ResidueType type : ResidueDictionary.getResidues("Assigned")) members.add(type.getName());
+		assertTrue(members.toString(), members.containsAll(java.util.Arrays.asList("Api", "Fru", "Tag", "Sor", "Psi", "Assigned")));
 	}
 
 	/** The class keeps its name: Kdo is still found under "Unknown", and the placeholder too. */
