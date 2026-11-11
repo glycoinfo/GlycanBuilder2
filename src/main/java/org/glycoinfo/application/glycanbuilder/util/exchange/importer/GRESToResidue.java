@@ -67,6 +67,8 @@ public class GRESToResidue {
 
 		UnknownStereoNames.Naming unknownStereo = (match == null)
 				? UnknownStereoNames.name(mscore.getSkeletonCode()) : null;
+		if(match == null && unknownStereo == null && UnknownStereoNames.hasUnknownStereo(mscore.getSkeletonCode()))
+			throw new WURCSToGlycanException(UnknownStereoNames.whyNot(mscore.getSkeletonCode()));
 
 		if(match != null) {
 			trivialName = match.getResidueType().getName();

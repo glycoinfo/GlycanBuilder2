@@ -98,17 +98,51 @@ public class WURCS2Parser implements GlycanParser{
 		if (structure.isComposition())
 			return GlycanComposition.toWURCS(structure);
 
+		refuseAGroupWhereNoneCanBe(structure);
+
 		LinkageTypeOptimizer linkOpt = new LinkageTypeOptimizer();
 		linkOpt.start(structure);
 
 		GlycanToWURCSGraph glycan2graph = new GlycanToWURCSGraph();
 		glycan2graph.start(structure);
-		// MAPs go out in their normalized form: that is what a validator asks for, and readGlycan
-		// accepts either spelling, so the round trip still holds
+		// MAPs go out as the dictionaries spell them, and the WURCS as WURCSFramework normalizes it -
+		// which is the canonical WURCS. They used to be rewritten first, dropping the ^X of a
+		// phosphorus of unknown configuration because the validator's warning said it "could be
+		// normalized": *OP^XOCCN went out as *OPOCCN. WURCSFramework's normal form keeps the ^X, and
+		// so does every phosphoethanolamine registered in GlyGen's dump, 3,015 of them, against none
+		// without it.
 		WURCSGraph graph = glycan2graph.getGraph();
-		this.rewriteMAPs(graph, true);
 
-		return new WURCSFactory(graph).getWURCS();
+		String wurcs = new WURCSFactory(graph).getWURCS();
+		// and what comes out is checked as what goes in is: a WURCS no validator accepts is not written
+		try {
+			refuseInvalid(wurcs);
+		} catch (WURCSToGlycanException invalid) {
+			throw new Exception("the WURCS this structure makes is not valid, so it is not written - "
+					+ invalid.getMessage().replaceFirst("^this WURCS is not valid: ", ""));
+		}
+		return wurcs;
+	}
+
+	/**
+	 * Refuse a substituent on a carbon its residue cannot give one to (#320, #321): one with no
+	 * hydroxyl, a 6-deoxy's C6, a nonulosonate's C3; or one the residue's name already uses, a FucNAc's
+	 * C2, a Mur's C3. Such a structure can no longer be drawn, but one saved before can be opened, and
+	 * writing it gave WURCS no validator accepts, or failed with only "Invalide residue.".
+	 */
+	private static void refuseAGroupWhereNoneCanBe(Glycan _structure) throws Exception {
+		for (org.eurocarbdb.application.glycanbuilder.Residue parent : _structure.getAllResidues()) {
+			if (!parent.isSaccharide()) continue;
+			for (org.eurocarbdb.application.glycanbuilder.linkage.Linkage link : parent.getChildrenLinkages()) {
+				org.eurocarbdb.application.glycanbuilder.Residue child = link.getChildResidue();
+				if (child == null || !child.isSubstituent() || link.getBonds().size() != 1) continue;
+				char position = link.getParentPositionsSingle();
+				if (!Character.isDigit(position) || parent.canHoldAt(position, child)) continue;
+				throw new Exception(child.getTypeName() + " at " + position + " of " + parent.getTypeName()
+						+ ": " + parent.getTypeName() + " has no hydroxyl there, its own group is there already, or it is"
+						+ " its amine, which takes no N-linked group and no phosphate - so this structure has no WURCS");
+			}
+		}
 	}
 	
 	public Glycan readGlycan(String str, MassOptions mass_opt) throws Exception{

@@ -63,8 +63,11 @@ public class ResidueToBackbone {
 		// out indeterminate at the anomeric carbon and does not read back as itself - Dha is
 		// written this way in residue_types and is the only saccharide it applies to.
 		//
-		// The residue's own, not its type's defaults: a heptose of unknown stereo read from WURCS has
-		// the ring it was read with, and was refused for the row's "?" (#265).
+		// Refused only when neither the type nor the residue has them. A heptose of unknown stereo read
+		// from WURCS has the ring it was read with, and was refused for its row's "?" (#265); an open
+		// hexose of relative stereo, u4444h, has neither on the residue but its type's ring on Hex, and
+		// is written - asking the residue alone refused it, 117 registered structures in GlyGen's dump.
+		//
 		// A residue the reader made up a name for - galHep, groTet, none of them in a dictionary - has
 		// no class to build a backbone from (#282).
 		if (_residue.getType().getCompositionClass() == null
@@ -72,7 +75,8 @@ public class ResidueToBackbone {
 						_residue.getType().getCompositionClass().equals("Sugar") ? "sug" : _residue.getType().getCompositionClass().toLowerCase()) == null)
 			throw new Exception (_residue.getTypeName()
 					+ " is no residue this application knows, so it has no skeleton to write.");
-		if (_residue.getChirality() == '?' && _residue.getRingSize() == '?')
+		if (_residue.getType().getChirality() == '?' && _residue.getType().getRingSize() == '?'
+				&& _residue.getChirality() == '?' && _residue.getRingSize() == '?')
 			throw new Exception (_residue.getTypeName()
 					+ " has neither a configuration nor a ring, so it has no skeleton to write.");
 
@@ -177,7 +181,8 @@ public class ResidueToBackbone {
 		if(_linkage.getParentResidue().isRepetition())
 			parentLink = _linkage.getParentResidue().getParentLinkage();
 		
-		int pos = positions.iterator().next() == '?' ? -1 : Integer.parseInt(String.valueOf(positions.iterator().next()));
+		char position = AminePosition.of(_linkage.getParentResidue(), positions.iterator().next());
+		int pos = position == '?' ? -1 : Integer.parseInt(String.valueOf(position));
 		
 		if(pos == -1) return;
 		char cd = _scNotation.charAt(pos - 1);

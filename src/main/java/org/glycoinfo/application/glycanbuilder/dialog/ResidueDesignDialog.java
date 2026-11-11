@@ -75,6 +75,14 @@ public class ResidueDesignDialog extends EscapeDialog implements ActionListener 
 	/** The tab of the residues with no SNFG symbol. */
 	public static final String NO_SYMBOL = "No SNFG symbol";
 
+	/**
+	 * Glycerol, offered among the trioses (#282). It is no type of its own: it is Gro, glyceraldehyde,
+	 * as its alditol, the way a ribitol is Rib as its alditol, so that it is weighed, derivatized and
+	 * written as one. Choosing it gives Gro and says the residue is to be made an alditol.
+	 */
+	public static final String GLYCEROL = "Glycerol";
+	private static final String GLYCEROL_DESCRIPTION = "Glycerol, the alditol of glyceraldehyde (Gro)";
+
 	/** The heading a residue is listed under when its composition class is none of these. */
 	static final String OTHER = "Other";
 
@@ -122,13 +130,19 @@ public class ResidueDesignDialog extends EscapeDialog implements ActionListener 
 		private final String where;
 		private final String searchText;
 		private final boolean symbol;
+		private final boolean alditol;
 
 		Choice(ResidueType _type, String _label, String _where, String _searchText, boolean _symbol) {
+			this(_type, _label, _where, _searchText, _symbol, false);
+		}
+
+		Choice(ResidueType _type, String _label, String _where, String _searchText, boolean _symbol, boolean _alditol) {
 			type = _type;
 			label = _label;
 			where = _where;
 			searchText = _searchText.toLowerCase();
 			symbol = _symbol;
+			alditol = _alditol;
 		}
 
 		public ResidueType getType() { return type; }
@@ -137,6 +151,10 @@ public class ResidueDesignDialog extends EscapeDialog implements ActionListener 
 		public String getWhere() { return where; }
 		/** Whether SNFG has a symbol for it. */
 		public boolean hasSymbol() { return symbol; }
+		/** Whether the residue is to be made the alditol of its type: glycerol. */
+		public boolean isAlditol() { return alditol; }
+		/** What it is, in words. */
+		public String getDescription() { return alditol ? GLYCEROL_DESCRIPTION : type.getDescription(); }
 	}
 
 	private final GlycanRendererAWT renderer = snfgRenderer();
@@ -159,6 +177,7 @@ public class ResidueDesignDialog extends EscapeDialog implements ActionListener 
 
 	private String return_status = CANCEL;
 	private ResidueType chosen = null;
+	private boolean chosenAlditol = false;
 
 	public ResidueDesignDialog(Frame parent) {
 		this(parent, false);
@@ -236,6 +255,17 @@ public class ResidueDesignDialog extends EscapeDialog implements ActionListener 
 		return sections(NonSymbolicResidueDictionary.getResidues());
 	}
 
+	private static final String GLYCEROL_SECTION = "Triose";
+
+	private static ResidueType glycerolType() {
+		return NonSymbolicResidueDictionary.findResidueType("Gro");
+	}
+
+	private static Choice glycerol() {
+		return new Choice(glycerolType(), GLYCEROL, NO_SYMBOL + " · " + GLYCEROL_SECTION,
+				"glycerol glycerin gro alditol triol " + GLYCEROL_DESCRIPTION, false, true);
+	}
+
 	static String sectionOf(String compositionClass) {
 		for (String[] section : SECTIONS)
 			for (int i = 1; i < section.length; i++)
@@ -257,10 +287,13 @@ public class ResidueDesignDialog extends EscapeDialog implements ActionListener 
 									+ shape.getName() + " " + shape.getClassName() + " " + cell.getColour().getName(),
 							true));
 				}
-		for (Map.Entry<String, List<ResidueType>> section : sections().entrySet())
+		for (Map.Entry<String, List<ResidueType>> section : sections().entrySet()) {
 			for (ResidueType type : section.getValue())
 				all.add(new Choice(type, type.getName(), NO_SYMBOL + " · " + section.getKey(),
 						type.getName() + " " + type.getDescription(), false));
+			if (section.getKey().equals(GLYCEROL_SECTION) && glycerolType() != null)
+				all.add(glycerol());
+		}
 		return all;
 	}
 
@@ -600,10 +633,17 @@ public class ResidueDesignDialog extends EscapeDialog implements ActionListener 
 
 		for (Map.Entry<String, List<ResidueType>> section : sections().entrySet()) {
 			JPanel buttons = new JPanel(new GridLayout(0, 3, 4, 2));
+			int count = section.getValue().size();
 			for (ResidueType type : section.getValue()) {
 				JButton button = cellButton(type, type.getName(), null, type.getName() + " — " + type.getDescription());
 				button.setHorizontalAlignment(SwingConstants.LEFT);
 				buttons.add(button);
+			}
+			if (section.getKey().equals(GLYCEROL_SECTION) && glycerolType() != null) {
+				JButton button = cellButton(glycerolType(), GLYCEROL, null, GLYCEROL_DESCRIPTION, true);
+				button.setHorizontalAlignment(SwingConstants.LEFT);
+				buttons.add(button);
+				count++;
 			}
 			JPanel holder = new JPanel(new BorderLayout());
 			holder.setBorder(BorderFactory.createEmptyBorder(4, 8, 4, 4));
@@ -614,7 +654,7 @@ public class ResidueDesignDialog extends EscapeDialog implements ActionListener 
 			shown.add(scroll, section.getKey());
 
 			keys.add(section.getKey());
-			backbones.addElement(section.getKey() + "  (" + section.getValue().size() + ")");
+			backbones.addElement(section.getKey() + "  (" + count + ")");
 		}
 
 		final JList<String> side = new JList<String>(backbones);
@@ -659,7 +699,7 @@ public class ResidueDesignDialog extends EscapeDialog implements ActionListener 
 				String grey = selected ? "" : " color=gray";
 				label.setText("<html><b>" + choice.label + "</b>"
 						+ (choice.label.equals(choice.type.getName()) ? "" : " (" + choice.type.getName() + ")")
-						+ " &nbsp;<font" + grey + ">" + choice.type.getDescription() + "</font><br>"
+						+ " &nbsp;<font" + grey + ">" + choice.getDescription() + "</font><br>"
 						+ "<font size=-2" + grey + ">" + choice.where + "</font></html>");
 				label.setIcon(iconOf(choice.type));
 				label.setIconTextGap(10);
@@ -669,12 +709,12 @@ public class ResidueDesignDialog extends EscapeDialog implements ActionListener 
 		});
 		results.addListSelectionListener(e -> {
 			Choice choice = results.getSelectedValue();
-			if (choice != null) describe(choice.type, choice.label + " — " + choice.type.getDescription());
+			if (choice != null) describe(choice.type, choice.label + " — " + choice.getDescription());
 		});
 		results.addMouseListener(new MouseAdapter() {
 			public void mouseClicked(MouseEvent e) {
 				if (e.getClickCount() == 2 && results.getSelectedValue() != null)
-					choose(results.getSelectedValue().type);
+					choose(results.getSelectedValue().type, results.getSelectedValue().alditol);
 			}
 		});
 
@@ -718,7 +758,7 @@ public class ResidueDesignDialog extends EscapeDialog implements ActionListener 
 		search.getActionMap().put("choose", new AbstractAction() {
 			private static final long serialVersionUID = 1L;
 			public void actionPerformed(ActionEvent e) {
-				if (results.getSelectedValue() != null) choose(results.getSelectedValue().type);
+				if (results.getSelectedValue() != null) choose(results.getSelectedValue().type, results.getSelectedValue().alditol);
 			}
 		});
 		search.getActionMap().put("clear", new AbstractAction() {
@@ -742,6 +782,10 @@ public class ResidueDesignDialog extends EscapeDialog implements ActionListener 
 	 * its description shown at the foot of the dialog.
 	 */
 	private JButton cellButton(final ResidueType type, String label, Icon icon, final String description) {
+		return cellButton(type, label, icon, description, false);
+	}
+
+	private JButton cellButton(final ResidueType type, String label, Icon icon, final String description, final boolean alditol) {
 		final JButton button = new JButton(label, icon);
 		button.setFont(button.getFont().deriveFont(icon == null ? 12f : 10f));
 		if (icon != null) {
@@ -763,7 +807,7 @@ public class ResidueDesignDialog extends EscapeDialog implements ActionListener 
 			public void focusGained(java.awt.event.FocusEvent e) { light(button, type, true, rest, lit, description); }
 			public void focusLost(java.awt.event.FocusEvent e) { light(button, type, button.getModel().isRollover(), rest, lit, description); }
 		});
-		button.addActionListener(e -> choose(type));
+		button.addActionListener(e -> choose(type, alditol));
 		return button;
 	}
 
@@ -787,7 +831,12 @@ public class ResidueDesignDialog extends EscapeDialog implements ActionListener 
 	// --- The answer
 
 	private void choose(ResidueType type) {
+		choose(type, false);
+	}
+
+	private void choose(ResidueType type, boolean alditol) {
 		chosen = type;
+		chosenAlditol = (type != null) && alditol;
 		return_status = (type == null) ? CANCEL : type.getName();
 		setVisible(false);
 		dispose();
@@ -808,6 +857,11 @@ public class ResidueDesignDialog extends EscapeDialog implements ActionListener 
 	 */
 	public ResidueType getChosenType() {
 		return chosen;
+	}
+
+	/** Whether what was chosen is the alditol of the chosen type: glycerol, which is Gro made an alditol. */
+	public boolean isAlditolChosen() {
+		return chosenAlditol;
 	}
 
 	/** The name of the residue chosen, or {@link #CANCEL}. */

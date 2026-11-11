@@ -25,6 +25,19 @@ public class LinkageConnector {
 	 *
 	 * @param _glin2linkage
 	 */
+	/**
+	 * An alditol hangs from its parent by an ordinary carbon, which this builder keeps where it keeps a
+	 * sugar's anomeric carbon: on the residue, from which every linkage to it takes its child position.
+	 * An alditol has no anomeric carbon, so it was left unknown, and the carbon the WURCS gave was lost
+	 * when the residue was attached - a ribitol in a teichoic acid, {@code b6-c1*OPO*}, was written back
+	 * as {@code b6-c?*OPO*}. The carbon is kept now, as the residue's.
+	 */
+	private static void keepLinkingCarbonOfAlditol(Residue _donor) {
+		if(!_donor.isAlditol() || _donor.getAnomericCarbon() != '?' || _donor.getParentLinkage() == null) return;
+		char linking = _donor.getParentLinkage().getAnomericCarbon();
+		if(Character.isDigit(linking)) _donor.setAnomericCarbon(linking);
+	}
+
 	public void start(GLINToLinkage _glin2linkage) {
 		Residue donor = this.donor;
 		Residue substituent = null;
@@ -44,6 +57,7 @@ public class LinkageConnector {
 		}else if(_glin2linkage.getStartSideRepLinkage() != null) {
 			donor.setParentLinkage(_glin2linkage.getStartSideRepLinkage());
 		}
+		keepLinkingCarbonOfAlditol(donor);
 
 		if(_glin2linkage.getDonorGLINs().isEmpty() || this.acceptor == null) {
 			//　start-rep is root node

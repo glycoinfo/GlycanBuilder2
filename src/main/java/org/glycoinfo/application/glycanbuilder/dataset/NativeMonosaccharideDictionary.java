@@ -93,6 +93,22 @@ public class NativeMonosaccharideDictionary {
 			return this.modifications;
 		}
 
+		/**
+		 * The carbon that carries the residue's own amine: 2 for GlcN, GlcNAc and MurNAc, 5 for the
+		 * neuraminic acids. '\0' when the name owns no nitrogen, or when it owns two, as Bac does at 2
+		 * and 4, and the amine is not one carbon.
+		 */
+		public char getAminePosition() {
+			char found = '\0';
+			for (String unit : this.substituents.split("_")) {
+				int star = unit.indexOf('*');
+				if (star != 1 || !unit.startsWith("N", 2)) continue;
+				if (found != '\0') return '\0';
+				found = unit.charAt(0);
+			}
+			return found;
+		}
+
 		/** The substituents the name owns, as "2*N_3*(R)Lac", or "" when it owns none. */
 		public String getSubstituents() {
 			return this.substituents;
@@ -215,6 +231,8 @@ public class NativeMonosaccharideDictionary {
 		residues.put("TalNAc",         new Entry("1112",  true,  'D', "2*NAc",          ""));
 		// The tetroses, by their trivial names: the configurational prefixes thr and ery of #261. They
 		// had no stereo, and no configuration or ring in their rows, so they could not be written (#285).
+		// Glyceraldehyde, and glycerol as its alditol (#282): D is h2h, the one centre at C2.
+		residues.put("Gro",            new Entry("2",     true,  'D', "",               ""));
 		residues.put("Thr",            new Entry("12",    true,  'D', "",               ""));
 		residues.put("Ery",            new Entry("22",    true,  'D', "",               ""));
 		residues.put("Tyv",            new Entry("122",   true,  'D', "",               "3*d_6*m"));
