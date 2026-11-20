@@ -87,8 +87,14 @@ public class SUBSTAnalyzer {
 		if(_glin.getMAP().equals("")) return null;
 
 		MAPAnalyzer mapAnalyzer = new MAPAnalyzer();
-		mapAnalyzer.start(_glin.getMAP());
+		try {
+			mapAnalyzer.start(_glin.getMAP());
+		} catch (NullPointerException ex) {
+			throw new WURCSToGlycanException("Failed to convert cross-linked substituent: " + _glin.getMAP(), ex);
+		}
 		BaseCrossLinkedTemplate crossTemp = mapAnalyzer.getCrossTemplate();
+		if (crossTemp == null)
+			throw new WURCSToGlycanException("Failed to convert cross-linked substituent: " + _glin.getMAP());
 
 		return new Residue(CrossLinkedSubstituentDictionary.getCrossLinkedSubstituent(crossTemp.getIUPACnotation()));
 	}
@@ -104,7 +110,7 @@ public class SUBSTAnalyzer {
 
 		ResidueType substituentType = SubstituentMAPDictionary.findResidueTypeByMAP(_glin.getMAP());
 		if(substituentType == null)
-			throw new Exception("This MAP is not support in the GlycanBuilder2:" + _glin.getMAP());
+			throw new WURCSToGlycanException(WURCSToGlycanException.badSubstituentMessage,_glin.getMAP());
 
 		return ResidueDictionary.newResidue(substituentType.getName());
 	}
@@ -131,7 +137,7 @@ public class SUBSTAnalyzer {
 
 		ResidueType substituentType = SubstituentMAPDictionary.findResidueTypeByMAP(_subst.getMAP());
 		if(substituentType == null)
-			throw new Exception("This MAP is not support in the GlycanBuilder2:" + _subst.getMAP());
+			throw new WURCSToGlycanException(WURCSToGlycanException.badSubstituentMessage,_subst.getMAP());
 
 		// A C-linked group, *C or *CO, here replaces the hydroxyl, as N-linked ones do. On a carbon
 		// whose descriptor has no hydrogen - 5 to 8, X - the hydroxyl stays and the group takes the
@@ -161,13 +167,17 @@ public class SUBSTAnalyzer {
 			substituentType = SubstituentMAPDictionary.findResidueTypeByMAP(
 					_subst.getMAP().replaceFirst("N", "O"));
 			if(substituentType == null)
-				throw new Exception("This MAP is not support in the GlycanBuilder2:" + _subst.getMAP());
+				throw new WURCSToGlycanException(WURCSToGlycanException.badSubstituentMessage,_subst.getMAP());
 		}
 
 		linkage.setLinkagePositions(positions);
 
 		// set LinkageType
-		linkage.setParentLinkageType(checkLinkageTypeOfMAP(_subst, _ms));
+		try {
+			linkage.setParentLinkageType(checkLinkageTypeOfMAP(_subst, _ms));
+		} catch (StringIndexOutOfBoundsException ex) {
+			throw new WURCSToGlycanException(WURCSToGlycanException.badSubstituentMessage,_subst.getMAP(),ex);			
+		}
 		linkage.setChildLinkageType(LinkageType.NONMONOSACCHARID);
 
 		// set probability annotation
@@ -182,11 +192,15 @@ public class SUBSTAnalyzer {
 	private void analyzeBRIDGE(BRIDGE _bridge, Residue _residue) throws Exception {
 		Linkage linkage = new Linkage();
 		MAPAnalyzer mapAnalyzer = new MAPAnalyzer();
-		mapAnalyzer.start(_bridge.getMAP().equals("") ? "*O*" : _bridge.getMAP());
+		try {
+			mapAnalyzer.start(_bridge.getMAP().equals("") ? "*O*" : _bridge.getMAP());
+		} catch (NullPointerException ex) {
+			throw new WURCSToGlycanException(WURCSToGlycanException.badSubstituentMessage,(_bridge.getMAP().equals("") ? "*O*" : _bridge.getMAP()),ex);
+		}
 		BaseCrossLinkedTemplate crossTemp = mapAnalyzer.getCrossTemplate();
 
 		if (crossTemp == null)
-			throw new Exception("This MAP is not support in the GlycanBuilder2:" + _bridge.getMAP());
+			throw new WURCSToGlycanException(WURCSToGlycanException.badSubstituentMessage,(_bridge.getMAP().equals("") ? "*O*" : _bridge.getMAP()));
 
 		char[] startPos = this.makePosition(_bridge.getStartPositions());
 		char[] endPos = this.makePosition(_bridge.getEndPositions());
