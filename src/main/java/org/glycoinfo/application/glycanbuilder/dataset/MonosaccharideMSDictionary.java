@@ -65,18 +65,53 @@ public class MonosaccharideMSDictionary {
 		String skeleton = skeletonOf(_ms);
 		List<String> groups = groupsOf(_ms);
 
+		// Any of the groups may be the residue's own, not only the first few. They are written in
+		// position order, so the residue's own may come after another: in Neu4,5Ac2,
+		// _4*OCC/3=O_5*NCC/3=O, NeuAc's own N-acetyl is the second. Owning only a prefix never tried
+		// it alone, and the sialic acid was read as Kdn with an O-acetyl at 5 - its nitrogen lost,
+		// 0.9840 heavy (#318). Every subset is tried, the largest first and, of the same size, the one
+		// of the lowest positions first; an MS has a handful of groups.
 		for (int owned = groups.size(); owned >= 0; owned--) {
-			Named named = findNamed(describe(skeleton, groups.subList(0, owned)));
-			if (named == null) continue;
+			for (List<Integer> chosen : combinations(groups.size(), owned)) {
+				List<String> own = new ArrayList<String>();
+				List<String> left = new LinkedList<String>();
+				for (int i = 0; i < groups.size(); i++)
+					(chosen.contains(i) ? own : left).add(groups.get(i));
 
-			ResidueType residueType = ResidueDictionary.findResidueType(named.name);
-			if (residueType == null) continue;
+				Named named = findNamed(describe(skeleton, own));
+				if (named == null) continue;
 
-			return new Match(residueType, named.configuration,
-					new LinkedList<String>(groups.subList(owned, groups.size())));
+				ResidueType residueType = ResidueDictionary.findResidueType(named.name);
+				if (residueType == null) continue;
+
+				return new Match(residueType, named.configuration, (LinkedList<String>) left);
+			}
 		}
 
 		return null;
+	}
+
+	/**
+	 * The ways of choosing k of n indices, each in ascending order, and in lexicographic order - so
+	 * that, of the same size, the earliest groups are tried first. A prefix is the first of them, as
+	 * it was the only one tried before.
+	 */
+	static List<List<Integer>> combinations(int n, int k) {
+		List<List<Integer>> all = new ArrayList<List<Integer>>();
+		combine(0, n, k, new ArrayList<Integer>(), all);
+		return all;
+	}
+
+	private static void combine(int start, int n, int k, List<Integer> chosen, List<List<Integer>> all) {
+		if (chosen.size() == k) {
+			all.add(new ArrayList<Integer>(chosen));
+			return;
+		}
+		for (int i = start; i < n && n - i >= k - chosen.size(); i++) {
+			chosen.add(i);
+			combine(i + 1, n, k, chosen, all);
+			chosen.remove(chosen.size() - 1);
+		}
 	}
 
 	/** The skeleton code of an MS, which is whatever precedes the anomeric information. */

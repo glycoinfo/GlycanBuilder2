@@ -120,7 +120,10 @@ public class ResidueStyleDictionary {
 		ResidueType type = node.getType();
 		String type_name = type.getName();
 
-		if( styles.containsKey(type_name)) {
+		// A residue carrying a deoxy its type's name does not imply is not that type: a 6-deoxy allose
+		// is not an allose, and drawn as one it said something false (#258). It falls through to the
+		// white symbol a residue without its own row gets, and its legend names it.
+		if( styles.containsKey(type_name) && !node.hasSkeletonModifications() ) {
 			try {
 				return new ResidueStyle(this.styles.get(type_name));
 			} catch (Exception e) {
@@ -164,13 +167,18 @@ public class ResidueStyleDictionary {
 			return ResidueStyle.createYCleavage();
 		if( type_name.equals("#zcleavage") )
 			return ResidueStyle.createZCleavage();
-		if( type.isCustomType() ) 
+		if( type.isCustomType() || type.isAglycon() ) 
 			return ResidueStyle.createText(type.getResidueName());    
 
 		/* set basetype symbol*/
 		String a_sStyle = "";
 		if(a_oRS == null) {
-			a_sStyle = this.styles.get(type.getSuperclass());
+			// In SNFG, the white symbol of the residue's generic type where one fits (#279); the
+			// superclass's row, as before, for a residue the table does not name.
+			String generic = this.styles.containsKey("Assigned")
+					? org.glycoinfo.application.glycanbuilder.dataset.SNFGGenericSymbols.symbolFor(node) : null;
+			a_sStyle = (generic != null && this.styles.containsKey(generic))
+					? this.styles.get(generic) : this.styles.get(fallbackFor(type.getSuperclass()));
 		}
 		
 		/* set text notation */
@@ -192,13 +200,34 @@ public class ResidueStyleDictionary {
 			LogUtils.report(e);
 		}
 
-		if(node.getID() != 0) a_oRS.setText(String.valueOf(node.getID()));
+		// A residue with no symbol of its own carries its footnote letter - A, B, C - as SNFG note 11
+		// asks. It carried the ordinal as a number (#262).
+		if(node.getID() != 0)
+			a_oRS.setText(org.eurocarbdb.application.glycanbuilder.renderutil.SNFGFootnote.letter(node.getID()));
 
 		return a_oRS;
 	}
 
+	/**
+	 * The row a residue with none of its own is drawn by: its superclass's - the generic white symbol
+	 * of its kind, as SNFG asks - except for the superclass Unknown, which is not a kind.
+	 *
+	 * <p>SNFG draws a monosaccharide absent from its table in the white symbol of its generic type where
+	 * one fits, "otherwise, the white pentagon" (#248). The residues filed under Unknown - the heptoses
+	 * with no SNFG symbol, Sed, Ole, Cym, The - are the "otherwise". The {@code Unknown} row is SNFG's
+	 * Unknown monosaccharide, the white flat hexagon, and is that residue's own; #280 had made it the
+	 * pentagon so that these would fall back to one, which drew the Unknown monosaccharide wrong (#288).
+	 * Where there is no {@code Assigned} row, as in every notation but SNFG, nothing changes.
+	 */
+	private String fallbackFor(String _superclass) {
+		if ("Unknown".equals(_superclass) && this.styles.containsKey("Assigned"))
+			return "Assigned";
+		return _superclass;
+	}
+
 	public boolean containsResidue(Residue node) {
-		return this.styles.containsKey(node.getTypeName());
+		// see getStyle: a residue with a deoxy its name does not imply has no symbol of its own
+		return this.styles.containsKey(node.getTypeName()) && !node.hasSkeletonModifications();
 	}
 	
 	/**

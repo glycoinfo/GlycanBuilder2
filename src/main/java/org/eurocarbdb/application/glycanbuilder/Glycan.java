@@ -534,6 +534,20 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 	}
 
 	/**
+	 * Whether this structure ends in an aglycon whose mass is not known - Ser/Thr, or a root named
+	 * by something no dictionary has (#305). Its mass is then the glycan's alone, and is not a figure
+	 * to show as the glycoconjugate's.
+	 */
+	public boolean hasAglyconOfUnknownMass() {
+		return root!=null && root.getType().hasUnknownMass();
+	}
+
+	/** Whether this structure ends in an aglycon of the user's, which WURCS has no way to write (#305). */
+	public boolean hasAglycon() {
+		return root!=null && root.getType().isAglycon();
+	}
+
+	/**
 	   Bring every residue's {@link Residue#isComposition} flag in line with
 	   {@link #isComposition}. Residues attached directly to a composition's
 	   bracket form a flat, unordered list rather than a linked structure, and
@@ -1332,6 +1346,89 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 		return false;                
 	}
 
+	/**
+	 * How many groups a derivatization puts on this residue: its type's count, less one for each deoxy
+	 * the residue carries beyond its type's name, since a deoxy is a hydroxyl that is not there.
+	 * Checked against the dictionary, where fucose, the 6-deoxy galactose, has one fewer methylation
+	 * and acetylation site than galactose.
+	 */
+	private int noSubstitutions(Residue node) {
+		int ofType = noSubstitutions(node.getType());
+		return (ofType == 0) ? 0 : ofType - extraDeoxies(node) - hydroxylsLostToDoubleBonds(node)
+				+ (isReducedInChain(node) ? 1 : 0);
+	}
+
+	/**
+	 * The hydroxyls a double bond on this residue took away (#292): one for each carbon of it that is a
+	 * CH, e or z. A carbon that keeps its oxygen, E or Z, keeps its site - the maintainer's rule,
+	 * 2026-11-10, to count the hydroxyls the skeleton has. So a 4,5-unsaturated uronic acid, a21eEA, has
+	 * one site fewer than its saturated acid, as the dictionary's 4uHexA has one fewer than HexA.
+	 */
+	private static int hydroxylsLostToDoubleBonds(Residue node) {
+		int lost = 0;
+		for (String carbon : node.getDoubleBonds())
+			if (org.glycoinfo.application.glycanbuilder.util.SkeletonModificationComposition.removesAHydroxyl(carbon)) lost++;
+		return lost;
+	}
+
+	/**
+	 * Whether this residue is an alditol whose reduction no reducing end accounts for: a ribitol or a
+	 * glycerol inside a chain, as in teichoic acids, rather than the reduced sugar at the end of one.
+	 *
+	 * <p>At the reducing end, the reducing end's type carries the reduction - redEnd and the labels of
+	 * reductive amination add the two hydrogens, and count the hydroxyl the reduction makes. An alditol
+	 * anywhere else had neither: a ribitol between two phosphates weighed 2.016 light, and was
+	 * permethylated at one site too few, the hydroxyl of its C1 (#282). The residue's type is that of
+	 * the sugar it was reduced from, so it is the residue that adds what the reduction does.
+	 */
+	private static boolean isReducedInChain(Residue node) {
+		if( !node.isSaccharide() || !node.isAlditol() )
+			return false;
+		Residue parent = node.getParent();
+		return !(parent != null && parent.isReducingEnd() && parent.getType().makesAlditol());
+	}
+
+	/**
+	 * The deoxies on this residue, every one of which its type lacks: the WURCS reader records only
+	 * those (see SUBSTAnalyzer.extraDeoxies), and a deoxy implied by the type is not recorded at all.
+	 */
+	private static int extraDeoxies(Residue node) {
+		return node.getDeoxies().size();
+	}
+
+	/**
+	 * A residue's own composition: its type's, changed by any deoxy it carries beyond its type's name
+	 * (#258, #263). The change is WURCSFramework's, see {@link
+	 * org.glycoinfo.application.glycanbuilder.util.SkeletonModificationComposition}.
+	 */
+	private Molecule moleculeOf(Residue node) throws Exception {
+		Molecule ofType = node.getType().getMolecule();
+		if (ofType == null || !node.hasSkeletonModifications()) return ofType;
+
+		Molecule ret = new Molecule();
+		ret.add(ofType);
+		for (String deoxy : node.getDeoxies())
+			ret.add(org.glycoinfo.application.glycanbuilder.util.SkeletonModificationComposition.deltaOf(deoxy));
+		// and the double bond's carbons (#292), measured the same way
+		for (String carbon : node.getDoubleBonds())
+			ret.add(org.glycoinfo.application.glycanbuilder.util.SkeletonModificationComposition.deltaOf(carbon));
+		return ret;
+	}
+
+	/** @return Returns a residue's own mass, of the kind this structure is being weighed in. */
+	private double massOf(Residue node) {
+		// A type with no composition is weighed as it always was; the deoxy cannot make it right, and
+		// throwing here would take the painting down with it. That such types exist is its own fault.
+		if (!node.hasSkeletonModifications() || node.getType().getMolecule() == null) return massOf(node.getType());
+		try {
+			return massOf(moleculeOf(node));
+		} catch (Exception cannotBeWeighed) {
+			// a constant computed by WURCSFramework from two fixed skeletons; if it cannot be had, a
+			// mass without it would be wrong by an oxygen per deoxy and look right
+			throw new IllegalStateException("cannot weigh the deoxy or double bond on " + node.getTypeName(), cannotBeWeighed);
+		}
+	}
+
 	private int noSubstitutions(ResidueType type) {
 		if( mass_options.DERIVATIZATION.equals(MassOptions.PERMETHYLATED) ||
 				mass_options.DERIVATIZATION.equals(MassOptions.PERDMETHYLATED) ||
@@ -1408,10 +1505,12 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 		int no_bonds = node.getNoBonds();
 
 		// add mass of the saccharide    
-		double mass =  massOf(type);
+		double mass =  massOf(node);
 
 		// modify for alditol
 		if( node.isReducingEnd() && node.getType().makesAlditol() )
+			mass += 2*massOf(MassUtils.hydrogen);
+		if( isReducedInChain(node) )
 			mass += 2*massOf(MassUtils.hydrogen);
 
 		if( node.isBracket() ) {
@@ -1431,7 +1530,7 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 			if( isDropped(type) )
 				mass -= (massOf(type) - massOf(MassUtils.water) - substitutionMass());
 			else
-				mass += (noSubstitutions(type)-no_bonds)*substitutionMass();
+				mass += (noSubstitutions(node)-no_bonds)*substitutionMass();
 		}    
 
 		// add children
@@ -1502,11 +1601,13 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 		double mass=0.;
 		
 		if(!node.isRepetition() || checkCompositionResidue(node)){
-			mass =  massOf(type);
+			mass =  massOf(node);
 		}
 		
 		// modify for alditol
 		if( node.isReducingEnd() && node.getType().makesAlditol() )
+			mass += 2*massOf(MassUtils.hydrogen);
+		if( isReducedInChain(node) )
 			mass += 2*massOf(MassUtils.hydrogen);
 
 		if( node.isBracket() ) {
@@ -1574,7 +1675,7 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 				if( isDropped(type) )
 					mass -= (massOf(type) - massOf(MassUtils.water) - substitutionMass());
 				else
-					mass += ((noSubstitutions(type)-no_bonds)*substitutionMass());
+					mass += ((noSubstitutions(node)-no_bonds)*substitutionMass());
 			}
 		}
 
@@ -1649,10 +1750,12 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 		// add residue
 		if( type.getMolecule()==null )
 			throw new Exception("Cannot compute molecule for residue: " + node.getTypeName());
-		ret.add(type.getMolecule());    
+		ret.add(moleculeOf(node));    
 
 		// modify for alditol
 		if( node.isReducingEnd() && node.getType().makesAlditol() )
+			ret.add(MassUtils.hydrogen,2);
+		if( isReducedInChain(node) )
 			ret.add(MassUtils.hydrogen,2);
 
 		// fix for persubstitutions
@@ -1675,7 +1778,7 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 				ret.add(substitution_molecule);
 			}
 			else 
-				ret.add(substitution_molecule,noSubstitutions(type)-no_bonds);
+				ret.add(substitution_molecule,noSubstitutions(node)-no_bonds);
 		}    
 
 		// add children
@@ -1700,7 +1803,7 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 			if( node.getType().isDroppedWithMethylation() )
 				ret -= 1;
 			else 
-				ret += node.getType().getNoMethyls()-no_bonds;        
+				ret += node.getType().getNoMethyls()-extraDeoxies(node)+(isReducedInChain(node) ? 1 : 0)-no_bonds;        
 		}    
 
 		// add children
@@ -1725,7 +1828,7 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 			if( node.getType().isDroppedWithAcetylation() )
 				ret -= 1;
 			else 
-				ret += node.getType().getNoAcetyls()-no_bonds;        
+				ret += node.getType().getNoAcetyls()-extraDeoxies(node)+(isReducedInChain(node) ? 1 : 0)-no_bonds;        
 		}    
 
 		// add children

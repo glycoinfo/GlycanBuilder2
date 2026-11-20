@@ -20,6 +20,7 @@
 
 package org.eurocarbdb.application.glycanbuilder.converterGWS;
 
+import org.glycoinfo.application.glycanbuilder.util.SkeletonModificationComposition;
 import org.glycoinfo.application.glycanbuilder.converterWURCS2.LinkageTypeOptimizer;
 
 import java.awt.Rectangle;
@@ -30,6 +31,7 @@ import org.eurocarbdb.application.glycanbuilder.Glycan;
 import org.eurocarbdb.application.glycanbuilder.Residue;
 import org.eurocarbdb.application.glycanbuilder.ResidueHolder;
 import org.eurocarbdb.application.glycanbuilder.ResiduePlacement;
+import org.eurocarbdb.application.glycanbuilder.ResidueType;
 import org.eurocarbdb.application.glycanbuilder.converter.GlycanParser;
 import org.eurocarbdb.application.glycanbuilder.dataset.CrossRingFragmentDictionary;
 import org.eurocarbdb.application.glycanbuilder.dataset.ResidueDictionary;
@@ -62,7 +64,22 @@ public class GWSParser implements GlycanParser {
 		String end_repeat_str = "](?:_(-?[0-9]+))?+(?:\\^(-?[0-9]+))?+";
 		// Ring forms: pyranose, furanose, alditol and the open chain, which a residue can be set to
 		// through setRingSize and which this used to write without being able to read back.
-		String residue_str = "([abo?][1-9N?])?+([DL]-)?+([a-zA-z0-9_#=.]+)(?:,([?opfa]))?+";
+		// A residue name. Two forms are admitted beyond the historical character class, because the
+		// writer has always been able to emit them and this reader could not read them back - drawing
+		// a heptose, saving and reopening lost the file (#256). See docs/gws-format.md 1.3.
+		//
+		//   -   when it is not the start of a linkage. "--" opens one and "-[1-9N?]" is the pre-2007
+		//       form, so both are excluded and nothing that reads today stops reading. No name in any
+		//       dictionary has a "-" followed by a digit, N or ?, so the exclusion costs nothing.
+		//   (c) a parenthesised single character, for (S)Lac, (R)Lac and (X)Lac. Deliberately narrow:
+		//       parentheses delimit branches, and a branch always opens "(--", so this cannot collide
+		//       with one. Admitting them unconstrained does collide - a name then reads as "Man(".
+		//
+		// The a-zA-z span is left as it is. It is a 2007 typo spanning ASCII 65-122, so it also admits
+		// [ \ ] ^ and `; narrowing it to a-zA-Z would be correct and would stop reading files that
+		// read today, which is the one thing this format may not do.
+		String name_str = "((?:[a-zA-z0-9_#=.]|-(?![-0-9N?])|\\([A-Za-z0-9]\\))+)";
+		String residue_str = "([abo?][1-9N?])?+([DL]-)?+" + name_str + "(?:,([?opfa]))?+";
 		String cleaved_str = "/([a-zA-z0-9_#]+)";
 		String place_str = "@(-?[0-9]+s?)";
 		String cord_str="<bounding_box>([0-9]+),([0-9]+),([0-9]+),([0-9]+)</bounding_box>";
@@ -79,6 +96,52 @@ public class GWSParser implements GlycanParser {
 	}
 
 	public void setTolerateUnknown(boolean f) {
+	}
+
+	/**
+	 * Where the root's name ends: at the first "--", which begins its first linkage, or at the "(" of
+	 * "(--" before it, which begins a branch. A name cannot hold "--" (ResidueType.escapeAglyconName).
+	 * With no "--" the root is alone, which only a composition's is - a structure of one reducing end
+	 * is no structure, and text of no "--" at all is more likely not GWS than an aglycon. Then, unless
+	 * the file is of the pre-2007 form, "-4" for "--4", which is read as it always was, the whole of it
+	 * is the root's; otherwise -1.
+	 */
+	private static int endOfRoot(String _tree, boolean _beforeABracket) {
+		int dash = _tree.indexOf("--");
+		if( dash>0 )
+			return ( _tree.charAt(dash-1)=='(' ) ? dash-1 : dash;
+		if( dash==0 || _tree.isEmpty() || !_beforeABracket )
+			return -1;
+
+		Matcher m = residue_pattern.matcher(_tree);
+		if( m.lookingAt() ) {
+			String rest = _tree.substring(m.end());
+			if( rest.matches("^\\(?-[1-9N?].*") )
+				return -1;
+		}
+		return _tree.length();
+	}
+
+	/**
+	 * Whether a root reads as the residue it has always read as: the residue grammar takes all of it,
+	 * and names something a dictionary has - freeEnd, redEnd, 2AB, a cleavage. Anything else is an
+	 * aglycon named by the whole of it, "Ser/Thr=87.0320u", "Cer(d18:1/16:0)", "D-Ser", as GlycanCore
+	 * reads it (#305), where the grammar used to take it apart: "/" as a cleavage, "D-" as a
+	 * configuration, "," as a ring.
+	 */
+	private static boolean readsAsAResidue(String _root) {
+		Matcher m = residue_pattern.matcher(_root);
+		if( !m.matches() || m.group(5)==null ) return false;
+		String typename = m.group(5);
+		if( m.group(4)!=null && !isKnownResidue(typename) && isKnownResidue(m.group(4) + typename) )
+			typename = m.group(4) + typename;
+		return isKnownResidue(typename);
+	}
+
+	/** Whether either dictionary has a residue of this name. */
+	private static boolean isKnownResidue(String _name) {
+		return ResidueDictionary.hasResidueType(_name)
+				|| org.glycoinfo.application.glycanbuilder.dataset.NonSymbolicResidueDictionary.hasResidueType(_name);
 	}
 
 	public String writeGlycan(Glycan structure) {
@@ -183,14 +246,27 @@ public class GWSParser implements GlycanParser {
 		// read structure
 		Glycan ret = null;
 		int ind2 = str.indexOf('}');
-		if( ind2==-1 ) 
-			ret = new Glycan(readSubtree(str,true),false,mass_opt);
+		String tree = ( ind2==-1 ) ? str : str.substring(0,ind2);
+
+		// A root that does not read as a residue is an aglycon, by the whole of its name (#305).
+		ResidueType aglycon = null;
+		int rootEnd = endOfRoot(tree, ind2!=-1);
+		if( rootEnd>0 && !readsAsAResidue(tree.substring(0,rootEnd)) ) {
+			aglycon = ResidueDictionary.findReducingEndType(tree.substring(0,rootEnd));
+			tree = "freeEnd" + tree.substring(rootEnd);
+		}
+		Residue treeRoot = readSubtree(tree,true);
+		if( aglycon!=null && treeRoot!=null )
+			treeRoot.setType(aglycon);
+
+		if( ind2==-1 )
+			ret = new Glycan(treeRoot,false,mass_opt);
 		else {
 			// read structure with bracket
-			ret = new Glycan(readSubtree(str.substring(0,ind2),true),
+			ret = new Glycan(treeRoot,
 					readSubtree(str.substring(ind2),true),
-					false,mass_opt);        
-		}    
+					false,mass_opt);
+		}
 
 		// The reducing end's type implies the sugar's form: redEnd and every reductive-amination
 		// label reduce their sugar, leaving it acyclic. A file saved since the ring letter began
@@ -207,6 +283,15 @@ public class GWSParser implements GlycanParser {
 				sugar.setRingSize('o');
 			}
 		}
+
+		// Deoxies written as children "--6m" go back onto their residue (#258, #263). Before the
+		// linkage types are worked out, which would otherwise be worked out for children that are
+		// about to go.
+		foldDeoxies(ret.getRoot());
+		foldDeoxies(ret.getBracket());
+
+		// The repeat markers carry the carbon the repeat closes on (#301)
+		giveRepeatsTheirCarbon(ret);
 
 		// Say what each bond is made of, rather than leaving every one of them UNVALIDATED (#4).
 		// A structure read from WURCS has its linkage types worked out; one read from GWS did not,
@@ -301,12 +386,20 @@ public class GWSParser implements GlycanParser {
 		// linkage, meets a sentence and stops - so a composition's own GWS could not be read back
 		// (#162). It is left out here, as it is left out of the drawing and of the mass.
 		ArrayList<String> str_children = new ArrayList();
+		boolean deoxiesWritten = !r.hasSkeletonModifications();
 		for( Linkage l : r.getChildrenLinkages() ) {
 			if( l.getChildResidue()!=null && l.getChildResidue().isCompositionMarker() )
 				continue;
+			// before the first monosaccharide child, which is where the WURCS reader used to attach them
+			if( !deoxiesWritten && l.getChildResidue()!=null && l.getChildResidue().isSaccharide() ) {
+				str_children.addAll(deoxiesAsChildren(r));
+				deoxiesWritten = true;
+			}
 			str_children.add("--" + toStringLinkage(l)
 					+ writeSubtree(l.getChildResidue(), ordered, bboxManager, visited));
 		}
+		if( !deoxiesWritten )
+			str_children.addAll(deoxiesAsChildren(r));
 
 		if( ordered ) 
 			Collections.sort(str_children);    
@@ -325,6 +418,108 @@ public class GWSParser implements GlycanParser {
 		}    
 
 		return str;
+	}
+
+	/**
+	 * A residue's deoxies, written the way this file has always carried them: as children, "--6m".
+	 *
+	 * <p>Before #258 and #263 the WURCS reader built a deoxy the residue's name does not imply as a
+	 * child residue named "m" or "d", and GWS wrote it like any child. The model keeps it on the residue
+	 * now, which GWS has no other way to say - so it is written exactly as it was, and {@link
+	 * #foldDeoxies} takes it back onto the residue when the file is read. A file is the same text
+	 * whichever version wrote it, and one written before the change reads correctly after it.
+	 */
+	static private ArrayList<String> deoxiesAsChildren(Residue r) {
+		ArrayList<String> ret = new ArrayList<String>();
+		// and the carbons of a double bond, "--4e" and "--5E", the same way (#292). GWS has no other way
+		// to say one; an older reader sees a child it does not know, as it did a deoxy's
+		ArrayList<String> carbons = new ArrayList<String>(r.getDeoxies());
+		carbons.addAll(r.getDoubleBonds());
+		for( String deoxy : carbons ) {
+			Character position = SkeletonModificationComposition.positionOf(deoxy);
+			Character code = SkeletonModificationComposition.codeOf(deoxy);
+			if( position!=null && code!=null )
+				ret.add("--" + position + code);
+		}
+		return ret;
+	}
+
+	/**
+	 * Tell each repeat's markers which residue the repeat starts with, and the carbon it closes on.
+	 *
+	 * <p>The WURCS writer closes a repeat on the residue its end marker names as the repeat's first,
+	 * at the carbon the markers hold as their anomeric carbon. Drawing a repeat sets both, and so does
+	 * reading one from WURCS. GWS writes "[" and "]" with neither, and reading it paired the two markers
+	 * and no more. So a repeat read from GWS was written open - {@code c4~n}, with nothing on its other
+	 * side, a WURCS that WURCSFramework calls invalid - and a structure with a repeat, saved and opened
+	 * again, could not be exported (#301).
+	 */
+	static void giveRepeatsTheirCarbon(Glycan _structure) {
+		for (Residue marker : _structure.getAllResidues()) {
+			if (!marker.isStartRepetition() && !marker.isEndRepetition()) continue;
+
+			Residue start = marker.isStartRepetition() ? marker : startOf(marker);
+			Residue first = firstOf(start);
+			if (first == null) continue;
+
+			if (marker.isEndRepetition() && marker.getStartResidue() == null) marker.setStartResidue(first);
+			if (marker.isStartRepetition() && first.getStartRepetitionResidue() == null)
+				first.setStartRepetiionResidue(marker);
+
+			char carbon = first.getAnomericCarbon();
+			if (marker.getAnomericCarbon() != '?' || !Character.isDigit(carbon)) continue;
+			marker.setAnomericCarbon(carbon);
+			if (marker.getParentLinkage() != null) marker.getParentLinkage().setAnomericCarbon(carbon);
+		}
+	}
+
+	/** The start of the repeat an end marker closes: the one it was paired with, or the nearest above it. */
+	private static Residue startOf(Residue _end) {
+		if (_end.getStartRepetitionResidue() != null) return _end.getStartRepetitionResidue();
+		for (Residue up = _end.getParent(); up != null; up = up.getParent())
+			if (up.isStartRepetition()) return up;
+		return null;
+	}
+
+	/** A repeat's first monosaccharide, or null when there is none. */
+	private static Residue firstOf(Residue _start) {
+		if (_start == null) return null;
+		for (Linkage link : _start.getChildrenLinkages()) {
+			Residue first = link.getChildResidue();
+			if (first.isSaccharide() && !first.isRepetition()) return first;
+		}
+		return null;
+	}
+
+	/**
+	 * Put back onto their residue the deoxies GWS carries as children - see {@link #deoxiesAsChildren}.
+	 *
+	 * <p>A child is taken to be one when it is named as a deoxy code, "d" or "m", has nothing attached to
+	 * it, is not a monosaccharide, hangs off a monosaccharide, and is attached at a single position. No
+	 * dictionary has a residue of either name, so nothing that is a residue can be mistaken for one.
+	 */
+	/** A deoxy, d or m, or a carbon of a double bond, e E z Z - each written as a child of one letter. */
+	private static boolean isSkeletonCode(char c) {
+		return SkeletonModificationComposition.isDeoxy(c) || SkeletonModificationComposition.isDoubleBond(c);
+	}
+
+	static void foldDeoxies(Residue r) {
+		if( r==null ) return;
+
+		for( Linkage l : new ArrayList<Linkage>(r.getChildrenLinkages()) ) {
+			Residue child = l.getChildResidue();
+			if( r.isSaccharide() && child!=null && !child.isSaccharide() && !child.hasChildren()
+					&& child.getTypeName().length()==1
+					&& isSkeletonCode(child.getTypeName().charAt(0))
+					&& l.getBonds().size()==1 ) {
+				String carbon = l.getParentPositionsSingle() + "*" + child.getTypeName();
+				if( SkeletonModificationComposition.isDeoxy(child.getTypeName().charAt(0)) ) r.addDeoxy(carbon);
+				else r.addDoubleBond(carbon);
+				r.getChildrenLinkages().remove(l);
+				continue;
+			}
+			foldDeoxies(child);
+		}
 	}
 
 	static public String writeSubtree(Linkage l, boolean ordered) {
@@ -409,6 +604,17 @@ public class GWSParser implements GlycanParser {
 
 				// get type name
 				String typename = m.group(5);
+
+				// A residue whose own name begins with a configuration - D-gro-D-galHep, L-gro-D-manNon -
+				// is written with no prefix when its configuration is unknown, and the "D-" was then
+				// read as the configuration: the residue came back as an unknown "gro-D-galHep" of no
+				// mass, though the text written back was the same (#252). The prefix is taken as part
+				// of the name only when the name without it is no residue and the name with it is one,
+				// so nothing that read as a known residue before reads differently now.
+				if( m.group(4)!=null && !isKnownResidue(typename) && isKnownResidue(m.group(4) + typename) ) {
+					typename = m.group(4) + typename;
+					ret_chirality = '?';
+				}
 
 				// get ring size
 				char ret_ring_size = '?';
@@ -504,13 +710,21 @@ public class GWSParser implements GlycanParser {
 			throw new Exception("invalid format for linkage: " + str);
 
 		if( m.group(1)!=null ) {
-			// old style
+			// old style: "-4" where a file written today says "--4". Read so that files from before the
+			// double dash still open, which the name grammar above goes out of its way to protect.
 
 			// parse child
 			Residue child = readSubtree(str.substring(m.end()),false,startRep);
 
-			// create linkage
-			return new Linkage(null,child,m.group(1).charAt(0));
+			// create linkage, and tell the child about it. The modern branch below always did the
+			// second half and this one never did, so the child came back with no parent linkage and
+			// the first thing to ask for it - LinkageTypeOptimizer, on every load - threw a
+			// NullPointerException that fromString swallowed. The file opened as empty, with no
+			// message (#274).
+			Linkage ret = new Linkage(null,child,m.group(1).charAt(0));
+			child.setParentLinkage(ret);
+
+			return ret;
 		}
 
 		// parse bonds

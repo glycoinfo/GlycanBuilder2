@@ -130,8 +130,10 @@ public class ResidueRendererAWT extends AbstractResidueRenderer {
 	    	style = ResidueStyle.assignedSNFG(node);
 		}
 
-    	//check ring size for SNFG
-    	boolean isSNFG = (!this.checkComposiiton(node).isEmpty());
+    	//check ring size for SNFG. A residue carrying a footnote letter draws the letter and not the
+    	//markers (#251), so the markers must not decide how it is drawn either: they set the letter
+    	//in the markers' own small type, which made "C" a third the size of "A" beside it.
+    	boolean isSNFG = (!this.checkComposiiton(node).isEmpty()) && node.getID() == 0;
     	
     	//draw shape
     	Point pp = ( par_bbox!=null ) ?center(par_bbox) :center(cur_bbox);
@@ -204,6 +206,10 @@ public class ResidueRendererAWT extends AbstractResidueRenderer {
     			orientation = new ResAngle(0);
 
     		String text = getText(node,on_border);
+    		// A residue identified by a footnote letter keeps it. The ring and configuration markers
+    		// below replaced the text outright, so a furanose with no symbol of its own was drawn
+    		// with "f" where its letter should have been, and the footnote named a residue that no
+    		// symbol carried (#251). Its full name, ring included - "β-D-Altf" - is the footnote's.
     		if(isSNFG) {
     			ArrayList<String> configurations = this.checkComposiiton(node);
     			if(shape != null) {

@@ -294,19 +294,40 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 
 	abstract protected void assignID (Glycan structure);
 
+	/** What is written beneath a structure for its m/z. */
+	public static final String UNWEIGHED = "\u2014 (contains an unassigned residue)";
+
+	/** What is written for the m/z of a structure whose aglycon has no mass given, as Ser/Thr (#305). */
+	public static final String AGLYCON_UNWEIGHED = "\u2014 (the aglycon's mass is not known)";
+
 	protected String getMassText(Glycan structure) {
 		StringBuilder sb = new StringBuilder();
 		DecimalFormat df = new DecimalFormat("0.0000");
-		double mz = structure.computeMZ();
 
 		sb.append("m/z: ");
-		if (mz < 0.) sb.append("???");
-		else sb.append(df.format(mz));
+		// An Assigned placeholder says only that some monosaccharide is there, not which, so the
+		// structure has no mass to give. Its row weighs it as one hydrogen, and the figure that came of
+		// that looked like a measurement (#285).
+		if (hasPlaceholder(structure)) sb.append(UNWEIGHED);
+		// An aglycon of no mass, Ser/Thr, weighs as nothing; the figure would be the glycan's alone,
+		// read as the glycoconjugate's.
+		else if (structure.hasAglyconOfUnknownMass()) sb.append(AGLYCON_UNWEIGHED);
+		else {
+			double mz = structure.computeMZ();
+			if (mz < 0.) sb.append("???");
+			else sb.append(df.format(mz));
+		}
 		sb.append(" [");
 		sb.append(structure.getMassOptions().toString());
 		sb.append("]");
 
 		return sb.toString();
+	}
+
+	private static boolean hasPlaceholder(Glycan structure) {
+		for (Residue r : structure.getAllResidues())
+			if (org.eurocarbdb.application.glycanbuilder.GlycanDocument.isPlaceholder(r)) return true;
+		return false;
 	}
 
 	abstract protected void paintQuantity(Paintable paintable, Residue antennae, int quantity,BBoxManager bboxManager);
@@ -470,19 +491,28 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 				bboxManager.translate(cur_left - bbox.x, cur_top - bbox.y, bracket);
 				bbox.translate(cur_left - bbox.x, cur_top - bbox.y);
 
-				// add masses
+				// the SNFG footnote, directly under the structure. Measured from the same SNFGFootnote the
+				// legend is drawn from: this used to add a fixed margin per residue whose superclass is
+				// "Assigned", which is neither the right count (one line per letter, not per residue) nor
+				// the right set (a residue with no symbol is lettered whatever its superclass), so a
+				// footnote line could get no room and be drawn over the mass (#250).
+				int below = bottom(bbox);
+				SNFGFootnote footnote = SNFGFootnote.of(structure, theResidueStyleDictionary, theGraphicOptions);
+				if (!footnote.isEmpty()) {
+					bbox = union(bbox, new Rectangle(cur_left, below, footnote.width(), footnote.height()));
+					below += footnote.height();
+				}
+
+				// and the mass below that
 				if (show_mass) {
 					Dimension d = textBounds(getMassText(structure),
 							theGraphicOptions.MASS_TEXT_FONT_FACE,
 							theGraphicOptions.MASS_TEXT_SIZE);
-					Rectangle text_bbox = new Rectangle(cur_left, bottom(bbox)
+					Rectangle text_bbox = new Rectangle(cur_left, below
 							+ theGraphicOptions.MASS_TEXT_SPACE, d.width,
 							d.height);
 					bbox = union(bbox, text_bbox);
 				}
-
-				// add legend margin bottom
-				this.addLegendMargin(bbox, structure);
 
 				return bbox;
 				//}
@@ -495,14 +525,6 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		// instead it defaults to a tiny rectangle.
 
 		return new Rectangle(cur_left, cur_top, 0, 0);
-	}
-
-	private void addLegendMargin (Rectangle _bbox, Glycan _glycan) {
-		for (Residue res : _glycan.getAllResidues()) {
-			if (!res.getType().getSuperclass().equals("Assigned")) continue;
-			if (res.isCompositionMarker()) continue;
-			_bbox.height = _bbox.height + theGraphicOptions.MASS_TEXT_SPACE;
-		}
 	}
 
 	/* (non-Javadoc)

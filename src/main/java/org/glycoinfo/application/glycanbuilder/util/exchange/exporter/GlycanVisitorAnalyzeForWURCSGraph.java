@@ -229,7 +229,8 @@ public class GlycanVisitorAnalyzeForWURCSGraph implements GlycanVisitor {
 			String[] subNotations = unit.split("\\*");
 			for(Linkage linkage : _residue.getChildrenLinkages()) {
 				if(linkage.getChildResidue().isSubstituent()) {
-					if(linkage.getParentPositionsSingle() == subNotations[0].charAt(0)) {
+					// a group drawn on the nitrogen, position N, is on the amine's carbon (#222)
+					if(AminePosition.orAsItIs(_residue, linkage.getParentPositionsSingle()) == subNotations[0].charAt(0)) {
 						subNotations[1] = subNotations[1] + linkage.getChildResidue().getTypeName();
 						this.a_aArrangedSubstituent.add(linkage);
 					}

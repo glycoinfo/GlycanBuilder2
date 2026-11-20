@@ -106,28 +106,28 @@ public class GlycanRendererAWT extends AbstractGlycanRenderer {
 			displayMass(paintable, structure, show_redend, bboxManager);
 	}
 
+	/**
+	 * Give each residue its footnote letter, or none.
+	 *
+	 * <p>Every residue is set, not only the lettered ones: a residue that had a letter and no longer
+	 * should - its type changed, the notation changed - must not keep the old one.
+	 */
 	protected void assignID (Glycan structure) {
-		HashMap<String, Integer> nodeIndex = new HashMap<>();
-		int id = 1;
-		for(Residue residue : structure.getAllResidues()) {
-			if (residue.getLegend().equals("no glycosidic linkages")) continue;
-			if(!residue.isSaccharide() || residue.getType().getSuperclass().equals("Bridge")) continue;
-			if(theGraphicOptions.NOTATION.equals(GraphicOptions.NOTATION_SNFG)) {
-				if(!theResidueStyleDictionary.containsResidue(residue)) {
-					if(!nodeIndex.containsKey(residue.getLegend())) {
-						nodeIndex.put(residue.getLegend(), id);
-						id++;
-					}
-					if(nodeIndex.containsKey(residue.getLegend())) {
-						residue.setID(nodeIndex.get(residue.getLegend()));
-					}
-				}				
-			} else {
-				if(residue.getID() != 0) residue.setID(0);
-			}
+		SNFGFootnote footnote = SNFGFootnote.of(structure, theResidueStyleDictionary, theGraphicOptions);
+		for (Residue residue : structure.getAllResidues()) {
+			boolean lettered = SNFGFootnote.isLettered(residue, theResidueStyleDictionary, theGraphicOptions);
+			residue.setID(lettered ? footnote.ordinalOf(residue) : 0);
 		}
 	}
-	
+
+	/**
+	 * The footnote, directly under the structure.
+	 *
+	 * <p>Drawn from the same {@link SNFGFootnote} the layout measured, stepping by its line height
+	 * rather than by whatever graphics context is painting, so that it occupies exactly the space
+	 * {@code computeBoundingBoxes} kept for it and the mass is drawn below it rather than over it
+	 * (#250).
+	 */
 	protected void displayLegend(Paintable paintable, Glycan structure, boolean show_redend, BBoxManager bboxManager) {
 		Graphics2D g2d = paintable.getGraphics2D();
 		Rectangle structure_all_bbox = bboxManager.getComplete(structure.getRoot(laysOutAglycon(structure, show_redend)));
@@ -135,44 +135,16 @@ public class GlycanRendererAWT extends AbstractGlycanRenderer {
 		// never computed threw a NullPointerException out of the middle of painting (#153, #123).
 		if (structure_all_bbox == null) return;
 
+		SNFGFootnote footnote = SNFGFootnote.of(structure, theResidueStyleDictionary, theGraphicOptions);
+		if (footnote.isEmpty()) return;
+
 		g2d.setColor(Color.black);
-		g2d.setFont(new Font(theGraphicOptions.MASS_TEXT_FONT_FACE, Font.PLAIN, 10));
-		
-		// create legend of unsupported monosaccharides
-		TreeMap<Integer, String> nodeIndex = new TreeMap<>();
-		int id = 1;
-		StringBuilder legend = new StringBuilder();
-		for(Residue residue : structure.getAllResidues()) {
-			if(!residue.isSaccharide() || residue.getType().getSuperclass().equals("Bridge")) continue;
-			if (residue.getLegend().equals("no glycosidic linkages")) {
-				nodeIndex.put(0, residue.getLegend());
-				continue;
-			}
-			if(!theResidueStyleDictionary.containsResidue(residue) && !nodeIndex.containsValue(residue.getLegend())) {
-				nodeIndex.put(id, residue.getLegend());
-				id++;
-			}
- 		}
-		
-		for(Integer number : nodeIndex.keySet()) {
-			if (number != 0) {
-				legend.append(number)
-					.append("=");
-			}
-			legend.append(nodeIndex.get(number))
-				.append("|");
-		}
+		g2d.setFont(footnote.font());
 
+		int step = footnote.lineHeight();
 		int y = Geometry.bottom(structure_all_bbox);
-		for (String unit : legend.toString().split("\\|")) {
-			g2d.drawString(unit, Geometry.left(structure_all_bbox), y += g2d.getFontMetrics().getHeight());
-		}
-
-		/*
-		g2d.drawString(legend.toString().replace("|", "\n"),
-				Geometry.left(structurwe_all_bbox),
-				Geometry.bottom(structure_all_bbox) + theGraphicOptions.MASS_TEXT_SPACE/2 + 8);
-		 */
+		for (String line : footnote.lines())
+			g2d.drawString(line, Geometry.left(structure_all_bbox), y += step);
 	}
 	
 	@Override
@@ -188,9 +160,15 @@ public class GlycanRendererAWT extends AbstractGlycanRenderer {
 		g2d.setFont(new Font(theGraphicOptions.MASS_TEXT_FONT_FACE, Font.PLAIN,
 				theGraphicOptions.MASS_TEXT_SIZE));
 
+		// below the footnote, which sits directly under the structure; zero high when there is none.
+		// Both were drawn from the structure's bottom edge, so the footnote's lines ran into the mass
+		// (#250).
+		int footnote = SNFGFootnote.of(structure, theResidueStyleDictionary, theGraphicOptions).height();
+
 		String text = getMassText(structure);
 		g2d.drawString(text, Geometry.left(structure_all_bbox),
 				Geometry.bottom(structure_all_bbox)
+						+ footnote
 						+ theGraphicOptions.MASS_TEXT_SPACE
 						+ theGraphicOptions.MASS_TEXT_SIZE);
 	}

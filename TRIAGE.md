@@ -7,9 +7,78 @@ are not the one picking up the next piece of work.
 Written to be edited. When an issue is opened, closed, or turns out to be something other than what
 it said, change this file in the same breath.
 
+## GB2 or GB3: the first question, decided 2026-11-10
+
+**GlycanBuilder2 fixes bugs and security problems. New features are built in GB3.** *(The
+maintainer, I. Yamada, 2026-11-10.)* So before an issue is placed in a band, decide which of the two
+it belongs to. The bands below order GB2's work only.
+
+| | What belongs | Label |
+|---|---|---|
+| **GB2** | a wrong answer, given silently (mass, WURCS, a name); lost work (a file that will not reopen, our own output we cannot read back); a crash or a freeze; a security problem | `bug` (and `dependencies` for #175) |
+| **GB2, up to refusing it** | input GB2 does not support. It is refused with the reason, never misread. Being able to read it is an extension | `bug` while it is misread |
+| **GB2: an SNFG rule** | a drawing or naming point that SNFG has an explicit rule for. Checked against the SNFG notes before deciding (2026-11-10: #263, #293, #182) | `bug` |
+| **GB3** | a new operation, display mode or model extension, or a usability improvement | `GB3` |
+
+**Work already started stays in GB2 until its natural break.** That break is the scope of its PR as
+it stands. Anything beyond that goes to GB3. *(The maintainer, 2026-11-10.)* For the open PRs:
+
+| PR | Finished in GB2 | Beyond it, GB3 |
+|---|---|---|
+| #300 | reading a deoxy at an unknown carbon, and C-linked methyl and hydroxymethyl | the rest of #298: ketoses of unknown stereo, Kdo in compositions, other chain lengths |
+| #304 | glycerol read, weighed, written, drawn and chosen; alditols inside a chain weighed right | drawing other alditols and polyols (#181, #190) |
+| #306 | aglycon names read and written, mass not known, the WURCS warning | — (and in the web application, typing a mass not known, which !135 leaves out) |
+
+### Where every open issue stands, 2026-11-10
+
+Placed from the issue texts and from which PR closes what. Not re-measured one by one. The labels
+on the tracker were set to match on the same day.
+
+**Fixed, waiting for a release.** These are on develop, not yet in master: #236, #252, #260, #261,
+#265, #279, #285, #286. #266 is done as far as GB2 goes: an unknown double-bond geometry is refused
+with a sentence, and reading it is GB3. #256 and #258 were fixed in master and still open; they were
+closed by hand on 2026-11-10.
+
+**GB2 — a PR is open.**
+
+| Issue | PR |
+|---|---|
+| #123 | #227, a contributor's patches, unreviewed since 2026-08-19. Take this first; see "Not a priority band" |
+| #259, #239, #257 | #297 |
+| #301 | #303 |
+| #222 (and #189) | #302 |
+| #305 | #306 |
+| #282 | #304 |
+
+**GB2 — not started.**
+
+| Kind | Issues |
+|---|---|
+| a wrong answer, silently (P1) | #269 an internal repeat is exported wrong · #281 `clone()` weighs an oxygen light · #242 copy and paste changes the mass · #292 ΔUA loses its double bond · #283, #273 dictionary rows (chemistry decisions) · #307 Sed's footnote name (decisions recorded on the issue; the name itself is still open) · #275, #220 an empty WURCS or composition with no reason · #238, #264 GlyTouCan structures drawn wrong |
+| lost work, unusable output (P2) | repeats #268, #270, #271 (freezes) · copy and paste #231, #240, #241, #249 · #230 uncertain terminal linkages · #237 the WURCS file extension · #243 the ring is not restored when PA is removed · #267 no refresh after a failed import |
+| visibly wrong (P3) | #91 · #235 · #228 · #83 (waiting on the reporter) |
+| SNFG rules (checked 2026-11-10) | #263: double bond and acid in an Assigned residue's footnote (note 11), `en` inside a symbol (note 4); take it with #292 · #293: a lactonised sialic acid is its own symbol with `on` inside (note 4) |
+| security | #175 jdom (Dependabot #8) |
+
+**GB3.** #6, #7, #20, #41, #58, #93, #95, #100, #109, #177, #181, #184, #190 (an instance of #181),
+#200, #229, #232, #233, #234, #244, #245, and #298 beyond #300.
+
+**Answers, retests, umbrellas.**
+
+- Waiting on a retest, and probably fixed: #17, #57, #187, #253, and #66, whose `GB3` label was
+  wrong; it is a bug, and it has not reproduced since 1.36.0.
+- An umbrella: #247 closes once #249 and #239 do. #16 should be re-measured modification by
+  modification: what is misread is a GB2 issue of its own, and what is refused goes to GB3.
+- An answer rather than a change: #117 (what a composition is), #189 (GlcNS or not, the reporter's
+  question), #226 (the fork's drift, a project question). #182: "Unknown" is SNFG's own name for the
+  flat-hexagon row, and GB2's group holds exactly its members, so the name stays. Whether the menu
+  should add "(SNFG)" is the maintainer's call.
+
+---
+
 ## How an issue is placed
 
-Rank by **what a wrong answer costs the person receiving it**, not by how hard it looks or how
+For an issue that belongs to GB2 (above), rank by **what a wrong answer costs the person receiving it**, not by how hard it looks or how
 recently it was filed.
 
 | Band | What belongs in it | The question it answers |
@@ -310,6 +379,8 @@ waits for the reporter's retest rather than being done in a hurry.
 
 ## P4 — not there yet
 
+**Since 2026-11-10, this band is GB3's**, not GB2's: these are features (see "GB2 or GB3" at the top). Kept as a record of what each one asked for.
+
 | # | Title | Note |
 |---|---|---|
 | #95 | Validate a drawn structure | Before submitting to GlyTouCan. Validation code exists elsewhere and could be called |
@@ -373,11 +444,19 @@ Contribution questions are answered ahead of the queue, whatever band the code w
 
 ## The order to take them in
 
+*Written before 2026-11-10. For what GB2 takes on now, "GB2 or GB3" at the top of this file governs.*
+
 The bands say what a thing costs. This says what to pick up, and it is the bands applied twice: once
 for cost, once for what it costs to leave the tracker saying something untrue.
 
 **The list below is a record of 2026-08-15, kept because the reasoning is worth more than the ticks.**
 Everything on it is done. What is left to pick up is at the bottom.
+
+**Since 2026-11-09, read this together with "Twenty-five more arrived, and they are not twenty-five
+problems".** The bands still rank what a single issue costs; the clusters say which issues share a
+cause, and four of those causes account for fourteen of the twenty-five newest. Where the two
+disagree, take the cluster: fixing one cause and closing four issues beats fixing four symptoms, and
+the clusters are where the regressions come from.
 
 1. ~~**One sitting of tracker work.**~~ Nine fixed issues were open and two measured faults were filed
    nowhere — the same failure, and the one this file is most emphatic about: *silence outranks severity*.
@@ -936,10 +1015,313 @@ dictionary names, the `$`-in-a-name silent emptying, and `NaN` in written output
 both dialects.
 
 
+## Twenty-five more arrived, and they are not twenty-five problems
+
+Re-checked **2026-11-09**, after two months in which nothing on our side moved. #247–#271 were filed
+between 09-15 and 10-21, twenty-four by R. Ranzinger and one by M. Matsubara. Read as a list they
+look like twenty-five defects in twenty-five places. Measured, they are **six root causes**, and two
+of them are the ones this file already spent August describing.
+
+Group by what has to change, not by what the reporter saw. An issue appears once, under the cause;
+the symptom it was filed as is in brackets.
+
+### C1 — A residue name the writer can emit and the reader cannot read
+
+**#256, #253, #255, #254** · reaches **web #34**, **#177**, **#226**
+
+Measured today on 1.40.0, from the reporter's own string:
+
+```
+freeEnd--??1D-GlcNAc,p--??1D-D-gro-D-manHep,p$MONO,Und,0,0,freeEnd
+  -> java.lang.Exception: invalid format for linkage: -gro-D-manHep,p
+     GWSParser.readSubtreeLinkage(GWSParser.java:504)
+```
+
+That is #256 exactly, stack for stack. GlycanBuilder2 wrote that string itself, and GlycanBuilder2
+will not read it back. The cause is the one already written up above and specified in
+`docs/gws-format.md` §1.3: the GWS name class is `[a-zA-z0-9_#=.]+` and `-` is not in it.
+**Fixed 2026-11-09** — see "What the implementation actually did" below; the measurements in this
+section are the ones taken before the fix and are kept as the before.
+
+Re-counted properly, by reading the dictionaries rather than by hand — the count has been given as 6
+and as 33, and both were wrong:
+
+| offending character | rows | which |
+|---|---|---|
+| `-` | 30 | fifteen `X-gro-Y-zzzHep`, the octoses, `Tri-P` |
+| `( )` | 3 | `(S)Lac`, `(R)Lac`, `(X)Lac` |
+| `-` and `?` | 2 | `?-gro-D-manHep`, `?-gro-D-glcHep` |
+
+**35 of 272 dictionary rows**, and `(S)Lac` fails the same way — `Invalid format for string:
+?1(S)Lac`. One character in one character class accounts for thirty of them.
+
+Three things this cluster turned up that are not in any issue:
+
+- **`KDO` is silently respelled `Kdo`.** The #253 file reads, and comes back as `--5?2Kdo--`. A
+  GlycoWorkbench file changes spelling by being opened and saved. That is #226's drift, caught in the
+  act, and a C1-corpus failure under the specification's own string-comparison rule.
+- **The generic heptose row is commented out.** `residue_types:105` is `%Hep`, and `%` is this
+  file's comment marker. So the only generic heptose is disabled, the fifteen specific ones cannot
+  survive GWS, and `Hept` — the spelling GlycoWorkbench writes — is in no dictionary at all; it is
+  built on the fly by `createUnknown`. Heptose fails in all three directions at once.
+- **#255's own diagnosis is wrong.** It reads "the first Heptose residue becomes a Substituent of the
+  KDO residue". Parsed from the string in #253, *neither* `Hept` is a substituent — both come back
+  `superclass=Unknown, isSubstituent=false`. Whatever makes one look like a substituent happens in
+  placement or drawing. A fix aimed at the parser will miss it. Verify before fixing; this is the
+  second time an issue in this tracker has named the wrong layer.
+  **Found and fixed 2026-11-09**: `Hept` was in no dictionary, so `createUnknown` made it, and
+  `createUnknown` never sets `is_saccharide`. A non-saccharide on a saccharide is placed on its border
+  (`AbstractGlycanRenderer:561`), which is the "7Hept" text on KDO. The same cause gave it no SNFG
+  letter and a mass of zero. A structure with two of them read 420.15 Da light, silently. A `Hept` row
+  now exists, named as GlycoWorkbench writes it, because `Hep` is taken by `conf/compositions`.
+
+### C2 — The white pentagon exists, and nothing routes to it
+
+**#248, #250, #251, #252, #254, #258, #260, #261, #262, #263** · reaches **#182**, **#220**
+
+Ten issues, one SNFG rule (note 11), and most of the machinery already in the tree:
+`residue_styles_snfg:27` is `Assigned → pentagon`, and `ResidueType.createAssigned` exists at line
+228. It has one caller in the whole repository.
+
+Three faults underneath the ten:
+
+1. **The dictionary says the wrong superclass.** The thirty heptose and octose rows say `Unknown`,
+   so `residue_styles_snfg:26` — `Unknown → hexagon` — is what they get. #248 and #254 are a
+   dictionary edit, not a renderer change.
+   **Corrected and fixed 2026-11-09.** It is twenty rows, not thirty: sixteen heptoses, Sed, Ole, Cym
+   and The. The octoses were `Assigned` already. Line 26 was never read either, because a later
+   `Unknown` row (a flat hexagon) won. The fix was not a dictionary edit: the `Unknown` fallback in the
+   style file is now the white pentagon, which is SNFG's choice for a monosaccharide absent from its
+   table with no generic shape (the maintainer's decision, over moving rows between superclasses). Ole,
+   Cym and The have a generic shape, a white triangle or rectangle, and are still wrong: a pentagon now,
+   a flat hexagon before. That, and the same gap for some 70 other residues, is #279. #254 as reported needed more than this; see #255 above.
+2. **The index is computed twice.** `GlycanRendererAWT.assignID` (line 109) and `displayLegend`
+   (line 131) each walk the structure with their own counter starting at 1 and their own map, a
+   `HashMap` in one and a `TreeMap` in the other. Nothing makes the two agree, which is precisely how
+   a footnote can name a residue 3 that no symbol carries (**#251**). Both hold `int id = 1`, where
+   SNFG asks for a letter A–Z (**#262**).
+3. **Two predicates that should be one.** `displayLegend` decides on
+   `!theResidueStyleDictionary.containsResidue(residue)` — "has no style row" — while
+   `AbstractGlycanRenderer.addLegendMargin` (line 502) reserves the vertical space on
+   `superclass.equals("Assigned")`. A heptose satisfies the first and not the second, so it earns a
+   footnote line and no room for it. That is **#250**'s overlap, with nothing left over to explain.
+
+**#250, #251 and #262 fixed on 2026-11-09, and two of the three diagnoses above were wrong or
+incomplete.** They were read from the code, not measured, and the measurement disagreed:
+
+- **#251 is not point 2.** Rendered from G63532WE's own WURCS, `assignID` and `displayLegend` gave the
+  same numbers. They walk the same list in the same order with the same predicate, so in practice
+  they cannot disagree. The furanose was given index 3 correctly, and then
+  `ResidueRendererAWT` replaced the symbol's text with the SNFG ring marker, "f". **The reporter's own
+  guess was right and this file's was wrong.** The fix lets a lettered residue keep its letter; its
+  ring is already in the footnote's name, `β-D-Altf`.
+- **#250 was half of point 3.** The mismatched predicates were real, but even matching ones would not
+  have helped: the margin only made the image taller, while the legend and the mass were both drawn
+  from the structure's bottom edge. They overlapped regardless. One `SNFGFootnote` is now measured
+  for the layout and drawn from, and the mass is drawn below it.
+- **#262** was as described. Letters now, continuing AA, AB past Z rather than failing.
+
+The lesson is the one at the top of this file, learned again: *a verified claim outranks a plausible
+one*. Point 2 was plausible, specific, and cited line numbers, which is what made it convincing.
+
+**#252 has a flat answer**: `Residue.setLegend` has exactly one caller, `GRESToResidue:84`, the WURCS
+importer. A residue added from the GUI has no way to be named. And — unreported — the legend is a
+field on `Residue` that GWS does not carry, so a footnote is lost on save and reopen. Any fix for
+#252 that only stores the name on the residue will look right and lose it on save, which makes #252
+and #261 wait on the GWS work rather than lead it.
+
+### C3 — Skeleton codes the WURCS conversion has no case for
+
+**#265, #266, #261, #236** · reaches **#17**, **#66**
+
+Unknown stereo centres (`a1122xh`, `adxxxxh`, `hxh`), the descriptors `F` and `f`, and `araHex` with
+no stereo to write — one table, both directions, same two methods in the stacks:
+`SkeletonCodeToStereo.checkStereos` on the way in and `ResidueAnalyzer.stereoOfResidue:239` on the
+way out. #236 is the same family seen from the other side: an invalid WURCS loaded without an error.
+Not reproduced here yet; the stacks are the reporters'.
+
+### C4 — A repeat does not survive a round trip
+
+**#267, #268, #269, #270, #271, #264** · reaches **#57**, **#93**
+
+Not five bugs. **#268 is the whole cluster in one line**: the structure was drawn in GlycanBuilder2,
+exported to WURCS by GlycanBuilder2, and GlycanBuilder2 will not read it back. #269 says why that can
+happen quietly — the import is faithful and the *export* was already wrong. #270 gives a cause with a
+line number: `NumberFormatException: For input string: "3/6"`, an alternative linkage inside a
+repeat. #264 draws 3 of 13 residues. #267 is #96's refresh fault returning on a failed import, which
+is a second, separable defect wearing the same clothes. #271 is ours, model-level, and the only one
+reproducible without the GUI: `createRepetition()` returns `true`, drops the terminal residue and
+writes no closing bracket.
+
+### C5 — The clipboard is GWS
+
+**#249, #240, #241, #242, #229, #244, #245** · reaches **#184**, **#187**
+
+`GlycanSelection.getText()` is `GlycanDocument.toString(theStructures)`, and that is what the
+`glycoFlavor` payload carries. **Copy and paste inside the application is a GWS round trip.** So
+#249 — G63532WE copies, and pastes silently into nothing — is not a clipboard defect at all: it is
+C1, seen through the clipboard, because that structure is full of residues whose names GWS cannot
+write back. Fix C1 and #249 goes with it. The rest of the cluster is selection and multi-residue
+editing and is genuinely separate; it should not be scheduled with #249 just because the menu item is
+the same.
+
+### C6 — An unknown ring form, plus an anhydro nobody asked for
+
+**#259, #257, #258**
+
+`_1-?_` imports the ring correctly as `?` *and* adds a `1,? Anhydro`. Three one-residue WURCS strings
+reproduce it, which makes this the cheapest cluster in the list to test and probably to fix. #257 is
+the structure the three were cut out of; #258 rides along here and in C2.
+
+### What this reordering buys
+
+| Do this | and these stop | issues |
+|---|---|---|
+| ~~Widen the reader's name grammar (`docs/gws-format.md` §1.3)~~ **done 2026-11-09** | #256, #249's cause, and 30 of the 35 dictionary rows | 2 + 30 rows |
+| One index authority, one predicate, letters not numbers | #250, #251, #262 | 3 |
+| Move 30 dictionary rows from `Unknown` to `Assigned` | #248, #254 | 2 |
+| Teach the repeat round trip | #267, #268, #269, #270, #264 | 5 |
+
+Twelve of the twenty-five new issues sit behind these four changes.
+
+**A correction to the row above, made while implementing it.** It said the widening would also fix
+glycanbuilder2web#34. **It does not.** That issue is about `/` in an aglycon label, and `/` opens a
+cleavage; the widening admits `-` and a parenthesised character, nothing else. web#34 needs the
+escape of §1.3.1, which is still unimplemented. The two were put in one row because both are "the
+reducing-end label is too narrow", and that is not the same as one fix reaching both.
+
+### What the implementation actually did, measured
+
+`GWSParser`'s name class, reader only, no writer change. The suite went 226 → 233 tests, all passing.
+
+- **35 unreadable dictionary names → 5.** #256's own string now reads and comes back byte-identical,
+  as do `(S)Lac` and `Tri-P`.
+- **The five that remain are not grammar at all**, which was not known before the change: `araOct`
+  and `manOct` record an anomeric carbon of `-`, `L-gro-D-glcOct` a chirality of `/` (and its name,
+  `iupac_name` and description disagree three ways), and `?-gro-D-manHep` and `?-gro-D-glcHep` begin with
+  `?`. All five are rows to correct, and that is a chemistry decision — **they are the one thing in
+  C1 that needs an answer rather than code.** Filed as **#273**, with the question each row raises.
+- **`KDO` → `Kdo` is unchanged**, as expected: a dictionary spelling, not a grammar problem.
+- **Found while testing, and not a regression**: the pre-2007 linkage form `-[1-9N?]` does not load,
+  and did not on 1.40.0 either. The grammar splits it correctly and `LinkageTypeOptimizer.start` then
+  throws an NPE on a linkage with no parent, so `fromString` returns null and **the file opens as
+  empty with no error**. Measured against the unmodified 1.40.0 jar before concluding it was
+  pre-existing. §1.7 requires every `.gws` ever written to read, and §1.3's name grammar was narrowed
+  specifically to keep this form working — so the restriction is being paid for by a path that throws.
+  Filed as **#274**, and **fixed the same day**. The cause was narrower than this paragraph said: the
+  linkage's parent *residue* is null in both branches and filled in later. The real difference is
+  that the old-style branch never told the child residue about its linkage, which the modern branch
+  always did. One line. All six old-form strings tried, including an N-glycan core written entirely
+  in the old form, now load as the same structure and mass as their `--` equivalents.
+- The test asks the dictionaries rather than a list, and asserts the **exact** set of five, so neither
+  a sixth appearing nor one of the five being fixed can pass unnoticed.
+
+**Three things learned afterwards, answering a question about #273.**
+
+- **The five are the set that cannot be *read*, not the set that is *wrong*.** Three more rows
+  contradict themselves and are invisible to the round-trip test because their names happen to be
+  readable: `D-gro-D-altHep` is described as `D-glycero-D-TaloHeptose` — **a different sugar** — and
+  `D-gro-D-galOct` and `D-gro-D-talOct` are named `D-` and described `L-`. Eight wrong rows, five
+  unreadable ones, and the two sets only partly overlap.
+- **A column was named wrong here and on #273.** The column that disagrees with `L-gro-D-glcOct`'s
+  own name is `iupac_name`, field 5, not the synonym column, which is field 4 and holds `-`. Counted
+  against `ResidueType(String)` rather than by eye, which is how it should have been done the first
+  time.
+- **The grammar fix made these residues saveable, not usable.** Of the 23 heptose and octose rows,
+  **21 export to WURCS as an empty string** — only `D-gro-D-manHep` and `L-gro-D-manHep` write, and
+  they are the only two with stereo recorded in `NativeMonosaccharideDictionary`. For the rest,
+  `ResidueAnalyzer.stereoOfResidue:239` throws *"has no stereo recorded for it"* — #261's exact
+  message — and it is logged and swallowed, so `writeGlycan` returns `""`. Same shape as #220. Filed
+  separately.
+
+One more thing worth carrying: **`TextUtils.tokenize` drops empty tokens**, so the dictionary format
+cannot express an empty field and a stray second tab shifts every later column silently. It is why
+`residue_types`' physically-26-field rows parse as 24 tokens and pass the parser's own length check.
+
+## The test data, reconsidered
+
+The corpus built in September answers one question — does a GWS string survive — and the twenty-five
+issues above ask six. It is also organised by **format**, while the defects are organised by
+**cause**, so there is nowhere to put the string from #268. The layout is now:
+
+```
+src/test/resources/
+  README.md                       the three rules below
+  gws/                            unchanged: strings, and the fourteen GlycoWorkbench files
+  wurcs/skeleton-codes.tsv        C3
+  wurcs/repeats.tsv               C4
+  wurcs/ring-and-anhydro.tsv      C6
+  residues/heptose.tsv            C1, with today's measurements
+  residues/assigned-residues.tsv  C2, one row per departure from SNFG note 11
+```
+
+Three rules, each of which this project has already paid for once:
+
+**The input comes from the reporter, not from us.** The composition encoder's tests asked for
+residues *by the encoder's own names* and stayed green through four broken releases. Every row is
+the string as it was reported or as another program wrote it — GlycoWorkbench's `KDO` and `Hept`,
+GlyTouCan's WURCS, the reporter's paste. Where a row *is* our own output it says `origin: ours`,
+because that is the weaker question: can we read ourselves back. #268 is the one case where the
+weaker question is the whole finding.
+
+**Every row carries the verdict it gets today**, in a `today` column — `pass`, or the failure as it
+actually comes out. That is what lets the corpus be committed *before* the fixes: a fix is then
+measured by which rows changed, and a row moving the wrong way is a regression found the same hour.
+#238 is a regression we shipped, and this column is the thing that would have caught it.
+
+**What the dictionaries say is read, never transcribed.** The count of unwritable names has been
+given as 6, then 33, and is 35 — all three hand-counts, the first two wrong. So `residues/` holds no
+list of names: the test walks `conf/residue_types`, `conf/non_symbolic_residue_types` and
+`conf/compositions` and asserts the property, which stays true when somebody adds a row. The same
+applies to the style files — a test that walks them would have found `Hept → heptagon` sitting in
+`residue_styles_cfg` unreachable, since `getStyle` keys on the type *name* and no residue is named
+`Hept`.
+
+Two rows are deliberately **absent**: the WURCS for #17's `AUdxxxxxh` and for G79171HQ on #270. Both
+issues name the case and give no string, and a string written from the title is not a corpus. Fetch
+them and add the rows.
+
+What this still does not cover, and should be said rather than discovered: **C2 is a drawing cluster
+and the corpus above cannot test a drawing.** Ten of its rows describe where a symbol or a number
+is. `RecordingRenderer` in glycanbuilder2web answers that kind of question by counting drawing calls,
+and nothing of the sort exists here — which is the same gap recorded in "The classes where a change
+is invisible". The index and the predicate (#250, #251, #262) *are* testable without a renderer,
+because they are arithmetic over the structure; the symbols are not.
+
+**Superseded 2026-11-09: a drawing can be tested here, and cheaply.** `SnfgFootnoteTest` subclasses
+Batik's `SVGGraphics2D`, which is already on the classpath for SVG export, and overrides `drawString`
+to record what was drawn and where. The real renderer paints into it, with the same
+`computeBoundingBoxes` then `paint` sequence every export uses. That is how #251 was found to be
+something other than this file had said: the recording showed "f" where the index belonged. As
+written it records text and its position only. Overriding `draw` and `fill` the same way would record
+shapes too, which would reach #248's hexagon-for-pentagon. Every footnote, letter, label and mass
+question in C2 can be asserted on now. An exported SVG cannot be used
+for this, because Batik writes text as outlines and leaves no strings to search.
+
 ## What is left
 
-Re-counted 2026-09-11: **47 open**, of which 18 arrived after the last pass. "Nothing is actionable"
-was true on 2026-08-15 and is not true now.
+Re-counted 2026-11-09: **72 open**, of which 25 arrived in the two months since the last pass and
+none were closed. Two more were filed the same day out of the C1 work — **#273** (five dictionary rows
+that contradict themselves, a chemistry decision) and **#274** (a file using the pre-2007 linkage form
+opens as empty with no error) — which makes 74, and #256 closes with PR #272.
+
+The twenty-five, by cause rather than by filing — the clusters are described above:
+
+| cluster | how many | which |
+|---|---|---|
+| **C1** a name the writer emits and the reader refuses | 4 | #253, #254, #255, #256 |
+| **C2** Assigned: the pentagon nothing routes to | 10 | #248, #250, #251, #252, #254, #258, #260, #261, #262, #263 |
+| **C3** skeleton codes with no case | 2 | #265, #266 |
+| **C4** a repeat does not survive a round trip | 6 | #264, #267, #268, #269, #270, #271 |
+| **C5** the clipboard is GWS | 1 | #249 (the rest of C5 is older) |
+| **C6** unknown ring, spurious anhydro | 3 | #257, #258, #259 |
+| parents, carrying no work of their own | 3 | #247, #253, #260 |
+
+#254 and #258 appear twice on purpose: each needs both its cluster's fixes, and neither closes until
+both land. #253 is counted under C1 as well as under the parents, because the GlycoWorkbench file it
+carries is the only copy of that string we have.
+
+**The September snapshot, 47 open, kept for the comparison:**
 
 | what | how many | which |
 |---|---|---|
@@ -951,10 +1333,12 @@ was true on 2026-08-15 and is not true now.
 | drawing, P3 | 4 | #6, #20, #58, #91 |
 | structure-model changes, neither small | 3 | #200, #181, #230/#231/#234 |
 
-**The nudges are four weeks overdue.** They were held until Monday 2026-08-17 at the maintainer's
-request — I. Yamada, 2026-08-15 — and the hold has long since expired: the questions on the eleven
-waiting issues went out on 2026-08-14 and 08-15, and it is now 2026-09-11 with no reply on any of
-them. #185 came off that list by being answered; the rest are simply waiting.
+**The nudges are now twelve weeks overdue.** They were held until Monday 2026-08-17 at the
+maintainer's request — I. Yamada, 2026-08-15 — and the hold expired that day. The questions on the
+waiting issues went out on 2026-08-14 and 08-15; it is now 2026-11-09 and eight of them have had no
+reply. #185 came off the list by being answered and **#183 by being closed** (R. Ranzinger,
+2026-08-20); #189 was answered by N. Edwards on 08-25. The rest are simply waiting, and the questions
+themselves are now three months old — whatever is sent should say so rather than pretend otherwise.
 
 **There is an open pull request now.** #227, from N. Edwards, turns the conversion's raw
 `NullPointerException`s and `StringIndexOutOfBounds` into a named exception carrying the element that
@@ -966,9 +1350,17 @@ rule — no named type, no cause, no element.
 
 ## Where this stands, for whoever picks it up next
 
-Re-checked against the tracker on **2026-09-11**. The pass below was written on 2026-08-15 after
+Re-checked against the tracker on **2026-11-09**. The pass below was written on 2026-08-15 after
 1.39.0 and is kept because the reasoning still holds; what changed since is at the top of this file -
-eighteen new issues, one of them a regression of ours, and a pull request nobody has answered.
+forty-three new issues in two waves, one of them a regression of ours, and two pull requests nobody
+has answered.
+
+**Nothing on our side moved between 2026-09-11 and 2026-11-09.** `origin/develop` is still 27848de,
+the newest release is still v1.40.0 (2026-08-15), PR #246 is still open and still `MERGEABLE/CLEAN`,
+#227 is still open since 08-19, and glycanbuilder2web — three releases further on, at 1.14.2 — still
+builds against `glycanbuilder2.version` 1.40.0 with the canvas add-on still vendored, because MR !116
+was never merged either. The clusters above are what two months of reports did to the list; the list
+of what to do about them is unchanged, and unstarted.
 
 **1.39.0 is out**, and is the first release a test gate stood in front of. `origin/develop` and
 `origin/master` both read it — checked against the remote, not the local refs, which is the check 1.35.0

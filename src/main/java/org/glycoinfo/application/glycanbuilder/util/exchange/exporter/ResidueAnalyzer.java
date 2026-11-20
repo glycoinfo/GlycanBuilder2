@@ -1,5 +1,7 @@
 package org.glycoinfo.application.glycanbuilder.util.exchange.exporter;
 
+import org.glycoinfo.application.glycanbuilder.util.SkeletonModificationComposition;
+
 import org.eurocarbdb.MolecularFramework.sugar.BaseType;
 import org.eurocarbdb.MolecularFramework.sugar.GlycoconjugateException;
 import org.eurocarbdb.MolecularFramework.sugar.ModificationType;
@@ -100,7 +102,11 @@ public class ResidueAnalyzer {
 		int j = 0;
 		for(int i = 2; i < this.backbone; i++) {
 			if(this.pos2char.containsKey(i)) continue;
-			char cd = (stereo.length() == 0) ? 'x' : stereo.charAt(j);
+			// A configurational-prefix name covers the centres nearest C1 and says nothing of the rest:
+			// manHep gives C2 to C5, and C6 is unknown (#265).
+			char cd = (stereo.length() == 0) ? 'x'
+					: (j >= stereo.length() && NativeMonosaccharideDictionary.isPrefixName(_residue.getTypeName())) ? 'x'
+					: stereo.charAt(j);
 			this.pos2char.put(i, cd);
 			j++;
 		}
@@ -109,8 +115,38 @@ public class ResidueAnalyzer {
 			this.skeletonCode += this.pos2char.get(i + 1);
 		}
 
+		// A residue read from a skeleton its type cannot say alone is written back as read: relative
+		// stereo the way round it was read (#286), and the centres an unknown-stereo type leaves as x
+		// (#265). Only while what was built still agrees with it: a residue changed since it was read
+		// builds something else, and is written as built.
+		String read = _residue.getReadSkeleton();
+		if(read != null && !read.equals(this.skeletonCode)
+				&& (read.equals(turnedOver(this.skeletonCode)) || refines(read, this.skeletonCode)))
+			this.skeletonCode = read;
+
 		if(stereo.length() != 0 && pos2char.size() != backbone)
 			throw new WURCSExchangeException("error");
+	}
+
+	/** Whether a skeleton says the same as another and more: a digit where the other has x, and the rest alike. */
+	static boolean refines(String _read, String _built) {
+		if (_read.length() != _built.length()) return false;
+		boolean more = false;
+		for (int i = 0; i < _read.length(); i++) {
+			char r = _read.charAt(i), b = _built.charAt(i);
+			if (r == b) continue;
+			if ((b == 'x' || b == 'X') && "1234".indexOf(r) >= 0) { more = true; continue; }
+			return false;
+		}
+		return more;
+	}
+
+	/** A skeleton code with every relative digit the other way round, 3 for 4 and 4 for 3. */
+	static String turnedOver(String _skeletonCode) {
+		StringBuilder turned = new StringBuilder(_skeletonCode.length());
+		for (char carbon : _skeletonCode.toCharArray())
+			turned.append(carbon == '3' ? '4' : carbon == '4' ? '3' : carbon);
+		return turned.toString();
 	}
 
 	private ArrayList<String> extractNativeModification(Residue _residue) {
@@ -165,7 +201,8 @@ public class ResidueAnalyzer {
 		if(a_sModification.contains(",")) return;
 
 		String[] mod = a_sModification.split("\\*");
-		int pos = Integer.parseInt(mod[0]);
+		// a carbon not known, ?, is -1 here, and goes out as a MAP at ? - a deoxy as "?*"
+		int pos = mod[0].equals("?") ? -1 : Integer.parseInt(mod[0]);
 		boolean isTerminal = (pos == 1 || pos == this.backbone);
 		char carbonDescriptor = this.convertModificationNameToCarbonDescriptor(mod[1]);
 
@@ -188,6 +225,8 @@ public class ResidueAnalyzer {
 	}
 
 	private char convertModificationNameToCarbonDescriptor(String _mod) {
+		// a carbon of a double bond is written as the skeleton had it (#292)
+		if (_mod.length() == 1 && SkeletonModificationComposition.isDoubleBond(_mod.charAt(0))) return _mod.charAt(0);
 		try {
 		    ModificationType modType = null;
 		    if (_mod.equals("O")) modType = ModificationType.KETO;
@@ -240,6 +279,11 @@ public class ResidueAnalyzer {
 					+ " has no stereo recorded for it, so it has no skeleton to write.");
 
 		this.isomer = entry.getIsomer();
-		return entry.getStereo(_residue.getChirality());
+		// A glycerol whose C2 is not known is hxh, as it was read and as the registry writes it - 1,365
+		// times in GlyGen's dump, h4h never. The relative form the writer gives any other residue of
+		// unknown configuration says how its centres stand to one another, and glycerol has one (#282).
+		char configuration = _residue.getChirality();
+		if (_residue.isGlycerol() && configuration != 'D' && configuration != 'L') return "x";
+		return entry.getStereo(configuration);
 	}
 }

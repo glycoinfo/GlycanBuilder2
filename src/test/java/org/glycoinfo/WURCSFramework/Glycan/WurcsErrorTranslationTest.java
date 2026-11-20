@@ -34,57 +34,25 @@ public class WurcsErrorTranslationTest {
 		new BuilderWorkspace(new GlycanRendererAWT());
 	}
 
-	/** The failure names the failure, the sequence, and carries the original underneath. */
+	/**
+	 * The failure names the failure and the sequence.
+	 *
+	 * <p>This sequence used to reach the conversion and come out of it as a StringIndexOutOfBounds,
+	 * which this test held to being translated - and the translation is still there for whatever
+	 * else the conversion throws. Since #236 it does not get that far: it is not valid WURCS, and
+	 * WURCSFramework's validator says why before the conversion is tried.
+	 */
 	@Test
 	public void aConversionFailureSpeaksWurcs() throws Exception {
 		try {
 			new WURCS2Parser().readGlycan(POSITION_PAST_THE_SUGAR, new MassOptions());
 			fail("it converted");
 		} catch (WURCSToGlycanException translated) {
-			assertTrue(translated.getMessage(),
-					translated.getMessage().contains(WURCSToGlycanException.badSubstituentMessage));
-			assertTrue(translated.getMessage(),
-					translated.getMessage().contains("*OSO/3=O/3=O"));
-			assertTrue("the original trace was lost",
-					translated.getCause() != null);
-		} catch (Exception raw) {
-			fail("still a raw Exception: "+raw.getClass().getSimpleName());
-		}
-	}
-
-	/** The failure names the failure, the sequence, and carries the original underneath. */
-	@Test
-	public void aConversionFailureSpeaksWurcs2() throws Exception {
-		try {
-			// G00028QS // in analyzeGRES use in WURCSSequence2ToGlycan.start
-			new WURCS2Parser().readGlycan("WURCS=2.0/3,3,2/[AUdxxxxh][AUxxxxxh][uxxxh_4*NCC/3=O]/1-2-3/a?|b?|c?}-{a?|b?|c?_a?|b?|c?}-{a?|b?|c?", 
-				new MassOptions());
-			fail("it converted");
-		} catch (WURCSToGlycanException translated) {
-			assertTrue(translated.getMessage(),
-					translated.getMessage().contains(WURCSToGlycanException.badResidueMessage));
-			assertTrue(translated.getMessage(),
-					translated.getMessage().contains("AUdxxxxh"));
-			assertTrue("the original trace was lost",
-			 		translated.getCause() != null);
-		} catch (Exception raw) {
-			fail("still a raw Exception: "+raw.getClass().getSimpleName());
-		}
-	}
-
-	/** The failure names the failure, the sequence, and carries the original underneath. */
-	@Test
-	public void aConversionFailureSpeaksWurcs3() throws Exception {
-		try {
-			//  this one failed in readGlycan in WURCSFactory constructor
-			new WURCS2Parser().readGlycan("WURCS=2.0/4,5,4/[a2122h-1b_1-5][a2112h-1b_1-5][a2122h-1b_1-5_2*NCC/3=O][a1221p-1a_1-5]/1-2-3-2-4/a4-b1_b3-c1_c3-d1_d3-e1",
-				new MassOptions());
-			fail("it converted");
-		} catch (WURCSToGlycanException translated) {
-			assertTrue("the original trace was lost",
-			 		translated.getCause() != null);
-		} catch (Exception raw) {
-			fail("still a raw Exception: "+raw.getClass().getSimpleName());
+			assertTrue(translated.getMessage(), translated.getMessage().contains("this WURCS is not valid"));
+			assertTrue("does not say what is wrong: " + translated.getMessage(),
+					translated.getMessage().contains("wrong linkage position") && translated.getMessage().contains("9"));
+			assertTrue("does not name the sequence",
+					translated.getMessage().contains("WURCS=2.0/1,1,0/[axxxxh"));
 		}
 	}
 

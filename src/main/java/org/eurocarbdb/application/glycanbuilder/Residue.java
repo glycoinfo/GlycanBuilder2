@@ -71,6 +71,12 @@ public class Residue {
 	
 	//annotation
 	private final ArrayList<String> modifications = new ArrayList<>();
+	private final ArrayList<String> deoxies = new ArrayList<>();
+	/** The carbons of a double bond in the skeleton, "4*e" and "5*E" (#292). */
+	private final ArrayList<String> doubleBonds = new ArrayList<>();
+
+	/** The skeleton read from WURCS when the type cannot say it alone; see {@link #getReadSkeleton}. */
+	private String readSkeleton = null;
 	
 	// cleavage
 	private String legend = null;
@@ -195,9 +201,96 @@ public class Residue {
 	public void addModification(String a_sMOD) {
 		this.modifications.add(a_sMOD);
 	}
-	
+
 	public ArrayList<String> getModifications() {
 		return this.modifications;
+	}
+
+	/**
+	 * Record a deoxy this residue carries beyond what its type's name implies - {@code 6*m} on an
+	 * allose, {@code 2*d} on an arabino-hexose.
+	 *
+	 * <p>It stays on the residue rather than becoming a child. The WURCS reader used to build it as a
+	 * child residue named {@code m} or {@code d}, which no dictionary knows: drawn as "6m" or "2d" beside
+	 * the symbol, weighed as nothing while the bond to it still took away a water, and refused by the
+	 * WURCS writer (#258, #263). Here it changes the residue's composition and its derivatizable
+	 * hydroxyls, takes away its own symbol so that SNFG draws it as a white symbol with a letter, and is
+	 * written back by the WURCS writer as part of the skeleton.
+	 *
+	 * <p>Also added to {@link #getModifications()}, which is what the WURCS writer reads.
+	 */
+	public void addDeoxy(String a_sMOD) {
+		if (!this.deoxies.contains(a_sMOD)) this.deoxies.add(a_sMOD);
+		if (!this.modifications.contains(a_sMOD)) this.modifications.add(a_sMOD);
+	}
+
+	/** The deoxies recorded by {@link #addDeoxy}, in the order they were added. */
+	public java.util.List<String> getDeoxies() {
+		return java.util.Collections.unmodifiableList(this.deoxies);
+	}
+
+	/** Whether this residue carries a deoxy its type's name does not imply. */
+	public boolean hasDeoxies() {
+		return !this.deoxies.isEmpty();
+	}
+
+	/**
+	 * Record a carbon of a double bond in this residue's skeleton: "4*e", "5*E", as WURCS writes the
+	 * carbon - e or z a CH, E or Z a C carrying its oxygen, e and E one geometry and z and Z the other
+	 * (#292). A 4,5-unsaturated uronic acid read from WURCS lost its double bond: read as the
+	 * saturated acid, two hydrogens heavy, with nothing but the footnote's text to say otherwise.
+	 *
+	 * <p>Kept on the residue, as a deoxy is: it changes the composition by what WURCSFramework says it
+	 * changes, takes away a derivatization site where it takes away a hydroxyl (e and z), takes the
+	 * residue's own symbol away, and is written back by the WURCS writer as part of the skeleton.
+	 * Also added to {@link #getModifications()}, which is what that writer reads.
+	 */
+	public void addDoubleBond(String a_sCarbon) {
+		if (!this.doubleBonds.contains(a_sCarbon)) this.doubleBonds.add(a_sCarbon);
+		if (!this.modifications.contains(a_sCarbon)) this.modifications.add(a_sCarbon);
+	}
+
+	/** The carbons recorded by {@link #addDoubleBond}, in the order they were added. */
+	public java.util.List<String> getDoubleBonds() {
+		return java.util.Collections.unmodifiableList(this.doubleBonds);
+	}
+
+	/** Whether this residue's skeleton has a double bond its type's name does not imply. */
+	public boolean hasDoubleBonds() {
+		return !this.doubleBonds.isEmpty();
+	}
+
+	/** Whether this residue's skeleton differs from its type's: a deoxy or a double bond it does not imply. */
+	public boolean hasSkeletonModifications() {
+		return hasDeoxies() || hasDoubleBonds();
+	}
+
+	/**
+	 * The skeleton code this residue was read from, when its type and configuration cannot say it
+	 * alone, or null. Two cases:
+	 *
+	 * <ul>
+	 * <li><b>Relative stereo only</b>, 3 and 4 and no 1 or 2 (#286). It can be written either way
+	 * round, {@code ad3dh} or {@code ad4dh}, and WURCSFramework keeps each as a normal form of its own;
+	 * the residue has D, L and unknown, and nothing to say which of the two it was given.
+	 * <li><b>Some stereocentres unknown</b>, {@code x}, where no name says which (#265): a
+	 * {@code a1x22h} is read as a hexose of unknown stereo, and the three centres it does give are kept
+	 * here.
+	 * </ul>
+	 *
+	 * <p>The writer writes this back instead of what it builds, while what it builds still agrees with
+	 * it - the same skeleton turned over, or the same with {@code x} where this has a digit - that is,
+	 * while the residue is still what was read.
+	 *
+	 * <p>GWS has no place for it. A residue saved and reopened has lost it, and is written as the
+	 * writer builds it; the save says so.
+	 */
+	public String getReadSkeleton() {
+		return this.readSkeleton;
+	}
+
+	public void setReadSkeleton(String _skeletonCode) {
+		this.readSkeleton = _skeletonCode;
 	}
 	
 	public void isComposition(boolean _isComposition) {
@@ -1613,12 +1706,42 @@ public class Residue {
 		// position names the site, and what sits there is the group being modified - which is how the
 		// exporter has always read it, writing exactly GlcNAc's WURCS for a GlcN with an Ac at 2, up
 		// until 1.37.0 refused the attachment (#211).
+		if( amineRefuses(position,child) )
+			return false;
 		if( substitutesOwnNitrogen(position,child) )
 			return !positionHeldByAChild(position,child);
 
 		for( char available : availableLinkagePositions() )
 			if( available==position ) return true;
 
+		return false;
+	}
+
+	/**
+	 * Whether this residue can hold this child at this position at all: its type offers the position,
+	 * or the child substitutes the residue's own nitrogen there. Unlike {@link #acceptsPosition}, what
+	 * else is attached is not asked - this is a question about the carbon, for a structure that already
+	 * has the child (#320, #321).
+	 */
+	public boolean canHoldAt(char position, Residue child) {
+		if( position=='?' || type==null )
+			return true;
+		if( child!=null && child.getType()!=null && child.getType().isBridge() )
+			return true;
+		// The anomeric carbon is in no type's list - it is the residue's own bond - but one that is not
+		// bonded holds a group well enough: Man-1-P, Gal-1-Br, a glycosylamine. The corpus has them.
+		if( position==getAnomericCarbon() )
+			return true;
+		// an alditol has no anomeric centre, and its C1 is an ordinary hydroxyl: mannitol-1-P, a
+		// ribitol phosphate - as availableLinkagePositions has it
+		if( position=='1' && isAlditol() )
+			return true;
+		if( amineRefuses(position,child) )
+			return false;
+		if( substitutesOwnNitrogen(position,child) )
+			return true;
+		for( char offered : type.getLinkagePositions() )
+			if( offered==position ) return true;
 		return false;
 	}
 
@@ -1645,13 +1768,42 @@ public class Residue {
 	private boolean substitutesOwnNitrogen(char position, Residue child) {
 		if( child==null || !child.isSubstituent() || type==null )
 			return false;
-		if( position!=nitrogenPosition() )
+		if( !isAmine(position) )
 			return false;
 
 		for( char offered : type.getLinkagePositions() )
 			if( offered=='N' ) return true;
 
 		return false;
+	}
+
+	/**
+	 * Whether this position is one of this residue's own amines: the one its IUPAC name declares, as
+	 * {@code Glc$2N}, or one its configuration's entry records as a bare amine - Bac's 2 and 4,
+	 * Leg's, Pse's and Aci's 5 and 7, which declare no group in their IUPAC name (#323).
+	 */
+	private boolean isAmine(char position) {
+		if( position!='\0' && position==nitrogenPosition() )
+			return true;
+		org.glycoinfo.application.glycanbuilder.dataset.NativeMonosaccharideDictionary.Entry entry =
+				org.glycoinfo.application.glycanbuilder.dataset.NativeMonosaccharideDictionary.forResidueName(getTypeName());
+		if( entry==null )
+			return false;
+		for( String unit : entry.getSubstituents().split("_") )
+			if( unit.equals(position + "*N") ) return true;
+		return false;
+	}
+
+	/**
+	 * Whether a substituent is refused at an amine: one that brings a nitrogen of its own - N, NAc,
+	 * NS and the rest - which would be a second nitrogen on the carbon, and a phosphate, which WURCS
+	 * has no N-linked form of. Writing either failed with only "Invalide residue." (#321).
+	 */
+	private boolean amineRefuses(char position, Residue child) {
+		if( child==null || !child.isSubstituent() || child.getType()==null || !isAmine(position) )
+			return false;
+		String name = child.getTypeName();
+		return name.startsWith("N") || name.equals("P");
 	}
 
 	/**
@@ -1963,8 +2115,42 @@ public class Residue {
 	 * the type instead, which every residue of that name shares, made the second overwrite the first
 	 * and destroyed the type's own description along the way.
 	 */
+	/** What glycerol is called in the footnote under an SNFG drawing. */
+	public static final String GLYCEROL = "Glycerol";
+
+	/** Whether this residue is glycerol: Gro, glyceraldehyde, as its alditol. */
+	public boolean isGlycerol() {
+		return this.type != null && "Gro".equals(this.type.getName()) && isAlditol();
+	}
+
 	public String getLegend() {
-		return (this.legend != null) ? this.legend : this.type.getDescription();
+		// Glycerol is Gro as its alditol, and is named as the molecule it is rather than as
+		// glyceraldehyde, whichever way it was read or drawn (#282)
+		if (isGlycerol()) return GLYCEROL;
+		if (this.legend != null) return this.legend;
+		if (!this.deoxies.isEmpty()) return deoxyPrefix() + this.type.getDescription();
+		return this.type.getDescription();
+	}
+
+	/**
+	 * "6-deoxy-", "2,6-dideoxy-": what a residue's deoxies add to its type's name when nothing better
+	 * is known.
+	 *
+	 * <p>The WURCS reader names such a residue from its skeleton. A structure reopened from GWS has no
+	 * skeleton to name it from - the legend is not saved - and its type's description alone, "Allose",
+	 * would name a 6-deoxy allose as an allose in the footnote.
+	 */
+	private String deoxyPrefix() {
+		java.util.List<String> positions = new java.util.ArrayList<String>();
+		for (String deoxy : this.deoxies) {
+			int star = deoxy.indexOf('*');
+			if (star > 0) positions.add(deoxy.substring(0, star));
+		}
+		java.util.Collections.sort(positions);
+
+		String[] multiplier = { "", "", "di", "tri", "tetra" };
+		String count = (positions.size() < multiplier.length) ? multiplier[positions.size()] : "poly";
+		return String.join(",", positions) + "-" + count + "deoxy-";
 	}
 
 	public void setLegend(String a_sLegend) {
@@ -1979,6 +2165,12 @@ public class Residue {
 		ret.chirality = this.chirality;
 		ret.ring_size = this.ring_size;
 		ret.legend = this.legend;
+		// what the WURCS reader recorded about the skeleton. Not copied, a copy of a 6-deoxy allose was
+		// an allose, and the export of the copy wrote a different residue from the one copied.
+		ret.modifications.addAll(this.modifications);
+		ret.deoxies.addAll(this.deoxies);
+		ret.doubleBonds.addAll(this.doubleBonds);
+		ret.readSkeleton = this.readSkeleton;
 
 		ret.cleaved_residue = (this.cleaved_residue!=null) ?this.cleaved_residue.cloneResidue() :null;
 
@@ -2000,6 +2192,15 @@ public class Residue {
 		this.anomeric_carbon = other.anomeric_carbon;
 		this.chirality = other.chirality;
 		this.ring_size = other.ring_size;
+		// the skeleton goes with the type: a residue changed into another must not keep the deoxy of
+		// what it was
+		this.modifications.clear();
+		this.modifications.addAll(other.modifications);
+		this.deoxies.clear();
+		this.deoxies.addAll(other.deoxies);
+		this.doubleBonds.clear();
+		this.doubleBonds.addAll(other.doubleBonds);
+		this.readSkeleton = other.readSkeleton;
 
 		this.cleaved_residue = (other.cleaved_residue!=null) ?other.cleaved_residue.cloneResidue() :null;
 

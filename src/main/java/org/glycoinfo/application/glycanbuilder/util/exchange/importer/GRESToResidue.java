@@ -11,6 +11,8 @@ import org.glycoinfo.application.glycanbuilder.dataset.MonosaccharideMSDictionar
 import org.glycoinfo.application.glycanbuilder.dataset.NonSymbolicResidueDictionary;
 
 import org.glycoinfo.application.glycanbuilder.util.exchange.WURCSToGlycanException;
+import org.glycoinfo.application.glycanbuilder.util.SkeletonModificationComposition;
+import org.glycoinfo.WURCSFramework.util.WURCSFactory;
 
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -51,6 +53,8 @@ public class GRESToResidue {
 		this.anomSymbol = mscore.getAnomericSymbol();
 		this.ringSize = makeRingSize(mscore);
 
+		refuseUnknownDoubleBond(mscore.getSkeletonCode());
+
 		// This builder's own dictionary answers first: it knows every residue the exporter can
 		// write, which is more than the naming converter covers - a substituent it does not know,
 		// a skeleton it cannot read, or a bridge across the anomeric carbon each made it throw.
@@ -61,26 +65,60 @@ public class GRESToResidue {
 		char configuration;
 		TrivialNameConverter trinConv = null;
 
+		UnknownStereoNames.Naming unknownStereo = (match == null)
+				? UnknownStereoNames.name(mscore.getSkeletonCode()) : null;
+		if(match == null && unknownStereo == null && UnknownStereoNames.hasUnknownStereo(mscore.getSkeletonCode()))
+			throw new WURCSToGlycanException(UnknownStereoNames.whyNot(mscore.getSkeletonCode()));
+
 		if(match != null) {
 			trivialName = match.getResidueType().getName();
 			// from the description rather than from the type: the same residue writes a different
 			// skeleton in each configuration, and only the description says which one this is
 			configuration = match.getConfiguration();
+		} else if(unknownStereo != null) {
+			// stereocentres of unknown configuration, which the converter refuses (#265)
+			trivialName = unknownStereo.typeName;
+			configuration = unknownStereo.configuration;
 		} else {
 			trinConv = new TrivialNameConverter();
 			trinConv.start(_gres);
 			trivialName = trinConv.getTrivialName().replace("5", "");
 			configuration = getConfiguration(((Monosaccharide) trinConv.getNode()).getStereos());
+			// A skeleton whose stereo is relative only - 3 and 4, which say how the centres stand to
+			// one another and not which enantiomer this is - has no D or L. The converter names one
+			// anyway, and the residue was then written back with absolute digits: ad3dh came back as
+			// ad1dh, a different molecule, with nothing to say so. Found once araHex and its kind could
+			// be written at all (#261); until then the write failed instead.
+			if(isRelativeOnly(_gres.getMS().getCoreStructure().getSkeletonCode()))
+				configuration = '?';
 		}
 
+		// A skeleton with no absolute stereo - no 1 or 2, only 3 and 4, x, or no centres at all - has
+		// no D or L, whichever way it was named. The dictionary's match gave one for a heptose of
+		// unknown stereo, a "D-Hept", only because that is the configuration it was indexed under.
+		if(!hasAbsoluteStereo(mscore.getSkeletonCode())) configuration = '?';
+
 		ResidueType newType = ResidueDictionary.findResidueType(trivialName);
+		configuration = configurationOfTheSkeleton(trivialName, mscore.getSkeletonCode(), configuration);
+		if(trinConv != null)
+			refuseANameOfAnotherSkeleton(newType, mscore.getSkeletonCode(), this.anomPosition, trivialName);
 		Residue residue = new Residue(newType);
+
+		// the skeleton is matched whole, so a recognised residue leaves no core modification behind
+		ArrayList<String> leftOver = (trinConv != null) ? trinConv.getModifications()
+				: (unknownStereo != null) ? new ArrayList<String>(unknownStereo.deoxies) : new ArrayList<String>();
 
 		// The legend names this residue in the box drawn beside the structure, for a residue with no
 		// symbol of its own. It belongs to the residue: writing it onto the type, which every residue
 		// of that name shares, meant reading a second structure changed what the first one said.
-		if(NonSymbolicResidueDictionary.hasResidueType(trivialName)) {
-			String legend = this.makeLegend(_gres, trinConv);
+		//
+		// A residue carrying a deoxy its name does not imply has no symbol of its own either - a
+		// 6-deoxy allose is not an allose - so it is named the same way (#258).
+		boolean carriesDeoxy = false;
+		for (String modification : leftOver)
+			if (SkeletonModificationComposition.isDeoxy(modification) || modification.endsWith("*en")) carriesDeoxy = true;
+		if(NonSymbolicResidueDictionary.hasResidueType(trivialName) || carriesDeoxy) {
+			String legend = nameOf(_gres);
 			if(legend != null) residue.setLegend(legend);
 		}
 
@@ -92,35 +130,134 @@ public class GRESToResidue {
 		residue.setAnomericCarbon(this.checkAnomerPosition());
 		residue.setAnomericState(this.checkAnomerSymbol());
 		residue.setChirality(configuration);
+		// what the type and configuration cannot say: which way round a relative skeleton was written
+		// (#286), and the known centres among unknown ones (#265)
+		String skeleton = _gres.getMS().getCoreStructure().getSkeletonCode();
+		if(isRelativeOnly(skeleton) || (unknownStereo != null && unknownStereo.keepSkeleton))
+			residue.setReadSkeleton(skeleton);
 		// The ring letter carries the acyclic forms now, and setting it sets the flags that go with
 		// them - so the two are set together here rather than either being able to undo the other.
 		residue.setRingSize(this.isAlditol() ? 'o' : this.isAldehyde() ? 'a' : this.ringSize);
 
-		// the skeleton is matched whole, so a recognised residue leaves no core modification behind
-		this.modifications = (trinConv == null) ? new ArrayList<String>() : trinConv.getModifications();
+		this.modifications = leftOver;
 		this.residue = residue;
+	}
+
+	/**
+	 * The configuration whose stereo, as the writer will write it, is the skeleton's own (#313).
+	 *
+	 * <p>A residue is written in the configuration it carries since #313, so the configuration read
+	 * must be the one that writes the skeleton back. Taken from the last stereocentre, it was not
+	 * always: a 7-deoxy L-gro-D-manHep, a11221m, came back as L by its C6, and an acetylated apiose,
+	 * a26h, as D - harmless while those names ignored their configuration, the other enantiomer once
+	 * they followed it. So the skeleton's stereo digits are compared with the name's in D and in L; when
+	 * one matches and the other does not, that is the configuration. Otherwise what was read stands.
+	 */
+	static char configurationOfTheSkeleton(String _name, String _skeleton, char _read) {
+		org.glycoinfo.application.glycanbuilder.dataset.NativeMonosaccharideDictionary.Entry entry =
+				org.glycoinfo.application.glycanbuilder.dataset.NativeMonosaccharideDictionary.forResidueName(_name);
+		if (entry == null || _skeleton == null) return _read;
+		StringBuilder digits = new StringBuilder();
+		for (char c : _skeleton.toCharArray())
+			if ("12345678".indexOf(c) >= 0) digits.append(c);
+		String inD = entry.getStereo('D'), inL = entry.getStereo('L');
+		if (inD.equals(inL) || inD.isEmpty()) return _read;
+		boolean isD = digits.toString().equals(inD), isL = digits.toString().equals(inL);
+		if (isD && !isL) return 'D';
+		if (isL && !isD) return 'L';
+		return _read;
+	}
+
+	/**
+	 * Refuse a name the converter gave to a skeleton it does not describe (#310).
+	 *
+	 * <p>The naming converter names a hept-2-ulose by the aldohexose whose four stereocentres match its
+	 * C3 to C6: ha1122h, D-manno-hept-2-ulose, came back as Man, with nothing left over to say that it
+	 * has a seventh carbon and a ketone. The residue was a hexose, weighed CH2O light and could not be
+	 * written back, and nothing said so. A type that has another number of carbons, or its carbonyl at
+	 * another carbon, is not this monosaccharide; and GlycanBuilder2 refuses what it cannot read rather
+	 * than reading it as something else.
+	 *
+	 * <p>Refused when the type differs in both, its number of carbons and the carbon its carbonyl is at.
+	 *
+	 * @param _type The type the converter's name resolves to.
+	 * @param _skeleton The skeleton read, "ha1122h".
+	 * @param _carbonyl Where the skeleton's ring closes from - its anomeric carbon - or 0 or less when it
+	 *        has none.
+	 */
+	static void refuseANameOfAnotherSkeleton(ResidueType _type, String _skeleton, int _carbonyl, String _name)
+			throws WURCSToGlycanException {
+		if (_type == null || _skeleton == null) return;
+
+		Integer carbons = null;
+		try {
+			String compositionClass = _type.getCompositionClass();
+			org.eurocarbdb.MolecularFramework.sugar.Superclass superclass = (compositionClass == null) ? null
+					: org.eurocarbdb.MolecularFramework.sugar.Superclass.forName(compositionClass.toLowerCase());
+			if (superclass != null) carbons = superclass.getCAtomCount();
+		} catch (Exception noClass) {
+			// a class the framework does not know says nothing either way
+		}
+		char anomeric = _type.getAnomericCarbon();
+
+		boolean otherLength = carbons != null && carbons.intValue() > 0 && carbons.intValue() != _skeleton.length();
+		boolean otherCarbonyl = _carbonyl > 0 && Character.isDigit(anomeric) && (anomeric - '0') != _carbonyl;
+		// Both, and not either. A type of another carbonyl alone - araHep for a deoxy heptulose, eryHex
+		// for a deoxy hexulose - is an isomer: it weighs right, and araHep is written back as read.
+		// Another length alone is a row's composition class counting a substituent's carbon, as Cym's
+		// does. A hexose for a heptulose is neither: it is another monosaccharide.
+		if (!(otherLength && otherCarbonyl)) return;
+
+		throw new WURCSToGlycanException(_skeleton + " has " + _skeleton.length() + " carbons and its anomeric"
+				+ " carbon at C" + _carbonyl + ", and the name it was given, " + _name + ", is a residue of "
+				+ (carbons != null ? carbons + " carbons" : "another skeleton") + " with its anomeric carbon at C"
+				+ anomeric + ": no residue this application knows is this monosaccharide, so it is not read");
 	}
 
 	/**
 	 * The IUPAC name shown as a legend under residues drawn without a symbol. It comes from a
 	 * converter that does not cover every residue this builder can draw, so one it cannot name goes
 	 * without a legend rather than taking the structure down.
+	 *
+	 * <p>Named from the monosaccharide alone - skeleton, anomer and ring - and not from the whole
+	 * residue as written. A substituent is drawn beside the symbol, "3Me", and naming it in the footnote
+	 * as well said it twice: "2d 3Me" on the symbol and "2-deoxy-D-araHexp3Me" below (#263). What
+	 * belongs in the footnote is what the symbol cannot show, which is the monosaccharide.
+	 *
 	 * @param _gres Residue being read.
-	 * @param _trivialNameConverter Converter already run for this residue, or null.
 	 * @return Returns the legend, or null when none could be built.
 	 */
-	private String makeLegend(GRES _gres, TrivialNameConverter _trivialNameConverter) {
+	public static String nameOf(GRES _gres) {
 		try {
-			TrivialNameConverter converter = _trivialNameConverter;
-			if(converter == null) {
-				converter = new TrivialNameConverter();
-				converter.start(_gres);
-			}
-
+			GRES core = new WURCSFactory("WURCS=2.0/1,1,0/[" + coreOf(_gres) + "]/1/")
+					.getSequence().getGRESs().getFirst();
+			TrivialNameConverter converter = new TrivialNameConverter();
+			converter.start(core);
 			return converter.getIUPACNotation();
 		} catch (Exception cannotBeNamed) {
 			return null;
 		}
+	}
+
+	/**
+	 * The monosaccharide part of a residue as WURCS writes it: the skeleton and anomer, and the ring
+	 * bridge, without the substituents and the other bridges, which this builder draws as residues of
+	 * their own.
+	 */
+	public static String coreOf(GRES _gres) {
+		String[] parts = _gres.getMS().getString().split("_");
+		BRIDGE ring = RingBridge.find(_gres.getMS().getCoreStructure());
+		String ringText = (ring == null) ? null
+				: position(ring.getStartPositions().getFirst()) + "-" + position(ring.getEndPositions().getFirst());
+
+		StringBuilder core = new StringBuilder(parts[0]);
+		for (int i = 1; i < parts.length; i++)
+			if (!parts[i].contains("*") && parts[i].equals(ringText)) core.append('_').append(parts[i]);
+		return core.toString();
+	}
+
+	private static String position(Integer _position) {
+		return (_position == null || _position < 0) ? "?" : String.valueOf(_position);
 	}
 	
 	private boolean isSticky(String _trivialName) {
@@ -196,6 +333,41 @@ public class GRESToResidue {
 		}
 		
 		return String.valueOf(this.anomPosition).charAt(0);
+	}
+
+	/**
+	 * Refuse a skeleton with a carbon-carbon double bond of unknown geometry, WURCS's {@code F} and
+	 * {@code f}, saying so (#266).
+	 *
+	 * <p>A residue here has no way to carry a double bond, and the naming converter refused these with
+	 * "hxFFxh could not handled", which named nothing. Until a double bond can be held - the same
+	 * question as #292's 4,5-unsaturated uronic acids - the refusal at least says what is not
+	 * supported, and where.
+	 */
+	static void refuseUnknownDoubleBond(String _skeletonCode) throws WURCSToGlycanException {
+		java.util.List<String> carbons = new java.util.ArrayList<String>();
+		for (int i = 0; i < _skeletonCode.length(); i++) {
+			char c = _skeletonCode.charAt(i);
+			if (c == 'F' || c == 'f') carbons.add("C" + (i + 1));
+		}
+		if (carbons.isEmpty()) return;
+		throw new WURCSToGlycanException(_skeletonCode + " has a carbon-carbon double bond of unknown geometry at "
+				+ String.join(" and ", carbons) + " (F and f in WURCS), which GlycanBuilder2 cannot represent");
+	}
+
+	/** Whether a skeleton has a stereocentre of absolute configuration, a 1 or a 2. */
+	static boolean hasAbsoluteStereo(String _skeletonCode) {
+		return _skeletonCode.indexOf('1') >= 0 || _skeletonCode.indexOf('2') >= 0;
+	}
+
+	/** Whether a skeleton's stereocentres are all written relative, 3 or 4, and at least one is there. */
+	static boolean isRelativeOnly(String _skeletonCode) {
+		boolean relative = false;
+		for (char carbon : _skeletonCode.toCharArray()) {
+			if (carbon == '1' || carbon == '2') return false;
+			if (carbon == '3' || carbon == '4') relative = true;
+		}
+		return relative;
 	}
 
 	private char getConfiguration (LinkedList<String> _stereos) {
