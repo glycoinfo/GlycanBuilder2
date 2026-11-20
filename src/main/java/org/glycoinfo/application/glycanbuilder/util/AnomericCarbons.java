@@ -17,11 +17,17 @@ import org.eurocarbdb.application.glycanbuilder.linkage.Linkage;
  * child threw an {@code IndexOutOfBoundsException} and nothing was written - or wrote something
  * else: a beta-galactopyranose went out as the open chain {@code o2112h}, its anomer and ring gone.
  *
- * <p>So a monosaccharide in a ring is written with its type's anomeric carbon when its own is not
- * known, and the menus no longer offer {@code ?} for one. An alditol and an open chain keep {@code ?}:
- * they have no ring to close, and the properties dialog sets {@code ?} on them itself. A reducing end
- * of unknown ring size keeps it, as WURCS's {@code u} - ring or open chain, not known. A bridge keeps
- * it, and so does a type that names no anomeric carbon of its own.
+ * <p>So a monosaccharide in a pyranose or furanose ring is written with its type's anomeric carbon
+ * when its own is not known, and the menus no longer offer {@code ?} for one. An alditol and an open
+ * chain keep {@code ?}: they have no ring to close, and the properties dialog sets {@code ?} on them
+ * itself. A reducing end of unknown ring size keeps it, as WURCS's {@code u} - ring or open chain, not
+ * known. A bridge keeps it, and so does a type that names no anomeric carbon of its own.
+ *
+ * <p>A residue further out with neither its ring nor its anomeric carbon known - a {@code u} that is
+ * not the reducing end, as in {@code [a2122h-1x_1-5][u2112h]/1-2/a4-b?} - is not written: it is joined
+ * to its parent, and a monosaccharide joined so cannot be in doubt about being a ring. The writer
+ * refuses it, as it did before, now saying why. The menus offer no {@code ?} for one, so it is not
+ * drawn; one read from a file shows its type's carbon, and takes it when its properties are set.
  */
 public final class AnomericCarbons {
 
@@ -88,7 +94,26 @@ public final class AnomericCarbons {
 	}
 
 	/**
-	 * Gives every residue of a structure whose anomeric carbon is not known, and has to be, its type's,
+	 * The first residue of a structure that is joined to a parent with neither its ring nor its anomeric
+	 * carbon known - WURCS's {@code u} further out than the reducing end - or null when there is none.
+	 * Such a structure is not written.
+	 */
+	public static Residue anUnknownFormFurtherOut(Glycan _structure) {
+		for (Residue residue : _structure.getAllResidues())
+			if (residue.getAnomericCarbon() == '?' && residue.getRingSize() == '?' && !residue.isAlditol()
+					&& !residue.isAldehyde() && mustBeKnown(residue, '?'))
+				return residue;
+		return null;
+	}
+
+	/** Whether a residue is stated to be a pyranose or a furanose and has an anomeric carbon to take. */
+	private static boolean isAStatedRing(Residue _residue) {
+		char ring = _residue.getRingSize();
+		return (ring == 'p' || ring == 'f') && mustBeKnown(_residue);
+	}
+
+	/**
+	 * Gives every pyranose and furanose of a structure whose anomeric carbon is not known its type's,
 	 * for as long as it is written.
 	 *
 	 * <p>The structure is the person's: what they drew stays as they drew it. Run what is returned when
@@ -100,7 +125,7 @@ public final class AnomericCarbons {
 		final List<Residue> residues = new ArrayList<Residue>();
 		final List<Character> childPositions = new ArrayList<Character>();
 		for (Residue residue : _structure.getAllResidues()) {
-			if (residue.getAnomericCarbon() != '?' || !mustBeKnown(residue)) continue;
+			if (residue.getAnomericCarbon() != '?' || !isAStatedRing(residue)) continue;
 
 			Linkage parent = residue.getParentLinkage();
 			residues.add(residue);

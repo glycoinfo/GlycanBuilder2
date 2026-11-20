@@ -3,6 +3,7 @@ package org.glycoinfo.WURCSFramework.Glycan;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.Arrays;
 
@@ -14,6 +15,7 @@ import org.eurocarbdb.application.glycanbuilder.dataset.ResidueDictionary;
 import org.eurocarbdb.application.glycanbuilder.renderutil.GlycanRendererAWT;
 import org.glycoinfo.application.glycanbuilder.converterWURCS2.WURCS2Parser;
 import org.glycoinfo.application.glycanbuilder.util.AnomericCarbons;
+import org.glycoinfo.application.glycanbuilder.util.exchange.GlycanToWURCSException;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
@@ -66,15 +68,32 @@ public class UnknownAnomericCarbonTest {
 	}
 
 	/**
-	 * A residue of unknown ring size further out is a ring all the same, since its anomeric carbon is
-	 * what joins it to its parent. Three GlcNAc and Man drawn so failed to write.
+	 * A residue further out with neither its ring nor its anomeric carbon known - WURCS's u, which only
+	 * a reducing end can be - is refused, as it was before; but saying why, where it threw an
+	 * IndexOutOfBoundsException or went out as an open chain.
 	 */
 	@Test
-	public void aRingOfUnknownSizeFurtherOutTakesItsCarbon() throws Exception {
-		assertEquals("WURCS=2.0/3,3,2/[u2122h_2*NCC/3=O][a2122h-1x_1-?_2*NCC/3=O][a1122h-1x_1-?]/1-2-3/a?-b1_b?-c1",
-				write("freeEnd--?D-GlcNAc,?--?D-GlcNAc,?--?D-Man,?$MONO,perMe,Na,0,freeEnd"));
-		assertEquals("WURCS=2.0/3,3,2/[a2122h-1x_1-5_2*NCC/3=O][a2122h-1b_1-?_2*NCC/3=O][a1122h-1b_1-5]/1-2-3/a4-b1_b4-c1",
-				write("freeEnd--??1D-GlcNAc,p--4b?D-GlcNAc,?--4b1D-Man,p$MONO,perMe,Na,0,freeEnd"));
+	public void anUnknownFormFurtherOutIsRefused() throws Exception {
+		assertRefused("GlcNAc", "freeEnd--?D-GlcNAc,?--?D-GlcNAc,?--?D-Man,?$MONO,perMe,Na,0,freeEnd");
+		assertRefused("GlcNAc", "freeEnd--??1D-GlcNAc,p--4b?D-GlcNAc,?--4b1D-Man,p$MONO,perMe,Na,0,freeEnd");
+
+		Glycan read = new WURCS2Parser().readGlycan("WURCS=2.0/2,2,1/[a2122h-1x_1-5][u2112h]/1-2/a4-b?",
+				new org.eurocarbdb.application.glycanbuilder.massutil.MassOptions());
+		try {
+			new WURCS2Parser().toWURCS(read);
+			fail("a u further out than the reducing end was written");
+		} catch (GlycanToWURCSException refused) {
+			assertTrue(refused.getMessage(), refused.getMessage().contains("Gal is joined to its parent"));
+		}
+	}
+
+	private static void assertRefused(String _residue, String _gws) throws Exception {
+		try {
+			fail(_gws + " was written: " + write(_gws));
+		} catch (GlycanToWURCSException refused) {
+			assertTrue(refused.getMessage(), refused.getMessage().contains(_residue + " is joined to its parent"));
+			assertTrue(refused.getMessage(), refused.getMessage().contains("u in WURCS"));
+		}
 	}
 
 	/**

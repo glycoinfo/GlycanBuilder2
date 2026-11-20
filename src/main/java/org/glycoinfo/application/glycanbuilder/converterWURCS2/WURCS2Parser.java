@@ -103,6 +103,14 @@ public class WURCS2Parser implements GlycanParser{
 
 		// A ring is built from its anomeric carbon, and one set to ? made no ring: the residue went out
 		// as an open chain, or the writer failed (#332). Written with its type's, which is where it is.
+		// A residue joined to a parent with its ring not known either is WURCS's u further out than the
+		// reducing end, which no monosaccharide joined so can be: refused, as it was, but saying why.
+		Residue unknownForm = AnomericCarbons.anUnknownFormFurtherOut(structure);
+		if (unknownForm != null)
+			throw new Exception(unknownForm.getTypeName() + " is joined to its parent with neither its ring nor its"
+					+ " anomeric carbon known (u in WURCS). Only a reducing end can be left so, since a"
+					+ " monosaccharide joined by its anomeric carbon is a ring, so this structure is not written");
+
 		Runnable putBack = AnomericCarbons.takeTheirTypes(structure);
 		String wurcs;
 		try {
