@@ -33,6 +33,7 @@ import org.glycoinfo.application.glycanbuilder.dataset.CrossLinkedSubstituentDic
 import org.glycoinfo.application.glycanbuilder.dataset.NonSymbolicResidueDictionary;
 import org.glycoinfo.application.glycanbuilder.dataset.TextSymbolDescriptor;
 import org.glycoinfo.application.glycanbuilder.dialog.ResidueDesignDialog;
+import org.glycoinfo.application.glycanbuilder.util.AnomericCarbons;
 import org.glycoinfo.application.glycanbuilder.util.GlycanUtils;
 import org.glycoinfo.application.glycanbuilder.util.canvas.CanvasActionDescriptor;
 import org.glycoinfo.application.glycanbuilder.util.canvas.CompositionUtility;
@@ -887,7 +888,10 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 			else
 				field_linkage_position.clearSelection();
 			field_anomeric_state.setSelectedItem("" + current.getAnomericState());
-			field_anomeric_carbon.setSelectedItem("" + current.getAnomericCarbon());
+			// ? only where it may stay unknown; a residue read with ? shows the carbon it is written with
+			field_anomeric_carbon.setModel(new DefaultComboBoxModel(
+					AnomericCarbons.choices(current, current.getRingSize())));
+			field_anomeric_carbon.setSelectedItem("" + AnomericCarbons.of(current, current.getRingSize()));
 			field_chirality.setSelectedItem("" + current.getChirality());
 			field_ring_size.setSelectedItem("" + current.getRingSize());
 			
@@ -4004,6 +4008,8 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 					current.setAldehyde(false);
 					current.setRingSize(current.getRingSize() == 'a' ? '?' : current.getRingSize());
 				}
+				// an alditol or an open chain closed into a ring again takes its anomeric carbon back
+				current.setAnomericCarbon(AnomericCarbons.of(current));
 			}
 			
 			theDoc.fireDocumentChanged();
