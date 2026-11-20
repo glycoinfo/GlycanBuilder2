@@ -15,6 +15,7 @@ import org.glycoinfo.application.glycanbuilder.dataset.SubstituentMAPDictionary;
 import org.glycoinfo.application.glycanbuilder.util.exchange.exporter.GlycanToWURCSGraph;
 import org.glycoinfo.application.glycanbuilder.util.exchange.importer.WURCSSequence2ToGlycan;
 import org.glycoinfo.application.glycanbuilder.composition.GlycanComposition;
+import org.glycoinfo.application.glycanbuilder.util.AnomericCarbons;
 
 public class WURCS2Parser implements GlycanParser{
 	
@@ -100,20 +101,36 @@ public class WURCS2Parser implements GlycanParser{
 
 		refuseAGroupWhereNoneCanBe(structure);
 
-		LinkageTypeOptimizer linkOpt = new LinkageTypeOptimizer();
-		linkOpt.start(structure);
+		// A ring is built from its anomeric carbon, and one set to ? made no ring: the residue went out
+		// as an open chain, or the writer failed (#332). Written with its type's, which is where it is.
+		// A residue joined to a parent with its ring not known either is WURCS's u further out than the
+		// reducing end, which no monosaccharide joined so can be: refused, as it was, but saying why.
+		Residue unknownForm = AnomericCarbons.anUnknownFormFurtherOut(structure);
+		if (unknownForm != null)
+			throw new Exception(unknownForm.getTypeName() + " is joined to its parent with neither its ring nor its"
+					+ " anomeric carbon known (u in WURCS). Only a reducing end can be left so, since a"
+					+ " monosaccharide joined by its anomeric carbon is a ring, so this structure is not written");
 
-		GlycanToWURCSGraph glycan2graph = new GlycanToWURCSGraph();
-		glycan2graph.start(structure);
-		// MAPs go out as the dictionaries spell them, and the WURCS as WURCSFramework normalizes it -
-		// which is the canonical WURCS. They used to be rewritten first, dropping the ^X of a
-		// phosphorus of unknown configuration because the validator's warning said it "could be
-		// normalized": *OP^XOCCN went out as *OPOCCN. WURCSFramework's normal form keeps the ^X, and
-		// so does every phosphoethanolamine registered in GlyGen's dump, 3,015 of them, against none
-		// without it.
-		WURCSGraph graph = glycan2graph.getGraph();
+		Runnable putBack = AnomericCarbons.takeTheirTypes(structure);
+		String wurcs;
+		try {
+			LinkageTypeOptimizer linkOpt = new LinkageTypeOptimizer();
+			linkOpt.start(structure);
 
-		String wurcs = new WURCSFactory(graph).getWURCS();
+			GlycanToWURCSGraph glycan2graph = new GlycanToWURCSGraph();
+			glycan2graph.start(structure);
+			// MAPs go out as the dictionaries spell them, and the WURCS as WURCSFramework normalizes it -
+			// which is the canonical WURCS. They used to be rewritten first, dropping the ^X of a
+			// phosphorus of unknown configuration because the validator's warning said it "could be
+			// normalized": *OP^XOCCN went out as *OPOCCN. WURCSFramework's normal form keeps the ^X, and
+			// so does every phosphoethanolamine registered in GlyGen's dump, 3,015 of them, against none
+			// without it.
+			WURCSGraph graph = glycan2graph.getGraph();
+
+			wurcs = new WURCSFactory(graph).getWURCS();
+		} finally {
+			putBack.run();
+		}
 		// and what comes out is checked as what goes in is: a WURCS no validator accepts is not written
 		try {
 			refuseInvalid(wurcs);
