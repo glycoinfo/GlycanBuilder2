@@ -14,6 +14,7 @@ import org.glycoinfo.WURCSFramework.wurcs.sequence2.GRES;
 import org.glycoinfo.WURCSFramework.wurcs.sequence2.WURCSSequence2;
 
 import org.glycoinfo.application.glycanbuilder.util.exchange.WURCSToGlycanException;
+import org.glycoinfo.WURCSFramework.util.oldUtil.ConverterExchangeException;
 
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -135,7 +136,13 @@ public class WURCSSequence2ToGlycan {
 			gres2residue.start(_gres);
 		} catch (WURCSToGlycanException ex) {
 			throw ex;
+		} catch (ConverterExchangeException ex) {
+			throw new WURCSToGlycanException(ex.getMessage(),ex);
 		} catch (Exception ex) {
+			// This is helpful when a burried class throws a bare Exception with useful information
+			// about the WURCS conversion - this block should catch unexpected issues (NPE etc.) not known
+			// glycan conversion issues.
+			// ex.printStackTrace(); 
 			throw new WURCSToGlycanException(WURCSToGlycanException.badResidueMessage,_gres.getMS().getString(),ex);
 		}
 		Residue residue = gres2residue.getResidue();
@@ -147,7 +154,13 @@ public class WURCSSequence2ToGlycan {
 			substAnalyzer.start(_gres, residue);
 		} catch (WURCSToGlycanException ex) {
 			throw ex;
+		} catch (ConverterExchangeException ex) {
+			throw new WURCSToGlycanException(ex.getMessage(),ex);
 		} catch (Exception ex) {
+			// This is helpful when a burried class throws a bare Exception with useful information
+			// about the WURCS conversion - this block should catch unexpected issues (NPE etc.) not known
+			// glycan conversion issues.
+			// ex.printStackTrace(); 
 			throw new WURCSToGlycanException(WURCSToGlycanException.badResidueMessage,_gres.getMS().getString(),ex);
 		}
 		

@@ -149,7 +149,7 @@ public class SUBSTAnalyzer {
 			int at = _subst.getPositions().getFirst();
 			char carbon = (at <= skeleton.length()) ? skeleton.charAt(at - 1) : '?';
 			if("5678X".indexOf(carbon) >= 0)
-				throw new Exception(skeleton + " has a C-linked " + substituentType.getDescription()
+				throw new WURCSToGlycanException(skeleton + " has a C-linked " + substituentType.getDescription()
 						+ " on carbon " + at + ", which keeps its hydroxyl (" + carbon + " in WURCS): a branch "
 						+ "GlycanBuilder2 cannot represent");
 		}
@@ -354,9 +354,19 @@ public class SUBSTAnalyzer {
 		try {
 			if(_residue.getType().getMolecule() == null) return _reported;
 
-			double described = org.glycoinfo.WURCSFramework.util.array.mass.WURCSMassCalculator.calcMassWURCS(
-					new org.glycoinfo.WURCSFramework.util.WURCSFactory(
-							"WURCS=2.0/1,1,0/[" + _gres.getMS().getString() + "]/1/").getArray()).doubleValue();
+			// WURCSMassCalculator.calcMassWURCS has a debug System.out.println that prints each
+			// mass to stdout. Suppress it here until that is removed upstream.
+			// See: WURCSFramework/src/main/java/org/glycoinfo/WURCSFramework/util/array/mass/WURCSMassCalculator.java:92
+			java.io.PrintStream savedOut = System.out;
+			System.setOut(new java.io.PrintStream(java.io.OutputStream.nullOutputStream()));
+			double described;
+			try {
+				described = org.glycoinfo.WURCSFramework.util.array.mass.WURCSMassCalculator.calcMassWURCS(
+						new org.glycoinfo.WURCSFramework.util.WURCSFactory(
+								"WURCS=2.0/1,1,0/[" + _gres.getMS().getString() + "]/1/").getArray()).doubleValue();
+			} finally {
+				System.setOut(savedOut);
+			}
 
 			Residue root = ResidueDictionary.createReducingEnd("freeEnd");
 			root.addChild(_residue.cloneSubtree());
