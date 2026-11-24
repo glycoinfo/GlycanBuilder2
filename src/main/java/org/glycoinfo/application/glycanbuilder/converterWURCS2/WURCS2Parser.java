@@ -162,7 +162,7 @@ public class WURCS2Parser implements GlycanParser{
 		str = str.trim();		
 		if(str.contains("\t")) str = str.substring(str.indexOf("\t") + 1);
 		
-    refuseInvalid(str);
+    	refuseInvalid(str);
 
 		WURCSFactory wf;
 		try {
