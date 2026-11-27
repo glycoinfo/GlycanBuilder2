@@ -30,9 +30,10 @@ import org.junit.Test;
  * descriptions were corrected to it (the maintainer, 2026-11-28).
  *
  * <p>The two octoses are oct-2-uloses, as their anomeric carbon of 2 says: D-glycero-D-galacto- and
- * D-glycero-D-talo-oct-2-ulose. Their rows also recorded 5 methylation and 3 acetylation sites, and
- * a substituent at the ring oxygen, C6, but none at C1. An oct-2-ulopyranose has seven free hydroxyls,
- * at 1, 2, 3, 4, 5, 7 and 8, as Sed, a hept-2-ulose, has six.
+ * D-glycero-D-talo-oct-2-ulose. Their rows also recorded 5 methylation and 3 acetylation sites; an
+ * oct-2-ulopyranose has seven free hydroxyls, at 1, 2, 3, 4, 5, 7 and 8. And their positions began at
+ * C2, the anomeric carbon, and left out C1: a ketose lists every carbon but its anomeric one, as Fru
+ * (1, 3, 4, 5, 6) and Kdo (1, 4, 5, 6, 7, 8) do, so 1, 3, 4, 5, 6, 7 and 8.
  */
 public class GlyceroRowsAgreeWithTheirNamesTest {
 
@@ -82,13 +83,13 @@ public class GlyceroRowsAgreeWithTheirNamesTest {
 	}
 
 	@Test
-	public void theOctulosesHaveSevenSitesAndNoneAtTheRingOxygen() {
+	public void theOctulosesHaveSevenSitesAndThePositionsOfAKetose() {
 		for (String name : Arrays.asList("D-gro-D-galOct", "D-gro-D-talOct")) {
 			ResidueType row = NonSymbolicResidueDictionary.findResidueType(name);
 			assertEquals(name, '2', row.getAnomericCarbon());
 			assertEquals(name, 7, row.getNoMethyls());
 			assertEquals(name, 7, row.getNoAcetyls());
-			assertEquals(name, "1234578", new String(row.getLinkagePositions()));
+			assertEquals(name, "1345678", new String(row.getLinkagePositions()));
 		}
 	}
 }

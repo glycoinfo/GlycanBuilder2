@@ -46,8 +46,8 @@ D-gro-D-galHep	Unknown	Hep	C7H14O7	-	D-gro-D-galHep$	1	?	p	yes	yes	no	0	6	no	6	n
 L-gro-D-galHep	Unknown	Hep	C7H14O7	-	L-gro-D-galHep$	1	?	p	yes	yes	no	0	6	no	6	no	7	1,2,3,4,5,6,7	-	no	no	yes	L-glycero-D-GalactoHeptose
 L-gro-L-manHep	Unknown	Hep	C7H14O7	-	L-gro-L-manHep$	1	?	p	yes	yes	no	0	6	no	6	no	7	1,2,3,4,5,6,7	-	no	no	yes	L-glycero-L-MannoHeptose
 D-gro-L-manHep	Unknown	Hep	C7H14O7	-	D-gro-L-manHep$	1	?	p	yes	yes	no	0	6	no	6	no	7	1,2,3,4,5,6,7	-	no	no	yes	D-glycero-L-MannoHeptose
-D-gro-D-galOct	Assigned	Oct	C8H16O8	-	D-gro-D-galOct$	2	?	p	yes	yes	no	0	7	no	7	no	7	1,2,3,4,5,7,8	-	no	no	yes	D-glycero-D-GalactoOct-2-ulose
-D-gro-D-talOct	Assigned	Oct	C8H16O8	-	D-gro-D-talOct$	2	?	p	yes	yes	no	0	7	no	7	no	7	1,2,3,4,5,7,8	-	no	no	yes	D-glycero-D-TaloOct-2-ulose
+D-gro-D-galOct	Assigned	Oct	C8H16O8	-	D-gro-D-galOct$	2	?	p	yes	yes	no	0	7	no	7	no	7	1,3,4,5,6,7,8	-	no	no	yes	D-glycero-D-GalactoOct-2-ulose
+D-gro-D-talOct	Assigned	Oct	C8H16O8	-	D-gro-D-talOct$	2	?	p	yes	yes	no	0	7	no	7	no	7	1,3,4,5,6,7,8	-	no	no	yes	D-glycero-D-TaloOct-2-ulose
 %DDGLCOCT(),
 %LDGLCOCT(),
 L-gro-D-talNon	Nonulosonate	Non	C9H18O6N2	-	L-gro-D-talNon$	2	?	p	yes	yes	no	0	5	no	3	no	9	1,2,3,4,5,6,7,8,9	-	no	no	yes	L-glycero-D-TaloNonase
