@@ -111,6 +111,16 @@ public class ResidueAnalyzer {
 			j++;
 		}
 
+		// A residue of unknown stereo drawn as D or L - D-Hex, L-dHex - says one centre: the
+		// highest-numbered, whose configuration D and L are. It was written as x with the rest, and the
+		// D or L was lost (#314). WURCS writes it as that centre's digit, 2 for D and 1 for L: axxx2h.
+		if (stereo.length() == 0) {
+			char drawn = _residue.getChirality();
+			int configurational = this.highestStereocentre();
+			if ((drawn == 'D' || drawn == 'L') && configurational > 0)
+				this.pos2char.put(configurational, drawn == 'D' ? '2' : '1');
+		}
+
 		for(int i = 0; i < this.backbone; i++) {
 			this.skeletonCode += this.pos2char.get(i + 1);
 		}
@@ -126,6 +136,18 @@ public class ResidueAnalyzer {
 
 		if(stereo.length() != 0 && pos2char.size() != backbone)
 			throw new WURCSExchangeException("error");
+	}
+
+	/** The highest-numbered carbon whose configuration is not known, x, or 0 when there is none. */
+	private int highestStereocentre() {
+		for (int i = this.backbone - 1; i >= 2; i--) {
+			Character cd = this.pos2char.get(i);
+			if (cd == null) continue;
+			if (cd == 'x') return i;
+			// a carbon with a known configuration, or none, above the unknown ones: not this case
+			if ("1234".indexOf(cd) >= 0) return 0;
+		}
+		return 0;
 	}
 
 	/** Whether a skeleton says the same as another and more: a digit where the other has x, and the rest alike. */
