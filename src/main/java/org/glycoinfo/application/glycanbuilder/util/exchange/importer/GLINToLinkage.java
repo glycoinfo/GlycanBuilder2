@@ -137,7 +137,7 @@ public class GLINToLinkage {
 		this.analyzeDonorGLIN(_gres);
 	}
 
-	private void analyzeAcceptorGLIN(GRES _gres) {
+	private void analyzeAcceptorGLIN(GRES _gres) throws Exception {
 		for(GLIN acceptorGLIN : _gres.getAcceptorGLINs()) {
 			//if(acceptorGLIN.isRepeat()) this.analyzeStartSideRep(acceptorGLIN);
 			if(acceptorGLIN.isRepeat()) this.analyzeAcceptorSideRep(acceptorGLIN);
@@ -156,7 +156,7 @@ public class GLINToLinkage {
 		}
 	}
 
-	private void analyzeDonorGLIN(GRES _gres) {
+	private void analyzeDonorGLIN(GRES _gres) throws Exception {
 		for(GLIN donorGLIN : _gres.getDonorGLINs()) {
 			if(donorGLIN.getDonor().size() > 1) continue;
 			//if(donorGLIN.isRepeat()) this.analyzeEndSideRep(donorGLIN);
@@ -174,12 +174,12 @@ public class GLINToLinkage {
 		if(acceptorLinkages.size() == 2) checkDualLinkage(getParentLinkage(), _gres);
 	}
 
-	protected void analyzeGLINforChild(GLIN _acceptorGLIN) {
+	protected void analyzeGLINforChild(GLIN _acceptorGLIN) throws Exception {
 		char[] a_caPositions = this.makeLinkagePosiiton(_acceptorGLIN.getAcceptorPositions());
 		this.donorLinkages.add(new Linkage(this.acceptorRES, null, a_caPositions));
 	}
 
-	protected void analyzeGLINforParent(GLIN _donorGLIN) {
+	protected void analyzeGLINforParent(GLIN _donorGLIN) throws Exception {
 		char[] a_caPositions = this.makeLinkagePosiiton(_donorGLIN.getAcceptorPositions());
 		char[] a_cdPositions = this.makeLinkagePosiiton(_donorGLIN.getDonorPositions());
 		Linkage linkage = null;
@@ -190,19 +190,16 @@ public class GLINToLinkage {
 			this.acceptorLinkages.add(linkage);
 		}else {
 			SUBSTAnalyzer a_oSUBSTAnalyzer = new SUBSTAnalyzer();
-			try {
-				Residue a_oSUB = a_oSUBSTAnalyzer.MAPToBridge(_donorGLIN);
-				linkage = new Linkage(a_oSUB, this.acceptorRES, a_cdPositions);
-				linkage.setAnomericCarbon(a_cdPositions[0]);
-				//linkage.setSubstituent(a_oSUB);
+			
+			Residue a_oSUB = a_oSUBSTAnalyzer.MAPToBridge(_donorGLIN);
+			linkage = new Linkage(a_oSUB, this.acceptorRES, a_cdPositions);
+			linkage.setAnomericCarbon(a_cdPositions[0]);
+			//linkage.setSubstituent(a_oSUB);
 
-				this.a_oBridgeLinkage = linkage;
+			this.a_oBridgeLinkage = linkage;
 
-				linkage = new Linkage(null, a_oSUB, a_caPositions);
-				this.acceptorLinkages.add(linkage);
-			} catch (Exception e) {
-				LogUtils.report(e);
-			}
+			linkage = new Linkage(null, a_oSUB, a_caPositions);
+			this.acceptorLinkages.add(linkage);
 		}
 
 		// probability annotation
@@ -227,7 +224,7 @@ public class GLINToLinkage {
 	 * definite position where the sequence had said it was unknown. Here the sides are read for
 	 * what they are - the acceptor side names the antenna, the donor side its candidates.</p>
 	 */
-	private void analyzeReverseAntennaGLIN(GLIN _acceptorGLIN) {
+	private void analyzeReverseAntennaGLIN(GLIN _acceptorGLIN) throws Exception {
 		if(_acceptorGLIN.getDonor().size() < 2) {
 			// not an antenna after all: leave it to the reading that does not swap the sides
 			this.analyzeGLINforParent(_acceptorGLIN);

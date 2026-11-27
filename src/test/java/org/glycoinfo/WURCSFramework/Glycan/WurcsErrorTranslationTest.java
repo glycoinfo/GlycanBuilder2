@@ -47,8 +47,6 @@ public class WurcsErrorTranslationTest {
 		try {
 			new WURCS2Parser().readGlycan(POSITION_PAST_THE_SUGAR, new MassOptions());
 			fail("it converted");
-		} catch (StringIndexOutOfBoundsException raw) {
-			fail("still a raw StringIndexOutOfBoundsException");
 		} catch (WURCSToGlycanException translated) {
 			assertTrue(translated.getMessage(), translated.getMessage().contains("this WURCS is not valid"));
 			assertTrue("does not say what is wrong: " + translated.getMessage(),
@@ -85,9 +83,12 @@ public class WurcsErrorTranslationTest {
 					"WURCS=2.0/1,1,0/[a2122h-1b_1-5_2*XYZQW]/1/", new MassOptions());
 			fail("it converted");
 		} catch (WURCSToGlycanException wrapped) {
-			fail("a descriptive checked failure was rewrapped: " + wrapped.getMessage());
-		} catch (Exception descriptive) {
-			assertTrue(descriptive.getMessage(), descriptive.getMessage().contains("*XYZQW"));
+			assertTrue("does not indicate a bad substituent", 
+				wrapped.getMessage().contains(WURCSToGlycanException.badSubstituentMessage));
+			assertTrue("does not indicate the problematic substituent", 
+				wrapped.getMessage().contains("*XYZQW"));
+		} catch (Exception ex) {
+			fail("a generic exception was raised: " + ex.getMessage());
 		}
 	}
 
@@ -96,5 +97,12 @@ public class WurcsErrorTranslationTest {
 	public void anOrdinaryWurcsStillConverts() throws Exception {
 		assertTrue(new WURCS2Parser().readGlycan(
 				"WURCS=2.0/1,2,1/[a2122h-1b_1-5_2*NCC/3=O]/1-1/a4-b1", new MassOptions()) != null);
+	}
+
+	/** This WURCS would fail in trivial name conversion but this is not an issue. */
+	@Test
+	public void anOrdinaryWurcsStillConverts1() throws Exception {
+		assertTrue(new WURCS2Parser().readGlycan(
+				"WURCS=2.0/6,11,10/[a2122h-1x_1-?_2*NCC/3=O][a2122h-1b_1-5_2*NCC/3=O][a1122h-1b_1-5][a1122h-1a_1-5][a2112h-1b_1-5][Aad21122h-2a_2-6_5*N]/1-2-3-4-2-5-6-4-2-5-6/a4-b1_b4-c1_c3-d1_c6-h1_d2-e1_e4-f1_f6-g2_h2-i1_i4-j1_j6-k2", new MassOptions()) != null);
 	}
 }

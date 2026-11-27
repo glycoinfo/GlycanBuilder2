@@ -87,8 +87,14 @@ public class SUBSTAnalyzer {
 		if(_glin.getMAP().equals("")) return null;
 
 		MAPAnalyzer mapAnalyzer = new MAPAnalyzer();
-		mapAnalyzer.start(_glin.getMAP());
+		try {
+			mapAnalyzer.start(_glin.getMAP());
+		} catch (NullPointerException ex) {
+			throw new WURCSToGlycanException("Failed to convert cross-linked substituent: " + _glin.getMAP(), ex);
+		}
 		BaseCrossLinkedTemplate crossTemp = mapAnalyzer.getCrossTemplate();
+		if (crossTemp == null)
+			throw new WURCSToGlycanException("Failed to convert cross-linked substituent: " + _glin.getMAP());
 
 		return new Residue(CrossLinkedSubstituentDictionary.getCrossLinkedSubstituent(crossTemp.getIUPACnotation()));
 	}
@@ -104,7 +110,7 @@ public class SUBSTAnalyzer {
 
 		ResidueType substituentType = SubstituentMAPDictionary.findResidueTypeByMAP(_glin.getMAP());
 		if(substituentType == null)
-			throw new Exception("This MAP is not support in the GlycanBuilder2:" + _glin.getMAP());
+			throw new WURCSToGlycanException(WURCSToGlycanException.badSubstituentMessage,_glin.getMAP());
 
 		return ResidueDictionary.newResidue(substituentType.getName());
 	}
@@ -131,7 +137,7 @@ public class SUBSTAnalyzer {
 
 		ResidueType substituentType = SubstituentMAPDictionary.findResidueTypeByMAP(_subst.getMAP());
 		if(substituentType == null)
-			throw new Exception("This MAP is not support in the GlycanBuilder2:" + _subst.getMAP());
+			throw new WURCSToGlycanException(WURCSToGlycanException.badSubstituentMessage,_subst.getMAP());
 
 		// A C-linked group, *C or *CO, here replaces the hydroxyl, as N-linked ones do. On a carbon
 		// whose descriptor has no hydrogen - 5 to 8, X - the hydroxyl stays and the group takes the
@@ -143,7 +149,7 @@ public class SUBSTAnalyzer {
 			int at = _subst.getPositions().getFirst();
 			char carbon = (at <= skeleton.length()) ? skeleton.charAt(at - 1) : '?';
 			if("5678X".indexOf(carbon) >= 0)
-				throw new Exception(skeleton + " has a C-linked " + substituentType.getDescription()
+				throw new WURCSToGlycanException(skeleton + " has a C-linked " + substituentType.getDescription()
 						+ " on carbon " + at + ", which keeps its hydroxyl (" + carbon + " in WURCS): a branch "
 						+ "GlycanBuilder2 cannot represent");
 		}
@@ -161,13 +167,17 @@ public class SUBSTAnalyzer {
 			substituentType = SubstituentMAPDictionary.findResidueTypeByMAP(
 					_subst.getMAP().replaceFirst("N", "O"));
 			if(substituentType == null)
-				throw new Exception("This MAP is not support in the GlycanBuilder2:" + _subst.getMAP());
+				throw new WURCSToGlycanException(WURCSToGlycanException.badSubstituentMessage,_subst.getMAP());
 		}
 
 		linkage.setLinkagePositions(positions);
 
 		// set LinkageType
-		linkage.setParentLinkageType(checkLinkageTypeOfMAP(_subst, _ms));
+		try {
+			linkage.setParentLinkageType(checkLinkageTypeOfMAP(_subst, _ms));
+		} catch (StringIndexOutOfBoundsException ex) {
+			throw new WURCSToGlycanException(WURCSToGlycanException.badSubstituentMessage,_subst.getMAP(),ex);			
+		}
 		linkage.setChildLinkageType(LinkageType.NONMONOSACCHARID);
 
 		// set probability annotation
@@ -182,11 +192,15 @@ public class SUBSTAnalyzer {
 	private void analyzeBRIDGE(BRIDGE _bridge, Residue _residue) throws Exception {
 		Linkage linkage = new Linkage();
 		MAPAnalyzer mapAnalyzer = new MAPAnalyzer();
-		mapAnalyzer.start(_bridge.getMAP().equals("") ? "*O*" : _bridge.getMAP());
+		try {
+			mapAnalyzer.start(_bridge.getMAP().equals("") ? "*O*" : _bridge.getMAP());
+		} catch (NullPointerException ex) {
+			throw new WURCSToGlycanException(WURCSToGlycanException.badSubstituentMessage,(_bridge.getMAP().equals("") ? "*O*" : _bridge.getMAP()),ex);
+		}
 		BaseCrossLinkedTemplate crossTemp = mapAnalyzer.getCrossTemplate();
 
 		if (crossTemp == null)
-			throw new Exception("This MAP is not support in the GlycanBuilder2:" + _bridge.getMAP());
+			throw new WURCSToGlycanException(WURCSToGlycanException.badSubstituentMessage,(_bridge.getMAP().equals("") ? "*O*" : _bridge.getMAP()));
 
 		char[] startPos = this.makePosition(_bridge.getStartPositions());
 		char[] endPos = this.makePosition(_bridge.getEndPositions());
@@ -340,9 +354,19 @@ public class SUBSTAnalyzer {
 		try {
 			if(_residue.getType().getMolecule() == null) return _reported;
 
-			double described = org.glycoinfo.WURCSFramework.util.array.mass.WURCSMassCalculator.calcMassWURCS(
-					new org.glycoinfo.WURCSFramework.util.WURCSFactory(
-							"WURCS=2.0/1,1,0/[" + _gres.getMS().getString() + "]/1/").getArray()).doubleValue();
+			// WURCSMassCalculator.calcMassWURCS has a debug System.out.println that prints each
+			// mass to stdout. Suppress it here until that is removed upstream.
+			// See: WURCSFramework/src/main/java/org/glycoinfo/WURCSFramework/util/array/mass/WURCSMassCalculator.java:92
+			java.io.PrintStream savedOut = System.out;
+			System.setOut(new java.io.PrintStream(java.io.OutputStream.nullOutputStream()));
+			double described;
+			try {
+				described = org.glycoinfo.WURCSFramework.util.array.mass.WURCSMassCalculator.calcMassWURCS(
+						new org.glycoinfo.WURCSFramework.util.WURCSFactory(
+								"WURCS=2.0/1,1,0/[" + _gres.getMS().getString() + "]/1/").getArray()).doubleValue();
+			} finally {
+				System.setOut(savedOut);
+			}
 
 			Residue root = ResidueDictionary.createReducingEnd("freeEnd");
 			root.addChild(_residue.cloneSubtree());
