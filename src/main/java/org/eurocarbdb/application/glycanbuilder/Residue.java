@@ -2164,6 +2164,10 @@ public class Residue {
 		ret.anomeric_carbon = this.anomeric_carbon;
 		ret.chirality = this.chirality;
 		ret.ring_size = this.ring_size;
+		// the open forms, which change what the residue weighs and writes: a copy of an alditol inside
+		// a chain was an aldose, two hydrogens light (#281)
+		ret.alditol = this.alditol;
+		ret.a_bIsAldehyde = this.a_bIsAldehyde;
 		ret.legend = this.legend;
 		// what the WURCS reader recorded about the skeleton. Not copied, a copy of a 6-deoxy allose was
 		// an allose, and the export of the copy wrote a different residue from the one copied.
@@ -2242,12 +2246,37 @@ public class Residue {
 
 		// clone children
 		for( Linkage l : children_linkages ){
+			int before = clone.children_linkages.size();
 			clone.copyChild(l.getChildResidue().cloneSubtree(stop_el,stop,startRep),l.getBonds());
-
+			clone.keepLinkageTypes(l, before);
 		}
 
 		return clone;    
 	}  
+
+	/**
+	 * Gives the linkage a copy has just attached the types of the one it copies (#281).
+	 *
+	 * <p>{@link #attachChild} takes them from the child's own parent linkage, and a child cloned a
+	 * moment ago has none, so every linkage of a copy was {@code UNVALIDATED}. The mass reads those
+	 * types: an O-methyl whose linkage does not say it takes the hydroxyl's hydrogen weighs as if its
+	 * oxygen were not there, so a copy of 3-O-methyl glucose weighed 178.0841 against 194.0790, and
+	 * copy and paste changed the mass (#242).
+	 *
+	 * @param _copied the linkage being copied
+	 * @param _before how many child linkages this copy had before the child was attached; when none
+	 *        was added (a labile residue folded back into its cleavage), there is nothing to give
+	 */
+	void keepLinkageTypes(Linkage _copied, int _before) {
+		if (children_linkages.size() <= _before) return;
+		Linkage made = children_linkages.get(children_linkages.size() - 1);
+		try {
+			made.setParentLinkageType(_copied.getParentLinkageType());
+			made.setChildLinkageType(_copied.getChildLinkageType());
+		} catch (Exception neverNull) {
+			// the copied linkage's types are never null: they start UNVALIDATED
+		}
+	}
 
 	protected Residue cloneSubtreeAdd(Residue add_el, Residue toadd, char toadd_link,ResidueHolder startRep) {
 		return cloneSubtreeAdd(add_el,toadd,Bond.single(toadd_link),startRep);
@@ -2265,8 +2294,11 @@ public class Residue {
 		}
 
 		// clone children
-		for( Linkage l : children_linkages )
+		for( Linkage l : children_linkages ) {
+			int before = clone.children_linkages.size();
 			clone.copyChild(l.getChildResidue().cloneSubtreeAdd(add_el,toadd,toadd_bonds,startRep),l.getBonds());  
+			clone.keepLinkageTypes(l, before);
+		}
 
 				// add child where necessary
 				if( this==add_el && toadd!=null ) {
