@@ -130,14 +130,20 @@ public final class OfferedTypes {
 	}
 
 	/**
-	 * toWURCS rather than writeGlycan: a structure that cannot be written is an answer here, and
+	 * Whether the structure is written to WURCS, and what is written is read back: a residue that writes
+	 * a WURCS this application then refuses leaves the person with a file they cannot open. galNon,
+	 * araOct and manOct write skeletons of unknown stereo that only GB3 will read (#298), and are left
+	 * out with the rest (#273).
+	 *
+	 * <p>toWURCS rather than writeGlycan: a structure that cannot be written is an answer here, and
 	 * writeGlycan reports it as an error, which the desktop application shows as a dialog.
 	 */
 	private static boolean writes(Glycan _structure) {
 		try {
 			String wurcs = new WURCS2Parser().toWURCS(_structure);
-			return wurcs != null && !wurcs.isEmpty();
-		} catch (Exception | Error cannotBeWritten) {
+			if (wurcs == null || wurcs.isEmpty()) return false;
+			return new WURCS2Parser().readGlycan(wurcs, new MassOptions()) != null;
+		} catch (Exception | Error cannotBeWrittenOrRead) {
 			return false;
 		}
 	}

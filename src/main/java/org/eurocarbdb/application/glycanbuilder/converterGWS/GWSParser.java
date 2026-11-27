@@ -611,7 +611,11 @@ public class GWSParser implements GlycanParser {
 				// mass, though the text written back was the same (#252). The prefix is taken as part
 				// of the name only when the name without it is no residue and the name with it is one,
 				// so nothing that read as a known residue before reads differently now.
-				if( m.group(4)!=null && !isKnownResidue(typename) && isKnownResidue(m.group(4) + typename) ) {
+				// Since #273 gave gro-D-manHep and gro-D-glcHep - the heptoses whose C6 is not known - names
+				// that do not open with ?, "L-gro-D-glcHep" is also an L gro-D-glcHep. That is the same
+				// residue: a heptose's D or L is its C6's, the glycero of its name. So the whole name is
+				// taken whenever it is a residue.
+				if( m.group(4)!=null && isKnownResidue(m.group(4) + typename) ) {
 					typename = m.group(4) + typename;
 					ret_chirality = '?';
 				}

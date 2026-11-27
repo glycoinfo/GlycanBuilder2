@@ -193,7 +193,7 @@ public class SnfgTableInTheChooserTest {
 		for (List<ResidueType> section : ResidueDesignDialog.sections().values()) expected.addAll(section);
 
 		assertEquals(expected, offered);
-		assertEquals(85 + 27, offered.size());
+		assertEquals(85 + 26, offered.size());
 	}
 
 	/** One search finds across every tab, the best match first. */
