@@ -71,7 +71,8 @@ public class NonSymbolicResidueChooserTest {
 
 		assertEquals("listed twice: " + listed, new TreeSet<String>(listed).size(), listed.size());
 		assertEquals(writable, new TreeSet<String>(listed));
-		assertEquals(27, listed.size());
+		// 26 since #273: galNon writes a skeleton of unknown stereo no reader takes back, and is withheld
+		assertEquals(26, listed.size());
 	}
 
 	/** Grouped by backbone, in order; a residue the dialog's own list does not anticipate is still shown. */
@@ -84,9 +85,10 @@ public class NonSymbolicResidueChooserTest {
 		assertTrue(names(sections.get("Pentose")).containsAll(Arrays.asList("dRib", "4dPenN", "lyxPen")));
 
 		// what the chooser shows, which is only what can be written (#315): glycerol's section stays
-		// for glycerol, which is offered apart, as Gro made an alditol
+		// for glycerol, which is offered apart, as Gro made an alditol. No nonose since #273: galNon,
+		// the one there was, writes a WURCS that cannot be read back
 		Map<String, List<ResidueType>> offered = ResidueDesignDialog.sections();
-		assertEquals(Arrays.asList("Triose", "Tetrose", "Pentose", "Hexose", "Heptose", "Nonose"),
+		assertEquals(Arrays.asList("Triose", "Tetrose", "Pentose", "Hexose", "Heptose"),
 				new ArrayList<String>(offered.keySet()));
 		assertTrue(offered.get("Triose").isEmpty());
 		assertTrue(names(offered.get("Hexose")).containsAll(Arrays.asList("araHex", "thrHexA")));
@@ -137,16 +139,15 @@ public class NonSymbolicResidueChooserTest {
 	}
 
 	/**
-	 * The five rows #273 records as contradicting themselves - an anomeric carbon of "-", a chirality
-	 * of "/", a name opening with "?" - are written to GWS as text no reader can take back. They are
-	 * data to correct, and are listed here so that a change to them is noticed either way.
+	 * The five rows #273 recorded as contradicting themselves - an anomeric carbon of "-", a chirality
+	 * of "/", a name opening with "?" - were written to GWS as text no reader could take back. Corrected
+	 * on 2026-11-28, none is left; the set is kept so that a new one is noticed.
 	 */
-	private static final TreeSet<String> UNREADABLE_273 = new TreeSet<String>(Arrays.asList(
-			"?-gro-D-glcHep", "?-gro-D-manHep", "araOct", "manOct", "L-gro-D-glcOct"));
+	private static final TreeSet<String> UNREADABLE_273 = new TreeSet<String>();
 
 	/**
 	 * Every residue a placeholder can be made is saved to GWS under its name, and read back as the same
-	 * residue and the same text - but the five of #273.
+	 * residue and the same text.
 	 *
 	 * <p>The same type, and not only the same text: 24 residues whose names begin with a configuration,
 	 * D-gro-D-galHep and the like, were written and read back as the same text and as a different

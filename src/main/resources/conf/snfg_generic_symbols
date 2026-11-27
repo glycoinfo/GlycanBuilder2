@@ -46,8 +46,8 @@ L-gro-L-glcNon	ddNon	5,7-diamino-3,5,7,9-tetradeoxy-non-2-ulosonic acid, as Pse 
 L-gro-L-manNon	ddNon	5,7-diamino-3,5,7,9-tetradeoxy-non-2-ulosonic acid, as Pse and Leg (C9H18N2O6): a 3,9-dideoxy-nonulosonic acid
 8eLeg	ddNon	8-epi-legionaminic acid; SNFG would also accept Leg's yellow flat diamond marked 8L
 Sugar	Unknown	a monosaccharide of which nothing is known: SNFG's white flat hexagon
-?-gro-D-glcHep	Assigned	a heptose: no SNFG class, the pentagon by the maintainer's decision on #248
-?-gro-D-manHep	Assigned	a heptose: no SNFG class, the pentagon by the maintainer's decision on #248
+gro-D-glcHep	Assigned	a heptose: no SNFG class, the pentagon by the maintainer's decision on #248
+gro-D-manHep	Assigned	a heptose: no SNFG class, the pentagon by the maintainer's decision on #248
 araHep	Assigned	a heptose: no SNFG class, the pentagon by the maintainer's decision on #248
 D-gro-D-altHep	Assigned	a heptose: no SNFG class, the pentagon by the maintainer's decision on #248
 D-gro-D-galHep	Assigned	a heptose: no SNFG class, the pentagon by the maintainer's decision on #248
@@ -68,7 +68,6 @@ araOct	Assigned	an octose: no SNFG class
 manOct	Assigned	an octose: no SNFG class
 D-gro-D-galOct	Assigned	an octose: no SNFG class
 D-gro-D-talOct	Assigned	an octose: no SNFG class
-L-gro-D-glcOct	Assigned	an octose: no SNFG class
 D-ery-D-glcDEC	Assigned	a decose: no SNFG class
 D-ery-L-glcDEC	Assigned	a decose: no SNFG class
 Ery	Assigned	a tetrose: no SNFG class

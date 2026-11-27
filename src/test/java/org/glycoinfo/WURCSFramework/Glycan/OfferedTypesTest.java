@@ -61,8 +61,11 @@ public class OfferedTypesTest {
 	}
 
 	/**
-	 * The residues with no symbol of their own: 60 the writer has no skeleton for. Gro among them on
-	 * its own; glycerol, Gro made an alditol, is offered apart and writes.
+	 * The residues with no symbol of their own: 60 the writer has no skeleton for, or writes a WURCS
+	 * no reader takes back. Gro among them on its own; glycerol, Gro made an alditol, is offered apart
+	 * and writes. Since #273, galNon too, which writes Aad4334xh, and araOct and manOct, which write
+	 * now that their anomeric carbon is ? and are read back by nothing until GB3 (#298); and the two
+	 * heptoses of unknown C6 under their new names, gro-D-glcHep and gro-D-manHep.
 	 */
 	@Test
 	public void theChooserLeavesOutSixty() {
@@ -77,10 +80,10 @@ public class OfferedTypesTest {
 				"2dPen", "4dPen", "4dPenN", "dRib", "Rul", "Xul",
 				"4uGalA", "4uGlcA", "4uHexA", "4uIdoA", "4uManA", "Ami", "Asc", "Boi", "Cym", "GalNA", "GlcNA",
 				"HexNA", "IdoNA", "ManNA", "MeH", "Rho",
-				"?-gro-D-glcHep", "?-gro-D-manHep", "D-gro-D-altHep", "D-gro-D-galHep", "D-gro-D-glcHep",
+				"gro-D-glcHep", "gro-D-manHep", "D-gro-D-altHep", "D-gro-D-galHep", "D-gro-D-glcHep",
 				"D-gro-L-glcHep", "D-gro-L-manHep", "L-gro-D-galHep", "L-gro-D-glcHep", "L-gro-D-idoHep",
 				"L-gro-L-manHep", "Ole", "The",
-				"araOct", "D-gro-D-galOct", "D-gro-D-talOct", "L-gro-D-glcOct", "manOct",
+				"araOct", "D-gro-D-galOct", "D-gro-D-talOct", "manOct", "galNon",
 				"8eLeg", "D-gro-D-manNon", "D-gro-D-talNon", "D-gro-L-altNon", "D-gro-L-galNon", "D-gro-L-manNon",
 				"Ko", "L-gro-D-galNon", "L-gro-D-manNon", "L-gro-D-talNon", "L-gro-L-altNon", "L-gro-L-glcNon",
 				"L-gro-L-manNon", "NeuAcLac", "NeuGcLac",
