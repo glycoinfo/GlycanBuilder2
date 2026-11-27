@@ -1173,8 +1173,11 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 				&& (root.getParent() == null || !root.getParent()
 				.isReducingEnd())) {
 			Residue cloned_root = ResidueDictionary.createAttachPoint();
+			int before = cloned_root.getChildrenLinkages().size();
 			cloned_root.addChild(cloneStructure(root, nodes, false), root
 					.getParentLinkage().getBonds());
+			// what the copied bond is made of, which the mass reads (#281)
+			cloned_root.keepLinkageTypes(root.getParentLinkage(), before);
 			return cloned_root;
 		} else {
 			// clone this
@@ -1183,9 +1186,12 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 			// clone children
 			for (Linkage link : root.getChildrenLinkages()) {
 				Residue child = link.getChildResidue();
-				if (nodes.contains(child))
+				if (nodes.contains(child)) {
+					int before = cloned_root.getChildrenLinkages().size();
 					cloned_root.addChild(cloneStructure(child, nodes, false),
 							link.getBonds());
+					cloned_root.keepLinkageTypes(link, before);
+				}
 			}
 			return cloned_root;
 		}
