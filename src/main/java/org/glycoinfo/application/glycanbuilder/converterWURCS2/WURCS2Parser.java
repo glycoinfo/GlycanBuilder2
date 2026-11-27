@@ -258,8 +258,30 @@ public class WURCS2Parser implements GlycanParser{
 		}
 		java.util.List<String> errors = validator.getReport().getErrors();
 		if (errors == null || errors.isEmpty()) return;
-		throw new WURCSToGlycanException("this WURCS is not valid: " + String.join("; ", errors)
+		java.util.List<String> reasons = new java.util.ArrayList<String>();
+		for (String error : errors) reasons.add(reasonIn(error));
+		throw new WURCSToGlycanException("this WURCS is not valid: " + String.join("; ", reasons)
 				+ ": " + shortenedForError(_wurcs));
+	}
+
+	/** A validator error that could not parse the sequence: it, in full, and then the reason. */
+	private static final java.util.regex.Pattern PARSE_ERROR = java.util.regex.Pattern.compile(
+			"^Error in parsing WURCS due to the exception: .*? - \\[[A-Za-z]+\\] (.+)$",
+			java.util.regex.Pattern.DOTALL);
+
+	/**
+	 * The part of a validator error that says what is wrong (#335).
+	 *
+	 * <p>When the validator cannot parse a sequence, its error quotes the whole of it and then the
+	 * reason: "Error in parsing WURCS due to the exception: WURCS=2.0/... - [WURCSExchangeException]
+	 * Unknown CarbonDescriptor is found. p of a1221p". The refusal adds the sequence again, so it
+	 * appeared twice and the part at fault was lost in the middle. Only the reason is kept. The
+	 * validator's other errors name the part at fault without the sequence, and are kept as they are.
+	 */
+	static String reasonIn(String _error) {
+		if (_error == null) return "";
+		java.util.regex.Matcher parse = PARSE_ERROR.matcher(_error.strip());
+		return parse.matches() ? parse.group(1).strip() : _error;
 	}
 
 	/**

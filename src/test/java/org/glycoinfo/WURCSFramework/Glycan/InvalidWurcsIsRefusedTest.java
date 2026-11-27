@@ -119,6 +119,38 @@ public class InvalidWurcsIsRefusedTest {
 		return new WURCS2Parser().readGlycan(wurcs, new MassOptions());
 	}
 
+	/**
+	 * A sequence the validator cannot parse is quoted once, and the refusal says what is wrong with it
+	 * (#335). The validator's error held the whole sequence and the refusal added it again, with the
+	 * reason, "p of a1221p", between the two.
+	 */
+	@Test
+	public void anUnparsableSequenceIsQuotedOnceWithItsReason() throws Exception {
+		String wurcs = "WURCS=2.0/4,5,4/[a2122h-1b_1-5][a2112h-1b_1-5][a2122h-1b_1-5_2*NCC/3=O][a1221p-1a_1-5]"
+				+ "/1-2-3-2-4/a4-b1_b3-c1_c3-d1_d3-e1";
+		String message = refusal(wurcs);
+
+		assertEquals("this WURCS is not valid: Unknown CarbonDescriptor is found. p of a1221p: "
+				+ wurcs.substring(0, 80) + "...", message);
+	}
+
+	/** The same for a count that does not match: the reason, then the sequence once. */
+	@Test
+	public void aWrongCountIsSaidPlainly() throws Exception {
+		String wurcs = "WURCS=2.0/2,3,1/[a2122h-1b_1-5][a2112h-1b_1-5]/1-2/a4-b1";
+
+		assertEquals("this WURCS is not valid: Number of RES is not correct.: " + wurcs, refusal(wurcs));
+	}
+
+	/** An error that already names the part at fault is passed on as it is. */
+	@Test
+	public void anErrorNamingThePartIsKept() throws Exception {
+		String wurcs = "WURCS=2.0/1,1,0/[axxxxh-1x_1-5_2*NCC/3=O_9*OSO/3=O/3=O]/1/";
+
+		assertEquals("this WURCS is not valid: The connected modification has wrong linkage position for the"
+				+ " Backbone: 9 on axxxxh: " + wurcs, refusal(wurcs));
+	}
+
 	private static String refusal(String wurcs) throws Exception {
 		try {
 			read(wurcs);
