@@ -160,7 +160,22 @@ public class NativeMonosaccharideDictionary {
 		residues.put("AltA",           new Entry("1222",  true,  'L', "",               ""));
 		residues.put("AltN",           new Entry("1222",  true,  'L', "2*N",            ""));
 		residues.put("AltNAc",         new Entry("1222",  true,  'L', "2*NAc",          ""));
-		// L by SNFG's default (note 1), and recorded in D as every other residue is: a15h, whose L is a26h
+		// L by SNFG's default (note 1), and recorded in D as every other residue is: a15h, whose L is a26h.
+		//
+		// SNFG's "L" names, by IUPAC, the D sugar. The default therefore writes a26h, which is the natural
+		// apiose, and is right; only the letters are the other way round from IUPAC. Checked 2026-11-28:
+		// - SNFG gives Api as "L-Apiose, 3-C-(Hydroxymethyl)-L-erythro-tetrofuranose", linked to PubChem
+		//   CID 12306753, (3R,4R)-4-(hydroxymethyl)oxolane-2,3,4-triol (GlyTouCan G30093HX). MolWURCS turns
+		//   that compound into a26h-1x_1-4_3*CO.
+		// - IUPAC 2-Carb-18.3 takes the chain through the ring as the parent and the configuration at the
+		//   branch point from its OH; 18.4 treats the branch as replacing a hydrogen. With 3R and 4R that
+		//   puts the OH of C2 and of C3 on the right: D-erythro. 2-Carb-18.1 names the ring form of D-apiose
+		//   3-C-(hydroxymethyl)-D-erythrofuranose, (3R) in Beilstein.
+		// - D-erythrofuranose with the H at C3 replaced by CH2OH gives a26h through MolWURCS, and
+		//   L-erythrofuranose gives a15h. WURCSFramework's trivial names agree: a26h is Api, a15h is L-Ery.
+		// - GlyTouCan has a26h 156 times and a15h 15 times.
+		// The letters follow SNFG, so the symbol drawn without one writes the natural sugar. Following IUPAC
+		// instead would make the default write a15h, the enantiomer. (The maintainer, 2026-11-28.)
 		residues.put("Api",            new Entry("15",    true,  'L', "",               "", "3*CO"));
 		residues.put("Ara",            new Entry("122",   true,  'L', "",               ""));
 		residues.put("Bac",            new Entry("2122",  true,  'D', "2*N_4*N",        "6*m"));
