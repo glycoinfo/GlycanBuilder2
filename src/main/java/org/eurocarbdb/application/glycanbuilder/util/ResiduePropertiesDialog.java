@@ -27,6 +27,7 @@ import org.eurocarbdb.application.glycanbuilder.GlycanDocument;
 import org.eurocarbdb.application.glycanbuilder.Residue;
 import org.eurocarbdb.application.glycanbuilder.linkage.Bond;
 import org.eurocarbdb.application.glycanbuilder.linkage.Linkage;
+import org.glycoinfo.application.glycanbuilder.util.AnomericCarbons;
 import org.glycoinfo.application.glycanbuilder.util.GlycanUtils;
 import org.eurocarbdb.MolecularFramework.sugar.LinkageType;
 
@@ -100,7 +101,8 @@ public class ResiduePropertiesDialog extends EscapeDialog implements java.awt.ev
     	if( parent_link!=null )
     		field_linkage_position.setModel(createPositions(parent_link.getParentResidue()));
     	field_anomeric_state.setModel(new DefaultComboBoxModel(new String[] { "?", "a", "b" }));
-    	field_anomeric_carbon.setModel(new DefaultComboBoxModel(new String[] { "?", "1", "2", "3" }));
+    	// ? only where it may stay unknown: an alditol, an open chain (#332)
+    	field_anomeric_carbon.setModel(new DefaultComboBoxModel(AnomericCarbons.choices(current, current.getRingSize())));
     	field_chirality.setModel(new DefaultComboBoxModel(new String[] { "?", "D", "L" }));
     	field_ring_size.setModel(new DefaultComboBoxModel(new String[] { "?", "p", "f", "o" }));
 
@@ -175,7 +177,7 @@ public class ResiduePropertiesDialog extends EscapeDialog implements java.awt.ev
     		selectPositions(field_linkage_position,parent_link.glycosidicBond().getParentPositions());        
 
     	field_anomeric_state.setSelectedItem(""+current.getAnomericState());
-    	field_anomeric_carbon.setSelectedItem(""+current.getAnomericCarbon());
+    	field_anomeric_carbon.setSelectedItem(""+AnomericCarbons.of(current, current.getRingSize()));
     	field_chirality.setSelectedItem(""+current.getChirality());
     	field_ring_size.setSelectedItem(""+current.getRingSize());
 
@@ -283,6 +285,8 @@ public class ResiduePropertiesDialog extends EscapeDialog implements java.awt.ev
     			r.setAlditol(false);
     			r.setRingSize(current.getRingSize() == 'o' ? '?' : r.getRingSize());
     		}
+    		// an alditol closed into a ring again takes its anomeric carbon back
+    		r.setAnomericCarbon(AnomericCarbons.of(r));
     	}
     	
     	Linkage plr = r.getParentLinkage();
@@ -381,13 +385,14 @@ public class ResiduePropertiesDialog extends EscapeDialog implements java.awt.ev
     public void itemStateChanged(java.awt.event.ItemEvent e) {
     	if( e.getSource()==field_ring_size ) {
     		char ring_size = getSelectedValueChar(field_ring_size);
+    		field_anomeric_carbon.setModel(new DefaultComboBoxModel(AnomericCarbons.choices(current, ring_size)));
     		if( ring_size =='o' ) {
     			field_anomeric_state.setSelectedItem("?");    
     			field_anomeric_carbon.setSelectedItem("?");    
     		}
     		else {
     			field_anomeric_state.setSelectedItem(""+current.getAnomericState());
-    			field_anomeric_carbon.setSelectedItem(""+current.getAnomericCarbon());
+    			field_anomeric_carbon.setSelectedItem(""+AnomericCarbons.of(current, ring_size));
     		}
     	}
 
