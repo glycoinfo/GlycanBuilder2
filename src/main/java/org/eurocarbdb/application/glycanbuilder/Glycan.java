@@ -1577,6 +1577,11 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 		
 		if(node.isEndRepetition() && (node.getMinRepetitions()==-1 || node.getMaxRepetitions()==-1 || (node.getMinRepetitions()!=node.getMaxRepetitions()))){
 			return false;
+		}else if(node.isStartRepetition() && node.getEndRepitionResidue()==null){
+			// A repeat with no end has no count to weigh it by. Weighed, it threw, and the canvas that
+			// writes the mass under every structure stopped repainting: the window froze after a WURCS
+			// read into such a repeat (#267)
+			return false;
 		}else{
 			for(Linkage l:node.getChildrenLinkages()) {
 				if(areAllRepetitionsConstant(l.getChildResidue())==false){
