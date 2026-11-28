@@ -445,13 +445,20 @@ public class GLINToLinkage {
 	public void setGRESs(GRES _gres) {
 		this.donorGRES = _gres;
 
-		// for reverse antenna
-		if(!_gres.getAcceptorGLINs().isEmpty()) {
-			LinkedList<GLIN> a_aGLINs = _gres.getAcceptorGLINs();
-			if(a_aGLINs.getFirst().getDonor().contains(_gres)) {
-				this.acceptorGRESs.addAll(a_aGLINs.getFirst().getDonor());
+		// for reverse antenna. Not a repeat's bond: a repeat of one residue, b1-b4~n, has the residue as
+		// its own donor, and it was counted as its own parent besides its real one - two parents, so
+		// it was attached to neither and dropped (#264)
+		GLIN firstAccepted = null;
+		for(GLIN a_oAGLIN : _gres.getAcceptorGLINs()) {
+			if(a_oAGLIN.isRepeat()) continue;
+			firstAccepted = a_oAGLIN;
+			break;
+		}
+		if(firstAccepted != null) {
+			if(firstAccepted.getDonor().contains(_gres)) {
+				this.acceptorGRESs.addAll(firstAccepted.getDonor());
 			}else {
-				for(GRES a_oDGRES : a_aGLINs.getFirst().getDonor()) {
+				for(GRES a_oDGRES : firstAccepted.getDonor()) {
 					if(a_oDGRES.getID() - _gres.getID() == 1) continue;
 					this.acceptorGRESs.add(a_oDGRES);
 				}

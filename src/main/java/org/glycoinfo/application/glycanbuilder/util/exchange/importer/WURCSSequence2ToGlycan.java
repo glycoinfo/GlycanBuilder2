@@ -67,6 +67,7 @@ public class WURCSSequence2ToGlycan {
 
 		this.glycan = new Glycan(makeRoot(wSeq2.getGRESs()), false, _massOpt);
 		if(anomeric != null) joinTheAnomericCarbons(anomeric);
+		refuseARepeatLeftOpen(this.glycan);
 
 		// append ambiguous root
 		for(GRES gres : gres2frag.getRootOfFragments()) {
@@ -108,6 +109,57 @@ public class WURCSSequence2ToGlycan {
 
 			this.glycan.normalizeCompositionFlags();
 		}
+	}
+
+	/**
+	 * Refuse a structure with a repeat whose end could not be placed, saying so (#264).
+	 *
+	 * <p>A repeat ends with a marker on its last residue, at the carbon the next unit is bonded to. Two
+	 * repeats closing on the same carbon - G31898IW's b1-b4~5-6 inside a1-b4~n, both on b4 - leave the
+	 * outer one no carbon for its end, and it was read with a start and no end: drawn with the residues
+	 * around it misplaced, weighed by a count it does not have, and written back with the repeat gone.
+	 */
+	static void refuseARepeatLeftOpen(Glycan _glycan) throws WURCSToGlycanException {
+		// Read from the tree, a start marker not always being told of its end while reading; and walked
+		// here, each residue once, since a sequence that loops back on itself is refused only later and
+		// getAllResidues would not come back from it
+		java.util.Set<Residue> seen = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<Residue, Boolean>());
+		java.util.Deque<Residue> toVisit = new java.util.ArrayDeque<Residue>();
+		if (_glycan.getRoot() != null) toVisit.push(_glycan.getRoot());
+		int starts = 0, ends = 0;
+		Residue open = null;
+		while (!toVisit.isEmpty()) {
+			Residue residue = toVisit.pop();
+			if (!seen.add(residue)) continue;
+			if (residue.isEndRepetition()) ends++;
+			if (residue.isStartRepetition()) {
+				starts++;
+				if (open == null && !endsBelow(residue)) open = residue;
+			}
+			for (org.eurocarbdb.application.glycanbuilder.linkage.Linkage child : residue.getChildrenLinkages())
+				toVisit.push(child.getChildResidue());
+		}
+		if (open == null && starts == ends) return;
+		Residue first = (open != null) ? open.firstChild() : null;
+		throw new WURCSToGlycanException("a repeat" + (first == null ? "" : " starting at " + first.getTypeName())
+				+ " could not be closed: its last residue's carbon is taken by another repeat's end, and GlycanBuilder2"
+				+ " cannot hold two repeats closing on one carbon, so it is not read");
+	}
+
+	/** Whether an end marker is below this start marker, each residue looked at once. */
+	private static boolean endsBelow(Residue _start) {
+		java.util.Set<Residue> seen = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<Residue, Boolean>());
+		java.util.Deque<Residue> toVisit = new java.util.ArrayDeque<Residue>();
+		toVisit.push(_start);
+		while (!toVisit.isEmpty()) {
+			Residue residue = toVisit.pop();
+			if (!seen.add(residue)) continue;
+			for (org.eurocarbdb.application.glycanbuilder.linkage.Linkage child : residue.getChildrenLinkages()) {
+				if (child.getChildResidue().isEndRepetition()) return true;
+				toVisit.push(child.getChildResidue());
+			}
+		}
+		return false;
 	}
 
 	/**
