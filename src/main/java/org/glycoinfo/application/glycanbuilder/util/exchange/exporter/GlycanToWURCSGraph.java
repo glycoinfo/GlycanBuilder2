@@ -48,7 +48,32 @@ public class GlycanToWURCSGraph {
 		}
 	}
 	
+	/**
+	 * Refuse a reduced ketose, saying why (#364): a structure GlycanBuilder2 does not support, as the
+	 * maintainer decided on 2026-11-29.
+	 *
+	 * <p>Reducing a ketose's carbonyl makes that carbon a stereocentre, and the reduction gives it both
+	 * ways round: D-fructose gives D-mannitol and D-glucitol. That pair is no residue GlycanBuilder2 has.
+	 * It was written as the ketose itself - reduced D-Fru as hO122h, reduced Kdo as AOd1122h - which is
+	 * the open-chain sugar, its carbonyl still a carbonyl, and read back as that, two hydrogens lighter
+	 * than what was drawn. With a residue on it, it failed with a NullPointerException.
+	 */
+	static void refuseAReducedKetose(Glycan _glycan) throws WURCSExchangeException {
+		for (Residue residue : _glycan.getAllResidues()) {
+			if (!residue.isSaccharide() || !residue.isAlditol() || residue.getType() == null) continue;
+			char carbonyl = residue.getType().getAnomericCarbon();
+			if (carbonyl == '1' || carbonyl < '1' || carbonyl > '9') continue;
+			String name = (residue.getChirality() == 'D' || residue.getChirality() == 'L')
+					? residue.getChirality() + "-" + residue.getTypeName() : residue.getTypeName();
+			throw new WURCSExchangeException(name + " is drawn reduced, and a reduced ketose is not one compound:"
+					+ " reducing its carbonyl at C" + carbonyl + " gives that carbon both configurations, a pair"
+					+ " GlycanBuilder2 has no residue for. It is not written; written as the ketose, it read back"
+					+ " as the open-chain sugar, two hydrogens lighter");
+		}
+	}
+
 	public void start(Glycan a_oGlycan) throws Exception {
+		refuseAReducedKetose(a_oGlycan);
 		refuseAChainAfterARepeatElsewhere(a_oGlycan);
 		GlycanVisitorAnalyzeForWURCSGraph a_uGVAWG = new GlycanVisitorAnalyzeForWURCSGraph();
 		
