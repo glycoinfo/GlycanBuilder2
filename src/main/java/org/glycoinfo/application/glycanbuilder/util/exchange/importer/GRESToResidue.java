@@ -54,6 +54,7 @@ public class GRESToResidue {
 		this.ringSize = makeRingSize(mscore);
 
 		refuseUnknownDoubleBond(mscore.getSkeletonCode());
+		refuseARingLargerThanAPyranose(mscore);
 
 		// This builder's own dictionary answers first: it knows every residue the exporter can
 		// write, which is more than the naming converter covers - a substituent it does not know,
@@ -560,6 +561,30 @@ public class GRESToResidue {
 		if (carbons.isEmpty()) return;
 		throw new WURCSToGlycanException(_skeletonCode + " has a carbon-carbon double bond of unknown geometry at "
 				+ String.join(" and ", carbons) + " (F and f in WURCS), which GlycanBuilder2 cannot represent");
+	}
+
+	/**
+	 * Refuse a residue whose ring is larger than a pyranose, saying so (#344).
+	 *
+	 * <p>A septanose, a2221h-1a_1-6, closes its ring from C1 to C6. A residue here has a furanose, a
+	 * pyranose, or a ring of size not known, and no other; the 1-6 was taken for a 1,6-anhydro beside a
+	 * ring not known, so the residue weighed a water light and was written back as a2221h-1a_1-6_1-?.
+	 * The maintainer's decision (2026-11-28): such a residue is refused, saying why, rather than read as
+	 * something else; a seven-membered ring is GB3's.
+	 */
+	static void refuseARingLargerThanAPyranose(MSCORE _core) throws WURCSToGlycanException {
+		int anomeric = _core.getAnomericPosition();
+		if (anomeric < 1 || RingBridge.find(_core) != null) return;
+		for (BRIDGE bridge : _core.getDivalentSubstituents()) {
+			if (!bridge.getMAP().equals("") || !bridge.getStartPositions().contains(anomeric)) continue;
+			if (bridge.getEndPositions().isEmpty() || bridge.getEndPositions().get(0) == null) continue;
+			int span = RingBridge.span(bridge, anomeric);
+			if (span < 6) continue;
+			int end = bridge.getEndPositions().get(0);
+			throw new WURCSToGlycanException(_core.getSkeletonCode() + " closes its ring from C" + anomeric + " to C"
+					+ end + ", a ring of " + (span + 1) + " members, which GlycanBuilder2 cannot represent: it has"
+					+ " furanoses and pyranoses only, so it is not read");
+		}
 	}
 
 	/** Whether a skeleton has a stereocentre of absolute configuration, a 1 or a 2. */
