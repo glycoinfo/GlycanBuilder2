@@ -161,7 +161,11 @@ public class GlycanVisitorAnalyzeForWURCSGraph implements GlycanVisitor {
 			
 			if(a_oParent.isEndRepetition()) {
 				a_oParent = a_oParent.getParent();
-				this.a_aGlycosidicLinkages.add(new Linkage(a_oParent, a_oChild, a_oChild.getParentLinkage().getBonds()));
+				// a repeat after a repeat is bonded to the first residue of its unit, just below; bonded
+				// to its start marker as well, the residue had two bonds at one carbon and the WURCS was
+				// invalid (#269)
+				if(!a_oChild.isStartRepetition())
+					this.a_aGlycosidicLinkages.add(new Linkage(a_oParent, a_oChild, a_oChild.getParentLinkage().getBonds()));
 			}
 			
 			if(a_oChild.isStartRepetition()) {

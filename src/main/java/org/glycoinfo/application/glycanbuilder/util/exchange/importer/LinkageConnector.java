@@ -203,6 +203,26 @@ public class LinkageConnector {
 		 */
 		a_oEndRep.setAnomericCarbon(a_oG2L.getEndSideRepLinkage().getAnomericCarbon());
 
+		// The residue that continues the chain after an internal repeat is bonded to the repeat's last
+		// residue at the carbon the repeat closes on - G43728TR's a4-b1_b4-c1_b1-b4~n, where c is at
+		// b4 as the next unit's b would be. Read before the repeat's end, it already held that carbon,
+		// so the end marker could not be added there and was dropped without a word: the repeat was
+		// read as one unit, and written back with no repeat at all (#269). It is the chain after the
+		// repeat, and goes after the end marker, as when a repeat is drawn.
+		java.util.List<org.eurocarbdb.application.glycanbuilder.linkage.Linkage> continuing =
+				new java.util.ArrayList<org.eurocarbdb.application.glycanbuilder.linkage.Linkage>();
+		String closesOn = a_oEndRep.getParentLinkage().getParentPositionsString();
+		if(a_oG2L.getEndSideRepLinkage().getChildResidue() == null && !closesOn.contains("?")) {
+			for(java.util.Iterator<org.eurocarbdb.application.glycanbuilder.linkage.Linkage> children =
+					a_oRES.getChildrenLinkages().iterator(); children.hasNext(); ) {
+				org.eurocarbdb.application.glycanbuilder.linkage.Linkage child = children.next();
+				if(child.getChildResidue() == null || child.getChildResidue().isRepetition()) continue;
+				if(!closesOn.equals(child.getParentPositionsString())) continue;
+				continuing.add(child);
+				children.remove();
+			}
+		}
+
 		// sugar->sub->EndRep
 		if(a_oG2L.getEndSideRepLinkage().getChildResidue() != null) {
 			a_oSUB = a_oG2L.getEndSideRepLinkage().getChildResidue();
@@ -216,6 +236,12 @@ public class LinkageConnector {
 		} else {
 			// end repeating to residue : sugar->EndRep
 			a_oRES.addChild(a_oEndRep, a_oEndRep.getParentLinkage().getBonds());
+		}
+
+		// and what continues the chain, after it
+		for(org.eurocarbdb.application.glycanbuilder.linkage.Linkage child : continuing) {
+			child.setParentResidue(a_oEndRep);
+			a_oEndRep.getChildrenLinkages().add(child);
 		}
 	}
 

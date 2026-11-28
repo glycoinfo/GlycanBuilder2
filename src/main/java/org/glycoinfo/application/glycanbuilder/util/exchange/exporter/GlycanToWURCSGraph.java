@@ -20,8 +20,36 @@ public class GlycanToWURCSGraph {
 	public WURCSGraph getGraph() {
 		return this.graph;
 	}
+
+	/**
+	 * Refuse a residue that continues the chain after an internal repeat at a carbon other than the one
+	 * the repeat closes on, saying so (#269).
+	 *
+	 * <p>WURCS writes the chain after an internal repeat as bonded to the repeat's last residue at the
+	 * carbon the repeat closes on - a4-b1_b4-c1_b1-b4~n - which in the last unit is free. Any other
+	 * bond to a residue of the repeat is part of every unit. So [Glc(b1-6)Glc]n with a Glc β1-3 on the
+	 * last unit's Glc was written c3-d1 beside b1-c6~n, and read back as a Glc on every unit: another
+	 * structure, without a word. WURCS has no way to say "on the last unit only"; it is not written.
+	 */
+	static void refuseAChainAfterARepeatElsewhere(Glycan _glycan) throws WURCSExchangeException {
+		for (Residue end : _glycan.getAllResidues()) {
+			if (!end.isEndRepetition() || end.getParentLinkage() == null) continue;
+			String closesOn = end.getParentLinkage().getParentPositionsString();
+			if (closesOn.contains("?")) continue;
+			for (Linkage after : end.getChildrenLinkages()) {
+				String at = after.getParentPositionsString();
+				if (at.contains("?") || at.equals(closesOn)) continue;
+				Residue last = end.getParent();
+				throw new WURCSExchangeException(after.getChildResidue().getTypeName() + " continues the chain after a repeat"
+						+ " at " + at + " of its last " + (last == null ? "residue" : last.getTypeName()) + ", where the repeat"
+						+ " closes on " + closesOn + ". WURCS can write the chain after a repeat only at the carbon the repeat"
+						+ " closes on; at any other it would be read as a residue on every unit, so it is not written");
+			}
+		}
+	}
 	
 	public void start(Glycan a_oGlycan) throws Exception {
+		refuseAChainAfterARepeatElsewhere(a_oGlycan);
 		GlycanVisitorAnalyzeForWURCSGraph a_uGVAWG = new GlycanVisitorAnalyzeForWURCSGraph();
 		
 		a_uGVAWG.start(a_oGlycan);
