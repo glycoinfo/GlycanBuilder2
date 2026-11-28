@@ -2469,29 +2469,54 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 				.getGraphicOptions().SHOW_REDEND : getTheGlycanRenderer()
 				.getGraphicOptions().SHOW_REDEND_CANVAS;
 
-		all_structures_bbox = getTheGlycanRenderer().computeBoundingBoxes(theDoc
-				.getStructures(), show_masses, show_redend, thePosManager,
-				theBBoxManager);
-		for (Glycan s : theDoc.getStructures()) {
-			getTheGlycanRenderer().paint(new DefaultPaintable(g2d), s, selected_residues,
-					selected_linkages, show_masses, show_redend, thePosManager,
+		// A structure that cannot be drawn must not take the canvas with it. Thrown out of here, the
+		// failure left the scale at the canvas's and the graphics undisposed, and came again at every
+		// repaint: the window stopped refreshing and the menus were left drawn over it (#267, #96).
+		// What cannot be drawn is said on the canvas instead, and reported once.
+		try {
+			all_structures_bbox = getTheGlycanRenderer().computeBoundingBoxes(theDoc
+					.getStructures(), show_masses, show_redend, thePosManager,
 					theBBoxManager);
-		}
-		
-		if (!is_printing)
-			paintSelection(g2d, show_redend);
-		//
-		// if(theDoc.has_changed)
-		if (this.respondToDocumentChange) {
-			this.respondToDocumentChange = false;
-			revalidate();
-		}
+			for (Glycan s : theDoc.getStructures()) {
+				getTheGlycanRenderer().paint(new DefaultPaintable(g2d), s, selected_residues,
+						selected_linkages, show_masses, show_redend, thePosManager,
+						theBBoxManager);
+			}
 
-		// dispose graphic object
-		g2d.dispose();
+			if (!is_printing)
+				paintSelection(g2d, show_redend);
+			lastPaintFailure = null;
+		} catch (RuntimeException cannotBeDrawn) {
+			paintFailure(g2d, cannotBeDrawn);
+		} finally {
+			//
+			// if(theDoc.has_changed)
+			if (this.respondToDocumentChange) {
+				this.respondToDocumentChange = false;
+				revalidate();
+			}
 
-		getTheGlycanRenderer().getGraphicOptions().setScale(
-				getTheGlycanRenderer().getGraphicOptions().SCALE);
+			// dispose graphic object
+			g2d.dispose();
+
+			getTheGlycanRenderer().getGraphicOptions().setScale(
+					getTheGlycanRenderer().getGraphicOptions().SCALE);
+		}
+	}
+
+	/** The message of the last failure to draw, so that one that repeats at every repaint is reported once. */
+	private String lastPaintFailure = null;
+
+	/** Say on the canvas that the structures cannot be drawn, and why; report it the first time. */
+	private void paintFailure(Graphics2D g2d, RuntimeException _failure) {
+		String why = _failure.getClass().getSimpleName() + (_failure.getMessage() == null ? "" : ": " + _failure.getMessage());
+		g2d.setColor(Color.RED);
+		g2d.drawString("These structures cannot be drawn (" + why + ").", 10, 20);
+		g2d.drawString("Undo, or remove the structure last added.", 10, 36);
+		if (!why.equals(lastPaintFailure)) {
+			lastPaintFailure = why;
+			_failure.printStackTrace();
+		}
 	}
 
 	private void paintSelection(Graphics2D g2d, boolean show_redend) {
