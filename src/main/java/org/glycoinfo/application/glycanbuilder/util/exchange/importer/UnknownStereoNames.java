@@ -66,6 +66,7 @@ final class UnknownStereoNames {
 		if (s.equals("hxh")) return new Naming("Gro", '?', new ArrayList<String>(), false);
 		if (n < 5 || n > 10 || !hasUnknownStereo(s)) return null;
 		char first = s.charAt(0), last = s.charAt(n - 1);
+		if (first == 'A') return anAcidOfAnAlditol(s);
 		if (first != 'a' && first != 'o') return null;
 		if (last != 'h' && last != 'm' && last != 'A') return null;
 
@@ -104,6 +105,29 @@ final class UnknownStereoNames {
 		}
 
 		return (generic == null) ? null : new Naming(generic, '?', deoxies, true);
+	}
+
+	/**
+	 * An aldonic or aldaric acid of which no centre is known, Axxxxh: the alditol of the type of
+	 * unknown stereo for the chain, its C1 a carboxyl - and its last carbon too when that is one - with
+	 * its deoxies (#341). It was named by the dictionary as the alditol of HexA, read from the other end,
+	 * and weighed as HexA, two hydrogens light. Null when a centre is known, or the chain has no such type.
+	 */
+	private static Naming anAcidOfAnAlditol(String _skeleton) {
+		int n = _skeleton.length();
+		char last = _skeleton.charAt(n - 1);
+		if (last != 'h' && last != 'm' && last != 'A') return null;
+		List<String> modifications = new ArrayList<String>();
+		modifications.add("1*A");
+		for (int i = 1; i < n - 1; i++) {
+			char c = _skeleton.charAt(i);
+			if (c == 'd') modifications.add((i + 1) + "*d");
+			else if (c != 'x' && c != 'X') return null;
+		}
+		if (last == 'm') modifications.add(n + "*m");
+		if (last == 'A') modifications.add(n + "*A");
+		String generic = genericFor(n, 'h');
+		return (generic == null) ? null : new Naming(generic, '?', modifications, false);
 	}
 
 	/**

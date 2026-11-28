@@ -24,6 +24,8 @@ public class ResidueAnalyzer {
 	private char anomState = 'x';
 	private int backbone = 0;
 	private char isomer = '?';
+	/** Whether the residue being written is an alditol, whose ketones are oxidised carbons (#341). */
+	private boolean alditol = false;
 
 	private LinkedList<Integer> anomList = new LinkedList();
 	private TreeMap<Integer, Character> pos2char = new TreeMap();
@@ -63,6 +65,7 @@ public class ResidueAnalyzer {
 		this.anomPos = _residue.isAldehyde() ? checkAnomerPosition('?') : checkAnomerPosition(_residue.getAnomericCarbon());
 		this.anomState = _residue.isAldehyde() ? checkAnomerSymbol('?') : checkAnomerSymbol(_residue.getAnomericState());
 		this.isomer = _residue.getChirality();
+		this.alditol = _residue.isAlditol();
 
 		Superclass superclass = Superclass.forName(_residue.getType().getCompositionClass().toLowerCase());
 
@@ -244,7 +247,8 @@ public class ResidueAnalyzer {
 		if(carbonDescriptor == 'd' && isTerminal)
 			carbonDescriptor = 'm';
 
-		if(carbonDescriptor == 'O') {
+		// a ketone of an alditol's chain, a 2-keto aldonic acid's, is no anomeric carbon (#341)
+		if(carbonDescriptor == 'O' && !this.alditol) {
 			if(this.anomPos != 1) this.anomList.add(pos);
 			if(isTerminal) carbonDescriptor = 'o';
 		}

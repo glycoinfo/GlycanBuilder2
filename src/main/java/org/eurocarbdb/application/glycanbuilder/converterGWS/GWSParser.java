@@ -435,6 +435,8 @@ public class GWSParser implements GlycanParser {
 		// to say one; an older reader sees a child it does not know, as it did a deoxy's
 		ArrayList<String> carbons = new ArrayList<String>(r.getDeoxies());
 		carbons.addAll(r.getDoubleBonds());
+		// and the oxidised carbons of an alditol's chain, "--1A" and "--2O" (#341)
+		carbons.addAll(r.getOxidations());
 		for( String deoxy : carbons ) {
 			Character position = SkeletonModificationComposition.positionOf(deoxy);
 			Character code = SkeletonModificationComposition.codeOf(deoxy);
@@ -510,10 +512,13 @@ public class GWSParser implements GlycanParser {
 			Residue child = l.getChildResidue();
 			if( r.isSaccharide() && child!=null && !child.isSaccharide() && !child.hasChildren()
 					&& child.getTypeName().length()==1
-					&& isSkeletonCode(child.getTypeName().charAt(0))
+					&& (isSkeletonCode(child.getTypeName().charAt(0))
+						// an oxidised carbon only on an alditol, which is where the WURCS reader keeps one
+						|| (r.isAlditol() && SkeletonModificationComposition.isOxidation(child.getTypeName().charAt(0))))
 					&& l.getBonds().size()==1 ) {
 				String carbon = l.getParentPositionsSingle() + "*" + child.getTypeName();
 				if( SkeletonModificationComposition.isDeoxy(child.getTypeName().charAt(0)) ) r.addDeoxy(carbon);
+				else if( SkeletonModificationComposition.isOxidation(child.getTypeName().charAt(0)) ) r.addOxidation(carbon);
 				else r.addDoubleBond(carbon);
 				r.getChildrenLinkages().remove(l);
 				continue;

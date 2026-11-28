@@ -27,6 +27,13 @@ import org.glycoinfo.WURCSFramework.util.property.chemical.WURCSGraphChemicalCom
  * dictionary, where fucose, the 6-deoxy galactose, has one fewer methylation and acetylation site than
  * galactose. For a double bond the maintainer's rule is to count the hydroxyls the skeleton has
  * (2026-11-10): e and z have lost theirs, E and Z keep it - see {@link #removesAHydroxyl}.
+ *
+ * <p>And the oxidised carbons of an alditol's open chain (#341): A, a terminal CH2OH that is a
+ * carboxyl, and O, an inner CHOH that is a ketone. They are measured on an alditol with no stereo, as
+ * the others are on a pyranose, since an alditol is what they are kept on. A ketone has lost its
+ * hydroxyl, and a carboxyl keeps one that is methylated and not acetylated - as this application's
+ * dictionary has it, where a uronic acid has as many methylation sites as its hexose and one fewer
+ * acetylation site. See {@link #sitesLost}.
  */
 public final class SkeletonModificationComposition {
 
@@ -38,6 +45,14 @@ public final class SkeletonModificationComposition {
 		MODIFIED.put('m', "axxxxm-1x_1-5");   // a terminal deoxy, C6
 	}
 
+	/** A reference alditol with no stereo, and the same with each oxidation put in. */
+	private static final String ALDITOL = "hxxxxh";
+	private static final Map<Character, String> OXIDISED = new HashMap<Character, String>();
+	static {
+		OXIDISED.put('A', "Axxxxh");   // a terminal carboxyl, here at C1
+		OXIDISED.put('O', "hOxxxh");   // an inner ketone, here at C2
+	}
+
 	private static final Map<Character, Molecule> DELTAS = new HashMap<Character, Molecule>();
 
 	private SkeletonModificationComposition() {
@@ -46,6 +61,32 @@ public final class SkeletonModificationComposition {
 	/** Whether this is a modification code whose effect is known here: {@code d} or {@code m}. */
 	public static boolean isDeoxy(char code) {
 		return MODIFIED.containsKey(code);
+	}
+
+	/** Whether this is the code of an oxidised carbon of an alditol's chain: A or O. */
+	public static boolean isOxidation(char code) {
+		return OXIDISED.containsKey(code);
+	}
+
+	/** Whether a modification written as WURCS writes it - {@code 1*A}, {@code 2*O} - is an oxidised carbon. */
+	public static boolean isOxidation(String modification) {
+		Character code = codeOf(modification);
+		return code != null && isOxidation(code.charValue());
+	}
+
+	/**
+	 * The derivatization sites this skeleton modification takes away: a deoxy's hydroxyl, a ketone's,
+	 * and a double-bond carbon's that is a CH. A carboxyl keeps one, which a methylation reaches - as an
+	 * ester - and an acetylation does not.
+	 *
+	 * @param acetylation Whether the sites are those of an acetylation rather than a methylation.
+	 */
+	public static int sitesLost(String modification, boolean acetylation) {
+		Character code = codeOf(modification);
+		if (code == null) return 0;
+		if (code.charValue() == 'A') return acetylation ? 1 : 0;
+		if (code.charValue() == 'O') return 1;
+		return removesAHydroxyl(modification) ? 1 : 0;
 	}
 
 	/** Whether this is the code of a carbon in a double bond of known geometry: e, E, z or Z. */
@@ -98,12 +139,14 @@ public final class SkeletonModificationComposition {
 	 */
 	public static synchronized Molecule deltaOf(String modification) throws Exception {
 		Character code = codeOf(modification);
-		if (code == null || !(isDeoxy(code.charValue()) || isDoubleBond(code.charValue())))
+		if (code == null || !(isDeoxy(code.charValue()) || isDoubleBond(code.charValue()) || isOxidation(code.charValue())))
 			throw new Exception("no composition is known here for the skeleton modification " + modification);
 
 		Molecule delta = DELTAS.get(code);
 		if (delta == null) {
-			delta = isDeoxy(code.charValue()) ? change(MODIFIED.get(code)) : doubleBondCarbon(code.charValue());
+			delta = isDeoxy(code.charValue()) ? change(MODIFIED.get(code))
+					: isOxidation(code.charValue()) ? change(OXIDISED.get(code), ALDITOL)
+					: doubleBondCarbon(code.charValue());
 			DELTAS.put(code, delta);
 		}
 		return delta;
@@ -111,9 +154,14 @@ public final class SkeletonModificationComposition {
 
 	/** What a skeleton changes, against the reference. */
 	private static Molecule change(String _modified) throws Exception {
+		return change(_modified, REFERENCE);
+	}
+
+	/** What a skeleton changes, against another. */
+	private static Molecule change(String _modified, String _reference) throws Exception {
 		Molecule delta = new Molecule();
 		delta.add(composition(_modified));
-		delta.remove(composition(REFERENCE));
+		delta.remove(composition(_reference));
 		return delta;
 	}
 

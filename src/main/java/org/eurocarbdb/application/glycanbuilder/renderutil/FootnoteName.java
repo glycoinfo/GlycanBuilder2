@@ -73,7 +73,7 @@ public final class FootnoteName {
 	/** What decides the name: everything the residue holds about its monosaccharide, and nothing else. */
 	private static String signature(Residue _residue) {
 		return _residue.getTypeName() + "|" + _residue.getAnomericState() + _residue.getAnomericCarbon()
-				+ _residue.getChirality() + _residue.getRingSize() + "|" + _residue.getDeoxies() + "|"
+				+ _residue.getChirality() + _residue.getRingSize() + "|" + _residue.getDeoxies() + _residue.getDoubleBonds() + _residue.getOxidations() + "|"
 				+ _residue.getReadSkeleton();
 	}
 

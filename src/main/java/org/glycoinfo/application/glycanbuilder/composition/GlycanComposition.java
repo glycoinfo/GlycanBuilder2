@@ -78,6 +78,8 @@ public final class GlycanComposition {
 			// not known, read from "?*" - is not its name, and counted as one it would be written as
 			// a plain Hex, the deoxy gone without a word.
 			if (residue.hasDeoxies()) throw new CannotBeWrittenException(name + " with a deoxy at " + residue.getDeoxies());
+			// nor is an alditol with a carbon oxidised, an aldonic acid (#341)
+			if (residue.hasOxidations()) throw new CannotBeWrittenException(name + " with its chain oxidised at " + residue.getOxidations());
 			CompositionResidue counts = CompositionResidue.named(name);
 			if (counts == null) throw new CannotBeWrittenException(name);
 

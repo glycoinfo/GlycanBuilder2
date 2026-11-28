@@ -66,6 +66,13 @@ public class GRESToResidue {
 		// another monosaccharide (#354). Its own name is the ketose's whose C1 is a CH2OH: looked up
 		// with that carbon restored, and the deoxy kept, as a 6-deoxy is kept on Fru.
 		ArrayList<String> terminalDeoxies = new ArrayList<String>();
+		// An aldonic acid is named by the dictionary as the uronic acid whose reduction it is, read from
+		// the other end - A2122h, D-gluconic acid, as an L-GulA alditol - and every position on it then
+		// counts from that end: a 2,6-anhydro came back as a 1,5-anhydro (#341). The converter names it
+		// from the WURCS's own C1, D-Glc with its C1 a carboxyl, and is asked instead.
+		if(match != null && match.getResidueType().getAnomericCarbon() == '1'
+				&& isAnAcidOfAnAlditol(mscore.getSkeletonCode(), this.anomPosition, match.getResidueType()))
+			match = null;
 		if(match == null) {
 			MonosaccharideMSDictionary.Match ketose = ketoseWithItsC1Restored(_gres.getMS().getString());
 			if(ketose != null) {
@@ -115,6 +122,7 @@ public class GRESToResidue {
 		if(!hasAbsoluteStereo(mscore.getSkeletonCode())) configuration = '?';
 
 		ResidueType newType = ResidueDictionary.findResidueType(trivialName);
+		refuseAnAcidOfAnotherLength(newType, mscore.getSkeletonCode(), this.anomPosition, trivialName);
 		configuration = configurationOfTheSkeleton(trivialName, mscore.getSkeletonCode(), configuration);
 		if(trinConv != null)
 			refuseANameOfAnotherSkeleton(newType, mscore.getSkeletonCode(), this.anomPosition, trivialName);
@@ -154,7 +162,8 @@ public class GRESToResidue {
 			residue.setReadSkeleton(skeleton);
 		// The ring letter carries the acyclic forms now, and setting it sets the flags that go with
 		// them - so the two are set together here rather than either being able to undo the other.
-		residue.setRingSize(this.isAlditol() ? 'o' : this.isAldehyde() ? 'a' : this.ringSize);
+		residue.setRingSize((this.isAlditol() || isAnAcidOfAnAlditol(mscore.getSkeletonCode(), this.anomPosition, newType))
+				? 'o' : this.isAldehyde() ? 'a' : this.ringSize);
 
 		this.modifications = leftOver;
 		this.residue = residue;
@@ -183,6 +192,33 @@ public class GRESToResidue {
 		if (isD && !isL) return 'D';
 		if (isL && !isD) return 'L';
 		return _read;
+	}
+
+	/**
+	 * Refuse an open-chain acid whose name has another number of carbons (#341). The converter names a
+	 * 2-keto acid by the configurational prefix of its stereocentres, so a 2-keto tetronic acid, AO1h,
+	 * came back as Gro, which has three, and was written back as AOh, a molecule of three carbons.
+	 */
+	static void refuseAnAcidOfAnotherLength(ResidueType _type, String _skeleton, int _anomericPosition, String _name)
+			throws WURCSToGlycanException {
+		if (!isAnAcidOfAnAlditol(_skeleton, _anomericPosition, _type)) return;
+		Integer carbons = carbonsOf(_type);
+		if (carbons == null || carbons.intValue() == _skeleton.length()) return;
+		throw new WURCSToGlycanException(_skeleton + " has " + _skeleton.length() + " carbons, and the name it was"
+				+ " given, " + _name + ", is a residue of " + carbons + ": no residue this application knows is this"
+				+ " monosaccharide, so it is not read");
+	}
+
+	/** The number of carbons a type's composition class says it has, or null when it says none. */
+	private static Integer carbonsOf(ResidueType _type) {
+		try {
+			String compositionClass = _type.getCompositionClass();
+			org.eurocarbdb.MolecularFramework.sugar.Superclass superclass = (compositionClass == null) ? null
+					: org.eurocarbdb.MolecularFramework.sugar.Superclass.forName(compositionClass.toLowerCase());
+			return (superclass == null || superclass.getCAtomCount() <= 0) ? null : superclass.getCAtomCount();
+		} catch (Exception noClass) {
+			return null;
+		}
 	}
 
 	/**
@@ -364,6 +400,27 @@ public class GRESToResidue {
 		return '?';
 	}
 	
+	/**
+	 * Whether this skeleton is an open chain with a carboxyl at an end and no aldehyde, named as an
+	 * aldose: an aldonic acid, A2122h, an aldaric acid, A22A, a 2-keto acid, AOd2A, and their lactones
+	 * (#341). Each is an alditol of the name with an end oxidised - D-gluconic acid is D-glucitol with
+	 * its C1 a carboxyl - and is read as one, the oxidised carbons kept on the residue.
+	 *
+	 * <p>The dictionary names a hexonic acid by the uronic acid whose reduction it is, A2122h as an
+	 * L-GulA alditol, and the writer writes that alditol as A2122h. It was read as the uronic acid,
+	 * with its aldehyde, two hydrogens light. The converter names the others by the aldose, Thr for
+	 * A21h, and the carboxyl was built as a child named "A" that weighed nothing, or was left out.
+	 *
+	 * <p>A name whose anomeric carbon is not C1 - Kdo's open chain, a ketose's - is not an alditol here.
+	 */
+	static boolean isAnAcidOfAnAlditol(String _skeleton, int _anomericPosition, ResidueType _type) {
+		if (_skeleton == null || _skeleton.length() < 2 || _anomericPosition != 0 || _type == null) return false;
+		if (_skeleton.charAt(0) != 'A' && _skeleton.charAt(_skeleton.length() - 1) != 'A') return false;
+		for (char carbon : _skeleton.toCharArray())
+			if ("aouU".indexOf(carbon) >= 0) return false;
+		return _type.getAnomericCarbon() == '1';
+	}
+
 	private boolean isAlditol() {
 		String skeletonCode = this.gres.getMS().getString();
 	
