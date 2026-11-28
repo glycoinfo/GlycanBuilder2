@@ -263,8 +263,9 @@ public class Residue {
 	}
 
 	/**
-	 * Record a carbon of this alditol's open chain that is oxidised: a terminal CH2OH that is a
-	 * carboxyl, "1*A", or an inner CHOH that is a ketone, "2*O", as WURCS writes the carbon (#341).
+	 * Record a carbon oxidised beyond what this residue's name says, as WURCS writes the carbon: a
+	 * terminal CH2OH of an alditol that is a carboxyl, "1*A" (#341); an inner CHOH that is a ketone,
+	 * "2*O"; or a terminal CH2OH that is an aldehyde, "6*o" (#342).
 	 *
 	 * <p>An aldonic acid - gluconic acid, A2122h - is an alditol with one end a carboxyl, an aldaric
 	 * acid one with both, and a 2-keto acid one with a ketone as well. Read from WURCS, the carboxyl
@@ -272,7 +273,8 @@ public class Residue {
 	 * 16 to 64 Da light. Kept on the residue, as a deoxy is: it changes the composition by what
 	 * WURCSFramework says it changes, takes the residue's own symbol away, and is written back by the
 	 * WURCS writer as part of the skeleton. Also added to {@link #getModifications()}, which is what
-	 * that writer reads.
+	 * that writer reads. A hexos-2-ulose's ketone and a dialdose's second aldehyde were built as
+	 * children named "O" and "o" the same way, 16 to 46 Da light.
 	 */
 	public void addOxidation(String a_sCarbon) {
 		if (!this.oxidations.contains(a_sCarbon)) this.oxidations.add(a_sCarbon);
@@ -284,7 +286,7 @@ public class Residue {
 		return java.util.Collections.unmodifiableList(this.oxidations);
 	}
 
-	/** Whether this residue's open chain has a carbon oxidised that its type's name does not imply. */
+	/** Whether this residue has a carbon oxidised that its type's name does not imply. */
 	public boolean hasOxidations() {
 		return !this.oxidations.isEmpty();
 	}

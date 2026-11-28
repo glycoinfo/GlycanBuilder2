@@ -513,8 +513,10 @@ public class GWSParser implements GlycanParser {
 			if( r.isSaccharide() && child!=null && !child.isSaccharide() && !child.hasChildren()
 					&& child.getTypeName().length()==1
 					&& (isSkeletonCode(child.getTypeName().charAt(0))
-						// an oxidised carbon only on an alditol, which is where the WURCS reader keeps one
-						|| (r.isAlditol() && SkeletonModificationComposition.isOxidation(child.getTypeName().charAt(0))))
+						// an oxidised carbon: a carboxyl only on an alditol, which is where the WURCS reader
+						// keeps one; a ketone or an aldehyde on any residue (#342)
+						|| (SkeletonModificationComposition.isOxidation(child.getTypeName().charAt(0))
+								&& (r.isAlditol() || child.getTypeName().charAt(0) != 'A')))
 					&& l.getBonds().size()==1 ) {
 				String carbon = l.getParentPositionsSingle() + "*" + child.getTypeName();
 				if( SkeletonModificationComposition.isDeoxy(child.getTypeName().charAt(0)) ) r.addDeoxy(carbon);

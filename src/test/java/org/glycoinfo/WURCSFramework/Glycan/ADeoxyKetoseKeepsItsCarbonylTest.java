@@ -50,13 +50,15 @@ public class ADeoxyKetoseKeepsItsCarbonylTest {
 	}
 
 	/**
-	 * The open chain is #342's: GlycanBuilder2 has no open-chain ketose yet - hO122h itself is read as an
-	 * alditol - so its 1-deoxy, mO122h, is left as it was rather than written back as mU122h.
+	 * The open chain, once #342 gave a ketose its open form: mO122h is Fru with its C1 a deoxy, open, and
+	 * is written back as read rather than as mU122h. It was left as an araHex until then.
 	 */
 	@Test
-	public void theOpenChainIsLeftToItsOwnIssue() throws Exception {
-		Glycan read = new WURCS2Parser().readGlycan("WURCS=2.0/1,1,0/[mO122h]/1/", new MassOptions());
-		assertEquals("araHex", read.getRoot().firstChild().getTypeName());
+	public void theOpenChainIsItsKetoseOpen() throws Exception {
+		String wurcs = "WURCS=2.0/1,1,0/[mO122h]/1/";
+		Glycan read = new WURCS2Parser().readGlycan(wurcs, new MassOptions());
+		assertEquals("Fru", read.getRoot().firstChild().getTypeName());
+		assertEquals(wurcs, new WURCS2Parser().toWURCS(read));
 	}
 
 	/** A 6-deoxy fructose was read so already, and still is. */

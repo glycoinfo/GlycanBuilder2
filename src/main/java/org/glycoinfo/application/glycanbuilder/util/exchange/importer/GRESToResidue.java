@@ -106,6 +106,7 @@ public class GRESToResidue {
 			trinConv = new TrivialNameConverter();
 			trinConv.start(_gres);
 			trivialName = trinConv.getTrivialName().replace("5", "");
+			trivialName = nameOfTheChain(trivialName, mscore.getSkeletonCode());
 			configuration = getConfiguration(((Monosaccharide) trinConv.getNode()).getStereos());
 			// A skeleton whose stereo is relative only - 3 and 4, which say how the centres stand to
 			// one another and not which enantiomer this is - has no D or L. The converter names one
@@ -162,8 +163,16 @@ public class GRESToResidue {
 			residue.setReadSkeleton(skeleton);
 		// The ring letter carries the acyclic forms now, and setting it sets the flags that go with
 		// them - so the two are set together here rather than either being able to undo the other.
-		residue.setRingSize((this.isAlditol() || isAnAcidOfAnAlditol(mscore.getSkeletonCode(), this.anomPosition, newType))
-				? 'o' : this.isAldehyde() ? 'a' : this.ringSize);
+		// An open chain whose name's carbonyl is a carbonyl is that name's open form, not its alditol:
+		// D-fructose's hO122h was read as an alditol, two hydrogens heavy (#342). One whose name's
+		// carbonyl is reduced - a CH2OH, a deoxy or an acid - is the alditol, whatever else is oxidised:
+		// h1O21h, a hex-3-ulose, is a xylo-hexitol with its C3 a ketone, and mO12h, which the converter
+		// names thrPen, a threo-pentitol with its C1 a deoxy and its C2 a ketone.
+		boolean openCarbonyl = carbonylAtTheNamesAnomericCarbon(mscore.getSkeletonCode(), this.anomPosition, newType);
+		residue.setRingSize((!openCarbonyl && (this.isAlditol()
+				|| reducedAtTheNamesAnomericCarbon(mscore.getSkeletonCode(), this.anomPosition, newType)
+				|| isAnAcidOfAnAlditol(mscore.getSkeletonCode(), this.anomPosition, newType)))
+				? 'o' : (openCarbonyl || this.isAldehyde()) ? 'a' : this.ringSize);
 
 		this.modifications = leftOver;
 		this.residue = residue;
@@ -283,9 +292,8 @@ public class GRESToResidue {
 	 * known, and whose C1 is a deoxy. Null otherwise, and when the restored skeleton is no ketose this application knows.
 	 */
 	static MonosaccharideMSDictionary.Match ketoseWithItsC1Restored(String _ms) {
-		// the open chain, mO122h, is left to #342: GlycanBuilder2 has no open-chain ketose yet - hO122h
-		// itself is read as an alditol - and the ketose found here would be written as mU122h
-		if(_ms == null || _ms.length() < 4 || _ms.charAt(0) != 'm' || "aU".indexOf(_ms.charAt(1)) < 0) return null;
+		// and the open chain, mO122h, now that a ketose is read in its open form (#342)
+		if(_ms == null || _ms.length() < 4 || _ms.charAt(0) != 'm' || "aUO".indexOf(_ms.charAt(1)) < 0) return null;
 		// the skeleton code runs to the first "-" or "_"; its last carbon, a deoxy as well, is restored too
 		int end = _ms.length();
 		for(int i = 0; i < _ms.length(); i++)
@@ -416,9 +424,65 @@ public class GRESToResidue {
 	static boolean isAnAcidOfAnAlditol(String _skeleton, int _anomericPosition, ResidueType _type) {
 		if (_skeleton == null || _skeleton.length() < 2 || _anomericPosition != 0 || _type == null) return false;
 		if (_skeleton.charAt(0) != 'A' && _skeleton.charAt(_skeleton.length() - 1) != 'A') return false;
-		for (char carbon : _skeleton.toCharArray())
-			if ("aouU".indexOf(carbon) >= 0) return false;
+		// an aldehyde at the far end, AOd22o, is an oxidised carbon of the chain as well (#342)
+		for (int i = 0; i < _skeleton.length(); i++)
+			if ("auU".indexOf(_skeleton.charAt(i)) >= 0 || (_skeleton.charAt(i) == 'o' && i != _skeleton.length() - 1))
+				return false;
 		return _type.getAnomericCarbon() == '1';
+	}
+
+	/**
+	 * Whether this open chain has a carbonyl at the carbon its name's carbonyl is at - an aldose's C1,
+	 * a ketose's C2 - so that it is that monosaccharide's open form rather than its alditol (#342).
+	 */
+	static boolean carbonylAtTheNamesAnomericCarbon(String _skeleton, int _anomericPosition, ResidueType _type) {
+		if (_skeleton == null || _anomericPosition != 0 || _type == null) return false;
+		for (char carbon : _skeleton.toCharArray())
+			if ("auU".indexOf(carbon) >= 0) return false;
+		char anomeric = _type.getAnomericCarbon();
+		if (!Character.isDigit(anomeric)) return false;
+		int at = anomeric - '0';
+		return at >= 1 && at <= _skeleton.length() && "oO".indexOf(_skeleton.charAt(at - 1)) >= 0;
+	}
+
+	/**
+	 * Whether this open chain has its name's carbonyl reduced - an aldose's C1 a CH2OH, a deoxy or an
+	 * acid - and no carbonyl but an oxidised carbon its name does not have, so that it is that name's
+	 * alditol with the rest of the chain as it is (#342).
+	 */
+	static boolean reducedAtTheNamesAnomericCarbon(String _skeleton, int _anomericPosition, ResidueType _type) {
+		if (_skeleton == null || _skeleton.length() < 2 || _anomericPosition != 0 || _type == null) return false;
+		for (int i = 0; i < _skeleton.length(); i++)
+			if ("auU".indexOf(_skeleton.charAt(i)) >= 0 || (_skeleton.charAt(i) == 'o' && i != _skeleton.length() - 1))
+				return false;
+		char anomeric = _type.getAnomericCarbon();
+		if (anomeric != '1') return false;
+		return "hmA".indexOf(_skeleton.charAt(0)) >= 0;
+	}
+
+	private static final java.util.regex.Pattern PARENT_ALDOSE =
+			java.util.regex.Pattern.compile("^(Gro|Ery|Thr|Rib|Ara|Xyl|Lyx|All|Alt|Glc|Man|Gul|Ido|Gal|Tal)$");
+	private static final String[] CHAIN = { null, null, null, null, "Tet", "Pen", "Hex", "Hep", "Oct", "Non", "Dec" };
+
+	/**
+	 * The name of this chain's length for a converter's name that is the configurational prefix of its
+	 * stereocentres, when the skeleton has a free carbonyl. The converter names D-arabino-hexos-2-ulose,
+	 * aO122h, by its three centres as Ara, a pentose; it is araHex with its C2 a ketone (#342). The name
+	 * is kept when it is already of this length, or when no residue has the other name.
+	 */
+	static String nameOfTheChain(String _name, String _skeleton) {
+		if (_name == null || _skeleton == null || !PARENT_ALDOSE.matcher(_name).matches()) return _name;
+		boolean freeCarbonyl = false;
+		for (int i = 1; i < _skeleton.length(); i++)
+			if (_skeleton.charAt(i) == 'O' || (_skeleton.charAt(i) == 'o' && i == _skeleton.length() - 1)) freeCarbonyl = true;
+		if (!freeCarbonyl) return _name;
+		ResidueType named = ResidueDictionary.findResidueType(_name);
+		Integer carbons = (named == null) ? null : carbonsOf(named);
+		if (carbons == null || carbons.intValue() == _skeleton.length()) return _name;
+		if (_skeleton.length() >= CHAIN.length || CHAIN[_skeleton.length()] == null) return _name;
+		String ofTheChain = _name.toLowerCase() + CHAIN[_skeleton.length()];
+		return (ResidueDictionary.hasResidueType(ofTheChain) || NonSymbolicResidueDictionary.hasResidueType(ofTheChain))
+				? ofTheChain : _name;
 	}
 
 	private boolean isAlditol() {
@@ -440,6 +504,11 @@ public class GRESToResidue {
 		if(this.anomSymbol == 'o' && skeletonCode.equals("<Q>"))
 			return true;
 		if(!skeletonCode.contains("o") && !skeletonCode.contains("O"))
+			return false;
+		// an open chain only: indexOf counts from 0, and a ring's anomeric carbon from 1, so a ring
+		// with a ketone at C2, aO122h-1b_1-5, was taken for an open chain and written back without its
+		// ring (#342)
+		if(this.anomPosition != 0)
 			return false;
 		if(skeletonCode.indexOf("o") == this.anomPosition)
 			return true;
