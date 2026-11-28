@@ -101,13 +101,11 @@ public class OpenChainAcidsTest {
 
 	/**
 	 * GWS carries the oxidised carbons as children, as it carries a deoxy, and reading takes them back.
-	 * The lactones are left out: an Anhydro read back from GWS is not the bridge read from WURCS, and
-	 * weighs a water light on any residue - a 1,6-anhydro glucose too - which is not this issue's.
+	 * The lactones too, since an Anhydro read back from GWS is the bridge it was (#362).
 	 */
 	@Test
 	public void theySurviveGws() throws Exception {
 		for (String sequence : ACIDS) {
-			if (sequence.matches(".*_[0-9]-[0-9].*")) continue;
 			Glycan read = wurcs(sequence);
 			String gws = read.toString();
 			Glycan reopened = Glycan.fromString(gws);
