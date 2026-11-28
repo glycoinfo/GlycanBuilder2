@@ -57,7 +57,7 @@ public class CompositionIsDrawnInOneOrderTest {
 	/** The members a WURCS gives in another order are drawn as the dialog orders them. */
 	@Test
 	public void theDialogsOrderIsTheOrder() throws Exception {
-		Glycan readBack = read("WURCS=2.0/2,5,0/[axxxxh-1x_1-5_2*NCC/3=O][axxxxh-1x_1-5]/1-1-2-2-2/");
+		Glycan readBack = read("WURCS=2.0/2,5,4/[axxxxh-1x_1-5_2*NCC/3=O][axxxxh-1x_1-5]/1-1-2-2-2/a?|b?|c?|d?|e?}-{a?|b?|c?|d?|e?_a?|b?|c?|d?|e?}-{a?|b?|c?|d?|e?_a?|b?|c?|d?|e?}-{a?|b?|c?|d?|e?_a?|b?|c?|d?|e?}-{a?|b?|c?|d?|e?");
 		List<String> drawn = drawnTopToBottom(readBack);
 		List<String> dialog = drawnTopToBottom(composition("HEX", 3, "HEXNAC", 2));
 		assertEquals(dialog, drawn);

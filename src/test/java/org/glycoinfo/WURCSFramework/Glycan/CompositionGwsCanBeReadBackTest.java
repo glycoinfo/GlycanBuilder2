@@ -24,8 +24,12 @@ import org.junit.Test;
  */
 public class CompositionGwsCanBeReadBackTest {
 
-	/** Hex3HexNAc2 - the N-glycan core's composition. */
-	private static final String AS_WURCS = "WURCS=2.0/2,5,0/[u2122h_2*NCC/3=O][u1122h]/1-1-2-2-2/";
+	/**
+	 * Hex3HexNAc2 - the N-glycan core's composition - with its residues joined by linkages of unknown
+	 * position, as GlyTouCan holds compositions. It was the same residues with no linkage at all, which
+	 * since 2026-11-29 is read as what it is, separate monosaccharides, and refused.
+	 */
+	private static final String AS_WURCS = "WURCS=2.0/2,5,4/[u2122h_2*NCC/3=O][u1122h]/1-1-2-2-2/a?|b?|c?|d?|e?}-{a?|b?|c?|d?|e?_a?|b?|c?|d?|e?}-{a?|b?|c?|d?|e?_a?|b?|c?|d?|e?}-{a?|b?|c?|d?|e?_a?|b?|c?|d?|e?}-{a?|b?|c?|d?|e?";
 
 	@Test
 	public void aCompositionSurvivesTheRoundTrip() throws Exception {

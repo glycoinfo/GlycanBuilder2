@@ -101,10 +101,17 @@ public class WURCSSequence2ToGlycan {
 				this.glycan.addAntenna(fragRoot, fragRoot.getParentLinkage().getBonds());
 			}
 
-			// without linkage label
+			// Monosaccharides with no linkage at all between them are separate molecules, not one glycan,
+			// and GlycanBuilder2 does not read them (the maintainer, 2026-11-29). They were read as a
+			// composition with a "no glycosidic linkages" label hung off it, which nothing wrote back: the
+			// export refused the label as a residue. A composition is written with its residues joined by
+			// linkages of unknown position, a?|b?}-{a?|b?, as GlyTouCan holds every composition.
 			if (this.isCompositionWithoutLinkage(this.glycan)) {
-				Residue withoutLinkage = new Residue(ResidueType.createAssigned("no glycosidic linkages"));
-				this.glycan.addAntenna(withoutLinkage);
+				int monosaccharides = this.glycan.getBracket().getChildrenLinkages().size();
+				throw new WURCSToGlycanException("this WURCS has " + monosaccharides + " monosaccharides and no linkage"
+						+ " between them, which makes them separate molecules rather than one glycan. A composition is"
+						+ " written with its residues joined by linkages of unknown position (a?|b?}-{a?|b?); separate"
+						+ " monosaccharides are not read");
 			}
 
 			this.glycan.normalizeCompositionFlags();
