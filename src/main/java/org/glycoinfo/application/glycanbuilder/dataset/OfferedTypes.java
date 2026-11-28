@@ -33,10 +33,10 @@ import org.glycoinfo.application.glycanbuilder.converterWURCS2.WURCS2Parser;
  * <li>from the residue menus and galleries: dHexA; Unknown, the white flat hexagon; Hept, which the
  * writer refuses while neither its configuration nor its ring is known; and Ino, a substituent
  * WURCS has no MAP for;
- * <li>from the structure templates: eight of the GAG repeats, whose sulfates sit where no hydroxyl
- * is free;
- * <li>from the monosaccharide chooser: Unknown, and 60 of the residues with no symbol of their own,
- * for which the writer has no skeleton.
+ * <li>from the structure templates: none since #330 corrected eight GAG repeats, whose sulfates sat
+ * where no hydroxyl is free;
+ * <li>from the monosaccharide chooser: Unknown, and 48 of the residues with no symbol of their own
+ * (60 until #275), for which the writer has no skeleton or writes one no reader takes back.
  * </ul>
  *
  * <p>What is only left out of the offer: a file holding one of these still opens, and its residue

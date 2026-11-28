@@ -49,15 +49,18 @@ public class OfferedTypesTest {
 		assertTrue(OfferedTypes.residue(ResidueDictionary.findResidueType("Assigned")));
 	}
 
-	/** The structure templates: eight GAG repeats, sulfated where no hydroxyl is free. */
+	/**
+	 * The structure templates: every one is offered. Eight GAG repeats were left out until #330, sulfated
+	 * where no hydroxyl is free - a dermatan GalNAc at C5, its ring carbon, and a heparan GlcN at C4,
+	 * where the next GlcA is bonded.
+	 */
 	@Test
-	public void theTemplatesLeaveOutEightGagRepeats() {
+	public void theTemplatesAreAllOffered() {
 		TreeSet<String> withheld = new TreeSet<String>();
 		for (CoreType core : CoreDictionary.getCores())
 			if (!OfferedTypes.core(core)) withheld.add(core.getName());
 
-		assertEquals(new TreeSet<String>(Arrays.asList("gagdermatan5", "gagdermatan45", "gagdermatan25",
-				"gagdermatan245", "gagheparan24", "gagheparan224", "gagheparan246", "gagheparan2246")), withheld);
+		assertEquals(new TreeSet<String>(), withheld);
 	}
 
 	/**
