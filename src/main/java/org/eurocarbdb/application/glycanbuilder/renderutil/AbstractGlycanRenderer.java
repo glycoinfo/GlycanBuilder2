@@ -1303,6 +1303,21 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 	// ----------------
 	// Bounding boxes bracket
 
+	/**
+	 * The residues on a bracket, in the order they are laid out: as attached, or for a composition in
+	 * the composition dialog's order, so it is drawn the same way however it was made (#235). A copy,
+	 * since laying them out inserts attachment points among the bracket's children.
+	 */
+	private static java.util.List<Residue> membersInDrawingOrder(Residue bracket, boolean _isComposition) {
+		java.util.List<Residue> members = new java.util.ArrayList<Residue>();
+		for (int i = 0; i < bracket.getNoChildren(); i++)
+			members.add(bracket.getChildAt(i));
+		if (_isComposition)
+			java.util.Collections.sort(members,
+					org.eurocarbdb.application.glycanbuilder.massutil.CompositionOptions.DRAWING_ORDER);
+		return members;
+	}
+
 	private void computeBoundingBoxesBracket(Residue bracket, Residue root,
 											 boolean COLLAPSE_MULTIPLE_ANTENNAE, PositionManager posManager,
 											 BBoxManager bboxManager, boolean _isComposition) throws Exception {
@@ -1337,8 +1352,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		int max_quantity = 1;
 		LinkedList<Residue> antennaee = new LinkedList<Residue>();
 		TreeMap<String, Pair<Residue, Integer>> unique_antennae = new TreeMap<String, Pair<Residue, Integer>>();
-		for (int i = 0; i < bracket.getNoChildren(); i++) {
-			Residue child = bracket.getChildAt(i); // avoid concurrent
+		for (Residue child : membersInDrawingOrder(bracket, _isComposition)) { // avoid concurrent
 			if (child.isCompositionMarker()) continue;
 			// modification of
 			// iterator!!
@@ -1427,8 +1441,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		boolean isNoGlycosidicLinkages = false;
 		LinkedList<Residue> fragments = new LinkedList<>();
 		TreeMap<String, Pair<Residue, Integer>> unique_antennae = new TreeMap<>();
-		for (int i = 0; i < bracket.getNoChildren(); i++) {
-			Residue child = bracket.getChildAt(i); // avoid concurrent
+		for (Residue child : membersInDrawingOrder(bracket, _isComposition)) { // avoid concurrent
 			if (child.isCompositionMarker()) {
 				isNoGlycosidicLinkages = true;
 				continue;
@@ -1521,8 +1534,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		int max_quantity = 1;
 		LinkedList<Residue> antennaee = new LinkedList<Residue>();
 		TreeMap<String, Pair<Residue, Integer>> unique_antennae = new TreeMap<String, Pair<Residue, Integer>>();
-		for (int i = 0; i < bracket.getNoChildren(); i++) {
-			Residue child = bracket.getChildAt(i); // avoid concurrent
+		for (Residue child : membersInDrawingOrder(bracket, _isComposition)) { // avoid concurrent
 			if (child.isCompositionMarker()) continue;
 			// modification of
 			// iterator!!
@@ -1612,8 +1624,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		int max_quantity = 1;
 		LinkedList<Residue> antennaee = new LinkedList<Residue>();
 		TreeMap<String, Pair<Residue, Integer>> unique_antennae = new TreeMap<String, Pair<Residue, Integer>>();
-		for (int i = 0; i < bracket.getNoChildren(); i++) {
-			Residue child = bracket.getChildAt(i); // avoid concurrent
+		for (Residue child : membersInDrawingOrder(bracket, _isComposition)) { // avoid concurrent
 			if (child.isCompositionMarker()) continue;
 			// modification of
 			// iterator!!
