@@ -121,18 +121,21 @@ public class FileUtils {
 	 *            the desired file extension
 	 */
 	static public String enforceExtension(String filename, String extension) {
+		//20211208_S.TSUCHIYA, add
+		// A sequence format - WURCS, GlycoCT, GWS - is written as text, so its file is a .txt, which is
+		// what the save dialog's filter offers. That is the extension to look for, too: compared with the
+		// format's name instead, a file already named 1.txt was saved as 1.txt.txt, and choosing that one
+		// gave 1.txt.txt.txt (#237).
+		if (GlycanParserFactory.getExportFormats().containsKey(extension))
+			extension = "txt";
+
 		String ext = "";
 		int i = filename.lastIndexOf('.');
 		if (i > 0 && i < filename.length() - 1)
 			ext = filename.substring(i + 1).toLowerCase();
-		if (ext.equals(extension))
+		if (ext.equals(extension.toLowerCase()))
 			return filename;
 
-		//20211208_S.TSUCHIYA, add
-		// check export text format
-		// if an extension contains as a key in GlycanParserFactory.getExportFormats(), an extension change to .txt
-		if (GlycanParserFactory.getExportFormats().containsKey(extension))
-			return filename + ".txt";
 		return filename + "." + extension;
 	}
 
