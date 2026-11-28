@@ -1177,6 +1177,20 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 								   boolean add_attachment, java.util.Map<Residue, Residue> copies) {
 		if (root == null) return null;
 
+		// A residue standing on its structure's reducing end, selected without it - a lone GlcNAc, the
+		// first residue of any structure - is copied with that reducing end, as it is when the reducing
+		// end is selected too. Copied alone, it had nothing above it: the GWS on the clipboard began
+		// with the residue, which no reader takes as a structure, and paste did nothing, onto a residue
+		// or on its own (#240).
+		if (add_attachment && !root.isReducingEnd() && root.getParent() != null
+				&& root.getParent().isReducingEnd() && root.getParentLinkage() != null) {
+			Residue reducingEnd = root.getParent().cloneResidue();
+			int before = reducingEnd.getChildrenLinkages().size();
+			reducingEnd.copyChild(cloneStructure(root, nodes, false, copies), root.getParentLinkage().getBonds());
+			reducingEnd.keepLinkageTypes(root.getParentLinkage(), before);
+			return reducingEnd;
+		}
+
 		// A residue with no bond above it - the start of a cycle, which is a structure's root as a
 		// reducing end is - has nothing to attach the attach point with: wrapped, the copy of a cycle,
 		// and of two residues joined by two bonds, which is read as one, threw (#340)
