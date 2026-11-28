@@ -251,7 +251,7 @@ public class GWSParser implements GlycanParser {
 		// A root that does not read as a residue is an aglycon, by the whole of its name (#305).
 		ResidueType aglycon = null;
 		int rootEnd = endOfRoot(tree, ind2!=-1);
-		if( rootEnd>0 && !readsAsAResidue(tree.substring(0,rootEnd)) ) {
+		if( rootEnd>0 && tree.charAt(0)!='>' && !readsAsAResidue(tree.substring(0,rootEnd)) ) {
 			aglycon = ResidueDictionary.findReducingEndType(tree.substring(0,rootEnd));
 			tree = "freeEnd" + tree.substring(rootEnd);
 		}
@@ -289,6 +289,9 @@ public class GWSParser implements GlycanParser {
 		// about to go.
 		foldDeoxies(ret.getRoot());
 		foldDeoxies(ret.getBracket());
+
+		// A cycle's first and last residues know its ends, as the WURCS reader and the editor leave them
+		linkCycle(ret);
 
 		// The repeat markers carry the carbon the repeat closes on (#301)
 		giveRepeatsTheirCarbon(ret);
@@ -564,6 +567,65 @@ public class GWSParser implements GlycanParser {
 		return sb.toString();
 	}
 
+	/**
+	 * Gives a cycle read from GWS the references its ends have when it is built in the editor or read
+	 * from WURCS (#394): the first residue, under the start, knows the start; the last, above the end,
+	 * knows the end; and the end knows the first. A repeat at either end is passed through, as the
+	 * WURCS reader passes through it. The WURCS writer finds the cycle by these, not by the markers.
+	 */
+	private static void linkCycle(Glycan _structure) {
+		Residue start = _structure.getRoot();
+		if( start==null || !start.isStartCyclic() || !start.hasChildren() )
+			return;
+		Residue first = start.getChildAt(0);
+		if( first.isStartRepetition() && first.hasChildren() )
+			first = first.getChildAt(0);
+		first.setStartCyclicResidue(start);
+
+		for( Residue residue : _structure.getAllResidues() ) {
+			if( !residue.isEndCyclic() || residue.getParent()==null )
+				continue;
+			Residue last = residue.getParent();
+			if( last.isEndRepetition() && last.getParent()!=null )
+				last = last.getParent();
+			last.setEndCyclicResidue(residue);
+			residue.setStartResidue(first);
+		}
+	}
+
+	/**
+	 * Reads one structure of several, saying which one when it cannot be (#394).
+	 *
+	 * <p>A document is its structures' GWS, one after another, and one that could not be read was
+	 * either dropped without a word - a workspace held it as nothing - or failed the whole file with
+	 * the parser's own sentence, "Invalid format for string: &lt;", which says neither which structure
+	 * nor where. This names the structure by its place and its beginning, with the reason after it.
+	 *
+	 * @param _gws The structure's GWS.
+	 * @param _index Its place among the structures, from 0.
+	 * @param _count How many structures there are; 0 or less when that is not known.
+	 * @param _options The mass options to read it with, when the GWS gives none.
+	 * @return Returns the structure.
+	 * @throws Exception If it cannot be read, naming it.
+	 */
+	static public Glycan readNumbered(String _gws, int _index, int _count, MassOptions _options) throws Exception {
+		try {
+			return fromString(_gws, _options);
+		}
+		catch( Exception unreadable ) {
+			throw new Exception(cannotRead(_gws, _index, _count, unreadable), unreadable);
+		}
+	}
+
+	/** The sentence {@link #readNumbered} throws with. */
+	static public String cannotRead(String _gws, int _index, int _count, Exception _why) {
+		String gws = (_gws==null) ? "" : _gws.trim();
+		if( gws.length()>80 ) gws = gws.substring(0,77) + "...";
+		String which = (_count>0) ? "Structure " + (_index+1) + " of " + _count : "Structure " + (_index+1);
+		String why = (_why.getMessage()!=null) ? _why.getMessage() : _why.getClass().getSimpleName();
+		return which + " could not be read (" + why + "): " + gws;
+	}
+
 	static public Residue readSubtree(String str, boolean accept_empty) throws Exception {
 		return readSubtree(str, accept_empty, new ResidueHolder());
 	}
@@ -581,6 +643,16 @@ public class GWSParser implements GlycanParser {
 			ret = ResidueDictionary.createBracket();
 			str = str.substring(1);
 		}
+		// The ends of a cycle, which the writer writes as > and < (#394). Nothing read them: a
+		// cyclodextrin, and anything else with a cycle, was saved and could not be opened again.
+		else if( str.charAt(0)=='>' ) {
+			ret = ResidueDictionary.createStartCyclic();
+			str = str.substring(1);
+		}
+		else if( str.charAt(0)=='<' ) {
+			ret = ResidueDictionary.createEndCyclic();
+			str = str.substring(1);
+		}
 		else {
 			//------------------
 			// create residue
@@ -591,11 +663,13 @@ public class GWSParser implements GlycanParser {
 			
 			if( str.charAt(0)=='[' ){
 				ret = ResidueDictionary.createStartRepetition();  
-				startRep.res=ret;
+				startRep.openRepeats.push(ret);
 			}else if( str.charAt(0)==']' ) { 
 				ret = ResidueDictionary.createEndRepetition(m.group(1),m.group(2));
-				startRep.res.setEndRepitionResidue(ret);
-				startRep.res=null;
+				// the last repeat still open; none when the text is part of a structure, a copy of a
+				// repeat's end without its start, which then has no partner
+				Residue start = startRep.openRepeats.poll();
+				if( start!=null ) start.setEndRepitionResidue(ret);
 			}
 			else {
 				// get stereochemistry
