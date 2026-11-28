@@ -28,12 +28,12 @@ import org.glycoinfo.WURCSFramework.util.property.chemical.WURCSGraphChemicalCom
  * galactose. For a double bond the maintainer's rule is to count the hydroxyls the skeleton has
  * (2026-11-10): e and z have lost theirs, E and Z keep it - see {@link #removesAHydroxyl}.
  *
- * <p>And the oxidised carbons of an alditol's open chain (#341): A, a terminal CH2OH that is a
- * carboxyl, and O, an inner CHOH that is a ketone. They are measured on an alditol with no stereo, as
- * the others are on a pyranose, since an alditol is what they are kept on. A ketone has lost its
- * hydroxyl, and a carboxyl keeps one that is methylated and not acetylated - as this application's
- * dictionary has it, where a uronic acid has as many methylation sites as its hexose and one fewer
- * acetylation site. See {@link #sitesLost}.
+ * <p>And the carbons oxidised beyond what a residue's name says: A, a terminal CH2OH of an alditol
+ * that is a carboxyl (#341); O, an inner CHOH that is a ketone; and o, a terminal CH2OH that is an
+ * aldehyde (#342). They are measured on an alditol with no stereo, whose carbons are all CH2OH or
+ * CHOH. A ketone and an aldehyde have lost their hydroxyl, and a carboxyl keeps one that is methylated
+ * and not acetylated - as this application's dictionary has it, where a uronic acid has as many
+ * methylation sites as its hexose and one fewer acetylation site. See {@link #sitesLost}.
  */
 public final class SkeletonModificationComposition {
 
@@ -51,6 +51,7 @@ public final class SkeletonModificationComposition {
 	static {
 		OXIDISED.put('A', "Axxxxh");   // a terminal carboxyl, here at C1
 		OXIDISED.put('O', "hOxxxh");   // an inner ketone, here at C2
+		OXIDISED.put('o', "oxxxxh");   // a terminal aldehyde, here at C1 (#342)
 	}
 
 	private static final Map<Character, Molecule> DELTAS = new HashMap<Character, Molecule>();
@@ -63,7 +64,7 @@ public final class SkeletonModificationComposition {
 		return MODIFIED.containsKey(code);
 	}
 
-	/** Whether this is the code of an oxidised carbon of an alditol's chain: A or O. */
+	/** Whether this is the code of a carbon oxidised beyond a residue's name: A, O or o. */
 	public static boolean isOxidation(char code) {
 		return OXIDISED.containsKey(code);
 	}
@@ -85,7 +86,7 @@ public final class SkeletonModificationComposition {
 		Character code = codeOf(modification);
 		if (code == null) return 0;
 		if (code.charValue() == 'A') return acetylation ? 1 : 0;
-		if (code.charValue() == 'O') return 1;
+		if (code.charValue() == 'O' || code.charValue() == 'o') return 1;
 		return removesAHydroxyl(modification) ? 1 : 0;
 	}
 

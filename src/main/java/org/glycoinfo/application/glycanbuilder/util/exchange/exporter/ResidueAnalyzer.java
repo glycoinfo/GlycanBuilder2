@@ -26,6 +26,8 @@ public class ResidueAnalyzer {
 	private char isomer = '?';
 	/** Whether the residue being written is an alditol, whose ketones are oxidised carbons (#341). */
 	private boolean alditol = false;
+	/** The carbons the residue has oxidised beyond its name, none of them its carbonyl (#342). */
+	private java.util.List<String> oxidised = new ArrayList<String>();
 
 	private LinkedList<Integer> anomList = new LinkedList();
 	private TreeMap<Integer, Character> pos2char = new TreeMap();
@@ -66,6 +68,7 @@ public class ResidueAnalyzer {
 		this.anomState = _residue.isAldehyde() ? checkAnomerSymbol('?') : checkAnomerSymbol(_residue.getAnomericState());
 		this.isomer = _residue.getChirality();
 		this.alditol = _residue.isAlditol();
+		this.oxidised = _residue.getOxidations();
 
 		Superclass superclass = Superclass.forName(_residue.getType().getCompositionClass().toLowerCase());
 
@@ -242,6 +245,12 @@ public class ResidueAnalyzer {
 		// a carbon not known, ?, is -1 here, and goes out as a MAP at ? - a deoxy as "?*"
 		int pos = mod[0].equals("?") ? -1 : Integer.parseInt(mod[0]);
 		boolean isTerminal = (pos == 1 || pos == this.backbone);
+		// a carbon oxidised beyond the name, written as the skeleton had it: no anomeric carbon (#342)
+		if (this.oxidised.contains(a_sModification)) {
+			if (pos == 1) this.isAldose = false;
+			this.pos2char.put(pos, mod[1].charAt(0));
+			return;
+		}
 		char carbonDescriptor = this.convertModificationNameToCarbonDescriptor(mod[1]);
 
 		if(carbonDescriptor == 'd' && isTerminal)
