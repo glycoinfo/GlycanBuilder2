@@ -66,7 +66,8 @@ Each is the maintainer's (I. Yamada), recorded where it was made.
 
 ### Where every open issue stands, 2026-11-29
 
-110 open, no pull request open. `origin/develop` is 92fa30f. Since the last pass, 41 pull requests
+105 open after the five below were closed on 2026-11-29; 110 when this pass began. No pull request
+is open but this file's. `origin/develop` is 92fa30f. Since the last pass, 41 pull requests
 were merged into develop (#338 to #393), and the issues they fix were re-measured on develop as they
 were fixed. The rest were re-measured on 2026-11-28 where a measurement could say anything (#17, #57,
 #66, #189, #222, #228, #253, #282, #16).
@@ -145,7 +146,8 @@ reaches master, so these close with the next release.
 | #282 | #304: a deoxy heptose with no name is refused, "galHep is no residue this application knows", instead of read as a residue that weighs nothing. Naming them is #298, GB3 |
 | #263 | #284, **in part**: the deoxy. The double bond and the acid in an Assigned residue's footnote (SNFG note 11) and `en` inside a symbol (note 4) were open on 2026-11-10 and have not been re-checked since #316 |
 
-**Measured as fixed or answerable, 2026-11-28: close with a comment once the maintainer agrees (5).**
+**Measured as fixed or answerable, 2026-11-28: closed with a comment on 2026-11-29, at the
+maintainer's word (5).** #66 as not planned, the rest as completed.
 
 | Issue | Measured |
 |---|---|
@@ -177,7 +179,7 @@ glycoinfo/MolecularFramework#4 and glycoinfo/ResourcesDB#1) · #334 waits on
 glycoinfo/wurcsframework!15 · #226 GlycoWorkbench's fork, for the record.
 
 **GB3 (24).** #6, #7, #20, #41, #58, #93, #95, #100, #109, #177, #181, #184, #190, #200, #229, #232, #233,
-#234, #244, #245, #298, #315, #327, and **#352**, a feature request with no label yet.
+#234, #244, #245, #298, #315, #327, and **#352**, a feature request, labelled GB3 on 2026-11-29.
 
 ### The order to take them in, 2026-11-29
 
@@ -185,11 +187,9 @@ glycoinfo/wurcsframework!15 · #226 GlycoWorkbench's fork, for the record.
    (2026-08-15). CHANGELOG and version 1.41.0, then the release itself, which is the maintainer's.
    Close the four above by hand, and check the 64 against their reports as they close. Afterwards,
    raise `glycanbuilder2.version` in glycanbuilder2web and finish its drafts !133, !134, !135 and !139.
-2. **The five to close with a comment**, and the GB3 label on #352. Both are writes to the tracker, so
-   both wait for the maintainer's word.
-3. **The decisions**, in one sitting: #364, #386, #390, #394 first, since #394 loses work.
-4. **#91 and #187.**
-5. **#175** when MolecularFramework and resourcesdb move to jdom2; **#334** when wurcsframework!15 is
+2. **The decisions**, in one sitting: #364, #386, #390, #394 first, since #394 loses work.
+3. **#91 and #187.**
+4. **#175** when MolecularFramework and resourcesdb move to jdom2; **#334** when wurcsframework!15 is
    released.
 
 ---
