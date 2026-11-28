@@ -348,8 +348,16 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 
 		if( root==null )
 			ret = new Glycan(null,add_redend,this.mass_options);
-		else 
-			ret = new Glycan(root.cloneSubtree(),(bracket!=null) ?this.bracket.cloneSubtree() :null,add_redend,this.mass_options);
+		else {
+			// one record of what was copied, root and bracket together: an antenna's candidate parents
+			// are on the other side of the bracket from it (#340)
+			java.util.Map<Residue,Residue> copies = new java.util.IdentityHashMap<Residue,Residue>();
+			Residue copiedRoot = root.cloneSubtree(copies);
+			Residue copiedBracket = (bracket!=null) ? this.bracket.cloneSubtree(copies) : null;
+			ret = new Glycan(copiedRoot,copiedBracket,add_redend,this.mass_options);
+			// after the structure is made, which gives every antenna every residue as a candidate parent
+			Residue.relink(copies);
+		}
 		
 		return ret;
 	}

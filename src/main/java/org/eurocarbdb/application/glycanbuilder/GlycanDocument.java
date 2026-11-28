@@ -1166,15 +1166,28 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 
 	private Residue cloneStructure(Residue root, HashSet<Residue> nodes,
 								   boolean add_attachment) {
+		return cloneStructure(root, nodes, add_attachment, null);
+	}
+
+	/**
+	 * As {@link #cloneStructure(Residue, HashSet, boolean)}, recording each residue copied and its copy
+	 * in {@code copies} when it is not null, for {@link Residue#relink} (#340).
+	 */
+	private Residue cloneStructure(Residue root, HashSet<Residue> nodes,
+								   boolean add_attachment, java.util.Map<Residue, Residue> copies) {
 		if (root == null) return null;
 
+		// A residue with no bond above it - the start of a cycle, which is a structure's root as a
+		// reducing end is - has nothing to attach the attach point with: wrapped, the copy of a cycle,
+		// and of two residues joined by two bonds, which is read as one, threw (#340)
 		if (add_attachment
 				&& !root.isReducingEnd()
+				&& root.getParentLinkage() != null
 				&& (root.getParent() == null || !root.getParent()
 				.isReducingEnd())) {
 			Residue cloned_root = ResidueDictionary.createAttachPoint();
 			int before = cloned_root.getChildrenLinkages().size();
-			cloned_root.addChild(cloneStructure(root, nodes, false), root
+			cloned_root.addChild(cloneStructure(root, nodes, false, copies), root
 					.getParentLinkage().getBonds());
 			// what the copied bond is made of, which the mass reads (#281)
 			cloned_root.keepLinkageTypes(root.getParentLinkage(), before);
@@ -1182,13 +1195,14 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 		} else {
 			// clone this
 			Residue cloned_root = root.cloneResidue();
+			if (copies != null) copies.put(root, cloned_root);
 
 			// clone children
 			for (Linkage link : root.getChildrenLinkages()) {
 				Residue child = link.getChildResidue();
 				if (nodes.contains(child)) {
 					int before = cloned_root.getChildrenLinkages().size();
-					cloned_root.addChild(cloneStructure(child, nodes, false),
+					cloned_root.addChild(cloneStructure(child, nodes, false, copies),
 							link.getBonds());
 					cloned_root.keepLinkageTypes(link, before);
 				}
@@ -1221,11 +1235,13 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 			}
 		}
 
-		// clone roots
+		// clone roots, recording what was copied so that the copies' references to one another - the
+		// ends of a repeat and of a cycle, an antenna's candidate parents - can be made (#340)
+		java.util.Map<Residue, Residue> copies = new java.util.IdentityHashMap<Residue, Residue>();
 		LinkedList<Residue> cloned_roots = new LinkedList<Residue>();
 		HashMap<Residue, Glycan> roots_map = new HashMap<Residue, Glycan>();
 		for (Residue root : roots) {
-			Residue cloned_root = cloneStructure(root, nodes, true);
+			Residue cloned_root = cloneStructure(root, nodes, true, copies);
 			if (!cloned_root.isReducingEnd() || cloned_root.hasChildren()) {
 				cloned_roots.addLast(cloned_root);
 				roots_map.put(cloned_root, findStructureWith(root));
@@ -1250,7 +1266,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 			for (Residue red_antenna : antennae) {
 				if (antennae_map.get(red_antenna) == orig_structure) {
 					assigned_antennae.addLast(red_antenna);
-					ret_structure.addAntenna(cloneStructure(red_antenna, nodes, true));
+					ret_structure.addAntenna(cloneStructure(red_antenna, nodes, true, copies));
 				}
 			}
 /*			for (Iterator<Residue> l = antennae.iterator(); l.hasNext();) {
@@ -1269,9 +1285,11 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 			if (!assigned_antennae.contains(antenna)) {
 				Glycan orig_structure = antennae_map.get(antenna);
 				ret_structures.add(new Glycan(cloneStructure(antenna, nodes,
-						true), false, orig_structure.getMassOptions()));
+						true, copies), false, orig_structure.getMassOptions()));
 			}
 		}
+
+		Residue.relink(copies);
 
 		// remove unmatched repetitions
 		for (Glycan s : ret_structures) {

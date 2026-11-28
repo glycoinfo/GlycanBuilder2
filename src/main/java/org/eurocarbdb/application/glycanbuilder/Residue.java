@@ -2279,6 +2279,63 @@ public class Residue {
 		return cloneSubtree(null, null,new ResidueHolder());
 	}
 
+	/**
+	 * Create a copy of the subtree rooted at this residue, recording each residue copied and its copy,
+	 * so that the references a copy does not carry by itself can be made afterwards with {@link #relink}.
+	 *
+	 * @param _copies Where each residue copied is put, with its copy: an identity map.
+	 */
+	public Residue cloneSubtree(java.util.Map<Residue, Residue> _copies) {
+		ResidueHolder holder = new ResidueHolder();
+		holder.copies = _copies;
+		return cloneSubtree(null, null, holder);
+	}
+
+	/**
+	 * Point each copy's references to other residues at their copies (#340).
+	 *
+	 * <p>A copy is made residue by residue and bond by bond, and that is all it took. What joins two
+	 * residues other than through the tree was left behind: the ends of a repeat and of a cycle, and an
+	 * antenna's candidate parents. A copy of a repeat or a cycle - and a structure whose two residues
+	 * are joined by two bonds is read as a cycle - could not be written; a copy of an N-glycan with an
+	 * antenna of uncertain parent was written with every residue as a candidate parent, another
+	 * structure, without a word. Copying is what Glycan.clone and the canvas's copy and paste do.
+	 *
+	 * <p>A reference to a residue that was not copied, outside the selection a copy was made of, is
+	 * not carried over: a copy never points into what it was copied from.
+	 *
+	 * @param _copies Each residue copied, and its copy.
+	 */
+	public static void relink(java.util.Map<Residue, Residue> _copies) {
+		for (java.util.Map.Entry<Residue, Residue> copied : _copies.entrySet()) {
+			Residue from = copied.getKey(), to = copied.getValue();
+			to.endRepetitionResidue = copyOf(_copies, from.endRepetitionResidue, to.endRepetitionResidue);
+			to.startRepititionResidue = copyOf(_copies, from.startRepititionResidue, to.startRepititionResidue);
+			to.startCyclic = copyOf(_copies, from.startCyclic, to.startCyclic);
+			to.endCyclic = copyOf(_copies, from.endCyclic, to.endCyclic);
+			to.startRES = copyOf(_copies, from.startRES, to.startRES);
+			to.altStart = copyOf(_copies, from.altStart, to.altStart);
+			to.altEnd = copyOf(_copies, from.altEnd, to.altEnd);
+
+			LinkedList<Residue> parents = new LinkedList<Residue>();
+			for (Residue parent : from.a_aParentsInFragment) {
+				Residue copy = _copies.get(parent);
+				if (copy != null && !parents.contains(copy)) parents.add(copy);
+			}
+			to.a_aParentsInFragment = parents;
+		}
+	}
+
+	/**
+	 * The copy of what a residue referred to, or what the copy already refers to when that was not
+	 * copied - never the original.
+	 */
+	private static Residue copyOf(java.util.Map<Residue, Residue> _copies, Residue _referred, Residue _current) {
+		if (_referred == null) return (_current != null && !_copies.containsKey(_current)) ? _current : null;
+		Residue copy = _copies.get(_referred);
+		return (copy != null) ? copy : ((_current != null && !_copies.containsKey(_current)) ? _current : null);
+	}
+
 	protected Residue cloneSubtree(Residue stop_el, ResidueType stop_type) {
 		Residue stop = new Residue(stop_type);
 		if( stop.isCleavage() && stop_el!=null )
@@ -2296,6 +2353,7 @@ public class Residue {
 
 		// clone this
 		Residue clone = this.cloneResidue();
+		if(startRep.copies != null) startRep.copies.put(this, clone);
 		if(clone.isStartRepetition()){
 			startRep.res=clone;
 		}else if(clone.isEndRepetition()){
