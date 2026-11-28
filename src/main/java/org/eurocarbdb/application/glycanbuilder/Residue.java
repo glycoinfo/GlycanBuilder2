@@ -1455,6 +1455,28 @@ public class Residue {
 	}
 
 	/**
+	 * Join a monosaccharide by its anomeric carbon to this one's: the bond of a non-reducing sugar,
+	 * sucrose's Glc α1-β2 Fru, a trehalose's α1-α1 (#357). This residue is the one drawn at the
+	 * reducing-end position, and the other hangs on its anomeric carbon - the form GWS has always
+	 * saved, and the WURCS writer writes, for such a sugar.
+	 *
+	 * <p>Apart from {@link #addChild}, whose positions leave the anomeric carbon out as the residue's
+	 * own bond: for the residue at the reducing end of a non-reducing sugar that carbon is free, and is
+	 * where the other one goes. Used by the readers, for a structure that already exists.
+	 *
+	 * @return whether it was joined: both are monosaccharides, this one's anomeric carbon is known
+	 *         and holds no child yet
+	 */
+	public boolean joinAtAnomericCarbons(Residue child) {
+		if( child==null || !this.isSaccharide() || !child.isSaccharide() )
+			return false;
+		char position = getAnomericCarbon();
+		if( !Character.isDigit(position) || positionHeldByAChild(position,child) )
+			return false;
+		return attachChild(child,Bond.single(position),false);
+	}
+
+	/**
 	 * @param checkPosition
 	 *            whether the position rules apply. False when copying, where the structure already
 	 *            exists and nothing is being claimed.

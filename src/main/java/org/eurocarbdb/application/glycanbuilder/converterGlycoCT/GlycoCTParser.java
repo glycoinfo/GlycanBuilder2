@@ -497,11 +497,32 @@ public class GlycoCTParser implements GlycanParser {
 					tolerate_unknown_residues, map);
 
 			Vector<Bond> bonds = fromSugar(edge);
-			parent.addChild(child, bonds);
+			if (!parent.addChild(child, bonds) && joinsTheAnomericCarbons(parent, child, bonds)) {
+				// sucrose's 1o(1+2)2d, a trehalose's 1o(1+1)1d: the child goes on the parent's anomeric
+				// carbon, which addChild does not offer. It was dropped with no word, and sucrose read
+				// as its glucose alone (#357).
+				child.setAnomericCarbon(bonds.lastElement().getChildPosition());
+				if (!parent.joinAtAnomericCarbons(child))
+					throw new Exception("the bond between the anomeric carbons of " + parent.getTypeName() + " and "
+							+ child.getTypeName() + " could not be made, so this structure is not read");
+			}
 			child.setAnomericCarbon(bonds.lastElement().getChildPosition());
 		}
 
 		return ret;
+	}
+
+	/**
+	 * Whether this bond joins the parent's anomeric carbon to the child's: one bond, at the parent's
+	 * anomeric carbon, from the child's, both of them monosaccharides.
+	 */
+	private static boolean joinsTheAnomericCarbons(Residue _parent, Residue _child, Vector<Bond> _bonds) {
+		if (_bonds == null || _bonds.size() != 1 || !_parent.isSaccharide() || !_child.isSaccharide())
+			return false;
+		Bond bond = _bonds.firstElement();
+		char[] at = bond.getParentPositions();
+		return at != null && at.length == 1 && Character.isDigit(at[0]) && at[0] == _parent.getAnomericCarbon()
+				&& bond.getChildPosition() == _child.getAnomericCarbon();
 	}
 
 	static private Residue fromSugarUnitRepeat(SugarUnitRepeat unit,

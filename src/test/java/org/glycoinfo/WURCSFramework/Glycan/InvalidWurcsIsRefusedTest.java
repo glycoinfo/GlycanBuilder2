@@ -64,14 +64,14 @@ public class InvalidWurcsIsRefusedTest {
 	}
 
 	/**
-	 * A valid sequence the conversion still drops part of is refused too. A sucrose-type bond, two
-	 * anomeric carbons, lost its glucose: five of six read, weighing 828.27 where WURCSFramework says
-	 * 990.33.
+	 * A valid sequence the conversion still drops part of is refused too. G03726HN, four of its eight
+	 * read. (Until #357 the example was a sucrose-type bond, two anomeric carbons, which lost its
+	 * glucose - five of six read. It is read whole now: AnomericToAnomericBondTest.)
 	 */
 	@Test
 	public void aShortReadIsRefused() throws Exception {
-		String message = refusal("WURCS=2.0/2,6,5/[a2122h-1a_1-5][ha122h-2b_2-5]/1-2-2-2-2-2/a1-b2_b6-c2_c1-d2_c6-e2_e6-f2");
-		assertTrue(message, message.contains("only 5 of the 6 monosaccharides"));
+		String message = refusal("WURCS=2.0/2,8,7/[a1122m-1a_1-5][A1dh]/1-1-1-1-2-2-2-2/a2-b1_a4-h1*N*_b2-c1_b4-g1*N*_c2-d1_c4-f1*N*_d4-e1*N*");
+		assertTrue(message, message.contains("only 4 of the 8 monosaccharides"));
 	}
 
 	/** A residue the reader made up a name for is named in the refusal (#282). */
