@@ -1049,6 +1049,19 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 			else return false;
 		}
 
+		// The end marker goes on the last residue at the carbon the unit's first residue is bonded at -
+		// where the next unit is bonded. A residue of the unit already there leaves it no room, and that
+		// is said before anything is changed. One after the unit there - the hyaluronic acid's next GlcA,
+		// on the GlcNAc's 3 as the first GlcA is on its parent's 3 - is the chain after the repeat, and
+		// is moved behind the marker before the marker is added (#271).
+		char closesOn = first.getParentLinkage().getParentPositionsSingle();
+		for (Linkage child_link : last.getChildrenLinkages()) {
+			if (!nodes.contains(child_link.getChildResidue())) continue;
+			if (closesOn != '?' && child_link.getParentPositionsString().equals(String.valueOf(closesOn)))
+				throw new Exception("The repeating unit closes on " + closesOn + " of its last residue, "
+						+ last.getTypeName() + ", which already bonds a residue of the unit there.");
+		}
+
 		// create the repetition
 		Residue start = ResidueDictionary.createStartRepetition();
 		//start.setAnomericState(first.getAnomericState());
@@ -1060,19 +1073,36 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 		Residue end = ResidueDictionary.createEndRepetition();
 
 		end.setStartResidue(first);
+		// the carbon of the unit's first residue the repeat is bonded by, as the start marker has it.
+		// addChild takes the child's own anomeric carbon, a fresh marker's ?, and the repeat was written
+		// a?-b?~n with the first residue's 1 lost - as the WURCS reader's marker was before #204
+		end.setAnomericCarbon(first.getAnomericCarbon());
 		end.setParentLinkage(new Linkage(last, end, new char[]{first.getParentLinkage().getParentPositionsSingle()}));
 
 		last.setEndRepitionResidue(end);
-		last.addChild(end, end.getParentLinkage().getBonds());
-		// 20211217, S.TSUCHIYA removed comment out
+		// What continues after the unit goes behind the end marker - first, so that the carbon the
+		// marker goes on is free. Added the other way round, the marker was refused at a carbon the
+		// next residue still held (#34's rule), the refusal was not looked at, and the next residue was
+		// moved onto a marker hanging on nothing: it vanished, the repeat had no end, and the canvas
+		// could freeze drawing it (#271).
+		LinkedList<Linkage> after = new LinkedList<Linkage>();
 		for (Iterator<Linkage> il = last.iterator(); il.hasNext(); ) {
 			Linkage child_link = il.next();
-			if (child_link.getChildResidue() != end
-					&& !nodes.contains(child_link.getChildResidue())) {
-				end.getChildrenLinkages().add(child_link);
-				child_link.setParentResidue(end);
+			if (!nodes.contains(child_link.getChildResidue())) {
+				after.add(child_link);
 				il.remove();
 			}
+		}
+		if (!last.addChild(end, end.getParentLinkage().getBonds())) {
+			// put back what was moved, so that a refusal leaves the residue as it was
+			for (Linkage child_link : after) last.getChildrenLinkages().add(child_link);
+			first.setStartRepetiionResidue(null);
+			throw new Exception("The end of the repeating unit cannot be bonded at " + closesOn + " of "
+					+ last.getTypeName() + ".");
+		}
+		for (Linkage child_link : after) {
+			end.getChildrenLinkages().add(child_link);
+			child_link.setParentResidue(end);
 		}
 
 		fireDocumentChanged();
