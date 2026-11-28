@@ -71,6 +71,8 @@ public class ARepeatWithNoEndDoesNotStopTheCanvasTest {
 	 */
 	@Test
 	public void theCanvasGoesOnPainting() throws Exception {
+		// a canvas needs a display; on a headless build machine there is none to paint on
+		org.junit.Assume.assumeFalse("no display", java.awt.GraphicsEnvironment.isHeadless());
 		GlycanRendererAWT failing = new GlycanRendererAWT() {
 			@Override
 			public java.awt.Rectangle computeBoundingBoxes(java.util.Collection<Glycan> _structures, boolean _masses,
