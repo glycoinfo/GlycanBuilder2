@@ -40,12 +40,20 @@ public class WURCSSequence2ToGlycan {
 		WURCSSequence2 wSeq2 = _wf.getSequence();
 		WURCSArray wArray = _wf.getArray();
 
+
 		// convert GRES to Residue
 		for(GRES gres : wSeq2.getGRESs()) {
 			this.analyzeGRES(gres);
 			if(wSeq2.getGRESs().size() > 1)
 				gres2frag.start(gres);
 		}
+
+		// A bond from anomeric carbon to anomeric carbon - sucrose, the trehaloses - is taken out of the
+		// sequence before the bonds are read, and made last (#357). Left in, the residue chosen as the
+		// root was one end of it and the other, which goes on the root's anomeric carbon, was dropped:
+		// sucrose came in as its fructose alone, and was refused as read in part. Not before the
+		// fragments are found: a residue of unknown anomer with no bond at all is a composition's.
+		GLIN anomeric = gres2frag.getRootOfCompositions().isEmpty() ? takeOutTheBondBetweenAnomericCarbons(wSeq2) : null;
 
 		if (gres2frag.getRootOfCompositions().isEmpty()) {
 			for (GRES gres : wSeq2.getGRESs()) {
@@ -58,6 +66,7 @@ public class WURCSSequence2ToGlycan {
 		}
 
 		this.glycan = new Glycan(makeRoot(wSeq2.getGRESs()), false, _massOpt);
+		if(anomeric != null) joinTheAnomericCarbons(anomeric);
 
 		// append ambiguous root
 		for(GRES gres : gres2frag.getRootOfFragments()) {
@@ -212,6 +221,45 @@ public class WURCSSequence2ToGlycan {
 				this.gres2residue.get(_gres).addParentOfFragment(this.gres2residue.get(gres));
 			}
 		}
+	}
+
+	/**
+	 * The one bond in this sequence between two anomeric carbons, taken out of both residues' lists, or
+	 * null when there is none or more than one. A tree has room for one: it uses up every anomeric
+	 * carbon, the reducing end's included. With it gone both of its residues have their anomeric carbon
+	 * free, and {@link #getRootResidue} takes the one the WURCS lists first - the maintainer's choice,
+	 * 2026-11-28: glucose for sucrose as G44928ZS writes it, fructose for raffinose as its WURCS does.
+	 */
+	private static GLIN takeOutTheBondBetweenAnomericCarbons(WURCSSequence2 _seq) {
+		GLIN found = null;
+		for(GRES gres : _seq.getGRESs()) {
+			for(GLIN glin : gres.getDonorGLINs()) {
+				if(glin.isRepeat() || !glin.getMAP().equals("")) continue;
+				if(glin.getDonor().size() != 1 || glin.getAcceptor().size() != 1) continue;
+				if(glin.getDonorPositions().size() != 1 || glin.getAcceptorPositions().size() != 1) continue;
+				if(glin.getDonor().getFirst() == glin.getAcceptor().getFirst()) continue;
+				if(!new GLINToLinkage().isFacingBetweenAnomer(glin)) continue;
+				if(found != null && found != glin) return null;
+				found = glin;
+			}
+		}
+		if(found == null) return null;
+		found.getDonor().getFirst().getDonorGLINs().remove(found);
+		found.getAcceptor().getFirst().getAcceptorGLINs().remove(found);
+		return found;
+	}
+
+	/** The bond taken out, made: the residue the WURCS lists second on the first one's anomeric carbon. */
+	private void joinTheAnomericCarbons(GLIN _glin) throws WURCSToGlycanException {
+		GRES donor = _glin.getDonor().getFirst();
+		GRES acceptor = _glin.getAcceptor().getFirst();
+		GRES first = (donor.getID() < acceptor.getID()) ? donor : acceptor;
+		GRES second = (first == donor) ? acceptor : donor;
+		Residue root = this.gres2residue.get(first);
+		Residue other = this.gres2residue.get(second);
+		if(root == null || other == null || !root.joinAtAnomericCarbons(other))
+			throw new WURCSToGlycanException("the bond between the anomeric carbons of " + first.getMS().getString()
+					+ " and " + second.getMS().getString() + " could not be made, so this structure is not read");
 	}
 
 	private Residue makeRoot(LinkedList<GRES> _gress) throws Exception {
