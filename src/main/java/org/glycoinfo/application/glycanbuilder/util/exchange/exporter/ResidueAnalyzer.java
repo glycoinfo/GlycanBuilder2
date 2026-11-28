@@ -171,6 +171,16 @@ public class ResidueAnalyzer {
 		return turned.toString();
 	}
 
+	/** Whether the residue carries a deoxy on the carbon this unit of its name's describes. */
+	private static boolean deoxyAt(Residue _residue, String _unit) {
+		int star = _unit.indexOf('*');
+		if (star < 1) return false;
+		String carbon = _unit.substring(0, star + 1);
+		for (String deoxy : _residue.getDeoxies())
+			if (deoxy.startsWith(carbon) && !deoxy.equals(_unit)) return true;
+		return false;
+	}
+
 	private ArrayList<String> extractNativeModification(Residue _residue) {
 		ArrayList<String> modifications = new ArrayList<>();
 
@@ -188,6 +198,9 @@ public class ResidueAnalyzer {
 				NativeMonosaccharideDictionary.forResidueName(_residue.getTypeName());
 		if (entry != null && !entry.getModifications().isEmpty()) {
 			for (String unit : entry.getModifications().split("_")) {
+				// a deoxy the residue carries on a carbon the name describes is the residue's: a
+				// 1-deoxy fructose's C1 is a CH3, not the CH2OH Fru's name gives it (#354)
+				if (deoxyAt(_residue, unit)) continue;
 				modifications.add(unit);
 			}
 		}
