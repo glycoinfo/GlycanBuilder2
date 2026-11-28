@@ -206,12 +206,56 @@ public class GRESToResidue {
 		// for a deoxy hexulose - is an isomer: it weighs right, and araHep is written back as read.
 		// Another length alone is a row's composition class counting a substituent's carbon, as Cym's
 		// does. A hexose for a heptulose is neither: it is another monosaccharide.
+		// A name whose entry says what its carbons are - Fru's 1*h_2*O, a ketose; Kdo's 1*A_2*O_3*d, an
+		// ulosonic acid - is not this monosaccharide where the skeleton says otherwise. The converter
+		// names by the stereo, and an octonic acid with D-glycero-D-galacto stereo, Ad21122h, came back
+		// as D-gro-D-galOct, an octulose (#275): its carboxyl a child nothing can write, and 34 Da light.
+		String contradicted = carbonContradicting(_name, _skeleton);
+		if (contradicted != null)
+			throw new WURCSToGlycanException(_skeleton + " has " + contradicted + ", and the name it was given, "
+					+ _name + ", says otherwise: no residue this application knows is this monosaccharide, so it"
+					+ " is not read");
+
 		if (!(otherLength && otherCarbonyl)) return;
 
 		throw new WURCSToGlycanException(_skeleton + " has " + _skeleton.length() + " carbons and its anomeric"
 				+ " carbon at C" + _carbonyl + ", and the name it was given, " + _name + ", is a residue of "
 				+ (carbons != null ? carbons + " carbons" : "another skeleton") + " with its anomeric carbon at C"
 				+ anomeric + ": no residue this application knows is this monosaccharide, so it is not read");
+	}
+
+	/**
+	 * The first carbon the name's entry describes and the skeleton contradicts, as "C1 A", or null. A
+	 * deoxy the name does not imply is no contradiction - a 1-deoxy Fru is still Fru, with a deoxy - nor
+	 * is a ketone's carbon written as the anomeric carbon of a ring or as unknown.
+	 */
+	static String carbonContradicting(String _name, String _skeleton) {
+		org.glycoinfo.application.glycanbuilder.dataset.NativeMonosaccharideDictionary.Entry entry =
+				org.glycoinfo.application.glycanbuilder.dataset.NativeMonosaccharideDictionary.forResidueName(_name);
+		if (entry == null || entry.getModifications().isEmpty()) return null;
+		for (String unit : entry.getModifications().split("_")) {
+			int star = unit.indexOf('*');
+			if (star < 1 || star != unit.length() - 2) continue;
+			int carbon;
+			try {
+				carbon = Integer.parseInt(unit.substring(0, star));
+			} catch (NumberFormatException notACarbon) {
+				continue;
+			}
+			if (carbon < 1 || carbon > _skeleton.length()) continue;
+			char found = _skeleton.charAt(carbon - 1);
+			String allowed;
+			switch (unit.charAt(star + 1)) {
+			case 'h': allowed = "hm"; break;
+			case 'O': allowed = "aOU"; break;
+			case 'A': allowed = "A"; break;
+			case 'd': allowed = "d"; break;
+			case 'm': allowed = "m"; break;
+			default: continue;
+			}
+			if (allowed.indexOf(found) < 0) return "C" + carbon + " " + found;
+		}
+		return null;
 	}
 
 	/**

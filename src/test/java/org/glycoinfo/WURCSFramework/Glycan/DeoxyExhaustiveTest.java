@@ -344,6 +344,14 @@ public class DeoxyExhaustiveTest {
 		if (check.equals("does not read") && detail.contains("no residue this application knows"))
 			return "K3 #282 the reader names a monosaccharide no dictionary has";
 
+		// The heptoses of unknown C6, gro-D-glcHep and gro-D-manHep, are written since #275 - a2122xh,
+		// a1122xh - and with a deoxy their manno or gluco block is no longer whole: ad122xh. The reader
+		// refuses such a skeleton on purpose, saying that only part of a prefix's block is known and no
+		// name says it. It is refused with that reason, not read as something else.
+		if (check.equals("does not read") && detail.contains("known only in part")
+				&& (c.base.name.equals("gro-D-glcHep") || c.base.name.equals("gro-D-manHep")))
+			return "K6 #275 the reader refuses stereo known only in part";
+
 		// K4, the heptose rows that recorded too few methylation and acetylation sites (#283), is gone:
 		// the rows count every free hydroxyl now, six for a heptopyranose, and all 744 cases weigh right.
 
@@ -364,7 +372,9 @@ public class DeoxyExhaustiveTest {
 		// 2,6-dideoxy ribo-hexose, read as Cym and could not be written; they read as L-Dig now
 		// and 6 fewer since #313: a 3,6-dideoxy L-arabino-hexose, ascarylose, read as Asc, a row with no
 		// stereo, until Tyv followed its configuration; it reads as L-Tyv now, and is written
-		KNOWN_COUNTS.put("K2 #275 the type has no stereo recorded", 150 - 12 - 6);
+		// and 12 fewer since #275: L-gro-D-manHep, drawn as the L its row says, was written as a22112h,
+		// and its 7-deoxy read as D-gro-L-manHep, which had no stereo; it is a11221h now
+		KNOWN_COUNTS.put("K2 #275 the type has no stereo recorded", 150 - 12 - 6 - 12);
 		// 480, all heptoses, until the tetrose rows were corrected (#285): the deoxy tetroses then read
 		// and fail the same way, as groTet - 90 cases on each of Thr, Ery, thrTet and eryTet. 840 until
 		// #265 made gulHep a base, whose deoxies read as xylHep and ribHep: 150 more.
@@ -373,11 +383,18 @@ public class DeoxyExhaustiveTest {
 		// is 5 x 198.
 		// And 36 more since #310 made Sed a base, writable: its deoxies with relative stereo are named
 		// ribHep and the like, which no dictionary has.
-		KNOWN_COUNTS.put("K3 #282 the reader names a monosaccharide no dictionary has", (5 * 96 + 4 * 90 + 150) / 5 + 36);
+		// And 1,014 more since #275 made ten heptoses and two octuloses writable, and so bases: their
+		// deoxies are named galHep, altHep, galOct and the like, which no dictionary has.
+		KNOWN_COUNTS.put("K3 #282 the reader names a monosaccharide no dictionary has",
+				(5 * 96 + 4 * 90 + 150) / 5 + 36 + 1014);
 		// K4 #283, the heptose rows' derivatization sites: 744 until the rows were recounted, 0 since
 		// 216 until #310 made Sed a base, writable: 48 of its deoxies are named as an aldoheptose,
 		// araHep and the like, with the anomeric carbon at 2, and fail the same way
-		KNOWN_COUNTS.put("K5 #275 a deoxy ketose loses its carbonyl", 216 + 48);
+		// and 108 more since #275 made the octuloses D-gro-D-galOct and D-gro-D-talOct bases, as Sed's
+		KNOWN_COUNTS.put("K5 #275 a deoxy ketose loses its carbonyl", 216 + 48 + 108);
+		// since #275 wrote the two heptoses of unknown C6: 24 cases on gro-D-glcHep, 84 on gro-D-manHep,
+		// whose own skeleton a1122xh the reader refuses as well
+		KNOWN_COUNTS.put("K6 #275 the reader refuses stereo known only in part", 24 + 84);
 
 	}
 

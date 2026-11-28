@@ -180,7 +180,28 @@ public class NativeMonosaccharideDictionary {
 		residues.put("Ara",            new Entry("122",   true,  'L', "",               ""));
 		residues.put("Bac",            new Entry("2122",  true,  'D', "2*N_4*N",        "6*m"));
 		residues.put("Col",            new Entry("212",   true,  'L', "",               "3*d_6*m"));
+		// The heptoses and octuloses named by two configurational prefixes (#275). By 2-Carb-8 the prefix of
+		// four - gluco, manno - covers C2 to C5 of an aldoheptose, C3 to C6 of an oct-2-ulose, and
+		// "glycero" the next carbon, the reference one that gives the D or L. Each is recorded in D, as
+		// every entry is, so an L-glycero name keeps its enantiomer's digits and is an L by default:
+		// L-gro-D-manHep, a11221h, is "22112" drawn as L, as Fuc is "2112" drawn as L. Each skeleton is
+		// the one WURCSFramework's trivial-name converter gives that name, and each heptose is registered
+		// in GlyTouCan. "gro-D-" leaves C6, the reference carbon, unknown: the name has no D or L of its
+		// own to follow - its D is the four-carbon prefix's - and is written as it is named.
+		residues.put("D-gro-D-altHep", new Entry("12222", true,  'D', "",               ""));
+		residues.put("D-gro-D-galHep", new Entry("21122", true,  'D', "",               ""));
+		residues.put("D-gro-D-galOct", new Entry("21122", true,  'D', "",               "1*h_2*O"));
+		residues.put("D-gro-D-glcHep", new Entry("21222", true,  'D', "",               ""));
 		residues.put("D-gro-D-manHep", new Entry("11222", true,  'D', "",               ""));
+		residues.put("D-gro-D-talOct", new Entry("11122", true,  'D', "",               "1*h_2*O"));
+		residues.put("D-gro-L-glcHep", new Entry("12112", true,  'D', "",               ""));
+		residues.put("D-gro-L-manHep", new Entry("22112", true,  'D', "",               ""));
+		residues.put("gro-D-glcHep",   new Entry("2122x", false, '?', "",               ""));
+		residues.put("gro-D-manHep",   new Entry("1122x", false, '?', "",               ""));
+		residues.put("L-gro-D-galHep", new Entry("12212", true,  'L', "",               ""));
+		residues.put("L-gro-D-glcHep", new Entry("12112", true,  'L', "",               ""));
+		residues.put("L-gro-D-idoHep", new Entry("21212", true,  'L', "",               ""));
+		residues.put("L-gro-L-manHep", new Entry("11222", true,  'L', "",               ""));
 		residues.put("Dha",            new Entry("112",   true,  'D', "",               "1*A_2*O_3*d_7*A"));
 		// follows its configuration since #313: an L-Dig was written as D-digitoxose, and L-digitoxose and
 		// L-cymarose read from WURCS were not recognised as Dig at all (#312)
@@ -214,7 +235,9 @@ public class NativeMonosaccharideDictionary {
 		residues.put("galNon",         new Entry("2112",  true,  'D', "",               "1*A_2*O_3*d"));
 		residues.put("Kdn",            new Entry("21122", true,  'D', "",               "1*A_2*O_3*d"));
 		residues.put("Kdo",            new Entry("1122",  true,  'D', "",               "1*A_2*O_3*d"));
-		residues.put("L-gro-D-manHep", new Entry("11221", true,  'D', "",               ""));
+		// a11221h, the heptose of lipopolysaccharide cores. Recorded as "11221" in D since #313, it was
+		// written as a22112h, D-gro-L-manHep, when drawn as the L its row says it is (#275)
+		residues.put("L-gro-D-manHep", new Entry("22112", true,  'L', "",               ""));
 		residues.put("Leg",            new Entry("21122", true,  'D', "5*N_7*N",        "1*A_2*O_3*d_9*m"));
 		residues.put("Lyx",            new Entry("112",   true,  'D', "",               ""));
 		residues.put("Man",            new Entry("1122",  true,  'D', "",               ""));
