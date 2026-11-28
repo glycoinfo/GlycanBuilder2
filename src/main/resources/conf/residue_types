@@ -56,7 +56,7 @@ Assigned	Assigned	Sug	H1	-	Assigned	?	?	?	yes	yes	no	0	0	no	0	no	9	1,2,3,4,5,6,7
 Fru		Assigned	Hex	C6H12O6	-	Fru$	2	D	p	yes	yes	no	0	5	no	5	no	5	1,3,4,5,6	-	no	no	yes	Fructose
 Sor		Assigned	Hex	C6H12O6	-	Sor$	2	L	p	yes	yes	no	0	5	no	5	no	5	1,3,4,5,6	-	no	no	yes	Sorbose
 Tag		Assigned	Hex	C6H12O6	-	Tag$	2	D	p	yes	yes	no	0	5	no	5	no	5	1,3,4,5,6	-	no	no	yes	Tagatose
-Api		Assigned	Tet	C5H10O5	-	Api$	1	L	f	yes	yes	no	0	3	no	3	no	3	2,4,5,6		-	no	no	yes	Apiose
+Api		Assigned	Tet	C5H10O5	-	Api$	1	L	f	yes	yes	no	0	4	no	4	no	3	2,3,4		-	no	no	yes	Apiose
 Psi		Assigned	Hex	C6H12O6	-	Fru$	2	D	p	yes	yes	no	0	5	no	5	no	5	1,3,4,5,6	-	no	no	yes	Psicose
 %
 % Hexuronic acid
@@ -84,21 +84,21 @@ GulNAc	HexNAc	Hex	C8H15N1O6	-	Gul$2NAc		1	D	p	yes	yes	no	0	5	no	4	no	4	3,4,5,6	-
 %BacNAc	HexNAc	Hex	C10H18N2O5	-	Bac$2NAc4NAc	1	D	p	yes	yes	no	0	4	no	2	no	3	1,3,5		-	no	no	yes	N-acetylbacillosamine
 %
 %DeoxyhexNAc
-dHexNAc	DeoxyhexNAc	Hex	C8H15N1O5	-	6-deoxy-Hex$2NAc	1	?	p	yes	yes	no	0	5	no	4	no	4	3,4,5	-	no	no	yes	DeoxyhexNAc
-RhaNAc	DeoxyhexNAc	Hex	C8H15N1O5	-	Rha$2NAc	1	L	p	yes	yes	no	0	5	no	4	no	4	3,4,5	-	no	no	yes	N-acetylrhamnosamine
-QuiNAc	DeoxyhexNAc	Hex	C8H15N1O5	-	Qui$2NAc	1	D	p	yes	yes	no	0	5	no	4	no	4	3,4,5	-	no	no	yes	N-acetylquinovosamine
-FucNAc	DeoxyhexNAc	Hex	C8H15N1O5	-	Fuc$2NAc	1	L	p	yes	yes	no	0	5	no	4	no	4	3,4,5	-	no	no	yes	N-acetylfucosamine
-6dAltNAc	DeoxyhexNAc	Hex	C8H15N1O5	-	6-deoxy-Alt$2NAc	1	L	p	yes	yes	no	0	5	no	4	no	4	3,4,5	-	no	no	yes	6-deoxy-N-acetylaltosamine
-6dTalNAc	DeoxyhexNAc	Hex	C8H15N1O5	-	6-deoxy-Tal$2NAc	1	D	p	yes	yes	no	0	5	no	4	no	4	3,4,5	-	no	no	yes	6-deoxy-N-acetyltalosamine
+dHexNAc	DeoxyhexNAc	Hex	C8H15N1O5	-	6-deoxy-Hex$2NAc	1	?	p	yes	yes	no	0	4	no	3	no	3	3,4,5	-	no	no	yes	DeoxyhexNAc
+RhaNAc	DeoxyhexNAc	Hex	C8H15N1O5	-	Rha$2NAc	1	L	p	yes	yes	no	0	4	no	3	no	3	3,4,5	-	no	no	yes	N-acetylrhamnosamine
+QuiNAc	DeoxyhexNAc	Hex	C8H15N1O5	-	Qui$2NAc	1	D	p	yes	yes	no	0	4	no	3	no	3	3,4,5	-	no	no	yes	N-acetylquinovosamine
+FucNAc	DeoxyhexNAc	Hex	C8H15N1O5	-	Fuc$2NAc	1	L	p	yes	yes	no	0	4	no	3	no	3	3,4,5	-	no	no	yes	N-acetylfucosamine
+6dAltNAc	DeoxyhexNAc	Hex	C8H15N1O5	-	6-deoxy-Alt$2NAc	1	L	p	yes	yes	no	0	4	no	3	no	3	3,4,5	-	no	no	yes	6-deoxy-N-acetylaltosamine
+6dTalNAc	DeoxyhexNAc	Hex	C8H15N1O5	-	6-deoxy-Tal$2NAc	1	D	p	yes	yes	no	0	4	no	3	no	3	3,4,5	-	no	no	yes	6-deoxy-N-acetyltalosamine
 %
 % Acidic sugars
 Unknown			Unknown	Non	C9H18O9		-	Non$			1	?	?	yes	yes	no	0	5	no	3	no	5	2,3,4,5,6,7,8,9	-	no	no	yes	Unknown
-Mur				Unknown	Hex	C9H17N1O7	-	Mur$			1	D	p	yes	yes	no	0	5	no	3	no	5	2,4,5,6,N		3	no	no	yes	Muramic Acid
-MurNAc			Unknown	Hex	C11H19N1O8	-	Mur$2NAc		1	D	p	yes	yes	no	0	5	no	3	no	5	4,5,6,N	3		no	no	yes	N-Acetylmuramic acid
-MurNGc			Unknown	Hex	C11H19N1O9	-	Mur$2NGc		1	D	p	yes	yes	no	0	5	no	3	no	5	4,5,6,N	3		no	no	yes	N-Glycolylmuramic acid
+Mur				Unknown	Hex	C9H17N1O7	-	Mur$			1	D	p	yes	yes	no	0	6	no	4	no	4	4,5,6,N		3	no	no	yes	Muramic Acid
+MurNAc			Unknown	Hex	C11H19N1O8	-	Mur$2NAc		1	D	p	yes	yes	no	0	5	no	3	no	3	4,5,6	3		no	no	yes	N-Acetylmuramic acid
+MurNGc			Unknown	Hex	C11H19N1O9	-	Mur$2NGc		1	D	p	yes	yes	no	0	6	no	4	no	3	4,5,6	3		no	no	yes	N-Glycolylmuramic acid
 Kdo				Unknown	Oct	C8H14O8		-	Kdo$			2	D	p	yes	yes	no	0	6	no	5	no	6	1,4,5,6,7,8		1	no	no	yes	Ketodeoxyoctonic acid (KDO)
-L-gro-D-manHep	Unknown	Hep	C7H14O7		-	L-gro-D-manHep$	1	L	p	yes	yes	no	0	6	no	6	no	5	2,3,4,5,6,7		-	no	no	yes	L-glycero-D-manno-Heptose
-D-gro-D-manHep	Unknown	Hep	C7H14O7		-	D-gro-D-manHep$	1	D	p	yes	yes	no	0	6	no	6	no	5	2,3,4,5,6,7		-	no	no	yes	D-glycero-D-manno-Heptose
+L-gro-D-manHep	Unknown	Hep	C7H14O7		-	L-gro-D-manHep$	1	L	p	yes	yes	no	0	6	no	6	no	6	2,3,4,5,6,7		-	no	no	yes	L-glycero-D-manno-Heptose
+D-gro-D-manHep	Unknown	Hep	C7H14O7		-	D-gro-D-manHep$	1	D	p	yes	yes	no	0	6	no	6	no	6	2,3,4,5,6,7		-	no	no	yes	D-glycero-D-manno-Heptose
 Dha				Unknown	Hep	C7H10O8		-	Dha$			2	D	p	yes	yes	no	0	5	no	3	no	5	1,4,5,6,7			-	no	no	yes	3-Deoxy-lyxo-heptulosaric acid
 Bac				Unknown	Hex	C6H14N2O3	-	Bac$			1	D	p	yes	yes	no	0	6	no	4	no	3	3,5,N				-	no	no	yes	Bacillosamine
 %Heptose
@@ -115,15 +115,15 @@ Hept	Heptose	Hep	C7H14O7	-	Hept$	1	?	?	yes	yes	no	0	6	no	6	no	5	1,2,3,4,5,6,7	-	
 % Nonulosonate
 Non		Nonulosonate	Non	C9H16O9		-	3-deoxy-Non$2ulo-onic		2	?	p	yes	yes	no	0	7	no	6	no	7	1,4,5,6,7,8,9	1	no	no	yes	Deoxynonulosonate
 Kdn		Nonulosonate	Non	C9H16O9		-	Kdn$		2	D	p	yes	yes	no	0	7	no	6	no	7	1,4,5,6,7,8,9	1	no	no	yes	Keto-Deoxy-Nonulonic acid (KDN)
-Neu		Nonulosonate	Non	C9H17N1O8	-	Neu$		2	D	p	yes	yes	no	0	8	no	6	no	8	1,4,5,6,7,8,9,N	1	no	no	yes	Neuraminic acid
-NeuAc	Nonulosonate	Non	C11H19N1O9	-	Neu$5NAc	2	D	p	yes	yes	no	8	7	no	5	no	7	1,4,6,7,8,9,N	1	no	no	yes	N-Acetyl-Neuraminic Acid
-NeuGc	Nonulosonate	Non	C11H19N1O10	-	Neu$5NGc	2	D	p	yes	yes	no	9	8	no	6	no	8	1,4,6,7,8,9,N	1	no	no	yes	N-Glycolyl-Neuraminic acid
+Neu		Nonulosonate	Non	C9H17N1O8	-	Neu$		2	D	p	yes	yes	no	0	8	no	6	no	7	1,4,6,7,8,9,N	1	no	no	yes	Neuraminic acid
+NeuAc	Nonulosonate	Non	C11H19N1O9	-	Neu$5NAc	2	D	p	yes	yes	no	8	7	no	5	no	6	1,4,6,7,8,9	1	no	no	yes	N-Acetyl-Neuraminic Acid
+NeuGc	Nonulosonate	Non	C11H19N1O10	-	Neu$5NGc	2	D	p	yes	yes	no	9	8	no	6	no	6	1,4,6,7,8,9	1	no	no	yes	N-Glycolyl-Neuraminic acid
 %
-ddNon	Di-deoxynonulosonate	Non	C9H18N2O6	-	3,9-dideoxy-Non$5N7N2ulo-onic	2	?	p	yes	yes	no	0	1	no	1	no	1	1,4,6,8,N	1	no	no	yes	Di-deoxynonulosonate
-Pse	Di-deoxynonulosonate	Non	C9H18N2O6	-	Pse$	2	L	p	yes	yes	no	0	1	no	1	no	1	1,4,6,8,N	1	no	no	yes	Pseudaminic acid
-Leg	Di-deoxynonulosonate	Non	C9H18N2O6	-	Leg$	2	D	p	yes	yes	no	0	1	no	1	no	1	1,4,6,8,N	1	no	no	yes	Legionaminic acid
-4eLeg	Di-deoxynonulosonate	Non	C9H18N2O6	-	4eLeg$	2	D	p	yes	yes	no	0	1	no	1	no	1	1,4,6,8,N	1	no	no	yes	4-Epilegionaminic acid
-Aci	Di-deoxynonulosonate	Non	C9H18N2O6	-	Aci$	2	L	p	yes	yes	no	0	1	no	1	no	1	1,4,6,8,N	1	no	no	yes	Acinetaminic acid
+ddNon	Di-deoxynonulosonate	Non	C9H18N2O6	-	3,9-dideoxy-Non$5N7N2ulo-onic	2	?	p	yes	yes	no	0	8	no	5	no	5	1,4,6,8,N	1	no	no	yes	Di-deoxynonulosonate
+Pse	Di-deoxynonulosonate	Non	C9H18N2O6	-	Pse$	2	L	p	yes	yes	no	0	8	no	5	no	5	1,4,6,8,N	1	no	no	yes	Pseudaminic acid
+Leg	Di-deoxynonulosonate	Non	C9H18N2O6	-	Leg$	2	D	p	yes	yes	no	0	8	no	5	no	5	1,4,6,8,N	1	no	no	yes	Legionaminic acid
+4eLeg	Di-deoxynonulosonate	Non	C9H18N2O6	-	4eLeg$	2	D	p	yes	yes	no	0	8	no	5	no	5	1,4,6,8,N	1	no	no	yes	4-Epilegionaminic acid
+Aci	Di-deoxynonulosonate	Non	C9H18N2O6	-	Aci$	2	L	p	yes	yes	no	0	8	no	5	no	5	1,4,6,8,N	1	no	no	yes	Acinetaminic acid
 %
 % REDUCING ENDS
 freeEnd	Reducing end	freeEnd	H2O			-	-		?	?	?	no	no	no	0	2	no	2	no	1	-	-	no	yes	no	Free reducing end
@@ -154,18 +154,18 @@ PMe		Substituent	P/S-type	C1H5P1O4	-	PMe				1	?	?	no	yes	yes	0	2	no	1	no	1	-	1	n
 PCho	Substituent	P/S-type	C5H14NO4P	-	PC				1	?	?	no	no	no	0	2	no	1	no	1	-	-	no	no	yes	Phosphocholine	*OP^XOCCNC/7C/7C/3O/3=O
 PPEtn	Substituent	P/S-type	C2H9NO7P2	-	PPEtn			1	?	?	no	no	no	0	2	no	1	no	1	-	-	no	no	yes	Diphosphoethanolamine	*OP^XOP^XOCCN/5O/5=O/3O/3=O
 PEtn	Substituent	P/S-type	C2H8NO4P	-	PEtn			1	?	?	no	no	no	0	2	no	1	no	1	-	-	no	no	yes	Phosphoethanolamine	*OP^XOCCN/3O/3=O
-N		Substituent	N-type		N1H3		-	N				1	?	?	no	no	no	0	2	no	2	no	1	-	-	no	no	yes	Amino	*N
+N		Substituent	N-type		N1H3		-	N				1	?	?	no	no	no	0	3	no	2	no	1	-	-	no	no	yes	Amino	*N
 Gc		Substituent	O-type		C2H4O3		-	OGc				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Glycolyl	*OCCO/3=O
-NGc		Substituent	N-type		C2H5N1O2	-	NGc				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	N-glycolyl	*NCCO/3=O
+NGc		Substituent	N-type		C2H5N1O2	-	NGc				1	?	?	no	no	no	0	3	no	2	no	1	-	-	no	no	yes	N-glycolyl	*NCCO/3=O
 NS		Substituent	N-type		H3N1O3S1	-	NS				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	N-sulfate	*NSO/3=O/3=O
-NFo		Substituent	N-type		C1H3N1O1	-	NFo				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	N-formyl	*NC=O
+NFo		Substituent	N-type		C1H3N1O1	-	NFo				1	?	?	no	no	no	0	2	no	1	no	1	-	-	no	no	yes	N-formyl	*NC=O
 NAm		Substituent	N-type		C1H5N3		-	NAm				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	N-amidino	*NCN/3=N
-NMe		Substituent	N-type		C1H5N1		-	NMe				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Methanamine	*NC
+NMe		Substituent	N-type		C1H5N1		-	NMe				1	?	?	no	no	no	0	2	no	2	no	1	-	-	no	no	yes	Methanamine	*NC
 NSuc	Substituent	N-type		C4H7N1O3	-	NSuc			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	N-succinate	*NCCCCO/6=O/3=O
 Fo		Substituent	O-type		C1H2O2		-	OFo				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Formyl	*OC=O
 Am		Substituent	O-type		C1H4N2O1	-	OAm				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Amidino	*OCN/3=N
 Suc		Substituent	O-type		C4H6O4		-	Sub				1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Succinate	*OCCCCO/6=O/3=O
-NDiMe	Substituent	N-type		C2H6N1		-	N-DiMe			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	N-dimethyl	*NC/2C
+NDiMe	Substituent	N-type		C2H7N1		-	N-DiMe			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	N-dimethyl	*NC/2C
 PyrP	Substituent	P/S-type	H4P2O7		-	PyrP			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Pyrophosphate	*OP^XOPO/5O/5=O/3O/3=O
 Tri-P	Substituent	P/S-type	H5O10P3		-	Tri-P			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Triphosphate	*OP^XOP^XOPO/7O/7=O/5O/5=O/3O/3=O
 F		Substituent	Deoxy-type	H1F1		-	Fluoro			1	?	?	no	no	no	0	1	no	1	no	1	-	-	no	no	yes	Fluoro	*F

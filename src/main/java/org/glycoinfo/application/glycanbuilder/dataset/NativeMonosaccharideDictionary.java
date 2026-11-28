@@ -208,6 +208,10 @@ public class NativeMonosaccharideDictionary {
 		residues.put("IdoA",           new Entry("1212",  true,  'L', "",               ""));
 		residues.put("IdoN",           new Entry("1212",  true,  'L', "2*N",            ""));
 		residues.put("IdoNAc",         new Entry("1212",  true,  'L', "2*NAc",          ""));
+		// galNon is Kdn's skeleton with C8 unknown: the galacto prefix over C4 to C7 of a 3-deoxy-non-2-
+		// ulosonic acid. By its prefix alone it was a nonose, and its carboxyl and 3-deoxy were read as
+		// groups of their own: the carboxyl as a child "A" nothing can write (#350).
+		residues.put("galNon",         new Entry("2112",  true,  'D', "",               "1*A_2*O_3*d"));
 		residues.put("Kdn",            new Entry("21122", true,  'D', "",               "1*A_2*O_3*d"));
 		residues.put("Kdo",            new Entry("1122",  true,  'D', "",               "1*A_2*O_3*d"));
 		residues.put("L-gro-D-manHep", new Entry("11221", true,  'D', "",               ""));

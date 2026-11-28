@@ -79,6 +79,7 @@ public class SnfgGenericWhiteSymbolsTest {
 				{ "The", "triangle" },                               // deoxyhexose
 				{ "Ole", "flatsquare" }, { "Cym", "flatsquare" }, { "Boi", "flatsquare" }, // di-deoxyhexose
 				{ "lyxPen", "star" },                                // pentose
+				{ "galNon", "diamond" },                             // nonulosonic, as Kdn (#350)
 				{ "L-gro-D-manNon", "flatdiamond" }, { "8eLeg", "flatdiamond" }, // 3,9-dideoxy-nonulosonic
 				{ "Sugar", "flathexagon" },                          // nothing known
 				// and the pentagon where nothing fits

@@ -7,7 +7,7 @@
 % is filed under Hexose, and Ole, Cym and The under Unknown.
 %
 % Columns, tab-separated: the residue's name; the residue_styles_snfg row whose white symbol it is
-% drawn in (Hex, HexA, dHex, ddHex, Pen, ddNon, Unknown, or Assigned for the pentagon); why.
+% drawn in (Hex, HexA, dHex, ddHex, Pen, Non, ddNon, Unknown, or Assigned for the pentagon); why.
 %
 % Every saccharide residue with no SNFG row of its own is listed, so that each is a decision made and
 % not a default; the tests hold this file to that.
@@ -95,6 +95,6 @@ ManNA	Assigned	a hexosaminuronic acid: hexuronate or hexosamine, undecided
 NeuAcLac	Assigned	a lactonised sialic acid: SNFG draws it as its sialic acid marked "on", not in a generic white symbol
 NeuGcLac	Assigned	a lactonised sialic acid: SNFG draws it as its sialic acid marked "on", not in a generic white symbol
 Ko	Assigned	an octulosonic acid: no white SNFG class
-galNon	Assigned	a nonose by its composition (C9H18O9), not a nonulosonic acid: no SNFG class
+galNon	Non	a 3-deoxy-non-2-ulosonic acid of D-galacto configuration, as Kdn, whose IUPAC core name it is: SNFG's white diamond, a nonulosonic acid (#350)
 Ami	Assigned	a 2,3,6-trideoxyhexose: no SNFG class
 Rho	Assigned	a 2,3,6-trideoxyhexose: no SNFG class
