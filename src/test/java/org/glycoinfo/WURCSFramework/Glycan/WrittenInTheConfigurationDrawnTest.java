@@ -72,7 +72,9 @@ public class WrittenInTheConfigurationDrawnTest {
 		assertEquals("WURCS=2.0/1,1,0/[a1d21m-1a_1-5]/1/", write("Col", "1", 'L'));
 		assertEquals("WURCS=2.0/1,1,0/[Aad21122h-2a_2-6_5*NCC/3=O]/1/", write("NeuAc", "2", 'D'));
 		assertEquals("WURCS=2.0/1,1,0/[Aad22111m-2a_2-6_5*N_7*N]/1/", write("Pse", "2", 'L'));
-		assertEquals("WURCS=2.0/1,1,0/[a11221h-1a_1-5]/1/", write("L-gro-D-manHep", "1", 'D'));
+		// L, as its row and SNFG's LDmanHep say, and as a residue placed from the palette is: written as
+		// a22112h, D-gro-L-manHep, while its entry was recorded the other way round (#275)
+		assertEquals("WURCS=2.0/1,1,0/[a11221h-1a_1-5]/1/", write("L-gro-D-manHep", "1", 'L'));
 	}
 
 	private static String write(String _name, String _anomeric, char _configuration) throws Exception {

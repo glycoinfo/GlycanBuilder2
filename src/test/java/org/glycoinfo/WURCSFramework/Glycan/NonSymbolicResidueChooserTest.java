@@ -71,8 +71,9 @@ public class NonSymbolicResidueChooserTest {
 
 		assertEquals("listed twice: " + listed, new TreeSet<String>(listed).size(), listed.size());
 		assertEquals(writable, new TreeSet<String>(listed));
-		// 26 since #273: galNon writes a skeleton of unknown stereo no reader takes back, and is withheld
-		assertEquals(26, listed.size());
+		// 26 since #273: galNon writes a skeleton of unknown stereo no reader takes back, and is withheld;
+		// 38 since #275, which recorded the stereo of ten heptoses and two octuloses
+		assertEquals(38, listed.size());
 	}
 
 	/** Grouped by backbone, in order; a residue the dialog's own list does not anticipate is still shown. */
@@ -86,9 +87,10 @@ public class NonSymbolicResidueChooserTest {
 
 		// what the chooser shows, which is only what can be written (#315): glycerol's section stays
 		// for glycerol, which is offered apart, as Gro made an alditol. No nonose since #273: galNon,
-		// the one there was, writes a WURCS that cannot be read back
+		// the one there was, writes a WURCS that cannot be read back. Octoses since #275: the two
+		// octuloses D-gro-D-galOct and D-gro-D-talOct
 		Map<String, List<ResidueType>> offered = ResidueDesignDialog.sections();
-		assertEquals(Arrays.asList("Triose", "Tetrose", "Pentose", "Hexose", "Heptose"),
+		assertEquals(Arrays.asList("Triose", "Tetrose", "Pentose", "Hexose", "Heptose", "Octose"),
 				new ArrayList<String>(offered.keySet()));
 		assertTrue(offered.get("Triose").isEmpty());
 		assertTrue(names(offered.get("Hexose")).containsAll(Arrays.asList("araHex", "thrHexA")));

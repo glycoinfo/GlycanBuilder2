@@ -193,7 +193,8 @@ public class SnfgTableInTheChooserTest {
 		for (List<ResidueType> section : ResidueDesignDialog.sections().values()) expected.addAll(section);
 
 		assertEquals(expected, offered);
-		assertEquals(85 + 26, offered.size());
+		// 85 + 26 until #275 made ten heptoses and two octuloses writable
+		assertEquals(85 + 38, offered.size());
 	}
 
 	/** One search finds across every tab, the best match first. */
@@ -208,7 +209,9 @@ public class SnfgTableInTheChooserTest {
 		List<String> heptoses = labels(ResidueDesignDialog.search("hep"));
 		assertTrue(heptoses.toString(), heptoses.containsAll(Arrays.asList("LDmanHep", "manHep", "Sed")));
 		// and not what is not offered (#315)
-		assertFalse(heptoses.toString(), heptoses.contains("D-gro-D-galHep"));
+		assertFalse(heptoses.toString(), heptoses.contains("gro-D-manHep"));
+		// D-gro-D-galHep is, since #275 recorded its stereo
+		assertTrue(heptoses.toString(), heptoses.contains("D-gro-D-galHep"));
 
 		// and by shape or colour
 		List<String> flatHexagons = labels(ResidueDesignDialog.search("flat hexagon"));
