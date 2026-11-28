@@ -279,9 +279,12 @@ public class GlycanSelection implements Transferable {
 	 * stored in the object
 	 */
 	public String getSVG() {
+		// whether to show the masses, and then whether to show the reducing end: it was given the first
+		// twice, so the SVG on the clipboard showed the reducing end only when the masses were shown,
+		// unlike every bitmap it puts there (#231)
 		return SVGUtils.getVectorGraphics((GlycanRendererAWT) theGlycanRenderer, theStructures,
 				theGlycanRenderer.getGraphicOptions().SHOW_MASSES,
-				theGlycanRenderer.getGraphicOptions().SHOW_MASSES);
+				theGlycanRenderer.getGraphicOptions().SHOW_REDEND);
 	}
 
 	/*
