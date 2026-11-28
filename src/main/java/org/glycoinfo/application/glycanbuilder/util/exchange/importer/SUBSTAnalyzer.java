@@ -269,6 +269,8 @@ public class SUBSTAnalyzer {
 	private static void attach(Residue _residue, Residue _group, java.util.List<org.eurocarbdb.application.glycanbuilder.linkage.Bond> _bonds, String _where)
 			throws WURCSToGlycanException {
 		if(_residue.addChild(_group, _bonds)) return;
+		// at the anomeric carbon of a residue nothing is bonded to by it - a glycosylamine's amine (#238)
+		if(_residue.attachAtAnomericCarbon(_group, _bonds)) return;
 		// A row the writer has no entry for - Ole, Cym, whose composition already holds the 3-O-methyl
 		// the WURCS gives them - is left as it was: the group was dropped and the mass came out right,
 		// and what these rows should be is their own question (#312).
