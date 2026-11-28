@@ -718,7 +718,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 
 		if (isEmpty() || current == null || current.isReducingEnd()) {
 			// add new structures
-			addStructures(toadd, false);
+			addStructures(standingAlone(toadd), false);
 		} else {
 			// append roots as child of the current selection
 			for (Iterator<Glycan> i = toadd.iterator(); i.hasNext(); ) {
@@ -1213,6 +1213,30 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 			}
 			return cloned_root;
 		}
+	}
+
+	/**
+	 * The structures to add as structures of their own, each with a reducing end of its own (#241).
+	 *
+	 * <p>A selection copied from inside a structure - the GlcNAc-Gal-NeuAc arm of an N-glycan - hangs
+	 * on an attach point that keeps where it was bonded, 2 of the Man, so that pasted onto another
+	 * residue it is bonded there again. Pasted as a structure of its own, the attach point stayed its
+	 * root: drawn as an empty box, a residue of no kind, weighed a water light for the bond to it, and
+	 * the structure could not be copied again. Its first residue is the new structure's root, under a
+	 * free reducing end, as a structure drawn from nothing has.
+	 */
+	private static Collection<Glycan> standingAlone(Collection<Glycan> _structures) {
+		if (_structures == null) return null;
+		LinkedList<Glycan> ret = new LinkedList<Glycan>();
+		for (Glycan structure : _structures) {
+			Residue root = structure.getRoot();
+			if (root == null || !root.isAttachPoint() || root.getNoChildren() != 1) {
+				ret.add(structure);
+				continue;
+			}
+			ret.add(new Glycan(root.firstChild(), structure.getBracket(), true, structure.getMassOptions()));
+		}
+		return ret;
 	}
 
 	/**
