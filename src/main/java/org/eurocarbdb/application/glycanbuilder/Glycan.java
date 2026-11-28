@@ -1071,11 +1071,40 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 	private void removeUnpairedRepetitions(Residue cur) {
 		if( cur==null )
 			return;
-		if( (cur.isStartRepetition() && cur.findEndRepetition()==null) ||
-				(cur.isEndRepetition() && cur.findStartRepetition()==null) )
+		if( (cur.isStartRepetition() && cur.findEndRepetition()==null && !pairedInThisStructure(cur)) ||
+				(cur.isEndRepetition() && cur.findStartRepetition()==null && !pairedInThisStructure(cur)) )
 			removeResidue(cur);    
 		for( int i=0; i<cur.getNoChildren(); i++ )
 			removeUnpairedRepetitions(cur.getChildAt(i));
+	}
+
+	/**
+	 * Whether a repeat's start or end marker has its partner in this structure, by what the end marker
+	 * records: the first residue of the repeating unit, which hangs on the unit's start marker. That is
+	 * what the WURCS writer pairs them by.
+	 *
+	 * <p>Searching the tree for the partner stops at the next repeat's start, so a repeat whose end
+	 * lies past another repeat's start - the outer repeat around a chain of nested ones - was taken
+	 * for one with no end, and a copy of the structure lost it (#370). A copy keeps what the end
+	 * records, pointing only at what was copied with it.
+	 */
+	private boolean pairedInThisStructure(Residue _marker) {
+		if( _marker.isEndRepetition() )
+			return startOf(_marker)!=null;
+		for( Residue other : getAllResidues() )
+			if( other.isEndRepetition() && startOf(other)==_marker )
+				return true;
+		return false;
+	}
+
+	/** The start marker of the repeat an end marker closes, by its record of the unit's first residue. */
+	private Residue startOf(Residue _end) {
+		Residue first = _end.getStartResidue();
+		if( first==null || first.getParent()==null || !first.getParent().isStartRepetition() )
+			return null;
+		Residue top = first;
+		while( top.getParent()!=null ) top = top.getParent();
+		return (top==root || top==bracket) ? first.getParent() : null;
 	}
 
 	public LinkedList<Glycan> splitMultipleRoots() {

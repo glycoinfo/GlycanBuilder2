@@ -2374,7 +2374,12 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 	public void paste() {
 		try {
 			Transferable t = ClipUtils.getContents();
-			if (t != null
+			// copied in this application: the structures as they were copied, which the text would
+			// not carry whole (#370)
+			java.util.List<Glycan> copied = GlycanSelection.structuresIn(t);
+			if (copied != null) {
+				theDoc.addStructures(current_residue, copied);
+			} else if (t != null
 					&& t.isDataFlavorSupported(GlycanSelection.glycoFlavor)) {
 				String content = TextUtils.consume((InputStream) t
 						.getTransferData(GlycanSelection.glycoFlavor));

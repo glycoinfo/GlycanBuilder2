@@ -1293,12 +1293,28 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	 * @see Glycan
 	 * @see Glycan#addAntenna
 	 */
+	/**
+	 * The residues of a selection in the order their structures hold them. A selection is a set, and
+	 * taken in its own order the antennae of uncertain parent were copied in an order that changed from
+	 * one copy to the next, and so was the WURCS of the copy (#370).
+	 */
+	private java.util.List<Residue> inStructureOrder(HashSet<Residue> nodes) {
+		java.util.List<Residue> ordered = new java.util.ArrayList<Residue>();
+		java.util.Set<Residue> placed = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<Residue, Boolean>());
+		for (Glycan structure : structures)
+			for (Residue residue : structure.getAllResidues())
+				if (nodes.contains(residue) && placed.add(residue)) ordered.add(residue);
+		for (Residue residue : nodes)
+			if (placed.add(residue)) ordered.add(residue);
+		return ordered;
+	}
+
 	public LinkedList<Glycan> extractView(HashSet<Residue> nodes) {
 
 		// search roots and antennae
 		LinkedList<Residue> roots = new LinkedList<Residue>();
 		LinkedList<Residue> antennae = new LinkedList<Residue>();
-		for (Iterator<Residue> i = nodes.iterator(); i.hasNext(); ) {
+		for (Iterator<Residue> i = inStructureOrder(nodes).iterator(); i.hasNext(); ) {
 			Residue cur = i.next();
 			Residue par = cur.getParent();
 			if (par == null || !nodes.contains(par) || par.isBracket()) {
@@ -1352,10 +1368,24 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 */
 		}
 
-		// create structures from unassigned antennae
+		// create structures from unassigned antennae. The members of a composition are copied as a
+		// composition of them, one for each composition they came from: copied each as a structure of
+		// its own, Hex2 was pasted as two separate Hex, and weighed a water more (#370)
+		HashMap<Glycan, Glycan> compositions = new HashMap<Glycan, Glycan>();
 		for (Residue antenna : antennae) {
 			if (!assigned_antennae.contains(antenna)) {
 				Glycan orig_structure = antennae_map.get(antenna);
+				if (orig_structure != null && orig_structure.isComposition()) {
+					Glycan composition = compositions.get(orig_structure);
+					if (composition == null) {
+						composition = Glycan.createComposition(orig_structure.getMassOptions());
+						compositions.put(orig_structure, composition);
+						ret_structures.add(composition);
+					}
+					composition.addAntenna(cloneStructure(antenna, nodes, false, copies),
+							antenna.getParentLinkage().getBonds());
+					continue;
+				}
 				ret_structures.add(new Glycan(cloneStructure(antenna, nodes,
 						true, copies), false, orig_structure.getMassOptions()));
 			}
