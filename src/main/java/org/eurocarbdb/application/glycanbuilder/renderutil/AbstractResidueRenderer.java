@@ -949,20 +949,14 @@ public abstract class AbstractResidueRenderer implements ResidueRenderer{
     	if(node.isStartCyclic() || node.isEndCyclic())
     		return new Rectangle2D.Double(x, y, 0, 0);
     	
-    	if(style.getShape() != null && style.getShape().equals("triangle") && node.getTypeName().contains("NAc")) {
-    		if(theGraphicOptions.ORIENTATION == 0) {
-    			return new Rectangle2D.Double(x+w/2.,y,w/2.,h);
-    		}
-    		if(theGraphicOptions.ORIENTATION == 1) {
-    			return new Rectangle2D.Double(y,x,w,h/2.);
-    		}
-    		if(theGraphicOptions.ORIENTATION == 2) {
-    			return new Rectangle2D.Double(x,y,w/2.,h);
-    		}
-    		if(theGraphicOptions.ORIENTATION == 3) {
-    			return new Rectangle2D.Double(x,y,w,h/2.);
-    		}
-    	}
+    	// SNFG's divided triangle, a deoxy-HexNAc (FucNAc, QuiNAc...): white on the left, coloured on the
+    	// right, as SNFG's table draws it. The triangle itself always points up (#82), so the division
+    	// stays where it is too. It followed the direction the structure was drawn in - the right half
+    	// only from right to left, the left half from left to right, a band across the top from top to
+    	// bottom, and from bottom to top a band placed at (y, x) - which SNFG asks not to happen, since
+    	// a symbol is the same residue however it is turned (#83). Only SNFG draws an NAc as a triangle.
+    	if(style.getShape() != null && style.getShape().equals("triangle") && node.getTypeName().contains("NAc"))
+    		return new Rectangle2D.Double(x+w/2.,y,w/2.,h);
     	
     	if( fillstyle.equals("empty") )
     		return null;
