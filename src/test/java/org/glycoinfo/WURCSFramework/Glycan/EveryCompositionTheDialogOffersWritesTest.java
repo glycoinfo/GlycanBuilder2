@@ -39,24 +39,24 @@ public class EveryCompositionTheDialogOffersWritesTest {
 	/**
 	 * The counts that should produce a WURCS.
 	 *
-	 * <p>Thirteen: the twelve the web application's dialog offers, and Hep, which the desktop dialog
-	 * offers as well.
+	 * <p>Fifteen: the twelve the web application's dialog offers, Hep, which the desktop dialog offers
+	 * as well, and the 4-deoxy pentose and methyl hexose glycompconverter writes (#220).
 	 */
 	private static final List<String> SHOULD_WRITE = Arrays.asList(
 			"PEN", "HEX", "HEP", "HEXN", "HEXNAC", "DHEX", "DDHEX", "HEXA",
-			"NEU5AC", "NEU5GC", "KDO", "KDN", "MUR");
+			"NEU5AC", "NEU5GC", "KDO", "KDN", "MUR", "DPEN", "MEHEX");
 
 	/**
 	 * The counts that cannot be written, and are known not to be.
 	 *
-	 * <p>Held here so the list is a statement rather than an absence. {@code 4dPen}, {@code MeH},
-	 * {@code dHexA} and the two lactonised sialic acids have no composition residue to be counted as —
-	 * and, measured, cannot be written as ordinary structures either, so they are not a composition
-	 * fault. The rest are substituents, user-defined residues and the two placeholders. All of it is
-	 * #220.
+	 * <p>Held here so the list is a statement rather than an absence. Decided in #220: {@code dHexA},
+	 * whose composition form GlyTouCan and WURCS's own mass calculation disagree on; the two lactonised
+	 * sialic acids, which glycompconverter leaves out; pyruvate and phosphocholine, which it does not
+	 * count; the user-defined residues; and the two placeholders. Sulfate, phosphate and O-acetyl are
+	 * here because a count of one of them alone has no monosaccharide to sit on - with one, they write.
 	 */
 	private static final List<String> KNOWN_NOT_TO = Arrays.asList(
-			"DPEN", "MEHEX", "DHEXA", "NEU5ACLAC", "NEU5GCLAC",
+			"DHEXA", "NEU5ACLAC", "NEU5GCLAC",
 			"OR1", "OR2", "OR3", "S", "P", "AC", "PYR", "PC", "KETOSE", "UNKNOWN");
 
 	@BeforeClass

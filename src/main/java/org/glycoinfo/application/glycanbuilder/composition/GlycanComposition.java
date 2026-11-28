@@ -55,7 +55,13 @@ public final class GlycanComposition {
 	 * @throws Exception If the encoding itself fails.
 	 */
 	public static String toWURCS(Glycan composition) throws Exception {
-		return CompositionToWURCS.encode(count(composition));
+		Map<CompositionSubstituent, Integer> substituents = new LinkedHashMap<CompositionSubstituent, Integer>();
+		Map<CompositionResidue, Integer> residues = count(composition, substituents);
+		// A sulfate counted with nothing to sit on is not a composition anyone can mean.
+		if (residues.isEmpty() && !substituents.isEmpty())
+			throw new CannotBeWrittenException(
+					substituents.keySet().iterator().next().substituentName() + " with no monosaccharide to sit on");
+		return CompositionToWURCS.encode(residues, substituents);
 	}
 
 	/**
@@ -65,6 +71,18 @@ public final class GlycanComposition {
 	 */
 	static Map<CompositionResidue, Integer> count(Glycan composition)
 			throws CannotBeWrittenException {
+		return count(composition, null);
+	}
+
+	/**
+	 * @param composition The structure to read.
+	 * @param substituents Where to count the substituents a composition counts on its own - sulfate,
+	 *            phosphate, O-acetyl (#220); null to refuse them, as {@link #count(Glycan)} does.
+	 * @return Returns how many of each residue it holds.
+	 * @throws CannotBeWrittenException If it holds a residue a composition cannot be written in.
+	 */
+	static Map<CompositionResidue, Integer> count(Glycan composition,
+			Map<CompositionSubstituent, Integer> substituents) throws CannotBeWrittenException {
 		Map<CompositionResidue, Integer> counted = new LinkedHashMap<CompositionResidue, Integer>();
 		if (composition == null) return counted;
 
@@ -80,6 +98,12 @@ public final class GlycanComposition {
 			if (residue.hasDeoxies()) throw new CannotBeWrittenException(name + " with a deoxy at " + residue.getDeoxies());
 			// nor is an alditol with a carbon oxidised, an aldonic acid (#341)
 			if (residue.hasOxidations()) throw new CannotBeWrittenException(name + " with its chain oxidised at " + residue.getOxidations());
+			CompositionSubstituent countedOnItsOwn = (substituents == null) ? null : CompositionSubstituent.named(name);
+			if (countedOnItsOwn != null) {
+				Integer already = substituents.get(countedOnItsOwn);
+				substituents.put(countedOnItsOwn, (already == null) ? 1 : already + 1);
+				continue;
+			}
 			CompositionResidue counts = CompositionResidue.named(name);
 			if (counts == null) throw new CannotBeWrittenException(name);
 

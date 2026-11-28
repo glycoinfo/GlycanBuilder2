@@ -19,12 +19,13 @@ import org.junit.Test;
  * That an export which produced nothing says why, and not only that it did.
  *
  * <p>The reason existed and was thrown away. A composition of something the encoder cannot name says so
- * — {@code A composition cannot be written in 'MeH'} — and the writer reports it before handing back an
+ * — {@code A composition cannot be written in 'NeuAcLac'} — and the writer reports it before handing back an
  * empty string. The warning that followed could then only say that N of M structures "were left blank",
  * which tells somebody that something went wrong and nothing about what to do.
  *
  * <p>The failure used here is a real one rather than a contrived seam: the composition dialog offers a
- * methyl hexose and the encoder has no residue for it (#220).
+ * lactonised sialic acid, and composition WURCS has no form for it that GlyTouCan holds, so it is
+ * refused (#220). It was the methyl hexose until #220 gave that one a form.
  */
 public class AFailedExportSaysWhyTest {
 
@@ -46,7 +47,7 @@ public class AFailedExportSaysWhyTest {
 		String why = document.getLastExportFailureReason(document.getStructures().get(0));
 		assertNotNull("the reason was thrown away", why);
 		assertTrue("the reason should name what could not be written, and says: " + why,
-				why.contains("MeH"));
+				why.contains("NeuAcLac"));
 	}
 
 	/**
@@ -86,18 +87,18 @@ public class AFailedExportSaysWhyTest {
 	}
 
 	/**
-	 * Hex3 HexNAc2 with a methyl hexose, which the encoder has no residue for.
+	 * Hex3 HexNAc2 with a lactonised sialic acid, which a composition is refused in.
 	 *
 	 * <p>This was written with a sialic acid, which is how the fault was met — and #219 fixed that, so
 	 * the fixture became a composition that exports. Changed to one that still cannot be written rather
-	 * than to a contrived seam: MeH is a real residue the composition dialog offers, and #220 is the
-	 * open question of what a composition should say about it.
+	 * than to a contrived seam, twice: the methyl hexose was next, until #220 decided how it is written.
+	 * NeuAcLac is a real residue the composition dialog offers, and #220 decided to refuse it.
 	 */
 	private static Glycan compositionThatCannotBeWritten() throws Exception {
 		CompositionOptions counts = new CompositionOptions();
 		counts.HEX = 3;
 		counts.HEXNAC = 2;
-		counts.MEHEX = 1;
+		counts.NEU5ACLAC = 1;
 
 		return counts.getCompositionAsGlycan(neutral());
 	}
