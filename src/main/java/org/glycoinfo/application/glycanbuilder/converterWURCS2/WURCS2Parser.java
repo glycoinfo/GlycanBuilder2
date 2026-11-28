@@ -179,45 +179,31 @@ public class WURCS2Parser implements GlycanParser{
 		str = str.trim();		
 		if(str.contains("\t")) str = str.substring(str.indexOf("\t") + 1);
 		
-    	refuseInvalid(str);
-
-		WURCSFactory wf;
-		try {
-			wf = new WURCSFactory(str);
-		} catch (Exception e) {
-			if (e.getMessage() != null) {
-				throw new WURCSToGlycanException(e.getMessage(), e);
-			} else {
-				throw new WURCSToGlycanException("Could not parse", e);
+		// The validator runs beside the conversion rather than before it (#346): on a large structure
+		// it is the slowest part of a read - G19350QA, 78 residues of unknown linkage, spent 11.4 s
+		// in it against 7.3 s for everything else - and the two do not depend on each other. Its
+		// verdict is taken exactly as before: if it finds the sequence invalid, that is the answer,
+		// whatever the conversion made of it.
+		final String sequence = str;
+		java.util.concurrent.Future<WURCSToGlycanException> invalid = VALIDATION.submit(() -> {
+			try {
+				refuseInvalid(sequence);
+				return null;
+			} catch (WURCSToGlycanException refused) {
+				return refused;
 			}
-		}
-
-		// Maybe WURCSFactory.getGraph() can throw an exception too...
-		WURCSGraph graph = wf.getGraph();
-
-		// whatever spelling the MAPs arrived in, hand the conversion the one it recognises
-		this.rewriteMAPs(graph, false);
+		});
 
 		Glycan glycan;
 		try {
-			WURCSSequence2ToGlycan seq22glycan = new WURCSSequence2ToGlycan();
-			seq22glycan.start(new WURCSFactory(graph), mass_opt);
-			glycan = seq22glycan.getGlycan();
-		} catch (WURCSToGlycanException ex) {
-			throw ex;
-		} catch (Exception undescribed) {
-			// The conversion's own failures come out as raw NullPointerExceptions and
-			// StringIndexOutOfBounds - "String index out of range: 8" for a substituent placed at
-			// position 9 of a hexose, say - which name nothing and read as crashes rather than as
-			// answers (#123). This is the one door every WURCS enters through, so the translation
-			// happens here: what kind of failure, on which sequence, with the original underneath
-			// for whoever needs the trace.
-			// undescribed.printStackTrace();
-			throw new WURCSToGlycanException("could not convert this WURCS to a structure ("
-					+ undescribed.getClass().getSimpleName()
-					+ (undescribed.getMessage() != null ? ": " + undescribed.getMessage() : "")
-					+ "): " + shortenedForError(str), undescribed);
+			glycan = convert(str, mass_opt);
+		} catch (Exception failed) {
+			WURCSToGlycanException refused = verdictOf(invalid);
+			if (refused != null) throw refused;
+			throw failed;
 		}
+		WURCSToGlycanException refused = verdictOf(invalid);
+		if (refused != null) throw refused;
 
 		// A WURCS with two connections between the same pair of residues - a bridge plus a direct
 		// bond, as in G11127BT - comes out of the conversion as a genuine cycle in what every
@@ -247,6 +233,64 @@ public class WURCS2Parser implements GlycanParser{
 	 * its N-acetyl and a linkage came in as two residues, with no word said. Warnings are not refused;
 	 * they say a sequence could be written more canonically, not that it is wrong.
 	 */
+	/** One worker for the validator of each read, kept for the life of the application; daemons. */
+	private static final java.util.concurrent.ExecutorService VALIDATION =
+			java.util.concurrent.Executors.newCachedThreadPool(runnable -> {
+				Thread worker = new Thread(runnable, "WURCS validation");
+				worker.setDaemon(true);
+				return worker;
+			});
+
+	/** What the validator said: the refusal, or null when it found nothing wrong or could not finish. */
+	private static WURCSToGlycanException verdictOf(java.util.concurrent.Future<WURCSToGlycanException> _invalid)
+			throws InterruptedException {
+		try {
+			return _invalid.get();
+		} catch (java.util.concurrent.ExecutionException validatorFailed) {
+			// a validator that cannot finish has said nothing about the sequence; the conversion decides
+			return null;
+		}
+	}
+
+	/** The sequence converted to a structure, unchecked by the validator, which runs beside it. */
+	private Glycan convert(String _wurcs, MassOptions _massOpt) throws Exception {
+		WURCSFactory wf;
+		try {
+			wf = new WURCSFactory(_wurcs);
+		} catch (Exception e) {
+			if (e.getMessage() != null) {
+				throw new WURCSToGlycanException(e.getMessage(), e);
+			} else {
+				throw new WURCSToGlycanException("Could not parse", e);
+			}
+		}
+
+		// whatever spelling the MAPs arrived in, hand the conversion the one it recognises. Only when
+		// one was respelled is the sequence built again from the graph: building it is a whole
+		// normalization, 3.7 s of G19350QA's read, and was done twice for every sequence (#346)
+		WURCSGraph graph = wf.getGraph();
+		if (this.rewriteMAPs(graph, false)) wf = new WURCSFactory(graph);
+
+		try {
+			WURCSSequence2ToGlycan seq22glycan = new WURCSSequence2ToGlycan();
+			seq22glycan.start(wf, _massOpt);
+			return seq22glycan.getGlycan();
+		} catch (WURCSToGlycanException ex) {
+			throw ex;
+		} catch (Exception undescribed) {
+			// The conversion's own failures come out as raw NullPointerExceptions and
+			// StringIndexOutOfBounds - "String index out of range: 8" for a substituent placed at
+			// position 9 of a hexose, say - which name nothing and read as crashes rather than as
+			// answers (#123). This is the one door every WURCS enters through, so the translation
+			// happens here: what kind of failure, on which sequence, with the original underneath
+			// for whoever needs the trace.
+			throw new WURCSToGlycanException("could not convert this WURCS to a structure ("
+					+ undescribed.getClass().getSimpleName()
+					+ (undescribed.getMessage() != null ? ": " + undescribed.getMessage() : "")
+					+ "): " + shortenedForError(_wurcs), undescribed);
+		}
+	}
+
 	static void refuseInvalid(String _wurcs) throws WURCSToGlycanException {
 		org.glycoinfo.WURCSFramework.util.validation.WURCSValidator validator =
 				new org.glycoinfo.WURCSFramework.util.validation.WURCSValidator();
@@ -354,15 +398,21 @@ public class WURCS2Parser implements GlycanParser{
 	 * @param graph Graph whose modifications are rewritten in place.
 	 * @param toNormalized True to normalize, false to use the dictionary spelling.
 	 */
-	private void rewriteMAPs(WURCSGraph graph, boolean toNormalized) {
+	/** @return whether any MAP was respelled */
+	private boolean rewriteMAPs(WURCSGraph graph, boolean toNormalized) {
+		boolean respelled = false;
 		for (Modification modification : graph.getModifications()) {
 			String map = modification.getMAPCode();
 			if (map == null || map.isEmpty()) continue;
 
 			String rewritten = toNormalized ?
 					SubstituentMAPDictionary.normalizeForOutput(map) : SubstituentMAPDictionary.toDictionaryForm(map);
-			if (!rewritten.equals(map)) modification.setMAPCode(rewritten);
+			if (!rewritten.equals(map)) {
+				modification.setMAPCode(rewritten);
+				respelled = true;
+			}
 		}
+		return respelled;
 	}
 
 	@Override
