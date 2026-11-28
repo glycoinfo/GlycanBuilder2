@@ -174,7 +174,7 @@ public class SUBSTAnalyzer {
 
 		// set LinkageType
 		try {
-			linkage.setParentLinkageType(checkLinkageTypeOfMAP(_subst, _ms));
+			linkage.setParentLinkageType(checkLinkageTypeOfMAP(_subst, _ms, entry));
 		} catch (StringIndexOutOfBoundsException ex) {
 			throw new WURCSToGlycanException(WURCSToGlycanException.badSubstituentMessage,_subst.getMAP(),ex);			
 		}
@@ -451,6 +451,14 @@ public class SUBSTAnalyzer {
 		return false;
 	}
 
+	/** Whether the name owns a branch, a bare MAP such as apiose's "3*CO", at this position. */
+	private static boolean ownsABranchAt(NativeMonosaccharideDictionary.Entry _entry, int _pos) {
+		if(_entry == null || _entry.getOwnMAPs().isEmpty()) return false;
+		for(String unit : _entry.getOwnMAPs().split("_"))
+			if(unit.startsWith(_pos + "*")) return true;
+		return false;
+	}
+
 	/** Whether the name's own substituents include a bare amine at this position, "2*N". */
 	static boolean hasAmineAt(NativeMonosaccharideDictionary.Entry _entry, int _pos) {
 		for(String unit : _entry.getSubstituents().split("_"))
@@ -458,10 +466,13 @@ public class SUBSTAnalyzer {
 		return false;
 	}
 
-	private LinkageType checkLinkageTypeOfMAP (SUBST _subst, MS _ms) {
+	private LinkageType checkLinkageTypeOfMAP (SUBST _subst, MS _ms, NativeMonosaccharideDictionary.Entry _entry) {
 		String skeletonCode = _ms.getSkeletonCode();
 		int position = _subst.getPositions().getFirst();
-		if(position != -1) {
+		// A carbon with no hydrogen - 5 to 8 - lost it to this group, unless the residue's own branch
+		// took it: apiose's C3 is a 5 or a 6 for its hydroxymethyl, and keeps its hydroxyl, so a methyl
+		// there is an ether. Read as taking the hydrogen, it wrote the other configuration back (#350).
+		if(position != -1 && !ownsABranchAt(_entry, position)) {
 			char carbondescriptor = skeletonCode.charAt(position - 1);
 			CarbonDescriptor cdDesc = CarbonDescriptor.forCharacter(carbondescriptor, (position == 1 || skeletonCode.length() == position));
 			if(cdDesc.equals(CarbonDescriptor.SS3_CHIRAL_S_U) || cdDesc.equals(CarbonDescriptor.SS3_CHIRAL_R_U) ||
