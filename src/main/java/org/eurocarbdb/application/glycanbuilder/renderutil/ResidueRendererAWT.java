@@ -158,22 +158,50 @@ public class ResidueRendererAWT extends AbstractResidueRenderer {
     			Object old_hint = g2d.getRenderingHint(RenderingHints.KEY_ANTIALIASING);    
     			g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,RenderingHints.VALUE_ANTIALIAS_OFF);
 
-    			Shape old_clip = g2d.getClip();
-    			g2d.clip(shape);
+    			if( g2d instanceof org.apache.batik.svggen.SVGGraphics2D ) {
+    				// In an SVG the coloured part is the part of the fill inside the symbol, written as that
+    				// shape itself. Painted through a clip in the symbol's shape, as on screen, it was the
+    				// fill's whole box with a clip-path on it, and PowerPoint drops clip-paths when a picture
+    				// is ungrouped: a Man or a Fuc came apart into a coloured square (#187). The SVG now has
+    				// no clip-path for a program to lose. On screen and in a bitmap, where nothing is
+    				// ungrouped, the clip stays, so that what is drawn does not change by a pixel.
+    				java.awt.geom.Area inside = new java.awt.geom.Area(shape);
 
-    			g2d.setColor((style.isFillNegative()) ?fill_color :Color.white);
-    			g2d.fill(shape);
+    				g2d.setColor((style.isFillNegative()) ?fill_color :Color.white);
+    				g2d.fill(shape);
 
-    			g2d.setColor((style.isFillNegative()) ?Color.white :fill_color);
-    			g2d.fill(fill_shape);
+    				java.awt.geom.Area coloured = new java.awt.geom.Area(fill_shape);
+    				coloured.intersect(inside);
+    				g2d.setColor((style.isFillNegative()) ?Color.white :fill_color);
+    				g2d.fill(coloured);
 
-    			if( old_hint!=null )
-    			g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,old_hint);
+    				if( old_hint!=null )
+    				g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,old_hint);
 
-    			g2d.setColor(shape_color);        
-    			g2d.draw(fill_shape);
+    				// the fill's edge where it crosses the symbol - the line that divides a divided symbol
+    				java.awt.geom.Area edge = new java.awt.geom.Area(g2d.getStroke().createStrokedShape(fill_shape));
+    				edge.intersect(inside);
+    				g2d.setColor(shape_color);
+    				g2d.fill(edge);
+    			}
+    			else {
+    				Shape old_clip = g2d.getClip();
+    				g2d.clip(shape);
 
-    			g2d.setClip(old_clip);
+    				g2d.setColor((style.isFillNegative()) ?fill_color :Color.white);
+    				g2d.fill(shape);
+
+    				g2d.setColor((style.isFillNegative()) ?Color.white :fill_color);
+    				g2d.fill(fill_shape);
+
+    				if( old_hint!=null )
+    				g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,old_hint);
+
+    				g2d.setColor(shape_color);        
+    				g2d.draw(fill_shape);
+
+    				g2d.setClip(old_clip);
+    			}
     		}
 
     		//draw contour
