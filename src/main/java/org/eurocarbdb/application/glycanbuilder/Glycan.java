@@ -1828,12 +1828,13 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 			if( node.getType().isDroppedWithAcetylation() )
 				ret -= 1;
 			else 
-				ret += node.getType().getNoAcetyls()-extraDeoxies(node)+(isReducedInChain(node) ? 1 : 0)-no_bonds;        
-		}    
+				ret += node.getType().getNoAcetyls()-extraDeoxies(node)+(isReducedInChain(node) ? 1 : 0)-no_bonds;
+		}
 
-		// add children
-		for( Linkage l : node.getChildrenLinkages() ) 
-			ret += computeNoMethylPositions(l.getChildResidue());    
+		// add children - counted for acetylation too; the methyl count here took a GlcNAc's amide N-H
+		// as a site below the root (#350)
+		for( Linkage l : node.getChildrenLinkages() )
+			ret += computeNoAcetylPositions(l.getChildResidue());
 
 		return ret;
 	}
