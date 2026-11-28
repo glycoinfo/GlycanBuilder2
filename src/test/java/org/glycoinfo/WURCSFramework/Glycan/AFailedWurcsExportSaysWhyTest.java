@@ -136,19 +136,19 @@ public class AFailedWurcsExportSaysWhyTest {
 	/**
 	 * And a composition the encoder cannot name says so in the encoder's words.
 	 *
-	 * <p>{@code dPen} has no composition residue to be counted as (#220). The encoder's sentence -
+	 * <p>{@code NeuAcLac}, a lactonised sialic acid, is refused in a composition (#220). The encoder's sentence -
 	 * "A composition cannot be written in ..." - is a checked exception, something meant rather than a
 	 * crash, so it is passed through unwrapped.
 	 */
 	@Test
 	public void aCompositionThatCannotBeWrittenSaysWhy() throws Exception {
 		CompositionOptions counts = new CompositionOptions();
-		counts.DPEN = 1;
+		counts.NEU5ACLAC = 1;
 		Glycan composition = counts.getCompositionAsGlycan(neutral());
 
 		try {
 			new WURCS2Parser().toWURCS(composition);
-			fail("a composition of dPen was written");
+			fail("a composition of NeuAcLac was written");
 		} catch (GlycanToWURCSException refused) {
 			String why = String.valueOf(refused.getMessage());
 			assertTrue("the encoder's own sentence should come through: " + why,
