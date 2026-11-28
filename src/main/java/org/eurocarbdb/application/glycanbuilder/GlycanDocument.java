@@ -1853,8 +1853,9 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 
 		LinkedList<Glycan> parsed = new LinkedList<Glycan>();
 		if (parser instanceof GWSParser) {
-			for (String t : TextUtils.tokenize(str, ";"))
-				parsed.addLast(parser.readGlycan(t,
+			java.util.List<String> each = TextUtils.tokenize(str, ";");
+			for (int i = 0; i < each.size(); i++)
+				parsed.addLast(GWSParser.readNumbered(each.get(i), i, each.size(),
 						theWorkspace.getDefaultMassOptions()));
 		} else
 			parsed.addLast(parser.readGlycan(str,
@@ -1871,10 +1872,10 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	public LinkedList<Glycan> parseString(String str) throws Exception {
 		// parse structures
 		LinkedList<Glycan> parsed = new LinkedList<Glycan>();
-		for (String t : TextUtils.tokenize(str, ";")) {
-			parsed.addLast(GWSParser.fromString(t,
+		java.util.List<String> each = TextUtils.tokenize(str, ";");
+		for (int i = 0; i < each.size(); i++)
+			parsed.addLast(GWSParser.readNumbered(each.get(i), i, each.size(),
 					theWorkspace.getDefaultMassOptions()));
-		}
 		return parsed;
 	}
 
@@ -1888,8 +1889,9 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 			throws Exception {
 		// parse structures
 		LinkedList<Glycan> parsed = new LinkedList<Glycan>();
-		for (String t : TextUtils.tokenize(str, ";"))
-			parsed.addLast(GWSParser.fromString(t, opt));
+		java.util.List<String> each = TextUtils.tokenize(str, ";");
+		for (int i = 0; i < each.size(); i++)
+			parsed.addLast(GWSParser.readNumbered(each.get(i), i, each.size(), opt));
 		return parsed;
 	}
 
@@ -1906,9 +1908,9 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 
 		// read
 		LinkedList<Node> g_nodes = XMLUtils.findAllChildren(struct_node, "Glycan");
-		for (Node g_node : g_nodes)
-			structures.addLast(Glycan.fromXML(g_node,
-					theWorkspace.getDefaultMassOptions()));
+		for (int i = 0; i < g_nodes.size(); i++)
+			structures.addLast(GWSParser.readNumbered(XMLUtils.getAttribute(g_nodes.get(i), "structure"),
+					i, g_nodes.size(), theWorkspace.getDefaultMassOptions()));
 	}
 
 	/**
@@ -1936,6 +1938,8 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 
 		private GlycanDocument theDocument;
 		private boolean merge;
+		/** How many structures this file has given so far, to name one that cannot be read (#394). */
+		private int structuresRead = 0;
 
 		/**
 		 * Construct a new handler.
@@ -1964,7 +1968,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 		protected SAXUtils.ObjectTreeHandler getHandler(String namespaceURI,
 														String localName, String qName) {
 			if (qName.equals(Glycan.SAXHandler.getNodeElementName()))
-				return new Glycan.SAXHandler(new MassOptions());
+				return new Glycan.SAXHandler(new MassOptions(), structuresRead++);
 			return null;
 		}
 

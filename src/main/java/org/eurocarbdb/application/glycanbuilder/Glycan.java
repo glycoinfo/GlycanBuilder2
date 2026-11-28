@@ -2402,9 +2402,27 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 			return "Glycan";
 		}
 
+		/** The structure's place in its file, from 0, to name it if it cannot be read; -1 when not known. */
+		private int index = -1;
+
+		/** A handler for the structure at this place in its file. */
+		public SAXHandler(MassOptions _default_mass_options, int _index) {
+			this(_default_mass_options);
+			index = _index;
+		}
+
 		protected void initContent(String namespaceURI, String localName, String qName, Attributes atts) throws SAXException {
 			super.initContent(namespaceURI,localName,qName,atts);
-			object = Glycan.fromString(atts.getValue("structure"),default_mass_options);
+			// A structure that could not be read was held as nothing, and the file opened without it
+			// and without a word (#394). It is refused now, naming it, so that the file is not opened
+			// short and then saved short.
+			String gws = atts.getValue("structure");
+			try {
+				object = org.eurocarbdb.application.glycanbuilder.converterGWS.GWSParser.fromString(gws,default_mass_options);
+			}
+			catch( Exception unreadable ) {
+				throw new SAXException(org.eurocarbdb.application.glycanbuilder.converterGWS.GWSParser.cannotRead(gws,Math.max(index,0),0,unreadable),unreadable);
+			}
 		}
 
 	}
