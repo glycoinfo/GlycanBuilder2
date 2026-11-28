@@ -1489,6 +1489,31 @@ public class Residue {
 	}
 
 	/**
+	 * Attach a group - a substituent, not a monosaccharide - at this residue's anomeric carbon (#238).
+	 *
+	 * <p>{@link #addChild}'s positions leave the anomeric carbon out, as the carbon a residue is bonded
+	 * to its parent by. A residue at a reducing end is bonded by it to nothing, and a group can take its
+	 * place: G00012JB's GlcNAc, a2122h-1a_1-5_1*N_2*NCC/3=O, a glycosylamine with an amine at C1. Since
+	 * the rule that a group goes only where the residue takes one, its amine had nowhere to go: the
+	 * residue came in as a Glc with an NAc, then was refused. Used by the readers, for a structure that
+	 * already exists.
+	 *
+	 * @return whether it was attached: this residue a monosaccharide, the group not one, the bond a single
+	 *         one at this residue's anomeric carbon, and no other group there
+	 */
+	public boolean attachAtAnomericCarbon(Residue group, Collection<Bond> bonds) {
+		if( group==null || bonds==null || group.isSaccharide() || !this.isSaccharide() || bonds.size()!=1 )
+			return false;
+		char position = getAnomericCarbon();
+		char[] at = bonds.iterator().next().getParentPositions();
+		if( !Character.isDigit(position) || at==null || at.length!=1 || at[0]!=position )
+			return false;
+		if( positionHeldByAChild(position,group) )
+			return false;
+		return attachChild(group,bonds,false);
+	}
+
+	/**
 	 * Join a monosaccharide by its anomeric carbon to this one's: the bond of a non-reducing sugar,
 	 * sucrose's Glc α1-β2 Fru, a trehalose's α1-α1 (#357). This residue is the one drawn at the
 	 * reducing-end position, and the other hangs on its anomeric carbon - the form GWS has always
