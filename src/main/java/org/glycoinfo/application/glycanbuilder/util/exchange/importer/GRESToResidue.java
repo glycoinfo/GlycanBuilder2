@@ -61,6 +61,22 @@ public class GRESToResidue {
 		MonosaccharideMSDictionary.Match match =
 				MonosaccharideMSDictionary.match(_gres.getMS().getString());
 
+		// A ketose with its C1 deoxy, 1-deoxy-D-fructose's ma122h, is named by the converter as an
+		// aldose read from the other end - araHex with a deoxy at 1 - and was written back as hx112m,
+		// another monosaccharide (#354). Its own name is the ketose's whose C1 is a CH2OH: looked up
+		// with that carbon restored, and the deoxy kept, as a 6-deoxy is kept on Fru.
+		ArrayList<String> terminalDeoxies = new ArrayList<String>();
+		if(match == null) {
+			MonosaccharideMSDictionary.Match ketose = ketoseWithItsC1Restored(_gres.getMS().getString());
+			if(ketose != null) {
+				match = ketose;
+				String skeleton = mscore.getSkeletonCode();
+				terminalDeoxies.add("1*m");
+				// and its last carbon, a 1,6-dideoxy hexulose's, restored with it
+				if(skeleton.charAt(skeleton.length() - 1) == 'm') terminalDeoxies.add(skeleton.length() + "*m");
+			}
+		}
+
 		String trivialName;
 		char configuration;
 		TrivialNameConverter trinConv = null;
@@ -107,6 +123,7 @@ public class GRESToResidue {
 		// the skeleton is matched whole, so a recognised residue leaves no core modification behind
 		ArrayList<String> leftOver = (trinConv != null) ? trinConv.getModifications()
 				: (unknownStereo != null) ? new ArrayList<String>(unknownStereo.deoxies) : new ArrayList<String>();
+		leftOver.addAll(terminalDeoxies);
 
 		// The legend names this residue in the box drawn beside the structure, for a residue with no
 		// symbol of its own. It belongs to the residue: writing it onto the type, which every residue
@@ -222,6 +239,26 @@ public class GRESToResidue {
 				+ " carbon at C" + _carbonyl + ", and the name it was given, " + _name + ", is a residue of "
 				+ (carbons != null ? carbons + " carbons" : "another skeleton") + " with its anomeric carbon at C"
 				+ anomeric + ": no residue this application knows is this monosaccharide, so it is not read");
+	}
+
+	/**
+	 * The ketose this skeleton is with its C1 made a CH2OH again - and its last carbon, when that is a
+	 * deoxy as well - when it is a ketose whose C2 is the anomeric carbon of its ring, or of a ring not
+	 * known, and whose C1 is a deoxy. Null otherwise, and when the restored skeleton is no ketose this application knows.
+	 */
+	static MonosaccharideMSDictionary.Match ketoseWithItsC1Restored(String _ms) {
+		// the open chain, mO122h, is left to #342: GlycanBuilder2 has no open-chain ketose yet - hO122h
+		// itself is read as an alditol - and the ketose found here would be written as mU122h
+		if(_ms == null || _ms.length() < 4 || _ms.charAt(0) != 'm' || "aU".indexOf(_ms.charAt(1)) < 0) return null;
+		// the skeleton code runs to the first "-" or "_"; its last carbon, a deoxy as well, is restored too
+		int end = _ms.length();
+		for(int i = 0; i < _ms.length(); i++)
+			if(_ms.charAt(i) == '-' || _ms.charAt(i) == '_') { end = i; break; }
+		String skeleton = "h" + _ms.substring(1, end);
+		if(skeleton.endsWith("m")) skeleton = skeleton.substring(0, skeleton.length() - 1) + "h";
+		MonosaccharideMSDictionary.Match restored = MonosaccharideMSDictionary.match(skeleton + _ms.substring(end));
+		if(restored == null || restored.getResidueType().getAnomericCarbon() != '2') return null;
+		return restored;
 	}
 
 	/**
