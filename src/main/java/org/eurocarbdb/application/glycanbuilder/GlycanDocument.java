@@ -1187,7 +1187,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 				.isReducingEnd())) {
 			Residue cloned_root = ResidueDictionary.createAttachPoint();
 			int before = cloned_root.getChildrenLinkages().size();
-			cloned_root.addChild(cloneStructure(root, nodes, false, copies), root
+			cloned_root.copyChild(cloneStructure(root, nodes, false, copies), root
 					.getParentLinkage().getBonds());
 			// what the copied bond is made of, which the mass reads (#281)
 			cloned_root.keepLinkageTypes(root.getParentLinkage(), before);
@@ -1202,7 +1202,11 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 				Residue child = link.getChildResidue();
 				if (nodes.contains(child)) {
 					int before = cloned_root.getChildrenLinkages().size();
-					cloned_root.addChild(cloneStructure(child, nodes, false, copies),
+					// copied as it is, as Residue.cloneSubtree copies: addChild checks the position
+					// against the parent's own, and turned away the partner of a non-reducing sugar,
+					// which hangs on the parent's anomeric carbon - a copy of trehalose or sucrose was
+					// one glucose (#242)
+					cloned_root.copyChild(cloneStructure(child, nodes, false, copies),
 							link.getBonds());
 					cloned_root.keepLinkageTypes(link, before);
 				}

@@ -762,6 +762,17 @@ public class GWSParser implements GlycanParser {
 		// parse child
 		Residue child = readSubtree(str.substring(m.end()),false,startRep);
 
+		// A child bonded at two positions is a bridge: a 1,6-anhydro, a 4,6-cyclic phosphate, a pyruvate
+		// acetal, a 1,5-imino. Its name was looked up among the residues, where Anhydro and Py are not
+		// and P is the monovalent phosphate, and the one place that made a name a bridge did so only
+		// for a residue with children of its own - which a bridge within one residue never has. So a
+		// bridge saved to GWS came back as a residue of unknown type, a water light, drawn in another
+		// font and impossible to write to WURCS; and since copy and paste is a GWS round trip, the
+		// pasted copy was all of that (#242, #362).
+		if( ret_bonds.size()>1 && !child.isBridge()
+				&& CrossLinkedSubstituentDictionary.hasCrossLinkedSubstituent(child.getTypeName()) )
+			child.setType(CrossLinkedSubstituentDictionary.getCrossLinkedSubstituent(child.getTypeName()));
+
 		// create linkage
 		Linkage ret = new Linkage(null,child);
 		ret.setBonds(ret_bonds);
