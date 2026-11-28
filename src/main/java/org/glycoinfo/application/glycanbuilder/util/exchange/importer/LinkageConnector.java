@@ -293,13 +293,13 @@ public class LinkageConnector {
 		String donorPos = _donor.getParentLinkage().getParentPositionsString();
 		String acceptorPos = _acceptor.getEndRepitionResidue().getParentLinkage().getParentPositionsString();
 
-		if(donorPos.contains("/") && acceptorPos.contains("/")) {
-			if(donorPos.equals(acceptorPos)) return true;
-			donorPos = donorPos.substring(0, 1);
-			acceptorPos = acceptorPos.substring(0, 1);
-		}
-
-		if (donorPos.equals("?") || acceptorPos.equals("?")) return false;
+		// The residue continues the chain after the repeat when it is bonded where the repeat closes,
+		// the same carbon or the same alternatives, 3/6 for a repeat closing on 3|6 (G73472DM). Any
+		// other position, alternatives among them, is a residue of every unit. Alternatives on one side
+		// only - G79171HQ's Ara at d2|d3, the repeat closing on d4 - were read as a number, and the
+		// WURCS could not be read at all: For input string: "2/3" (#270).
+		if (donorPos.equals(acceptorPos)) return !donorPos.contains("?");
+		if (!donorPos.matches("[0-9]+") || !acceptorPos.matches("[0-9]+")) return false;
 		return (Integer.parseInt(donorPos) == Integer.parseInt(acceptorPos));
 	}
 }
