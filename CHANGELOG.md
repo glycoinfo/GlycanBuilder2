@@ -1,4 +1,88 @@
 ## Change log
+### 1.41.0  (20261129)
+Every bug reported since 1.40.0 that could be fixed without a decision of the maintainer's, and the ones whose
+decision has been made - more than 80 pull requests. **Minor rather than patch**: structures GlycanBuilder2 used to read or
+write as something else are now refused with the reason (a septanose, a reduced ketose, monosaccharides with no
+linkage, stereo known only in part, an internal repeat WURCS cannot write); the GUI offers only what can be written
+to WURCS; masses change where they were wrong; and there is new public API (`GlycanSelection.structuresIn`,
+`GWSParser.readNumbered`, `CompositionSubstituent`). The rule throughout, the maintainer's: what GlycanBuilder2
+cannot represent is refused, saying why, never read or written as something else.
+* **Masses that were wrong**
+  * An open-chain acid - aldonic, aldaric, keto - is read as its alditol with the carbons that are oxidised, and
+    weighs what it is (#341); a carbonyl that is not a ring's anomeric carbon is weighed and written as one, so an
+    open-chain ketose is no longer an alditol (#342)
+  * A pyruvate acetal weighs the molecule it is made from, one hydrogen more (#343); a nitrogen or a sulfur in
+    place of the ring oxygen takes a hydroxyl's place (#345)
+  * A copy keeps what its linkages are made of and its alditols: a cloned O-methylated structure weighed an
+    oxygen light (#281)
+  * A heptopyranose has six derivatization sites (#283); the dictionary's rows are recounted from the structures
+    they write, and rows no reader could take back are corrected (#273, #350)
+  * Glycerol is read, weighed, written and drawn, and an alditol inside a chain is weighed as one
+  * The 4-deoxy pentose is a pyranose: it has no O4 to close a furanose (#386)
+* **Reading WURCS**
+  * Stereocentres of unknown configuration (`x`) are read (#265); a skeleton whose centres are known only in
+    part, which no name says, is refused (#327); a double bond of unknown geometry is refused, saying so (#266)
+  * A ring closing on a carbon not known is read as the ring, not as an anhydro beside it (#259, #239, #257)
+  * A double bond stays on its residue (#292); a deoxy at a carbon not known, and C-linked methyl and
+    hydroxymethyl groups, are read
+  * A sialic acid keeps its nitrogen, and a second N-linked group stays N-linked (#318, #319); L-cymarose reads as
+    L-Dig with its 3-O-methyl (#312); a hept-2-ulose is no longer read as an aldohexose (#310); a ketose with a
+    deoxy C1 is that ketose (#354); sucrose, and anything joined anomeric carbon to anomeric carbon, opens (#357);
+    a group on the anomeric carbon of the reducing-end residue is read (#238)
+  * Repeats: an internal repeat is read and written as it is, and one WURCS cannot write is refused (#269);
+    with a side chain (#268), with alternative positions (#270), of one residue (#264), and closed when read
+    from GWS (#301)
+  * Invalid WURCS is refused, naming what is wrong (#236), checked beside the conversion rather than before it:
+    the 78-residue G19350QA reads in 11.5 s rather than 18.7 s, still 1.6 times 1.40.0's, the rest being
+    WURCSFramework's validator (#346); the refusal quotes the WURCS once (#335); the conversion's raw exceptions are
+    named, from N. Edwards's patches (#227, #123)
+  * Refused, with the reason: a ring larger than a pyranose (#344); a deoxy heptose no dictionary names, which
+    was read as a residue that weighed nothing (#282); several monosaccharides with no linkage between them, which
+    are separate molecules rather than a composition (#404)
+* **Writing WURCS**
+  * Residues named by a configurational prefix - araHex, lyxHex and the rest (#260, #261), the heptoses and
+    octuloses named by two (#275), the tetroses Thr and Ery (#285) - are written
+  * Every residue in the configuration it is drawn in (#313), a generic residue's D or L on the centre that
+    decides it (#314), relative stereo the way round it was read (#286), a ring whose anomeric carbon is `?`
+    with its type's (#332), a group at position N on the amine's carbon (#222), MAPs in WURCSFramework's normal
+    form, and a residue bonded at a carbon its parent has and it does not (#249)
+  * A reduced ketose is refused: reducing it makes two compounds, which no residue is (#364)
+  * Why a structure has no WURCS is said to whoever asked (#276)
+  * A composition writes what glycompconverter writes: sulfate, phosphate and O-acetyl counted on their own,
+    the 4-O-methyl hexose, the 4-deoxy pentose; pyruvate, phosphocholine, dHexA and the lactonised sialic acids
+    are refused, naming them (#220)
+* **GWS and files**
+  * The residue names this application writes are read back (#256); files written before the double dash open
+    (#274); an aglycon is read by the whole of its name and written as typed (#305)
+  * The GWS GlycanBuilder2 writes for a cycle or for nested repeats is read back, and a structure that still
+    cannot be read is named - "Structure 2 of 3 could not be read (...)" - rather than failing the file with the
+    parser's sentence or vanishing from a workspace (#394). What GWS cannot hold at all is #397, GB3
+  * A sequence export keeps the `.txt` it was given (#237)
+* **Copy and paste**
+  * Paste within the application takes the structures that were copied, not their GWS, so partly known stereo,
+    an antenna's candidate parents, a probability and a cycle survive it (#370)
+  * A copy keeps what joins its residues other than through the tree (#340); a bridge stays a bridge and a
+    non-reducing sugar its pair (#242, #362); a substructure pastes as a structure of its own (#241); a residue is
+    copied with the reducing end it stands on (#240); the clipboard's picture draws antenna lines and the
+    reducing end (#231); G63532WE copies and pastes (#249, #247)
+* **Drawing**
+  * SNFG: a residue without a symbol keeps its letter and has room for its name (#250, #251, #262); one absent
+    from the table is the white pentagon, and Hept is a saccharide (#248, #254, #255); one with no symbol takes its
+    generic type's white symbol (#279); a deoxy stays on its residue and is named in the footnote (#258, #263);
+    the footnote names a residue from the residue (#307); the divided triangle is coloured on the right however a
+    structure is drawn (#83)
+  * A composition is drawn in one order however it was made (#235); uncertain terminal residues can share a
+    position (#230); the canvas keeps painting when a structure cannot be weighed or drawn (#267)
+  * An SVG has no clip-paths, which PowerPoint dropped on ungrouping (#187); the GAG templates are sulfated where
+    a hydroxyl is free, and draw L-IdoA (#330)
+* **The GUI**
+  * Only what can be written to WURCS is offered (#315); a substituent is offered only the carbons that can take
+    it, and is never dropped (#320, #321, #323); the chooser's tabs say which residue an Assigned placeholder is
+    (#252); "Unknown" is shown as "Others" (#182) and "Assigned" as "Pentagon"
+* **Also**
+  * WURCSFramework's warning about a repeat it reads correctly is quiet (#228); Api's default L is explained,
+    since it writes what IUPAC calls D-apiose; deoxyribose is named 2-deoxy (#402)
+
 ### 1.40.0  (20260815)
 Compositions, found by comparing this library against glycanbuilder2web rather than by the suite.
 **Minor rather than patch**: the Muramic Acid count builds a different residue than it did, so a mass and a

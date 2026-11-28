@@ -63,6 +63,19 @@ Each is the maintainer's (I. Yamada), recorded where it was made.
   the pentagon last, for a residue whose generic type has no symbol. Corrected on #258.
 - **2026-11-28: #235 is the maintainer's.** Reassigned from M. Matsubara, as #230 was in effect;
   both were fixed at the maintainer's request (PRs #391, #387).
+- **2026-11-29, decided on the nine waiting issues and what they turned up:**
+  - **#394**: GB2 takes the first stage only - read back the GWS it writes for cycles and nested
+    repeats, and name a structure it cannot read (PR #396). What GWS cannot hold is GB3, #397.
+  - **#364**: a reduced ketose is a structure GB2 does not support; refused when written (PR #398).
+  - **#386**: 4dPen is a pyranose (PR #400). **#390**: the bond into a one-residue repeat keeps the
+    anomeric carbon; closed. **#16**: the substituents the dictionary lacks are GB3.
+  - **#243**: what GB2 does after PA is removed - pyranose, α/β unspecified - is SNFG's default for a
+    reducing end; setting β on many structures at once is GB3, with #245.
+  - **#117**: answered - GB2 writes compositions as glycompconverter does, and reads all three forms.
+  - **#404**: several monosaccharides with no linkage between them are not handled; refused when read
+    (PR #405).
+  - **#402**: dRib's IUPAC name is 2-deoxy (PR #403). **#401**, which residue 4dPenN is, waits on a
+    chemistry decision.
 
 ### Where every open issue stands, 2026-11-29
 
@@ -180,6 +193,13 @@ glycoinfo/wurcsframework!15 · #226 GlycoWorkbench's fork, for the record.
 
 **GB3 (24).** #6, #7, #20, #41, #58, #93, #95, #100, #109, #177, #181, #184, #190, #200, #229, #232, #233,
 #234, #244, #245, #298, #315, #327, and **#352**, a feature request, labelled GB3 on 2026-11-29.
+
+### Since that pass, 2026-11-29
+
+Fixed and merged: #394 (first stage), #364, #187, #386, #402; #404 in PR #405. Closed: #17, #57,
+#66, #189, #253, #390, #117, #394 (in favour of #396 and #397). Moved to GB3: #16, #243, #352. New:
+#397 (GB3), #401 (decision), #402, #404. Still waiting on the maintainer: #91 (look at the menu in
+the application), #263 and #293 (close #263; #293 to GB3?), #401.
 
 ### The order to take them in, 2026-11-29
 
