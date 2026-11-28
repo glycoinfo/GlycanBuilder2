@@ -74,6 +74,8 @@ public class Residue {
 	private final ArrayList<String> deoxies = new ArrayList<>();
 	/** The carbons of a double bond in the skeleton, "4*e" and "5*E" (#292). */
 	private final ArrayList<String> doubleBonds = new ArrayList<>();
+	/** The carbons of an alditol's open chain that are oxidised, "1*A" and "2*O" (#341). */
+	private final ArrayList<String> oxidations = new ArrayList<>();
 
 	/** The skeleton read from WURCS when the type cannot say it alone; see {@link #getReadSkeleton}. */
 	private String readSkeleton = null;
@@ -260,9 +262,39 @@ public class Residue {
 		return !this.doubleBonds.isEmpty();
 	}
 
-	/** Whether this residue's skeleton differs from its type's: a deoxy or a double bond it does not imply. */
+	/**
+	 * Record a carbon of this alditol's open chain that is oxidised: a terminal CH2OH that is a
+	 * carboxyl, "1*A", or an inner CHOH that is a ketone, "2*O", as WURCS writes the carbon (#341).
+	 *
+	 * <p>An aldonic acid - gluconic acid, A2122h - is an alditol with one end a carboxyl, an aldaric
+	 * acid one with both, and a 2-keto acid one with a ketone as well. Read from WURCS, the carboxyl
+	 * was built as a child named "A" that weighed nothing, or was left out, and the acid came back
+	 * 16 to 64 Da light. Kept on the residue, as a deoxy is: it changes the composition by what
+	 * WURCSFramework says it changes, takes the residue's own symbol away, and is written back by the
+	 * WURCS writer as part of the skeleton. Also added to {@link #getModifications()}, which is what
+	 * that writer reads.
+	 */
+	public void addOxidation(String a_sCarbon) {
+		if (!this.oxidations.contains(a_sCarbon)) this.oxidations.add(a_sCarbon);
+		if (!this.modifications.contains(a_sCarbon)) this.modifications.add(a_sCarbon);
+	}
+
+	/** The carbons recorded by {@link #addOxidation}, in the order they were added. */
+	public java.util.List<String> getOxidations() {
+		return java.util.Collections.unmodifiableList(this.oxidations);
+	}
+
+	/** Whether this residue's open chain has a carbon oxidised that its type's name does not imply. */
+	public boolean hasOxidations() {
+		return !this.oxidations.isEmpty();
+	}
+
+	/**
+	 * Whether this residue's skeleton differs from its type's: a deoxy, a double bond or an oxidised
+	 * carbon it does not imply.
+	 */
 	public boolean hasSkeletonModifications() {
-		return hasDeoxies() || hasDoubleBonds();
+		return hasDeoxies() || hasDoubleBonds() || hasOxidations();
 	}
 
 	/**
@@ -2196,6 +2228,7 @@ public class Residue {
 		ret.modifications.addAll(this.modifications);
 		ret.deoxies.addAll(this.deoxies);
 		ret.doubleBonds.addAll(this.doubleBonds);
+		ret.oxidations.addAll(this.oxidations);
 		ret.readSkeleton = this.readSkeleton;
 
 		ret.cleaved_residue = (this.cleaved_residue!=null) ?this.cleaved_residue.cloneResidue() :null;
@@ -2226,6 +2259,8 @@ public class Residue {
 		this.deoxies.addAll(other.deoxies);
 		this.doubleBonds.clear();
 		this.doubleBonds.addAll(other.doubleBonds);
+		this.oxidations.clear();
+		this.oxidations.addAll(other.oxidations);
 		this.readSkeleton = other.readSkeleton;
 
 		this.cleaved_residue = (other.cleaved_residue!=null) ?other.cleaved_residue.cloneResidue() :null;

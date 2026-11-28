@@ -237,6 +237,23 @@ public class SUBSTAnalyzer {
 	}
 
 	/**
+	 * Whether this modification is a carbon of an alditol's chain the skeleton has oxidised: a carboxyl,
+	 * A, at either end, or a ketone, O, at a carbon between them. See GRESToResidue.isAnAcidOfAnAlditol.
+	 */
+	static boolean oxidisesTheChain(GRES _gres, Residue _residue, String _mod) {
+		if(!_residue.isAlditol() || !SkeletonModificationComposition.isOxidation(_mod)) return false;
+		Character position = SkeletonModificationComposition.positionOf(_mod);
+		if(position == null || !Character.isDigit(position.charValue())) return false;
+		int carbon = position.charValue() - '0';
+		String skeleton = _gres.getMS().getCoreStructure().getSkeletonCode();
+		// an acid's chain only: an open-chain ketose, hO122h, is read as an alditol too, and is #342's
+		if(skeleton.charAt(0) != 'A' && skeleton.charAt(skeleton.length() - 1) != 'A') return false;
+		if(carbon < 1 || carbon > skeleton.length() || skeleton.charAt(carbon - 1) != SkeletonModificationComposition.codeOf(_mod)) return false;
+		boolean terminal = carbon == 1 || carbon == skeleton.length();
+		return (SkeletonModificationComposition.codeOf(_mod) == 'A') == terminal;
+	}
+
+	/**
 	 * Attach a group the WURCS gives this residue, or refuse the structure saying why.
 	 *
 	 * <p>The answer of addChild was not looked at, so a group the residue would not take was left out
@@ -290,6 +307,14 @@ public class SUBSTAnalyzer {
 			// derivatization reaches is not yet settled here, and a deoxy's is.
 			if(SkeletonModificationComposition.isDeoxy(mod)) {
 				deoxies.add(mod);
+				continue;
+			}
+
+			// A carboxyl at an end of an alditol's chain, "1*A", or a ketone inside it, "2*O", stays
+			// on the residue as well (#341). Built as a child named "A" or "O", it weighed nothing, and
+			// an aldonic acid came back as its alditol's aldose, 16 Da light.
+			if(oxidisesTheChain(_gres, _residue, mod)) {
+				_residue.addOxidation(mod);
 				continue;
 			}
 

@@ -1355,7 +1355,25 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 	private int noSubstitutions(Residue node) {
 		int ofType = noSubstitutions(node.getType());
 		return (ofType == 0) ? 0 : ofType - extraDeoxies(node) - hydroxylsLostToDoubleBonds(node)
-				+ (isReducedInChain(node) ? 1 : 0);
+				- sitesLostToOxidations(node, isAcetylation()) + (isReducedInChain(node) ? 1 : 0);
+	}
+
+	/** Whether this structure is weighed acetylated rather than methylated, when it is derivatized. */
+	private boolean isAcetylation() {
+		return mass_options.DERIVATIZATION.equals(MassOptions.PERACETYLATED)
+				|| mass_options.DERIVATIZATION.equals(MassOptions.PERDACETYLATED);
+	}
+
+	/**
+	 * The derivatization sites the oxidised carbons of an alditol's chain took away (#341): a ketone's
+	 * hydroxyl, and for an acetylation a carboxyl's, which a methylation reaches as an ester - as the
+	 * dictionary has a uronic acid, with its hexose's methylation sites and one acetylation site fewer.
+	 */
+	private static int sitesLostToOxidations(Residue node, boolean acetylation) {
+		int lost = 0;
+		for (String carbon : node.getOxidations())
+			lost += org.glycoinfo.application.glycanbuilder.util.SkeletonModificationComposition.sitesLost(carbon, acetylation);
+		return lost;
 	}
 
 	/**
@@ -1412,6 +1430,9 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 		// and the double bond's carbons (#292), measured the same way
 		for (String carbon : node.getDoubleBonds())
 			ret.add(org.glycoinfo.application.glycanbuilder.util.SkeletonModificationComposition.deltaOf(carbon));
+		// and the oxidised carbons of an alditol's chain (#341)
+		for (String carbon : node.getOxidations())
+			ret.add(org.glycoinfo.application.glycanbuilder.util.SkeletonModificationComposition.deltaOf(carbon));
 		return ret;
 	}
 
@@ -1425,7 +1446,7 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 		} catch (Exception cannotBeWeighed) {
 			// a constant computed by WURCSFramework from two fixed skeletons; if it cannot be had, a
 			// mass without it would be wrong by an oxygen per deoxy and look right
-			throw new IllegalStateException("cannot weigh the deoxy or double bond on " + node.getTypeName(), cannotBeWeighed);
+			throw new IllegalStateException("cannot weigh the deoxy, double bond or oxidised carbon on " + node.getTypeName(), cannotBeWeighed);
 		}
 	}
 
@@ -1803,7 +1824,8 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 			if( node.getType().isDroppedWithMethylation() )
 				ret -= 1;
 			else 
-				ret += node.getType().getNoMethyls()-extraDeoxies(node)+(isReducedInChain(node) ? 1 : 0)-no_bonds;        
+				ret += node.getType().getNoMethyls()-extraDeoxies(node)-sitesLostToOxidations(node, false)
+						+(isReducedInChain(node) ? 1 : 0)-no_bonds;        
 		}    
 
 		// add children
@@ -1828,7 +1850,8 @@ public class Glycan implements Comparable, SAXUtils.SAXWriter, MassAware {
 			if( node.getType().isDroppedWithAcetylation() )
 				ret -= 1;
 			else 
-				ret += node.getType().getNoAcetyls()-extraDeoxies(node)+(isReducedInChain(node) ? 1 : 0)-no_bonds;
+				ret += node.getType().getNoAcetyls()-extraDeoxies(node)-sitesLostToOxidations(node, true)
+						+(isReducedInChain(node) ? 1 : 0)-no_bonds;
 		}
 
 		// add children - counted for acetylation too; the methyl count here took a GlcNAc's amide N-H
