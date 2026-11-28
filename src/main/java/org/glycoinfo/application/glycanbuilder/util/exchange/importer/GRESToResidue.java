@@ -55,6 +55,7 @@ public class GRESToResidue {
 
 		refuseUnknownDoubleBond(mscore.getSkeletonCode());
 		refuseARingLargerThanAPyranose(mscore);
+		refuseAnotherAtomInTheRing(mscore);
 
 		// This builder's own dictionary answers first: it knows every residue the exporter can
 		// write, which is more than the naming converter covers - a substituent it does not know,
@@ -584,6 +585,33 @@ public class GRESToResidue {
 			throw new WURCSToGlycanException(_core.getSkeletonCode() + " closes its ring from C" + anomeric + " to C"
 					+ end + ", a ring of " + (span + 1) + " members, which GlycanBuilder2 cannot represent: it has"
 					+ " furanoses and pyranoses only, so it is not read");
+		}
+	}
+
+	/**
+	 * Refuse a residue whose ring closes through another atom than its oxygen, saying so (#345).
+	 *
+	 * <p>5-Thio-D-glucopyranose, a2122h-1a_1-5*S*, closes its ring from C1 to C5 through a sulfur. A
+	 * residue here has its ring closed through its oxygen and no other, so the sulfur was read as a
+	 * thio bridge beside a ring not known, and weighed 14 Da heavy. As for a septanose (#344), the
+	 * maintainer's rule (2026-11-28) is to refuse what cannot be represented rather than read it as
+	 * something else. A bridge with an atom that does not start at the anomeric carbon - the
+	 * 1,5-imino of a dideoxy-imino-alditol, the 1,5-lactam of a neuraminic acid - is a bridge, and is
+	 * read as one.
+	 */
+	static void refuseAnotherAtomInTheRing(MSCORE _core) throws WURCSToGlycanException {
+		int anomeric = _core.getAnomericPosition();
+		if (anomeric < 1 || RingBridge.find(_core) != null) return;
+		for (BRIDGE bridge : _core.getDivalentSubstituents()) {
+			if (!bridge.getStartPositions().contains(anomeric)) continue;
+			// one atom where the ring oxygen would be, *S* or *N*, with or without what hangs off it
+			if (!bridge.getMAP().matches("\\*[A-Z][a-z]?\\*(/.*)?")) continue;
+			if (bridge.getEndPositions().isEmpty() || bridge.getEndPositions().get(0) == null) continue;
+			int span = RingBridge.span(bridge, anomeric);
+			if (span != 4 && span != 5) continue;
+			throw new WURCSToGlycanException(_core.getSkeletonCode() + " closes its ring from C" + anomeric + " to C"
+					+ bridge.getEndPositions().get(0) + " through " + bridge.getMAP() + " in place of the ring oxygen,"
+					+ " which GlycanBuilder2 cannot represent, so it is not read");
 		}
 	}
 
