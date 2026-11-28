@@ -23,7 +23,7 @@ import org.junit.Test;
 /**
  * A structure that cannot be written as WURCS says why, to whoever asked (#275).
  *
- * <p>21 of the 23 heptose and octose residues have no stereo recorded, so the conversion refuses them
+ * <p>21 of the 23 heptose and octose residues had no stereo recorded, so the conversion refused them
  * - "D-gro-D-galHep has no stereo recorded for it, so it has no skeleton to write." That sentence was
  * handed to {@code LogUtils.report} and the caller received {@code ""}. The desktop application shows
  * the report as a dialog and so was never silent. Everything headless was: the web application's
@@ -36,8 +36,11 @@ import org.junit.Test;
  */
 public class AFailedWurcsExportSaysWhyTest {
 
-	/** A heptose with no stereo recorded - one of the 21. */
-	private static final String NO_STEREO = "D-gro-D-galHep";
+	/**
+	 * A residue with no stereo recorded. It was D-gro-D-galHep, one of the 21, until #275 recorded the
+	 * heptoses' stereo; 8eLeg, the 8-epimer of legionaminic acid, has none recorded still.
+	 */
+	private static final String NO_STEREO = "8eLeg";
 
 	@BeforeClass
 	public static void loadDictionaries() {
@@ -49,7 +52,7 @@ public class AFailedWurcsExportSaysWhyTest {
 	public void aResidueWithNoStereoSaysWhy() throws Exception {
 		try {
 			new WURCS2Parser().toWURCS(alone(NO_STEREO));
-			fail("a heptose with no stereo recorded was written");
+			fail("a residue with no stereo recorded was written");
 		} catch (GlycanToWURCSException refused) {
 			String why = String.valueOf(refused.getMessage());
 			assertTrue("the reason should name the residue: " + why, why.contains(NO_STEREO));
@@ -70,7 +73,7 @@ public class AFailedWurcsExportSaysWhyTest {
 		LogUtils.clearLastError();
 		try {
 			new WURCS2Parser().toWURCS(alone(NO_STEREO));
-			fail("a heptose with no stereo recorded was written");
+			fail("a residue with no stereo recorded was written");
 		} catch (GlycanToWURCSException expected) {
 			// the reason is here
 		}
@@ -133,19 +136,19 @@ public class AFailedWurcsExportSaysWhyTest {
 	/**
 	 * And a composition the encoder cannot name says so in the encoder's words.
 	 *
-	 * <p>{@code dPen} has no composition residue to be counted as (#220). The encoder's sentence -
+	 * <p>{@code NeuAcLac}, a lactonised sialic acid, is refused in a composition (#220). The encoder's sentence -
 	 * "A composition cannot be written in ..." - is a checked exception, something meant rather than a
 	 * crash, so it is passed through unwrapped.
 	 */
 	@Test
 	public void aCompositionThatCannotBeWrittenSaysWhy() throws Exception {
 		CompositionOptions counts = new CompositionOptions();
-		counts.DPEN = 1;
+		counts.NEU5ACLAC = 1;
 		Glycan composition = counts.getCompositionAsGlycan(neutral());
 
 		try {
 			new WURCS2Parser().toWURCS(composition);
-			fail("a composition of dPen was written");
+			fail("a composition of NeuAcLac was written");
 		} catch (GlycanToWURCSException refused) {
 			String why = String.valueOf(refused.getMessage());
 			assertTrue("the encoder's own sentence should come through: " + why,

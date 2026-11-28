@@ -81,6 +81,17 @@ public class SnfgAbsentResiduesTest {
 	 * <p>The guard on the change: it altered the fallback for residues with no row of their own, and
 	 * these have one each.
 	 */
+	/**
+	 * The Unknown monosaccharide itself is SNFG's white flat hexagon. #280 had made it the pentagon, so
+	 * that what is filed under Unknown would fall back to one; that falls back to the Assigned row now
+	 * (#288), and the residues above are still pentagons.
+	 */
+	@Test
+	public void unknownItselfIsTheWhiteFlatHexagon() throws Exception {
+		assertEquals("flathexagon", snfgShapeOf("Unknown"));
+		assertEquals("pentagon", snfgShapeOf("D-gro-D-galHep"));
+	}
+
 	@Test
 	public void theNamedFlatHexagonsAreUnchanged() throws Exception {
 		for (String named : new String[] { "Bac", "L-gro-D-manHep", "Kdo", "Dha", "D-gro-D-manHep",

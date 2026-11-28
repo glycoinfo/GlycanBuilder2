@@ -294,19 +294,40 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 
 	abstract protected void assignID (Glycan structure);
 
+	/** What is written beneath a structure for its m/z. */
+	public static final String UNWEIGHED = "\u2014 (contains an unassigned residue)";
+
+	/** What is written for the m/z of a structure whose aglycon has no mass given, as Ser/Thr (#305). */
+	public static final String AGLYCON_UNWEIGHED = "\u2014 (the aglycon's mass is not known)";
+
 	protected String getMassText(Glycan structure) {
 		StringBuilder sb = new StringBuilder();
 		DecimalFormat df = new DecimalFormat("0.0000");
-		double mz = structure.computeMZ();
 
 		sb.append("m/z: ");
-		if (mz < 0.) sb.append("???");
-		else sb.append(df.format(mz));
+		// An Assigned placeholder says only that some monosaccharide is there, not which, so the
+		// structure has no mass to give. Its row weighs it as one hydrogen, and the figure that came of
+		// that looked like a measurement (#285).
+		if (hasPlaceholder(structure)) sb.append(UNWEIGHED);
+		// An aglycon of no mass, Ser/Thr, weighs as nothing; the figure would be the glycan's alone,
+		// read as the glycoconjugate's.
+		else if (structure.hasAglyconOfUnknownMass()) sb.append(AGLYCON_UNWEIGHED);
+		else {
+			double mz = structure.computeMZ();
+			if (mz < 0.) sb.append("???");
+			else sb.append(df.format(mz));
+		}
 		sb.append(" [");
 		sb.append(structure.getMassOptions().toString());
 		sb.append("]");
 
 		return sb.toString();
+	}
+
+	private static boolean hasPlaceholder(Glycan structure) {
+		for (Residue r : structure.getAllResidues())
+			if (org.eurocarbdb.application.glycanbuilder.GlycanDocument.isPlaceholder(r)) return true;
+		return false;
 	}
 
 	abstract protected void paintQuantity(Paintable paintable, Residue antennae, int quantity,BBoxManager bboxManager);
@@ -1282,6 +1303,21 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 	// ----------------
 	// Bounding boxes bracket
 
+	/**
+	 * The residues on a bracket, in the order they are laid out: as attached, or for a composition in
+	 * the composition dialog's order, so it is drawn the same way however it was made (#235). A copy,
+	 * since laying them out inserts attachment points among the bracket's children.
+	 */
+	private static java.util.List<Residue> membersInDrawingOrder(Residue bracket, boolean _isComposition) {
+		java.util.List<Residue> members = new java.util.ArrayList<Residue>();
+		for (int i = 0; i < bracket.getNoChildren(); i++)
+			members.add(bracket.getChildAt(i));
+		if (_isComposition)
+			java.util.Collections.sort(members,
+					org.eurocarbdb.application.glycanbuilder.massutil.CompositionOptions.DRAWING_ORDER);
+		return members;
+	}
+
 	private void computeBoundingBoxesBracket(Residue bracket, Residue root,
 											 boolean COLLAPSE_MULTIPLE_ANTENNAE, PositionManager posManager,
 											 BBoxManager bboxManager, boolean _isComposition) throws Exception {
@@ -1316,8 +1352,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		int max_quantity = 1;
 		LinkedList<Residue> antennaee = new LinkedList<Residue>();
 		TreeMap<String, Pair<Residue, Integer>> unique_antennae = new TreeMap<String, Pair<Residue, Integer>>();
-		for (int i = 0; i < bracket.getNoChildren(); i++) {
-			Residue child = bracket.getChildAt(i); // avoid concurrent
+		for (Residue child : membersInDrawingOrder(bracket, _isComposition)) { // avoid concurrent
 			if (child.isCompositionMarker()) continue;
 			// modification of
 			// iterator!!
@@ -1406,8 +1441,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		boolean isNoGlycosidicLinkages = false;
 		LinkedList<Residue> fragments = new LinkedList<>();
 		TreeMap<String, Pair<Residue, Integer>> unique_antennae = new TreeMap<>();
-		for (int i = 0; i < bracket.getNoChildren(); i++) {
-			Residue child = bracket.getChildAt(i); // avoid concurrent
+		for (Residue child : membersInDrawingOrder(bracket, _isComposition)) { // avoid concurrent
 			if (child.isCompositionMarker()) {
 				isNoGlycosidicLinkages = true;
 				continue;
@@ -1500,8 +1534,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		int max_quantity = 1;
 		LinkedList<Residue> antennaee = new LinkedList<Residue>();
 		TreeMap<String, Pair<Residue, Integer>> unique_antennae = new TreeMap<String, Pair<Residue, Integer>>();
-		for (int i = 0; i < bracket.getNoChildren(); i++) {
-			Residue child = bracket.getChildAt(i); // avoid concurrent
+		for (Residue child : membersInDrawingOrder(bracket, _isComposition)) { // avoid concurrent
 			if (child.isCompositionMarker()) continue;
 			// modification of
 			// iterator!!
@@ -1591,8 +1624,7 @@ public abstract class AbstractGlycanRenderer implements GlycanRenderer{
 		int max_quantity = 1;
 		LinkedList<Residue> antennaee = new LinkedList<Residue>();
 		TreeMap<String, Pair<Residue, Integer>> unique_antennae = new TreeMap<String, Pair<Residue, Integer>>();
-		for (int i = 0; i < bracket.getNoChildren(); i++) {
-			Residue child = bracket.getChildAt(i); // avoid concurrent
+		for (Residue child : membersInDrawingOrder(bracket, _isComposition)) { // avoid concurrent
 			if (child.isCompositionMarker()) continue;
 			// modification of
 			// iterator!!

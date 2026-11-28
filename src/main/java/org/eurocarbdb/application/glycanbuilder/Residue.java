@@ -72,6 +72,13 @@ public class Residue {
 	//annotation
 	private final ArrayList<String> modifications = new ArrayList<>();
 	private final ArrayList<String> deoxies = new ArrayList<>();
+	/** The carbons of a double bond in the skeleton, "4*e" and "5*E" (#292). */
+	private final ArrayList<String> doubleBonds = new ArrayList<>();
+	/** The carbons of an alditol's open chain that are oxidised, "1*A" and "2*O" (#341). */
+	private final ArrayList<String> oxidations = new ArrayList<>();
+
+	/** The skeleton read from WURCS when the type cannot say it alone; see {@link #getReadSkeleton}. */
+	private String readSkeleton = null;
 	
 	// cleavage
 	private String legend = null;
@@ -227,6 +234,97 @@ public class Residue {
 	/** Whether this residue carries a deoxy its type's name does not imply. */
 	public boolean hasDeoxies() {
 		return !this.deoxies.isEmpty();
+	}
+
+	/**
+	 * Record a carbon of a double bond in this residue's skeleton: "4*e", "5*E", as WURCS writes the
+	 * carbon - e or z a CH, E or Z a C carrying its oxygen, e and E one geometry and z and Z the other
+	 * (#292). A 4,5-unsaturated uronic acid read from WURCS lost its double bond: read as the
+	 * saturated acid, two hydrogens heavy, with nothing but the footnote's text to say otherwise.
+	 *
+	 * <p>Kept on the residue, as a deoxy is: it changes the composition by what WURCSFramework says it
+	 * changes, takes away a derivatization site where it takes away a hydroxyl (e and z), takes the
+	 * residue's own symbol away, and is written back by the WURCS writer as part of the skeleton.
+	 * Also added to {@link #getModifications()}, which is what that writer reads.
+	 */
+	public void addDoubleBond(String a_sCarbon) {
+		if (!this.doubleBonds.contains(a_sCarbon)) this.doubleBonds.add(a_sCarbon);
+		if (!this.modifications.contains(a_sCarbon)) this.modifications.add(a_sCarbon);
+	}
+
+	/** The carbons recorded by {@link #addDoubleBond}, in the order they were added. */
+	public java.util.List<String> getDoubleBonds() {
+		return java.util.Collections.unmodifiableList(this.doubleBonds);
+	}
+
+	/** Whether this residue's skeleton has a double bond its type's name does not imply. */
+	public boolean hasDoubleBonds() {
+		return !this.doubleBonds.isEmpty();
+	}
+
+	/**
+	 * Record a carbon oxidised beyond what this residue's name says, as WURCS writes the carbon: a
+	 * terminal CH2OH of an alditol that is a carboxyl, "1*A" (#341); an inner CHOH that is a ketone,
+	 * "2*O"; or a terminal CH2OH that is an aldehyde, "6*o" (#342).
+	 *
+	 * <p>An aldonic acid - gluconic acid, A2122h - is an alditol with one end a carboxyl, an aldaric
+	 * acid one with both, and a 2-keto acid one with a ketone as well. Read from WURCS, the carboxyl
+	 * was built as a child named "A" that weighed nothing, or was left out, and the acid came back
+	 * 16 to 64 Da light. Kept on the residue, as a deoxy is: it changes the composition by what
+	 * WURCSFramework says it changes, takes the residue's own symbol away, and is written back by the
+	 * WURCS writer as part of the skeleton. Also added to {@link #getModifications()}, which is what
+	 * that writer reads. A hexos-2-ulose's ketone and a dialdose's second aldehyde were built as
+	 * children named "O" and "o" the same way, 16 to 46 Da light.
+	 */
+	public void addOxidation(String a_sCarbon) {
+		if (!this.oxidations.contains(a_sCarbon)) this.oxidations.add(a_sCarbon);
+		if (!this.modifications.contains(a_sCarbon)) this.modifications.add(a_sCarbon);
+	}
+
+	/** The carbons recorded by {@link #addOxidation}, in the order they were added. */
+	public java.util.List<String> getOxidations() {
+		return java.util.Collections.unmodifiableList(this.oxidations);
+	}
+
+	/** Whether this residue has a carbon oxidised that its type's name does not imply. */
+	public boolean hasOxidations() {
+		return !this.oxidations.isEmpty();
+	}
+
+	/**
+	 * Whether this residue's skeleton differs from its type's: a deoxy, a double bond or an oxidised
+	 * carbon it does not imply.
+	 */
+	public boolean hasSkeletonModifications() {
+		return hasDeoxies() || hasDoubleBonds() || hasOxidations();
+	}
+
+	/**
+	 * The skeleton code this residue was read from, when its type and configuration cannot say it
+	 * alone, or null. Two cases:
+	 *
+	 * <ul>
+	 * <li><b>Relative stereo only</b>, 3 and 4 and no 1 or 2 (#286). It can be written either way
+	 * round, {@code ad3dh} or {@code ad4dh}, and WURCSFramework keeps each as a normal form of its own;
+	 * the residue has D, L and unknown, and nothing to say which of the two it was given.
+	 * <li><b>Some stereocentres unknown</b>, {@code x}, where no name says which (#265): a
+	 * {@code a1x22h} is read as a hexose of unknown stereo, and the three centres it does give are kept
+	 * here.
+	 * </ul>
+	 *
+	 * <p>The writer writes this back instead of what it builds, while what it builds still agrees with
+	 * it - the same skeleton turned over, or the same with {@code x} where this has a digit - that is,
+	 * while the residue is still what was read.
+	 *
+	 * <p>GWS has no place for it. A residue saved and reopened has lost it, and is written as the
+	 * writer builds it; the save says so.
+	 */
+	public String getReadSkeleton() {
+		return this.readSkeleton;
+	}
+
+	public void setReadSkeleton(String _skeletonCode) {
+		this.readSkeleton = _skeletonCode;
 	}
 	
 	public void isComposition(boolean _isComposition) {
@@ -1391,6 +1489,53 @@ public class Residue {
 	}
 
 	/**
+	 * Attach a group - a substituent, not a monosaccharide - at this residue's anomeric carbon (#238).
+	 *
+	 * <p>{@link #addChild}'s positions leave the anomeric carbon out, as the carbon a residue is bonded
+	 * to its parent by. A residue at a reducing end is bonded by it to nothing, and a group can take its
+	 * place: G00012JB's GlcNAc, a2122h-1a_1-5_1*N_2*NCC/3=O, a glycosylamine with an amine at C1. Since
+	 * the rule that a group goes only where the residue takes one, its amine had nowhere to go: the
+	 * residue came in as a Glc with an NAc, then was refused. Used by the readers, for a structure that
+	 * already exists.
+	 *
+	 * @return whether it was attached: this residue a monosaccharide, the group not one, the bond a single
+	 *         one at this residue's anomeric carbon, and no other group there
+	 */
+	public boolean attachAtAnomericCarbon(Residue group, Collection<Bond> bonds) {
+		if( group==null || bonds==null || group.isSaccharide() || !this.isSaccharide() || bonds.size()!=1 )
+			return false;
+		char position = getAnomericCarbon();
+		char[] at = bonds.iterator().next().getParentPositions();
+		if( !Character.isDigit(position) || at==null || at.length!=1 || at[0]!=position )
+			return false;
+		if( positionHeldByAChild(position,group) )
+			return false;
+		return attachChild(group,bonds,false);
+	}
+
+	/**
+	 * Join a monosaccharide by its anomeric carbon to this one's: the bond of a non-reducing sugar,
+	 * sucrose's Glc α1-β2 Fru, a trehalose's α1-α1 (#357). This residue is the one drawn at the
+	 * reducing-end position, and the other hangs on its anomeric carbon - the form GWS has always
+	 * saved, and the WURCS writer writes, for such a sugar.
+	 *
+	 * <p>Apart from {@link #addChild}, whose positions leave the anomeric carbon out as the residue's
+	 * own bond: for the residue at the reducing end of a non-reducing sugar that carbon is free, and is
+	 * where the other one goes. Used by the readers, for a structure that already exists.
+	 *
+	 * @return whether it was joined: both are monosaccharides, this one's anomeric carbon is known
+	 *         and holds no child yet
+	 */
+	public boolean joinAtAnomericCarbons(Residue child) {
+		if( child==null || !this.isSaccharide() || !child.isSaccharide() )
+			return false;
+		char position = getAnomericCarbon();
+		if( !Character.isDigit(position) || positionHeldByAChild(position,child) )
+			return false;
+		return attachChild(child,Bond.single(position),false);
+	}
+
+	/**
 	 * @param checkPosition
 	 *            whether the position rules apply. False when copying, where the structure already
 	 *            exists and nothing is being claimed.
@@ -1573,7 +1718,9 @@ public class Residue {
 			if( at>=0 ) available.deleteCharAt(at);
 		}
 
-		for( Linkage taken : children_linkages ) {
+		// A bracket's children do not share a parent: each sits on one of the antennae, not known which,
+		// so a position one of them names is not taken from the others (#230).
+		for( Linkage taken : isBracket() ? new ArrayList<Linkage>() : children_linkages ) {
 			for( Bond bond : taken.getBonds() ) {
 				char[] positions = bond.getParentPositions();
 				if( positions==null || positions.length!=1 || positions[0]=='?' )
@@ -1642,12 +1789,42 @@ public class Residue {
 		// position names the site, and what sits there is the group being modified - which is how the
 		// exporter has always read it, writing exactly GlcNAc's WURCS for a GlcN with an Ac at 2, up
 		// until 1.37.0 refused the attachment (#211).
+		if( amineRefuses(position,child) )
+			return false;
 		if( substitutesOwnNitrogen(position,child) )
 			return !positionHeldByAChild(position,child);
 
 		for( char available : availableLinkagePositions() )
 			if( available==position ) return true;
 
+		return false;
+	}
+
+	/**
+	 * Whether this residue can hold this child at this position at all: its type offers the position,
+	 * or the child substitutes the residue's own nitrogen there. Unlike {@link #acceptsPosition}, what
+	 * else is attached is not asked - this is a question about the carbon, for a structure that already
+	 * has the child (#320, #321).
+	 */
+	public boolean canHoldAt(char position, Residue child) {
+		if( position=='?' || type==null )
+			return true;
+		if( child!=null && child.getType()!=null && child.getType().isBridge() )
+			return true;
+		// The anomeric carbon is in no type's list - it is the residue's own bond - but one that is not
+		// bonded holds a group well enough: Man-1-P, Gal-1-Br, a glycosylamine. The corpus has them.
+		if( position==getAnomericCarbon() )
+			return true;
+		// an alditol has no anomeric centre, and its C1 is an ordinary hydroxyl: mannitol-1-P, a
+		// ribitol phosphate - as availableLinkagePositions has it
+		if( position=='1' && isAlditol() )
+			return true;
+		if( amineRefuses(position,child) )
+			return false;
+		if( substitutesOwnNitrogen(position,child) )
+			return true;
+		for( char offered : type.getLinkagePositions() )
+			if( offered==position ) return true;
 		return false;
 	}
 
@@ -1674,13 +1851,42 @@ public class Residue {
 	private boolean substitutesOwnNitrogen(char position, Residue child) {
 		if( child==null || !child.isSubstituent() || type==null )
 			return false;
-		if( position!=nitrogenPosition() )
+		if( !isAmine(position) )
 			return false;
 
 		for( char offered : type.getLinkagePositions() )
 			if( offered=='N' ) return true;
 
 		return false;
+	}
+
+	/**
+	 * Whether this position is one of this residue's own amines: the one its IUPAC name declares, as
+	 * {@code Glc$2N}, or one its configuration's entry records as a bare amine - Bac's 2 and 4,
+	 * Leg's, Pse's and Aci's 5 and 7, which declare no group in their IUPAC name (#323).
+	 */
+	private boolean isAmine(char position) {
+		if( position!='\0' && position==nitrogenPosition() )
+			return true;
+		org.glycoinfo.application.glycanbuilder.dataset.NativeMonosaccharideDictionary.Entry entry =
+				org.glycoinfo.application.glycanbuilder.dataset.NativeMonosaccharideDictionary.forResidueName(getTypeName());
+		if( entry==null )
+			return false;
+		for( String unit : entry.getSubstituents().split("_") )
+			if( unit.equals(position + "*N") ) return true;
+		return false;
+	}
+
+	/**
+	 * Whether a substituent is refused at an amine: one that brings a nitrogen of its own - N, NAc,
+	 * NS and the rest - which would be a second nitrogen on the carbon, and a phosphate, which WURCS
+	 * has no N-linked form of. Writing either failed with only "Invalide residue." (#321).
+	 */
+	private boolean amineRefuses(char position, Residue child) {
+		if( child==null || !child.isSubstituent() || child.getType()==null || !isAmine(position) )
+			return false;
+		String name = child.getTypeName();
+		return name.startsWith("N") || name.equals("P");
 	}
 
 	/**
@@ -1713,6 +1919,9 @@ public class Residue {
 	 * @return Returns whether some other child already holds it.
 	 */
 	private boolean positionHeldByAChild(char position, Residue except) {
+		// on a bracket, each child's position is on a parent of its own (#230)
+		if( isBracket() )
+			return false;
 		for( Linkage taken : children_linkages ) {
 			if( taken.getChildResidue()==except )
 				continue;
@@ -1992,7 +2201,18 @@ public class Residue {
 	 * the type instead, which every residue of that name shares, made the second overwrite the first
 	 * and destroyed the type's own description along the way.
 	 */
+	/** What glycerol is called in the footnote under an SNFG drawing. */
+	public static final String GLYCEROL = "Glycerol";
+
+	/** Whether this residue is glycerol: Gro, glyceraldehyde, as its alditol. */
+	public boolean isGlycerol() {
+		return this.type != null && "Gro".equals(this.type.getName()) && isAlditol();
+	}
+
 	public String getLegend() {
+		// Glycerol is Gro as its alditol, and is named as the molecule it is rather than as
+		// glyceraldehyde, whichever way it was read or drawn (#282)
+		if (isGlycerol()) return GLYCEROL;
 		if (this.legend != null) return this.legend;
 		if (!this.deoxies.isEmpty()) return deoxyPrefix() + this.type.getDescription();
 		return this.type.getDescription();
@@ -2030,11 +2250,18 @@ public class Residue {
 		ret.anomeric_carbon = this.anomeric_carbon;
 		ret.chirality = this.chirality;
 		ret.ring_size = this.ring_size;
+		// the open forms, which change what the residue weighs and writes: a copy of an alditol inside
+		// a chain was an aldose, two hydrogens light (#281)
+		ret.alditol = this.alditol;
+		ret.a_bIsAldehyde = this.a_bIsAldehyde;
 		ret.legend = this.legend;
 		// what the WURCS reader recorded about the skeleton. Not copied, a copy of a 6-deoxy allose was
 		// an allose, and the export of the copy wrote a different residue from the one copied.
 		ret.modifications.addAll(this.modifications);
 		ret.deoxies.addAll(this.deoxies);
+		ret.doubleBonds.addAll(this.doubleBonds);
+		ret.oxidations.addAll(this.oxidations);
+		ret.readSkeleton = this.readSkeleton;
 
 		ret.cleaved_residue = (this.cleaved_residue!=null) ?this.cleaved_residue.cloneResidue() :null;
 
@@ -2062,6 +2289,11 @@ public class Residue {
 		this.modifications.addAll(other.modifications);
 		this.deoxies.clear();
 		this.deoxies.addAll(other.deoxies);
+		this.doubleBonds.clear();
+		this.doubleBonds.addAll(other.doubleBonds);
+		this.oxidations.clear();
+		this.oxidations.addAll(other.oxidations);
+		this.readSkeleton = other.readSkeleton;
 
 		this.cleaved_residue = (other.cleaved_residue!=null) ?other.cleaved_residue.cloneResidue() :null;
 
@@ -2075,6 +2307,63 @@ public class Residue {
 	 */
 	public Residue cloneSubtree() {
 		return cloneSubtree(null, null,new ResidueHolder());
+	}
+
+	/**
+	 * Create a copy of the subtree rooted at this residue, recording each residue copied and its copy,
+	 * so that the references a copy does not carry by itself can be made afterwards with {@link #relink}.
+	 *
+	 * @param _copies Where each residue copied is put, with its copy: an identity map.
+	 */
+	public Residue cloneSubtree(java.util.Map<Residue, Residue> _copies) {
+		ResidueHolder holder = new ResidueHolder();
+		holder.copies = _copies;
+		return cloneSubtree(null, null, holder);
+	}
+
+	/**
+	 * Point each copy's references to other residues at their copies (#340).
+	 *
+	 * <p>A copy is made residue by residue and bond by bond, and that is all it took. What joins two
+	 * residues other than through the tree was left behind: the ends of a repeat and of a cycle, and an
+	 * antenna's candidate parents. A copy of a repeat or a cycle - and a structure whose two residues
+	 * are joined by two bonds is read as a cycle - could not be written; a copy of an N-glycan with an
+	 * antenna of uncertain parent was written with every residue as a candidate parent, another
+	 * structure, without a word. Copying is what Glycan.clone and the canvas's copy and paste do.
+	 *
+	 * <p>A reference to a residue that was not copied, outside the selection a copy was made of, is
+	 * not carried over: a copy never points into what it was copied from.
+	 *
+	 * @param _copies Each residue copied, and its copy.
+	 */
+	public static void relink(java.util.Map<Residue, Residue> _copies) {
+		for (java.util.Map.Entry<Residue, Residue> copied : _copies.entrySet()) {
+			Residue from = copied.getKey(), to = copied.getValue();
+			to.endRepetitionResidue = copyOf(_copies, from.endRepetitionResidue, to.endRepetitionResidue);
+			to.startRepititionResidue = copyOf(_copies, from.startRepititionResidue, to.startRepititionResidue);
+			to.startCyclic = copyOf(_copies, from.startCyclic, to.startCyclic);
+			to.endCyclic = copyOf(_copies, from.endCyclic, to.endCyclic);
+			to.startRES = copyOf(_copies, from.startRES, to.startRES);
+			to.altStart = copyOf(_copies, from.altStart, to.altStart);
+			to.altEnd = copyOf(_copies, from.altEnd, to.altEnd);
+
+			LinkedList<Residue> parents = new LinkedList<Residue>();
+			for (Residue parent : from.a_aParentsInFragment) {
+				Residue copy = _copies.get(parent);
+				if (copy != null && !parents.contains(copy)) parents.add(copy);
+			}
+			to.a_aParentsInFragment = parents;
+		}
+	}
+
+	/**
+	 * The copy of what a residue referred to, or what the copy already refers to when that was not
+	 * copied - never the original.
+	 */
+	private static Residue copyOf(java.util.Map<Residue, Residue> _copies, Residue _referred, Residue _current) {
+		if (_referred == null) return (_current != null && !_copies.containsKey(_current)) ? _current : null;
+		Residue copy = _copies.get(_referred);
+		return (copy != null) ? copy : ((_current != null && !_copies.containsKey(_current)) ? _current : null);
 	}
 
 	protected Residue cloneSubtree(Residue stop_el, ResidueType stop_type) {
@@ -2094,21 +2383,50 @@ public class Residue {
 
 		// clone this
 		Residue clone = this.cloneResidue();
+		if(startRep.copies != null) startRep.copies.put(this, clone);
 		if(clone.isStartRepetition()){
 			startRep.res=clone;
 		}else if(clone.isEndRepetition()){
-			startRep.res.setEndRepitionResidue(clone);
+			// The repeats of one structure need not open and close in the order this walk meets them:
+			// with several on branches, a repeat's end can come when no start is pending, and the copy
+			// threw (#269). Glycan.clone relinks the pair from what was copied.
+			if(startRep.res!=null) startRep.res.setEndRepitionResidue(clone);
 			startRep.res=null;
 		}
 
 		// clone children
 		for( Linkage l : children_linkages ){
+			int before = clone.children_linkages.size();
 			clone.copyChild(l.getChildResidue().cloneSubtree(stop_el,stop,startRep),l.getBonds());
-
+			clone.keepLinkageTypes(l, before);
 		}
 
 		return clone;    
 	}  
+
+	/**
+	 * Gives the linkage a copy has just attached the types of the one it copies (#281).
+	 *
+	 * <p>{@link #attachChild} takes them from the child's own parent linkage, and a child cloned a
+	 * moment ago has none, so every linkage of a copy was {@code UNVALIDATED}. The mass reads those
+	 * types: an O-methyl whose linkage does not say it takes the hydroxyl's hydrogen weighs as if its
+	 * oxygen were not there, so a copy of 3-O-methyl glucose weighed 178.0841 against 194.0790, and
+	 * copy and paste changed the mass (#242).
+	 *
+	 * @param _copied the linkage being copied
+	 * @param _before how many child linkages this copy had before the child was attached; when none
+	 *        was added (a labile residue folded back into its cleavage), there is nothing to give
+	 */
+	void keepLinkageTypes(Linkage _copied, int _before) {
+		if (children_linkages.size() <= _before) return;
+		Linkage made = children_linkages.get(children_linkages.size() - 1);
+		try {
+			made.setParentLinkageType(_copied.getParentLinkageType());
+			made.setChildLinkageType(_copied.getChildLinkageType());
+		} catch (Exception neverNull) {
+			// the copied linkage's types are never null: they start UNVALIDATED
+		}
+	}
 
 	protected Residue cloneSubtreeAdd(Residue add_el, Residue toadd, char toadd_link,ResidueHolder startRep) {
 		return cloneSubtreeAdd(add_el,toadd,Bond.single(toadd_link),startRep);
@@ -2121,13 +2439,19 @@ public class Residue {
 		if(clone.isStartRepetition()){
 			startRep.res=clone;
 		}else if(clone.isEndRepetition()){
-			startRep.res.setEndRepitionResidue(clone);
+			// The repeats of one structure need not open and close in the order this walk meets them:
+			// with several on branches, a repeat's end can come when no start is pending, and the copy
+			// threw (#269). Glycan.clone relinks the pair from what was copied.
+			if(startRep.res!=null) startRep.res.setEndRepitionResidue(clone);
 			startRep.res=null;
 		}
 
 		// clone children
-		for( Linkage l : children_linkages )
+		for( Linkage l : children_linkages ) {
+			int before = clone.children_linkages.size();
 			clone.copyChild(l.getChildResidue().cloneSubtreeAdd(add_el,toadd,toadd_bonds,startRep),l.getBonds());  
+			clone.keepLinkageTypes(l, before);
+		}
 
 				// add child where necessary
 				if( this==add_el && toadd!=null ) {

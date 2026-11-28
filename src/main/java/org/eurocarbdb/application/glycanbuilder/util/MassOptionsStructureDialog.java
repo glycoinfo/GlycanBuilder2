@@ -164,10 +164,12 @@ public class MassOptionsStructureDialog extends EscapeDialog implements java.awt
 			field_other_name.setText("");
 			field_other_mass.setText("0");
 		}
-		else if( common_options.REDUCING_END_TYPE.isCustomType() ) {
+		else if( common_options.REDUCING_END_TYPE.isCustomType() || common_options.REDUCING_END_TYPE.isAglycon() ) {
 			field_reducingend.setSelectedItem("Other...");
 			field_other_name.setText(common_options.REDUCING_END_TYPE.getResidueName());
-			field_other_mass.setText("" + (common_options.REDUCING_END_TYPE.getResidueMassMain()-MassUtils.water.getMainMass()));
+			// "?" for a mass not known, as for Ser/Thr (#305)
+			field_other_mass.setText(common_options.REDUCING_END_TYPE.hasUnknownMass() ? "?"
+					: "" + (common_options.REDUCING_END_TYPE.getResidueMassMain()-MassUtils.water.getMainMass()));
 		}
 		else {
 			field_reducingend.setSelectedItem(common_options.REDUCING_END_TYPE.getName());
@@ -231,11 +233,32 @@ public class MassOptionsStructureDialog extends EscapeDialog implements java.awt
 		field_other_mass.setEnabled(field_reducingend.getSelectedItem().equals("Other..."));
 	}
 
+	/**
+	 * The mass typed for an aglycon: a number, or NaN for one that is not known - left empty or typed
+	 * "?", as for Ser/Thr, which is one of two masses (#305). Null for anything else.
+	 */
+	static Double aglyconMass(String _text) {
+		String text = (_text==null) ? "" : _text.trim();
+		if( text.isEmpty() || text.equals("?") )
+			return Double.NaN;
+		try {
+			double mass = Double.parseDouble(text);
+			return Double.isNaN(mass) || Double.isInfinite(mass) ? null : mass;
+		} catch( NumberFormatException notANumber ) {
+			return null;
+		}
+	}
+
 	private boolean retrieveData() {
 
 		// retrieve common options
 		if( field_reducingend.getSelectedItem().equals("Other...") ) {
-			ResidueType red_end_type = ResidueType.createOtherReducingEnd(field_other_name.getText(),Double.valueOf(field_other_mass.getText()));
+			Double mass = aglyconMass(field_other_mass.getText());
+			if( mass==null ) {
+				javax.swing.JOptionPane.showMessageDialog(this,"The mass of the reducing end should be a number, or \"?\" if it is not known.", "Invalid mass", javax.swing.JOptionPane.ERROR_MESSAGE);
+				return false;
+			}
+			ResidueType red_end_type = ResidueType.createOtherReducingEnd(field_other_name.getText(),mass);
 			if( ResidueDictionary.hasResidueType(red_end_type.getResidueName()) ) {
 				javax.swing.JOptionPane.showMessageDialog(this,"The name specified for the reducing end is already existing.", "Duplicate name", javax.swing.JOptionPane.ERROR_MESSAGE);
 				return false;

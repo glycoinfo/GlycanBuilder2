@@ -227,6 +227,44 @@ public class CompositionOptions {
     UNKNOWN = config.get("CompositionOptions", "Unknown",UNKNOWN);
     }
 
+    /**
+     * The order the members of a composition are drawn in: the order this dialog adds them, by the
+     * names of the residue types it adds (#235).
+     *
+     * <p>A composition was drawn in the order its members happened to be attached, so Hex3HexNAc2 made
+     * here and the same composition read back from WURCS - which lists HexNAc before Hex - were drawn
+     * upside down from one another. Kept in step with {@link #getCompositionAsGlycan} by a test.
+     */
+    public static final java.util.List<String> MEMBER_ORDER = java.util.Collections.unmodifiableList(java.util.Arrays.asList(
+            "Pen", "Hex", "Hep", "HexN", "HexNAc", "4dPen", "dHex", "ddHex", "MeH",
+            "HexA", "dHexA", "NeuGc", "NeuAc", "NeuGcLac", "NeuAcLac", "Kdo", "Kdn", "Mur",
+            "S", "P", "Ac", "Pyr", "PC", "Ketose", "Unknown"));
+
+    /**
+     * Orders the members of a composition for drawing: those this dialog adds in its order, and any
+     * other - a GlcNAc or a Man read from WURCS, a residue of one's own - after them, by superclass and
+     * then name, so a composition is drawn the same way whatever order it was built or read in.
+     */
+    public static final java.util.Comparator<Residue> DRAWING_ORDER = new java.util.Comparator<Residue>() {
+        @Override
+        public int compare(Residue _a, Residue _b) {
+            int rank = Integer.compare(rank(_a), rank(_b));
+            if (rank != 0) return rank;
+            int superclass = String.valueOf(superclass(_a)).compareTo(String.valueOf(superclass(_b)));
+            if (superclass != 0) return superclass;
+            return String.valueOf(_a.getTypeName()).compareTo(String.valueOf(_b.getTypeName()));
+        }
+
+        private int rank(Residue _r) {
+            int at = MEMBER_ORDER.indexOf(_r.getTypeName());
+            return at < 0 ? MEMBER_ORDER.size() : at;
+        }
+
+        private String superclass(Residue _r) {
+            return _r.getType() == null ? null : _r.getType().getSuperclass();
+        }
+    };
+
     public Glycan getCompositionAsGlycan(MassOptions mopt) throws Exception {
     
     Glycan ret = Glycan.createComposition(mopt);

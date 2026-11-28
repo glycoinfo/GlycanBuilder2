@@ -1,5 +1,7 @@
 package org.glycoinfo.application.glycanbuilder.util.exchange.exporter;
 
+import org.glycoinfo.application.glycanbuilder.util.SkeletonModificationComposition;
+
 import org.eurocarbdb.MolecularFramework.sugar.BaseType;
 import org.eurocarbdb.MolecularFramework.sugar.GlycoconjugateException;
 import org.eurocarbdb.MolecularFramework.sugar.ModificationType;
@@ -22,6 +24,10 @@ public class ResidueAnalyzer {
 	private char anomState = 'x';
 	private int backbone = 0;
 	private char isomer = '?';
+	/** Whether the residue being written is an alditol, whose ketones are oxidised carbons (#341). */
+	private boolean alditol = false;
+	/** The carbons the residue has oxidised beyond its name, none of them its carbonyl (#342). */
+	private java.util.List<String> oxidised = new ArrayList<String>();
 
 	private LinkedList<Integer> anomList = new LinkedList();
 	private TreeMap<Integer, Character> pos2char = new TreeMap();
@@ -61,6 +67,8 @@ public class ResidueAnalyzer {
 		this.anomPos = _residue.isAldehyde() ? checkAnomerPosition('?') : checkAnomerPosition(_residue.getAnomericCarbon());
 		this.anomState = _residue.isAldehyde() ? checkAnomerSymbol('?') : checkAnomerSymbol(_residue.getAnomericState());
 		this.isomer = _residue.getChirality();
+		this.alditol = _residue.isAlditol();
+		this.oxidised = _residue.getOxidations();
 
 		Superclass superclass = Superclass.forName(_residue.getType().getCompositionClass().toLowerCase());
 
@@ -100,17 +108,83 @@ public class ResidueAnalyzer {
 		int j = 0;
 		for(int i = 2; i < this.backbone; i++) {
 			if(this.pos2char.containsKey(i)) continue;
-			char cd = (stereo.length() == 0) ? 'x' : stereo.charAt(j);
+			// A configurational-prefix name covers the centres nearest C1 and says nothing of the rest:
+			// manHep gives C2 to C5, and C6 is unknown (#265).
+			char cd = (stereo.length() == 0) ? 'x'
+					: (j >= stereo.length() && NativeMonosaccharideDictionary.isPrefixName(_residue.getTypeName())) ? 'x'
+					: stereo.charAt(j);
 			this.pos2char.put(i, cd);
 			j++;
+		}
+
+		// A residue of unknown stereo drawn as D or L - D-Hex, L-dHex - says one centre: the
+		// highest-numbered, whose configuration D and L are. It was written as x with the rest, and the
+		// D or L was lost (#314). WURCS writes it as that centre's digit, 2 for D and 1 for L: axxx2h.
+		if (stereo.length() == 0) {
+			char drawn = _residue.getChirality();
+			int configurational = this.highestStereocentre();
+			if ((drawn == 'D' || drawn == 'L') && configurational > 0)
+				this.pos2char.put(configurational, drawn == 'D' ? '2' : '1');
 		}
 
 		for(int i = 0; i < this.backbone; i++) {
 			this.skeletonCode += this.pos2char.get(i + 1);
 		}
 
+		// A residue read from a skeleton its type cannot say alone is written back as read: relative
+		// stereo the way round it was read (#286), and the centres an unknown-stereo type leaves as x
+		// (#265). Only while what was built still agrees with it: a residue changed since it was read
+		// builds something else, and is written as built.
+		String read = _residue.getReadSkeleton();
+		if(read != null && !read.equals(this.skeletonCode)
+				&& (read.equals(turnedOver(this.skeletonCode)) || refines(read, this.skeletonCode)))
+			this.skeletonCode = read;
+
 		if(stereo.length() != 0 && pos2char.size() != backbone)
 			throw new WURCSExchangeException("error");
+	}
+
+	/** The highest-numbered carbon whose configuration is not known, x, or 0 when there is none. */
+	private int highestStereocentre() {
+		for (int i = this.backbone - 1; i >= 2; i--) {
+			Character cd = this.pos2char.get(i);
+			if (cd == null) continue;
+			if (cd == 'x') return i;
+			// a carbon with a known configuration, or none, above the unknown ones: not this case
+			if ("1234".indexOf(cd) >= 0) return 0;
+		}
+		return 0;
+	}
+
+	/** Whether a skeleton says the same as another and more: a digit where the other has x, and the rest alike. */
+	static boolean refines(String _read, String _built) {
+		if (_read.length() != _built.length()) return false;
+		boolean more = false;
+		for (int i = 0; i < _read.length(); i++) {
+			char r = _read.charAt(i), b = _built.charAt(i);
+			if (r == b) continue;
+			if ((b == 'x' || b == 'X') && "1234".indexOf(r) >= 0) { more = true; continue; }
+			return false;
+		}
+		return more;
+	}
+
+	/** A skeleton code with every relative digit the other way round, 3 for 4 and 4 for 3. */
+	static String turnedOver(String _skeletonCode) {
+		StringBuilder turned = new StringBuilder(_skeletonCode.length());
+		for (char carbon : _skeletonCode.toCharArray())
+			turned.append(carbon == '3' ? '4' : carbon == '4' ? '3' : carbon);
+		return turned.toString();
+	}
+
+	/** Whether the residue carries a deoxy on the carbon this unit of its name's describes. */
+	private static boolean deoxyAt(Residue _residue, String _unit) {
+		int star = _unit.indexOf('*');
+		if (star < 1) return false;
+		String carbon = _unit.substring(0, star + 1);
+		for (String deoxy : _residue.getDeoxies())
+			if (deoxy.startsWith(carbon) && !deoxy.equals(_unit)) return true;
+		return false;
 	}
 
 	private ArrayList<String> extractNativeModification(Residue _residue) {
@@ -130,6 +204,9 @@ public class ResidueAnalyzer {
 				NativeMonosaccharideDictionary.forResidueName(_residue.getTypeName());
 		if (entry != null && !entry.getModifications().isEmpty()) {
 			for (String unit : entry.getModifications().split("_")) {
+				// a deoxy the residue carries on a carbon the name describes is the residue's: a
+				// 1-deoxy fructose's C1 is a CH3, not the CH2OH Fru's name gives it (#354)
+				if (deoxyAt(_residue, unit)) continue;
 				modifications.add(unit);
 			}
 		}
@@ -165,14 +242,22 @@ public class ResidueAnalyzer {
 		if(a_sModification.contains(",")) return;
 
 		String[] mod = a_sModification.split("\\*");
-		int pos = Integer.parseInt(mod[0]);
+		// a carbon not known, ?, is -1 here, and goes out as a MAP at ? - a deoxy as "?*"
+		int pos = mod[0].equals("?") ? -1 : Integer.parseInt(mod[0]);
 		boolean isTerminal = (pos == 1 || pos == this.backbone);
+		// a carbon oxidised beyond the name, written as the skeleton had it: no anomeric carbon (#342)
+		if (this.oxidised.contains(a_sModification)) {
+			if (pos == 1) this.isAldose = false;
+			this.pos2char.put(pos, mod[1].charAt(0));
+			return;
+		}
 		char carbonDescriptor = this.convertModificationNameToCarbonDescriptor(mod[1]);
 
 		if(carbonDescriptor == 'd' && isTerminal)
 			carbonDescriptor = 'm';
 
-		if(carbonDescriptor == 'O') {
+		// a ketone of an alditol's chain, a 2-keto aldonic acid's, is no anomeric carbon (#341)
+		if(carbonDescriptor == 'O' && !this.alditol) {
 			if(this.anomPos != 1) this.anomList.add(pos);
 			if(isTerminal) carbonDescriptor = 'o';
 		}
@@ -188,6 +273,8 @@ public class ResidueAnalyzer {
 	}
 
 	private char convertModificationNameToCarbonDescriptor(String _mod) {
+		// a carbon of a double bond is written as the skeleton had it (#292)
+		if (_mod.length() == 1 && SkeletonModificationComposition.isDoubleBond(_mod.charAt(0))) return _mod.charAt(0);
 		try {
 		    ModificationType modType = null;
 		    if (_mod.equals("O")) modType = ModificationType.KETO;
@@ -240,6 +327,11 @@ public class ResidueAnalyzer {
 					+ " has no stereo recorded for it, so it has no skeleton to write.");
 
 		this.isomer = entry.getIsomer();
-		return entry.getStereo(_residue.getChirality());
+		// A glycerol whose C2 is not known is hxh, as it was read and as the registry writes it - 1,365
+		// times in GlyGen's dump, h4h never. The relative form the writer gives any other residue of
+		// unknown configuration says how its centres stand to one another, and glycerol has one (#282).
+		char configuration = _residue.getChirality();
+		if (_residue.isGlycerol() && configuration != 'D' && configuration != 'L') return "x";
+		return entry.getStereo(configuration);
 	}
 }

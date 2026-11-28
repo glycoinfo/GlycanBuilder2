@@ -25,6 +25,19 @@ public class LinkageConnector {
 	 *
 	 * @param _glin2linkage
 	 */
+	/**
+	 * An alditol hangs from its parent by an ordinary carbon, which this builder keeps where it keeps a
+	 * sugar's anomeric carbon: on the residue, from which every linkage to it takes its child position.
+	 * An alditol has no anomeric carbon, so it was left unknown, and the carbon the WURCS gave was lost
+	 * when the residue was attached - a ribitol in a teichoic acid, {@code b6-c1*OPO*}, was written back
+	 * as {@code b6-c?*OPO*}. The carbon is kept now, as the residue's.
+	 */
+	private static void keepLinkingCarbonOfAlditol(Residue _donor) {
+		if(!_donor.isAlditol() || _donor.getAnomericCarbon() != '?' || _donor.getParentLinkage() == null) return;
+		char linking = _donor.getParentLinkage().getAnomericCarbon();
+		if(Character.isDigit(linking)) _donor.setAnomericCarbon(linking);
+	}
+
 	public void start(GLINToLinkage _glin2linkage) {
 		Residue donor = this.donor;
 		Residue substituent = null;
@@ -44,6 +57,7 @@ public class LinkageConnector {
 		}else if(_glin2linkage.getStartSideRepLinkage() != null) {
 			donor.setParentLinkage(_glin2linkage.getStartSideRepLinkage());
 		}
+		keepLinkingCarbonOfAlditol(donor);
 
 		if(_glin2linkage.getDonorGLINs().isEmpty() || this.acceptor == null) {
 			//　start-rep is root node
@@ -189,6 +203,26 @@ public class LinkageConnector {
 		 */
 		a_oEndRep.setAnomericCarbon(a_oG2L.getEndSideRepLinkage().getAnomericCarbon());
 
+		// The residue that continues the chain after an internal repeat is bonded to the repeat's last
+		// residue at the carbon the repeat closes on - G43728TR's a4-b1_b4-c1_b1-b4~n, where c is at
+		// b4 as the next unit's b would be. Read before the repeat's end, it already held that carbon,
+		// so the end marker could not be added there and was dropped without a word: the repeat was
+		// read as one unit, and written back with no repeat at all (#269). It is the chain after the
+		// repeat, and goes after the end marker, as when a repeat is drawn.
+		java.util.List<org.eurocarbdb.application.glycanbuilder.linkage.Linkage> continuing =
+				new java.util.ArrayList<org.eurocarbdb.application.glycanbuilder.linkage.Linkage>();
+		String closesOn = a_oEndRep.getParentLinkage().getParentPositionsString();
+		if(a_oG2L.getEndSideRepLinkage().getChildResidue() == null && !closesOn.contains("?")) {
+			for(java.util.Iterator<org.eurocarbdb.application.glycanbuilder.linkage.Linkage> children =
+					a_oRES.getChildrenLinkages().iterator(); children.hasNext(); ) {
+				org.eurocarbdb.application.glycanbuilder.linkage.Linkage child = children.next();
+				if(child.getChildResidue() == null || child.getChildResidue().isRepetition()) continue;
+				if(!closesOn.equals(child.getParentPositionsString())) continue;
+				continuing.add(child);
+				children.remove();
+			}
+		}
+
 		// sugar->sub->EndRep
 		if(a_oG2L.getEndSideRepLinkage().getChildResidue() != null) {
 			a_oSUB = a_oG2L.getEndSideRepLinkage().getChildResidue();
@@ -202,6 +236,12 @@ public class LinkageConnector {
 		} else {
 			// end repeating to residue : sugar->EndRep
 			a_oRES.addChild(a_oEndRep, a_oEndRep.getParentLinkage().getBonds());
+		}
+
+		// and what continues the chain, after it
+		for(org.eurocarbdb.application.glycanbuilder.linkage.Linkage child : continuing) {
+			child.setParentResidue(a_oEndRep);
+			a_oEndRep.getChildrenLinkages().add(child);
 		}
 	}
 
@@ -253,13 +293,13 @@ public class LinkageConnector {
 		String donorPos = _donor.getParentLinkage().getParentPositionsString();
 		String acceptorPos = _acceptor.getEndRepitionResidue().getParentLinkage().getParentPositionsString();
 
-		if(donorPos.contains("/") && acceptorPos.contains("/")) {
-			if(donorPos.equals(acceptorPos)) return true;
-			donorPos = donorPos.substring(0, 1);
-			acceptorPos = acceptorPos.substring(0, 1);
-		}
-
-		if (donorPos.equals("?") || acceptorPos.equals("?")) return false;
+		// The residue continues the chain after the repeat when it is bonded where the repeat closes,
+		// the same carbon or the same alternatives, 3/6 for a repeat closing on 3|6 (G73472DM). Any
+		// other position, alternatives among them, is a residue of every unit. Alternatives on one side
+		// only - G79171HQ's Ara at d2|d3, the repeat closing on d4 - were read as a number, and the
+		// WURCS could not be read at all: For input string: "2/3" (#270).
+		if (donorPos.equals(acceptorPos)) return !donorPos.contains("?");
+		if (!donorPos.matches("[0-9]+") || !acceptorPos.matches("[0-9]+")) return false;
 		return (Integer.parseInt(donorPos) == Integer.parseInt(acceptorPos));
 	}
 }

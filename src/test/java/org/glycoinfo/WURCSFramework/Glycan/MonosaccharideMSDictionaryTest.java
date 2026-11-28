@@ -60,16 +60,18 @@ public class MonosaccharideMSDictionaryTest {
 	}
 
 	/**
-	 * A name that fixes both of its stereo blocks has nothing left for a configuration to change. The
-	 * nonulosonates are named for two of them - Neu is D-glycero-D-galacto - and so are the heptoses.
+	 * A name that fixes both of its stereo blocks - Neu is D-glycero-D-galacto, and so are the heptoses
+	 * named for two - is written in the configuration it is drawn in, as every other residue is (#313).
+	 * It used to ignore the configuration, so an L-Neu was written as D-Neu, silently the other
+	 * enantiomer. The maintainer's rule (2026-11-10) is to write the configuration drawn.
 	 */
 	@Test
-	public void aNameThatFixesBothBlocksIgnoresTheConfiguration() {
+	public void aNameThatFixesBothBlocksFollowsTheConfigurationDrawn() {
 		NativeMonosaccharideDictionary.Entry neu = NativeMonosaccharideDictionary.forResidueName("Neu");
 
 		assertEquals("21122", neu.getStereo('D'));
-		assertEquals("21122", neu.getStereo('L'));
-		assertEquals("21122", neu.getStereo('?'));
+		assertEquals("12211", neu.getStereo('L'));
+		assertEquals("43344", neu.getStereo('?'));
 	}
 
 	/**

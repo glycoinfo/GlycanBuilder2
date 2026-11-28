@@ -21,9 +21,19 @@ import org.glycoinfo.WURCSFramework.util.property.chemical.WURCSGraphChemicalCom
  * its type and its deoxies but not a skeleton code. A deoxy's effect does not depend on where it is or
  * on the stereo around it, so a stereo-free hexose is enough to measure it on.
  *
- * <p>Only the two deoxies are here. A skeleton modification also changes the hydroxyls a derivatization
- * reaches, and only for these two is that known and checked - against this application's own dictionary,
- * where fucose, the 6-deoxy galactose, has one fewer methylation and acetylation site than galactose.
+ * <p>The two deoxies, and the carbons of a double bond (#292): e and z, a CH, and E and Z, a C that keeps
+ * its oxygen - e and E one geometry, z and Z the other. A skeleton modification also changes the
+ * hydroxyls a derivatization reaches. For a deoxy that is checked against this application's own
+ * dictionary, where fucose, the 6-deoxy galactose, has one fewer methylation and acetylation site than
+ * galactose. For a double bond the maintainer's rule is to count the hydroxyls the skeleton has
+ * (2026-11-10): e and z have lost theirs, E and Z keep it - see {@link #removesAHydroxyl}.
+ *
+ * <p>And the carbons oxidised beyond what a residue's name says: A, a terminal CH2OH of an alditol
+ * that is a carboxyl (#341); O, an inner CHOH that is a ketone; and o, a terminal CH2OH that is an
+ * aldehyde (#342). They are measured on an alditol with no stereo, whose carbons are all CH2OH or
+ * CHOH. A ketone and an aldehyde have lost their hydroxyl, and a carboxyl keeps one that is methylated
+ * and not acetylated - as this application's dictionary has it, where a uronic acid has as many
+ * methylation sites as its hexose and one fewer acetylation site. See {@link #sitesLost}.
  */
 public final class SkeletonModificationComposition {
 
@@ -35,6 +45,15 @@ public final class SkeletonModificationComposition {
 		MODIFIED.put('m', "axxxxm-1x_1-5");   // a terminal deoxy, C6
 	}
 
+	/** A reference alditol with no stereo, and the same with each oxidation put in. */
+	private static final String ALDITOL = "hxxxxh";
+	private static final Map<Character, String> OXIDISED = new HashMap<Character, String>();
+	static {
+		OXIDISED.put('A', "Axxxxh");   // a terminal carboxyl, here at C1
+		OXIDISED.put('O', "hOxxxh");   // an inner ketone, here at C2
+		OXIDISED.put('o', "oxxxxh");   // a terminal aldehyde, here at C1 (#342)
+	}
+
 	private static final Map<Character, Molecule> DELTAS = new HashMap<Character, Molecule>();
 
 	private SkeletonModificationComposition() {
@@ -43,6 +62,53 @@ public final class SkeletonModificationComposition {
 	/** Whether this is a modification code whose effect is known here: {@code d} or {@code m}. */
 	public static boolean isDeoxy(char code) {
 		return MODIFIED.containsKey(code);
+	}
+
+	/** Whether this is the code of a carbon oxidised beyond a residue's name: A, O or o. */
+	public static boolean isOxidation(char code) {
+		return OXIDISED.containsKey(code);
+	}
+
+	/** Whether a modification written as WURCS writes it - {@code 1*A}, {@code 2*O} - is an oxidised carbon. */
+	public static boolean isOxidation(String modification) {
+		Character code = codeOf(modification);
+		return code != null && isOxidation(code.charValue());
+	}
+
+	/**
+	 * The derivatization sites this skeleton modification takes away: a deoxy's hydroxyl, a ketone's,
+	 * and a double-bond carbon's that is a CH. A carboxyl keeps one, which a methylation reaches - as an
+	 * ester - and an acetylation does not.
+	 *
+	 * @param acetylation Whether the sites are those of an acetylation rather than a methylation.
+	 */
+	public static int sitesLost(String modification, boolean acetylation) {
+		Character code = codeOf(modification);
+		if (code == null) return 0;
+		if (code.charValue() == 'A') return acetylation ? 1 : 0;
+		if (code.charValue() == 'O' || code.charValue() == 'o') return 1;
+		return removesAHydroxyl(modification) ? 1 : 0;
+	}
+
+	/** Whether this is the code of a carbon in a double bond of known geometry: e, E, z or Z. */
+	public static boolean isDoubleBond(char code) {
+		return code == 'e' || code == 'E' || code == 'z' || code == 'Z';
+	}
+
+	/** Whether a modification written as WURCS writes it - {@code 4*e} - is a carbon of a double bond. */
+	public static boolean isDoubleBond(String modification) {
+		Character code = codeOf(modification);
+		return code != null && isDoubleBond(code.charValue());
+	}
+
+	/**
+	 * Whether this skeleton modification takes a hydroxyl away, and so a derivatization site: a deoxy,
+	 * and a double-bond carbon that is a CH (e, z). One that keeps its oxygen (E, Z) keeps the site.
+	 */
+	public static boolean removesAHydroxyl(String modification) {
+		Character code = codeOf(modification);
+		if (code == null) return false;
+		return isDeoxy(code.charValue()) || code.charValue() == 'e' || code.charValue() == 'z';
 	}
 
 	/** Whether a modification written as WURCS writes it - {@code 6*m}, {@code 2*d} - is a deoxy. */
@@ -74,17 +140,56 @@ public final class SkeletonModificationComposition {
 	 */
 	public static synchronized Molecule deltaOf(String modification) throws Exception {
 		Character code = codeOf(modification);
-		if (code == null || !isDeoxy(code.charValue()))
+		if (code == null || !(isDeoxy(code.charValue()) || isDoubleBond(code.charValue()) || isOxidation(code.charValue())))
 			throw new Exception("no composition is known here for the skeleton modification " + modification);
 
 		Molecule delta = DELTAS.get(code);
 		if (delta == null) {
-			delta = new Molecule();
-			delta.add(composition(MODIFIED.get(code)));
-			delta.remove(composition(REFERENCE));
+			delta = isDeoxy(code.charValue()) ? change(MODIFIED.get(code))
+					: isOxidation(code.charValue()) ? change(OXIDISED.get(code), ALDITOL)
+					: doubleBondCarbon(code.charValue());
 			DELTAS.put(code, delta);
 		}
 		return delta;
+	}
+
+	/** What a skeleton changes, against the reference. */
+	private static Molecule change(String _modified) throws Exception {
+		return change(_modified, REFERENCE);
+	}
+
+	/** What a skeleton changes, against another. */
+	private static Molecule change(String _modified, String _reference) throws Exception {
+		Molecule delta = new Molecule();
+		delta.add(composition(_modified));
+		delta.remove(composition(_reference));
+		return delta;
+	}
+
+	/**
+	 * What one carbon of a double bond changes. A double bond is two carbons, so it is measured as a
+	 * pair: C3=C4 both keeping their oxygen (EE, ZZ) is twice the change of one of them, and a CH beside
+	 * one (eE, zZ) is that one's change and its own.
+	 */
+	private static Molecule doubleBondCarbon(char _code) throws Exception {
+		char upper = Character.toUpperCase(_code);
+		Molecule keepsItsOxygen = half(change("ax" + upper + upper + "xh-1x_1-5"));
+		if (_code == upper) return keepsItsOxygen;
+
+		Molecule mixed = change("ax" + _code + upper + "xh-1x_1-5");
+		mixed.remove(keepsItsOxygen);
+		return mixed;
+	}
+
+	private static Molecule half(Molecule _twice) throws Exception {
+		Molecule ret = new Molecule();
+		for (java.util.Map.Entry<org.eurocarbdb.application.glycanbuilder.massutil.Atom, Integer> atom : _twice.getAtoms()) {
+			int count = atom.getValue().intValue();
+			if (count % 2 != 0) throw new Exception("a pair of double-bond carbons changed an odd number of " + atom.getKey());
+			if (count > 0) ret.add(atom.getKey(), count / 2);
+			else if (count < 0) ret.remove(atom.getKey(), -count / 2);
+		}
+		return ret;
 	}
 
 	/** The composition WURCSFramework gives a lone monosaccharide. */

@@ -31,6 +31,7 @@ import org.eurocarbdb.application.glycanbuilder.Glycan;
 import org.eurocarbdb.application.glycanbuilder.Residue;
 import org.eurocarbdb.application.glycanbuilder.ResidueHolder;
 import org.eurocarbdb.application.glycanbuilder.ResiduePlacement;
+import org.eurocarbdb.application.glycanbuilder.ResidueType;
 import org.eurocarbdb.application.glycanbuilder.converter.GlycanParser;
 import org.eurocarbdb.application.glycanbuilder.dataset.CrossRingFragmentDictionary;
 import org.eurocarbdb.application.glycanbuilder.dataset.ResidueDictionary;
@@ -95,6 +96,52 @@ public class GWSParser implements GlycanParser {
 	}
 
 	public void setTolerateUnknown(boolean f) {
+	}
+
+	/**
+	 * Where the root's name ends: at the first "--", which begins its first linkage, or at the "(" of
+	 * "(--" before it, which begins a branch. A name cannot hold "--" (ResidueType.escapeAglyconName).
+	 * With no "--" the root is alone, which only a composition's is - a structure of one reducing end
+	 * is no structure, and text of no "--" at all is more likely not GWS than an aglycon. Then, unless
+	 * the file is of the pre-2007 form, "-4" for "--4", which is read as it always was, the whole of it
+	 * is the root's; otherwise -1.
+	 */
+	private static int endOfRoot(String _tree, boolean _beforeABracket) {
+		int dash = _tree.indexOf("--");
+		if( dash>0 )
+			return ( _tree.charAt(dash-1)=='(' ) ? dash-1 : dash;
+		if( dash==0 || _tree.isEmpty() || !_beforeABracket )
+			return -1;
+
+		Matcher m = residue_pattern.matcher(_tree);
+		if( m.lookingAt() ) {
+			String rest = _tree.substring(m.end());
+			if( rest.matches("^\\(?-[1-9N?].*") )
+				return -1;
+		}
+		return _tree.length();
+	}
+
+	/**
+	 * Whether a root reads as the residue it has always read as: the residue grammar takes all of it,
+	 * and names something a dictionary has - freeEnd, redEnd, 2AB, a cleavage. Anything else is an
+	 * aglycon named by the whole of it, "Ser/Thr=87.0320u", "Cer(d18:1/16:0)", "D-Ser", as GlycanCore
+	 * reads it (#305), where the grammar used to take it apart: "/" as a cleavage, "D-" as a
+	 * configuration, "," as a ring.
+	 */
+	private static boolean readsAsAResidue(String _root) {
+		Matcher m = residue_pattern.matcher(_root);
+		if( !m.matches() || m.group(5)==null ) return false;
+		String typename = m.group(5);
+		if( m.group(4)!=null && !isKnownResidue(typename) && isKnownResidue(m.group(4) + typename) )
+			typename = m.group(4) + typename;
+		return isKnownResidue(typename);
+	}
+
+	/** Whether either dictionary has a residue of this name. */
+	private static boolean isKnownResidue(String _name) {
+		return ResidueDictionary.hasResidueType(_name)
+				|| org.glycoinfo.application.glycanbuilder.dataset.NonSymbolicResidueDictionary.hasResidueType(_name);
 	}
 
 	public String writeGlycan(Glycan structure) {
@@ -199,14 +246,27 @@ public class GWSParser implements GlycanParser {
 		// read structure
 		Glycan ret = null;
 		int ind2 = str.indexOf('}');
-		if( ind2==-1 ) 
-			ret = new Glycan(readSubtree(str,true),false,mass_opt);
+		String tree = ( ind2==-1 ) ? str : str.substring(0,ind2);
+
+		// A root that does not read as a residue is an aglycon, by the whole of its name (#305).
+		ResidueType aglycon = null;
+		int rootEnd = endOfRoot(tree, ind2!=-1);
+		if( rootEnd>0 && tree.charAt(0)!='>' && !readsAsAResidue(tree.substring(0,rootEnd)) ) {
+			aglycon = ResidueDictionary.findReducingEndType(tree.substring(0,rootEnd));
+			tree = "freeEnd" + tree.substring(rootEnd);
+		}
+		Residue treeRoot = readSubtree(tree,true);
+		if( aglycon!=null && treeRoot!=null )
+			treeRoot.setType(aglycon);
+
+		if( ind2==-1 )
+			ret = new Glycan(treeRoot,false,mass_opt);
 		else {
 			// read structure with bracket
-			ret = new Glycan(readSubtree(str.substring(0,ind2),true),
+			ret = new Glycan(treeRoot,
 					readSubtree(str.substring(ind2),true),
-					false,mass_opt);        
-		}    
+					false,mass_opt);
+		}
 
 		// The reducing end's type implies the sugar's form: redEnd and every reductive-amination
 		// label reduce their sugar, leaving it acyclic. A file saved since the ring letter began
@@ -229,6 +289,12 @@ public class GWSParser implements GlycanParser {
 		// about to go.
 		foldDeoxies(ret.getRoot());
 		foldDeoxies(ret.getBracket());
+
+		// A cycle's first and last residues know its ends, as the WURCS reader and the editor leave them
+		linkCycle(ret);
+
+		// The repeat markers carry the carbon the repeat closes on (#301)
+		giveRepeatsTheirCarbon(ret);
 
 		// Say what each bond is made of, rather than leaving every one of them UNVALIDATED (#4).
 		// A structure read from WURCS has its linkage types worked out; one read from GWS did not,
@@ -323,7 +389,7 @@ public class GWSParser implements GlycanParser {
 		// linkage, meets a sentence and stops - so a composition's own GWS could not be read back
 		// (#162). It is left out here, as it is left out of the drawing and of the mass.
 		ArrayList<String> str_children = new ArrayList();
-		boolean deoxiesWritten = !r.hasDeoxies();
+		boolean deoxiesWritten = !r.hasSkeletonModifications();
 		for( Linkage l : r.getChildrenLinkages() ) {
 			if( l.getChildResidue()!=null && l.getChildResidue().isCompositionMarker() )
 				continue;
@@ -368,7 +434,13 @@ public class GWSParser implements GlycanParser {
 	 */
 	static private ArrayList<String> deoxiesAsChildren(Residue r) {
 		ArrayList<String> ret = new ArrayList<String>();
-		for( String deoxy : r.getDeoxies() ) {
+		// and the carbons of a double bond, "--4e" and "--5E", the same way (#292). GWS has no other way
+		// to say one; an older reader sees a child it does not know, as it did a deoxy's
+		ArrayList<String> carbons = new ArrayList<String>(r.getDeoxies());
+		carbons.addAll(r.getDoubleBonds());
+		// and the oxidised carbons of an alditol's chain, "--1A" and "--2O" (#341)
+		carbons.addAll(r.getOxidations());
+		for( String deoxy : carbons ) {
 			Character position = SkeletonModificationComposition.positionOf(deoxy);
 			Character code = SkeletonModificationComposition.codeOf(deoxy);
 			if( position!=null && code!=null )
@@ -378,12 +450,64 @@ public class GWSParser implements GlycanParser {
 	}
 
 	/**
+	 * Tell each repeat's markers which residue the repeat starts with, and the carbon it closes on.
+	 *
+	 * <p>The WURCS writer closes a repeat on the residue its end marker names as the repeat's first,
+	 * at the carbon the markers hold as their anomeric carbon. Drawing a repeat sets both, and so does
+	 * reading one from WURCS. GWS writes "[" and "]" with neither, and reading it paired the two markers
+	 * and no more. So a repeat read from GWS was written open - {@code c4~n}, with nothing on its other
+	 * side, a WURCS that WURCSFramework calls invalid - and a structure with a repeat, saved and opened
+	 * again, could not be exported (#301).
+	 */
+	static void giveRepeatsTheirCarbon(Glycan _structure) {
+		for (Residue marker : _structure.getAllResidues()) {
+			if (!marker.isStartRepetition() && !marker.isEndRepetition()) continue;
+
+			Residue start = marker.isStartRepetition() ? marker : startOf(marker);
+			Residue first = firstOf(start);
+			if (first == null) continue;
+
+			if (marker.isEndRepetition() && marker.getStartResidue() == null) marker.setStartResidue(first);
+			if (marker.isStartRepetition() && first.getStartRepetitionResidue() == null)
+				first.setStartRepetiionResidue(marker);
+
+			char carbon = first.getAnomericCarbon();
+			if (marker.getAnomericCarbon() != '?' || !Character.isDigit(carbon)) continue;
+			marker.setAnomericCarbon(carbon);
+			if (marker.getParentLinkage() != null) marker.getParentLinkage().setAnomericCarbon(carbon);
+		}
+	}
+
+	/** The start of the repeat an end marker closes: the one it was paired with, or the nearest above it. */
+	private static Residue startOf(Residue _end) {
+		if (_end.getStartRepetitionResidue() != null) return _end.getStartRepetitionResidue();
+		for (Residue up = _end.getParent(); up != null; up = up.getParent())
+			if (up.isStartRepetition()) return up;
+		return null;
+	}
+
+	/** A repeat's first monosaccharide, or null when there is none. */
+	private static Residue firstOf(Residue _start) {
+		if (_start == null) return null;
+		for (Linkage link : _start.getChildrenLinkages()) {
+			Residue first = link.getChildResidue();
+			if (first.isSaccharide() && !first.isRepetition()) return first;
+		}
+		return null;
+	}
+
+	/**
 	 * Put back onto their residue the deoxies GWS carries as children - see {@link #deoxiesAsChildren}.
 	 *
 	 * <p>A child is taken to be one when it is named as a deoxy code, "d" or "m", has nothing attached to
 	 * it, is not a monosaccharide, hangs off a monosaccharide, and is attached at a single position. No
 	 * dictionary has a residue of either name, so nothing that is a residue can be mistaken for one.
 	 */
+	/** A deoxy, d or m, or a carbon of a double bond, e E z Z - each written as a child of one letter. */
+	private static boolean isSkeletonCode(char c) {
+		return SkeletonModificationComposition.isDeoxy(c) || SkeletonModificationComposition.isDoubleBond(c);
+	}
+
 	static void foldDeoxies(Residue r) {
 		if( r==null ) return;
 
@@ -391,9 +515,16 @@ public class GWSParser implements GlycanParser {
 			Residue child = l.getChildResidue();
 			if( r.isSaccharide() && child!=null && !child.isSaccharide() && !child.hasChildren()
 					&& child.getTypeName().length()==1
-					&& SkeletonModificationComposition.isDeoxy(child.getTypeName().charAt(0))
-					&& l.getBonds().size()==1 && l.getParentPositionsSingle()!='?' ) {
-				r.addDeoxy(l.getParentPositionsSingle() + "*" + child.getTypeName());
+					&& (isSkeletonCode(child.getTypeName().charAt(0))
+						// an oxidised carbon: a carboxyl only on an alditol, which is where the WURCS reader
+						// keeps one; a ketone or an aldehyde on any residue (#342)
+						|| (SkeletonModificationComposition.isOxidation(child.getTypeName().charAt(0))
+								&& (r.isAlditol() || child.getTypeName().charAt(0) != 'A')))
+					&& l.getBonds().size()==1 ) {
+				String carbon = l.getParentPositionsSingle() + "*" + child.getTypeName();
+				if( SkeletonModificationComposition.isDeoxy(child.getTypeName().charAt(0)) ) r.addDeoxy(carbon);
+				else if( SkeletonModificationComposition.isOxidation(child.getTypeName().charAt(0)) ) r.addOxidation(carbon);
+				else r.addDoubleBond(carbon);
 				r.getChildrenLinkages().remove(l);
 				continue;
 			}
@@ -436,6 +567,65 @@ public class GWSParser implements GlycanParser {
 		return sb.toString();
 	}
 
+	/**
+	 * Gives a cycle read from GWS the references its ends have when it is built in the editor or read
+	 * from WURCS (#394): the first residue, under the start, knows the start; the last, above the end,
+	 * knows the end; and the end knows the first. A repeat at either end is passed through, as the
+	 * WURCS reader passes through it. The WURCS writer finds the cycle by these, not by the markers.
+	 */
+	private static void linkCycle(Glycan _structure) {
+		Residue start = _structure.getRoot();
+		if( start==null || !start.isStartCyclic() || !start.hasChildren() )
+			return;
+		Residue first = start.getChildAt(0);
+		if( first.isStartRepetition() && first.hasChildren() )
+			first = first.getChildAt(0);
+		first.setStartCyclicResidue(start);
+
+		for( Residue residue : _structure.getAllResidues() ) {
+			if( !residue.isEndCyclic() || residue.getParent()==null )
+				continue;
+			Residue last = residue.getParent();
+			if( last.isEndRepetition() && last.getParent()!=null )
+				last = last.getParent();
+			last.setEndCyclicResidue(residue);
+			residue.setStartResidue(first);
+		}
+	}
+
+	/**
+	 * Reads one structure of several, saying which one when it cannot be (#394).
+	 *
+	 * <p>A document is its structures' GWS, one after another, and one that could not be read was
+	 * either dropped without a word - a workspace held it as nothing - or failed the whole file with
+	 * the parser's own sentence, "Invalid format for string: &lt;", which says neither which structure
+	 * nor where. This names the structure by its place and its beginning, with the reason after it.
+	 *
+	 * @param _gws The structure's GWS.
+	 * @param _index Its place among the structures, from 0.
+	 * @param _count How many structures there are; 0 or less when that is not known.
+	 * @param _options The mass options to read it with, when the GWS gives none.
+	 * @return Returns the structure.
+	 * @throws Exception If it cannot be read, naming it.
+	 */
+	static public Glycan readNumbered(String _gws, int _index, int _count, MassOptions _options) throws Exception {
+		try {
+			return fromString(_gws, _options);
+		}
+		catch( Exception unreadable ) {
+			throw new Exception(cannotRead(_gws, _index, _count, unreadable), unreadable);
+		}
+	}
+
+	/** The sentence {@link #readNumbered} throws with. */
+	static public String cannotRead(String _gws, int _index, int _count, Exception _why) {
+		String gws = (_gws==null) ? "" : _gws.trim();
+		if( gws.length()>80 ) gws = gws.substring(0,77) + "...";
+		String which = (_count>0) ? "Structure " + (_index+1) + " of " + _count : "Structure " + (_index+1);
+		String why = (_why.getMessage()!=null) ? _why.getMessage() : _why.getClass().getSimpleName();
+		return which + " could not be read (" + why + "): " + gws;
+	}
+
 	static public Residue readSubtree(String str, boolean accept_empty) throws Exception {
 		return readSubtree(str, accept_empty, new ResidueHolder());
 	}
@@ -453,6 +643,16 @@ public class GWSParser implements GlycanParser {
 			ret = ResidueDictionary.createBracket();
 			str = str.substring(1);
 		}
+		// The ends of a cycle, which the writer writes as > and < (#394). Nothing read them: a
+		// cyclodextrin, and anything else with a cycle, was saved and could not be opened again.
+		else if( str.charAt(0)=='>' ) {
+			ret = ResidueDictionary.createStartCyclic();
+			str = str.substring(1);
+		}
+		else if( str.charAt(0)=='<' ) {
+			ret = ResidueDictionary.createEndCyclic();
+			str = str.substring(1);
+		}
 		else {
 			//------------------
 			// create residue
@@ -463,11 +663,13 @@ public class GWSParser implements GlycanParser {
 			
 			if( str.charAt(0)=='[' ){
 				ret = ResidueDictionary.createStartRepetition();  
-				startRep.res=ret;
+				startRep.openRepeats.push(ret);
 			}else if( str.charAt(0)==']' ) { 
 				ret = ResidueDictionary.createEndRepetition(m.group(1),m.group(2));
-				startRep.res.setEndRepitionResidue(ret);
-				startRep.res=null;
+				// the last repeat still open; none when the text is part of a structure, a copy of a
+				// repeat's end without its start, which then has no partner
+				Residue start = startRep.openRepeats.poll();
+				if( start!=null ) start.setEndRepitionResidue(ret);
 			}
 			else {
 				// get stereochemistry
@@ -483,6 +685,21 @@ public class GWSParser implements GlycanParser {
 
 				// get type name
 				String typename = m.group(5);
+
+				// A residue whose own name begins with a configuration - D-gro-D-galHep, L-gro-D-manNon -
+				// is written with no prefix when its configuration is unknown, and the "D-" was then
+				// read as the configuration: the residue came back as an unknown "gro-D-galHep" of no
+				// mass, though the text written back was the same (#252). The prefix is taken as part
+				// of the name only when the name without it is no residue and the name with it is one,
+				// so nothing that read as a known residue before reads differently now.
+				// Since #273 gave gro-D-manHep and gro-D-glcHep - the heptoses whose C6 is not known - names
+				// that do not open with ?, "L-gro-D-glcHep" is also an L gro-D-glcHep. That is the same
+				// residue: a heptose's D or L is its C6's, the glycero of its name. So the whole name is
+				// taken whenever it is a residue.
+				if( m.group(4)!=null && isKnownResidue(m.group(4) + typename) ) {
+					typename = m.group(4) + typename;
+					ret_chirality = '?';
+				}
 
 				// get ring size
 				char ret_ring_size = '?';
@@ -618,6 +835,17 @@ public class GWSParser implements GlycanParser {
 
 		// parse child
 		Residue child = readSubtree(str.substring(m.end()),false,startRep);
+
+		// A child bonded at two positions is a bridge: a 1,6-anhydro, a 4,6-cyclic phosphate, a pyruvate
+		// acetal, a 1,5-imino. Its name was looked up among the residues, where Anhydro and Py are not
+		// and P is the monovalent phosphate, and the one place that made a name a bridge did so only
+		// for a residue with children of its own - which a bridge within one residue never has. So a
+		// bridge saved to GWS came back as a residue of unknown type, a water light, drawn in another
+		// font and impossible to write to WURCS; and since copy and paste is a GWS round trip, the
+		// pasted copy was all of that (#242, #362).
+		if( ret_bonds.size()>1 && !child.isBridge()
+				&& CrossLinkedSubstituentDictionary.hasCrossLinkedSubstituent(child.getTypeName()) )
+			child.setType(CrossLinkedSubstituentDictionary.getCrossLinkedSubstituent(child.getTypeName()));
 
 		// create linkage
 		Linkage ret = new Linkage(null,child);

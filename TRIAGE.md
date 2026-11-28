@@ -7,9 +7,216 @@ are not the one picking up the next piece of work.
 Written to be edited. When an issue is opened, closed, or turns out to be something other than what
 it said, change this file in the same breath.
 
+## GB2 or GB3: the first question, decided 2026-11-10
+
+**GlycanBuilder2 fixes bugs and security problems. New features are built in GB3.** *(The
+maintainer, I. Yamada, 2026-11-10.)* So before an issue is placed in a band, decide which of the two
+it belongs to. The bands below order GB2's work only.
+
+| | What belongs | Label |
+|---|---|---|
+| **GB2** | a wrong answer, given silently (mass, WURCS, a name); lost work (a file that will not reopen, our own output we cannot read back); a crash or a freeze; a security problem | `bug` (and `dependencies` for #175) |
+| **GB2, up to refusing it** | input GB2 does not support. It is refused with the reason, never misread. Being able to read it is an extension | `bug` while it is misread |
+| **GB2: an SNFG rule** | a drawing or naming point that SNFG has an explicit rule for. Checked against the SNFG notes before deciding (2026-11-10: #263, #293, #182) | `bug` |
+| **GB3** | a new operation, display mode or model extension, or a usability improvement | `GB3` |
+
+**Work already started stays in GB2 until its natural break.** That break is the scope of its PR as
+it stands. Anything beyond that goes to GB3. *(The maintainer, 2026-11-10.)* For the PRs open that
+day, all three merged on 2026-11-11:
+
+| PR | Finished in GB2 | Beyond it, GB3 |
+|---|---|---|
+| #300 | reading a deoxy at an unknown carbon, and C-linked methyl and hydroxymethyl | the rest of #298: ketoses of unknown stereo, Kdo in compositions, other chain lengths |
+| #304 | glycerol read, weighed, written, drawn and chosen; alditols inside a chain weighed right | drawing other alditols and polyols (#181, #190) |
+| #306 | aglycon names read and written, mass not known, the WURCS warning | — (and in the web application, typing a mass not known, which !135 leaves out) |
+
+### Decisions since 2026-11-10
+
+Each is the maintainer's (I. Yamada), recorded where it was made.
+
+- **2026-11-11: nothing that can be drawn but not written to WURCS is offered in the GUI**, except the
+  Assigned placeholder, which stays (#252). PR #329; in glycanbuilder2web, !136. The class "Assigned"
+  keeps its name inside and is shown as "Pentagon" (PR #331).
+- **2026-11-11: dHexA (#315) is GB3.** Which skeleton it stands for, `a21eEA` or `axxeEA`, is not
+  settled; it is not a bug, and until GB3 settles it the menus leave it out.
+- **2026-11-20: a monosaccharide whose anomeric carbon is `?` is written with its type's carbon**, C1
+  or C2, and the GUI no longer offers `?` for one (#332, PR #333; in glycanbuilder2web, !139 for the
+  linkage toolbar, the MCP tools and the MCP App). Reported through GlyCosmos (portal #203).
+- **2026-11-20: a `u` further out than the reducing end is refused**, not read as a ring:
+  `[a2122h-1x_1-5][u2112h]/1-2/a4-b?` is not a structure a monosaccharide joined by its anomeric
+  carbon can have; the WURCS itself is wrong as a chemical structure, in the maintainer's view.
+- **2026-11-28: the `System.setOut` swap #227 added to `SUBSTAnalyzer` is accepted as temporary.**
+  #334 takes it out once WURCSFramework stops printing masses (glycoinfo/wurcsframework!15, which the
+  maintainer will look at).
+- **2026-11-28: what GB2 cannot represent is refused, with the reason**, never read or written as
+  something else (#344: a septanose, refused rather than read as a pyranose with an anhydro; PR #366).
+- **2026-11-28: a composition writes what glycompconverter writes** (#220, PR #385). Sulfate,
+  phosphate and O-acetyl are counted on their own, on any residue at a position not known; the methyl
+  hexose is the 4-O-methyl one, as glycompconverter's MeHex and 47 GlyTouCan entries are; the 4-deoxy
+  pentose is a pyranose. Pyruvate, phosphocholine, the lactonised sialic acids, the user-defined
+  residues and the placeholders stay refused, naming the residue.
+- **2026-11-28: dHexA stays refused in a composition too.** GlyTouCan holds ΔUA as `axxEEA`, which
+  WURCSMassCalculator weighs as C6H8O7, an oxygen more than dHexA's C6H8O6; `axxeEA` weighs right and
+  GlyTouCan holds it nowhere. Settled with #315 in GB3.
+- **2026-11-28: a residue with no SNFG symbol of its own takes its generic type's white symbol** - the
+  6-deoxy allose of #258 is a white triangle, not the pentagon the comment closing #258 said. SNFG puts
+  the pentagon last, for a residue whose generic type has no symbol. Corrected on #258.
+- **2026-11-28: #235 is the maintainer's.** Reassigned from M. Matsubara, as #230 was in effect;
+  both were fixed at the maintainer's request (PRs #391, #387).
+- **2026-11-29, decided on the nine waiting issues and what they turned up:**
+  - **#394**: GB2 takes the first stage only - read back the GWS it writes for cycles and nested
+    repeats, and name a structure it cannot read (PR #396). What GWS cannot hold is GB3, #397.
+  - **#364**: a reduced ketose is a structure GB2 does not support; refused when written (PR #398).
+  - **#386**: 4dPen is a pyranose (PR #400). **#390**: the bond into a one-residue repeat keeps the
+    anomeric carbon; closed. **#16**: the substituents the dictionary lacks are GB3.
+  - **#243**: what GB2 does after PA is removed - pyranose, α/β unspecified - is SNFG's default for a
+    reducing end; setting β on many structures at once is GB3, with #245.
+  - **#117**: answered - GB2 writes compositions as glycompconverter does, and reads all three forms.
+  - **#404**: several monosaccharides with no linkage between them are not handled; refused when read
+    (PR #405).
+  - **#402**: dRib's IUPAC name is 2-deoxy (PR #403). **#401**, which residue 4dPenN is, waits on a
+    chemistry decision.
+
+### Where every open issue stands, 2026-11-29
+
+105 open after the five below were closed on 2026-11-29; 110 when this pass began. No pull request
+is open but this file's. `origin/develop` is 92fa30f. Since the last pass, 41 pull requests
+were merged into develop (#338 to #393), and the issues they fix were re-measured on develop as they
+were fixed. The rest were re-measured on 2026-11-28 where a measurement could say anything (#17, #57,
+#66, #189, #222, #228, #253, #282, #16).
+
+**Fixed on develop, waiting for a release (64).** A PR that says "Fixes" closes its issue only when it
+reaches master, so these close with the next release.
+
+| Issue | PR |
+|---|---|
+| #83 | #392 |
+| #182 | #311 |
+| #220 | #385 |
+| #228 | #389 |
+| #230 | #387 |
+| #231 | #373 |
+| #235 | #391 |
+| #236 | #295 |
+| #237 | #388 |
+| #238 | #382 |
+| #239 | #383 |
+| #240 | #372 |
+| #241 | #371 |
+| #242, #362 | #369 |
+| #247 | #375 |
+| #249 | #374 |
+| #252 | #288 |
+| #257 | #384 |
+| #259 | #297 |
+| #260, #261 | #287 |
+| #264 | #381 |
+| #265 | #294 |
+| #266 | #296 |
+| #267 | #380 |
+| #268 | #377 |
+| #269 | #376 |
+| #270 | #378 |
+| #271 | #379 |
+| #273 | #349 |
+| #275 | #355 |
+| #279 | #291 |
+| #281 | #338 |
+| #283 | #347 |
+| #285 | #289 |
+| #286 | #290 |
+| #292 | #316 |
+| #301 | #303 |
+| #305 | #306 |
+| #307 | #309 |
+| #310 | #322 |
+| #312 | #317 |
+| #313 | #326 |
+| #314 | #339 |
+| #318, #319 | #324 |
+| #320, #321, #323 | #325 |
+| #330 | #359 |
+| #332 | #333 |
+| #335 | #336 |
+| #340 | #368 |
+| #341 | #361 |
+| #342 | #363 |
+| #343 | #365 |
+| #344 | #366 |
+| #345 | #367 |
+| #346 | #360 |
+| #350 | #353 |
+| #354 | #356 |
+| #357 | #358 |
+| #370 | #393 |
+
+**Fixed on develop, but the PR does not say "Fixes" (4): close them by hand at the release.**
+
+| Issue | Where it stands |
+|---|---|
+| #123 | #227, N. Edwards's patches, merged 2026-11-28 |
+| #222 | #302: a sulfate on GlcN's nitrogen is written as `2*NSO/3=O/3=O`, GlcNS. Measured 2026-11-28 |
+| #282 | #304: a deoxy heptose with no name is refused, "galHep is no residue this application knows", instead of read as a residue that weighs nothing. Naming them is #298, GB3 |
+| #263 | #284, **in part**: the deoxy. The double bond and the acid in an Assigned residue's footnote (SNFG note 11) and `en` inside a symbol (note 4) were open on 2026-11-10 and have not been re-checked since #316 |
+
+**Measured as fixed or answerable, 2026-11-28: closed with a comment on 2026-11-29, at the
+maintainer's word (5).** #66 as not planned, the rest as completed.
+
+| Issue | Measured |
+|---|---|
+| #17 | `AUdxxxxxh` (G00771KP) is read, as the generic Non |
+| #57 | G03246MZ's link into its repeat is at 2, as its WURCS says, and the WURCS is written back as read |
+| #66 | does not reproduce on 1.36.0 or later; asked for the GWS on 2026-11-10, no reply |
+| #189 | the same want as #222: GlcNAc's nitrogen already carries the acetyl, so an N-sulfate is drawn as GlcN with S at N, which writes GlcNS |
+| #253 | #254, #255 and #256 are closed. What is left is right: the GlycoWorkbench file's Hept has neither its ring nor its anomeric carbon, so its WURCS is refused with that reason |
+
+**Waiting on the maintainer's decision (9; #263 is counted above as well).**
+
+| Issue | The decision |
+|---|---|
+| #364 | a reduced ketose: written as the alditol, or as now |
+| #386 | 4dPen's ring in the dictionary: `p` rather than `f` |
+| #390 | a bond into a one-residue repeat at a carbon not known: kept as `?`, or the anomeric carbon as now |
+| #394 | GWS: extend it, save WURCS beside it, or warn. Five structures open as nothing, silently |
+| #243 | the ring and anomer when PA is removed |
+| #263 | what is left of it (above) |
+| #293 | SNFG note 4: a lactonised sialic acid as its sialic acid marked "on" |
+| #16 | 19 substituents the dictionary does not have, each refused with the reason: add them (GB3), or close |
+| #117 | an answer rather than a change |
+
+**GB2, not started (2).** #91 the Add Structure menu misaligned (P3, needs the GUI) · #187 an SVG that
+PowerPoint breaks when ungrouped (P3, to be investigated).
+
+**Elsewhere (3).** #175 jdom (Dependabot #8; GB2's own path is guarded since 2026-08, the rest is
+glycoinfo/MolecularFramework#4 and glycoinfo/ResourcesDB#1) · #334 waits on
+glycoinfo/wurcsframework!15 · #226 GlycoWorkbench's fork, for the record.
+
+**GB3 (24).** #6, #7, #20, #41, #58, #93, #95, #100, #109, #177, #181, #184, #190, #200, #229, #232, #233,
+#234, #244, #245, #298, #315, #327, and **#352**, a feature request, labelled GB3 on 2026-11-29.
+
+### Since that pass, 2026-11-29
+
+Fixed and merged: #394 (first stage), #364, #187, #386, #402; #404 in PR #405. Closed: #17, #57,
+#66, #189, #253, #390, #117, #394 (in favour of #396 and #397). Moved to GB3: #16, #243, #352. New:
+#397 (GB3), #401 (decision), #402, #404. Still waiting on the maintainer: #91 (look at the menu in
+the application), #263 and #293 (close #263; #293 to GB3?), #401.
+
+### The order to take them in, 2026-11-29
+
+1. **Release GB2.** 68 fixes wait on develop, and nothing has been released since v1.40.0
+   (2026-08-15). CHANGELOG and version 1.41.0, then the release itself, which is the maintainer's.
+   Close the four above by hand, and check the 64 against their reports as they close. Afterwards,
+   raise `glycanbuilder2.version` in glycanbuilder2web and finish its drafts !133, !134, !135 and !139.
+2. **The decisions**, in one sitting: #364, #386, #390, #394 first, since #394 loses work.
+3. **#91 and #187.**
+4. **#175** when MolecularFramework and resourcesdb move to jdom2; **#334** when wurcsframework!15 is
+   released.
+
+---
+
 ## How an issue is placed
 
-Rank by **what a wrong answer costs the person receiving it**, not by how hard it looks or how
+For an issue that belongs to GB2 (above), rank by **what a wrong answer costs the person receiving it**, not by how hard it looks or how
 recently it was filed.
 
 | Band | What belongs in it | The question it answers |
@@ -310,6 +517,8 @@ waits for the reporter's retest rather than being done in a hurry.
 
 ## P4 — not there yet
 
+**Since 2026-11-10, this band is GB3's**, not GB2's: these are features (see "GB2 or GB3" at the top). Kept as a record of what each one asked for.
+
 | # | Title | Note |
 |---|---|---|
 | #95 | Validate a drawn structure | Before submitting to GlyTouCan. Validation code exists elsewhere and could be called |
@@ -367,11 +576,20 @@ two recent refusals to imitate. They said about a week, and the patches arrived:
 since 2026-08-19 and unreviewed as of 2026-09-11. The next move is ours, and a contributor waiting
 three weeks on a review is worse than any item in the bands below.
 
+**Merged on 2026-11-28.** Reviewed on 2026-11-12 with a proposed resolution of the conflicts with
+develop; the contributor merged develop themselves (2026-11-20) and threw `WURCSToGlycanException`
+where the reason is known instead of rewrapping it afterwards, which kept develop's reasons. On the 18
+GlyTouCan accessions they listed, nothing lost its reason and three crashes came to name the element at
+fault. Their two follow-ups: #335 (the validator's refusal quoted the WURCS twice; fixed by #336) and
+#334 (the temporary `System.setOut` swap).
+
 Contribution questions are answered ahead of the queue, whatever band the code would fall in.
 
 ---
 
 ## The order to take them in
+
+*Written before 2026-11-10. For what GB2 takes on now, "GB2 or GB3" at the top of this file governs.*
 
 The bands say what a thing costs. This says what to pick up, and it is the bands applied twice: once
 for cost, once for what it costs to leave the tracker saying something untrue.
@@ -1273,9 +1491,18 @@ failed — which is #123, and reaches #228 and #236. Reviewed but not commented 
 field and an accessor rather than concatenating the element into the message, mirroring
 wurcsframework's own `WURCSFormatException(message, input)` / `getInputString()`; and the
 `RuntimeException` it introduces in `TrivialNameConverter` is the one place it does not follow its own
-rule — no named type, no cause, no element.
+rule — no named type, no cause, no element. *(Superseded: the version merged on 2026-11-28 no longer
+throws there. See "Not a priority band, but do it first".)*
 
 ## Where this stands, for whoever picks it up next
+
+**2026-11-29.** `origin/develop` is 92fa30f; the newest release is still v1.40.0 and master has not
+moved since 2026-11-10. Since 2026-11-28, 41 more pull requests have been merged into develop (#338 to
+#393), and no pull request is open. What is open, what each fix is waiting for, and the order to take
+the rest in are at the top of this file, under the 2026-11-29 headings. glycanbuilder2web still builds
+against glycanbuilder2 1.40.0, so none of these fixes has reached it yet.
+
+The rest of this section is the pass of 2026-11-09 and earlier, kept for its reasoning.
 
 Re-checked against the tracker on **2026-11-09**. The pass below was written on 2026-08-15 after
 1.39.0 and is kept because the reasoning still holds; what changed since is at the top of this file -

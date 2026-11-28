@@ -592,11 +592,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	 */
 
 	public boolean changeResidueType(Residue current, ResidueType new_type) {
-		if (current == null
-				|| (current.hasParent() && !new_type.canHaveParent())
-				|| (!current.hasParent() && !new_type.canBeReducingEnd())
-				|| (current.hasChildren() && !new_type.canHaveChildren())
-				|| isInComposition(current))
+		if (!canTakeType(current, new_type))
 			return false;
 
 		current.setType(new_type);
@@ -614,11 +610,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	 */
 	public boolean changeResidueType(Residue current, ArrayList<Residue> linked,
 									 ResidueType new_type) {
-		if (current == null
-				|| (current.hasParent() && !new_type.canHaveParent())
-				|| (!current.hasParent() && !new_type.canBeReducingEnd())
-				|| (current.hasChildren() && !new_type.canHaveChildren())
-				|| isInComposition(current))
+		if (!canTakeType(current, new_type))
 			return false;
 
 		// change type
@@ -632,6 +624,55 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 
 		fireDocumentChanged();
 		return true;
+	}
+
+	private boolean canTakeType(Residue current, ResidueType new_type) {
+		return !(current == null
+				|| (current.hasParent() && !new_type.canHaveParent())
+				|| (!current.hasParent() && !new_type.canBeReducingEnd())
+				|| (current.hasChildren() && !new_type.canHaveChildren())
+				|| isInComposition(current));
+	}
+
+	/**
+	 * Whether a residue is the "Assigned" placeholder: the white pentagon the palette offers for a
+	 * monosaccharide with no symbol of its own, which says nothing yet about which one it is (#252).
+	 */
+	public static boolean isPlaceholder(Residue residue) {
+		return residue != null && "Assigned".equals(residue.getTypeName());
+	}
+
+	/**
+	 * Say which monosaccharide a placed placeholder is (#252). The placeholder takes the type, and
+	 * keeps its links, its children and whatever of its anomer, configuration and ring was set on it.
+	 * What was left unknown is taken from the type, as it would be for a residue of that type added
+	 * new.
+	 *
+	 * @param placeholder the "Assigned" residue
+	 * @param linked residues drawn at the same position, which take the type with it
+	 * @param type the monosaccharide it is
+	 * @return false, and nothing changed, when the residue is not a placeholder or cannot take the
+	 *         type where it stands
+	 * @see #isPlaceholder
+	 */
+	public boolean assignPlaceholder(Residue placeholder, ArrayList<Residue> linked, ResidueType type) {
+		if (!isPlaceholder(placeholder) || type == null || !canTakeType(placeholder, type))
+			return false;
+
+		takeType(placeholder, type);
+		if (linked != null)
+			for (Residue r : linked)
+				if (isPlaceholder(r)) takeType(r, type);
+
+		fireDocumentChanged();
+		return true;
+	}
+
+	private static void takeType(Residue residue, ResidueType type) {
+		residue.setType(type);
+		if (residue.getAnomericCarbon() == '?') residue.setAnomericCarbon(type.getAnomericCarbon());
+		if (residue.getChirality() == '?') residue.setChirality(type.getChirality());
+		if (residue.getRingSize() == '?') residue.setRingSize(type.getRingSize());
 	}
 
 	private boolean changeReducingEndTypePVT(Glycan structure,
@@ -677,7 +718,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 
 		if (isEmpty() || current == null || current.isReducingEnd()) {
 			// add new structures
-			addStructures(toadd, false);
+			addStructures(standingAlone(toadd), false);
 		} else {
 			// append roots as child of the current selection
 			for (Iterator<Glycan> i = toadd.iterator(); i.hasNext(); ) {
@@ -1008,6 +1049,19 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 			else return false;
 		}
 
+		// The end marker goes on the last residue at the carbon the unit's first residue is bonded at -
+		// where the next unit is bonded. A residue of the unit already there leaves it no room, and that
+		// is said before anything is changed. One after the unit there - the hyaluronic acid's next GlcA,
+		// on the GlcNAc's 3 as the first GlcA is on its parent's 3 - is the chain after the repeat, and
+		// is moved behind the marker before the marker is added (#271).
+		char closesOn = first.getParentLinkage().getParentPositionsSingle();
+		for (Linkage child_link : last.getChildrenLinkages()) {
+			if (!nodes.contains(child_link.getChildResidue())) continue;
+			if (closesOn != '?' && child_link.getParentPositionsString().equals(String.valueOf(closesOn)))
+				throw new Exception("The repeating unit closes on " + closesOn + " of its last residue, "
+						+ last.getTypeName() + ", which already bonds a residue of the unit there.");
+		}
+
 		// create the repetition
 		Residue start = ResidueDictionary.createStartRepetition();
 		//start.setAnomericState(first.getAnomericState());
@@ -1019,19 +1073,36 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 		Residue end = ResidueDictionary.createEndRepetition();
 
 		end.setStartResidue(first);
+		// the carbon of the unit's first residue the repeat is bonded by, as the start marker has it.
+		// addChild takes the child's own anomeric carbon, a fresh marker's ?, and the repeat was written
+		// a?-b?~n with the first residue's 1 lost - as the WURCS reader's marker was before #204
+		end.setAnomericCarbon(first.getAnomericCarbon());
 		end.setParentLinkage(new Linkage(last, end, new char[]{first.getParentLinkage().getParentPositionsSingle()}));
 
 		last.setEndRepitionResidue(end);
-		last.addChild(end, end.getParentLinkage().getBonds());
-		// 20211217, S.TSUCHIYA removed comment out
+		// What continues after the unit goes behind the end marker - first, so that the carbon the
+		// marker goes on is free. Added the other way round, the marker was refused at a carbon the
+		// next residue still held (#34's rule), the refusal was not looked at, and the next residue was
+		// moved onto a marker hanging on nothing: it vanished, the repeat had no end, and the canvas
+		// could freeze drawing it (#271).
+		LinkedList<Linkage> after = new LinkedList<Linkage>();
 		for (Iterator<Linkage> il = last.iterator(); il.hasNext(); ) {
 			Linkage child_link = il.next();
-			if (child_link.getChildResidue() != end
-					&& !nodes.contains(child_link.getChildResidue())) {
-				end.getChildrenLinkages().add(child_link);
-				child_link.setParentResidue(end);
+			if (!nodes.contains(child_link.getChildResidue())) {
+				after.add(child_link);
 				il.remove();
 			}
+		}
+		if (!last.addChild(end, end.getParentLinkage().getBonds())) {
+			// put back what was moved, so that a refusal leaves the residue as it was
+			for (Linkage child_link : after) last.getChildrenLinkages().add(child_link);
+			first.setStartRepetiionResidue(null);
+			throw new Exception("The end of the repeating unit cannot be bonded at " + closesOn + " of "
+					+ last.getTypeName() + ".");
+		}
+		for (Linkage child_link : after) {
+			end.getChildrenLinkages().add(child_link);
+			child_link.setParentResidue(end);
 		}
 
 		fireDocumentChanged();
@@ -1125,29 +1196,91 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 
 	private Residue cloneStructure(Residue root, HashSet<Residue> nodes,
 								   boolean add_attachment) {
+		return cloneStructure(root, nodes, add_attachment, null);
+	}
+
+	/**
+	 * As {@link #cloneStructure(Residue, HashSet, boolean)}, recording each residue copied and its copy
+	 * in {@code copies} when it is not null, for {@link Residue#relink} (#340).
+	 */
+	private Residue cloneStructure(Residue root, HashSet<Residue> nodes,
+								   boolean add_attachment, java.util.Map<Residue, Residue> copies) {
 		if (root == null) return null;
 
+		// A residue standing on its structure's reducing end, selected without it - a lone GlcNAc, the
+		// first residue of any structure - is copied with that reducing end, as it is when the reducing
+		// end is selected too. Copied alone, it had nothing above it: the GWS on the clipboard began
+		// with the residue, which no reader takes as a structure, and paste did nothing, onto a residue
+		// or on its own (#240).
+		if (add_attachment && !root.isReducingEnd() && root.getParent() != null
+				&& root.getParent().isReducingEnd() && root.getParentLinkage() != null) {
+			Residue reducingEnd = root.getParent().cloneResidue();
+			int before = reducingEnd.getChildrenLinkages().size();
+			reducingEnd.copyChild(cloneStructure(root, nodes, false, copies), root.getParentLinkage().getBonds());
+			reducingEnd.keepLinkageTypes(root.getParentLinkage(), before);
+			return reducingEnd;
+		}
+
+		// A residue with no bond above it - the start of a cycle, which is a structure's root as a
+		// reducing end is - has nothing to attach the attach point with: wrapped, the copy of a cycle,
+		// and of two residues joined by two bonds, which is read as one, threw (#340)
 		if (add_attachment
 				&& !root.isReducingEnd()
+				&& root.getParentLinkage() != null
 				&& (root.getParent() == null || !root.getParent()
 				.isReducingEnd())) {
 			Residue cloned_root = ResidueDictionary.createAttachPoint();
-			cloned_root.addChild(cloneStructure(root, nodes, false), root
+			int before = cloned_root.getChildrenLinkages().size();
+			cloned_root.copyChild(cloneStructure(root, nodes, false, copies), root
 					.getParentLinkage().getBonds());
+			// what the copied bond is made of, which the mass reads (#281)
+			cloned_root.keepLinkageTypes(root.getParentLinkage(), before);
 			return cloned_root;
 		} else {
 			// clone this
 			Residue cloned_root = root.cloneResidue();
+			if (copies != null) copies.put(root, cloned_root);
 
 			// clone children
 			for (Linkage link : root.getChildrenLinkages()) {
 				Residue child = link.getChildResidue();
-				if (nodes.contains(child))
-					cloned_root.addChild(cloneStructure(child, nodes, false),
+				if (nodes.contains(child)) {
+					int before = cloned_root.getChildrenLinkages().size();
+					// copied as it is, as Residue.cloneSubtree copies: addChild checks the position
+					// against the parent's own, and turned away the partner of a non-reducing sugar,
+					// which hangs on the parent's anomeric carbon - a copy of trehalose or sucrose was
+					// one glucose (#242)
+					cloned_root.copyChild(cloneStructure(child, nodes, false, copies),
 							link.getBonds());
+					cloned_root.keepLinkageTypes(link, before);
+				}
 			}
 			return cloned_root;
 		}
+	}
+
+	/**
+	 * The structures to add as structures of their own, each with a reducing end of its own (#241).
+	 *
+	 * <p>A selection copied from inside a structure - the GlcNAc-Gal-NeuAc arm of an N-glycan - hangs
+	 * on an attach point that keeps where it was bonded, 2 of the Man, so that pasted onto another
+	 * residue it is bonded there again. Pasted as a structure of its own, the attach point stayed its
+	 * root: drawn as an empty box, a residue of no kind, weighed a water light for the bond to it, and
+	 * the structure could not be copied again. Its first residue is the new structure's root, under a
+	 * free reducing end, as a structure drawn from nothing has.
+	 */
+	private static Collection<Glycan> standingAlone(Collection<Glycan> _structures) {
+		if (_structures == null) return null;
+		LinkedList<Glycan> ret = new LinkedList<Glycan>();
+		for (Glycan structure : _structures) {
+			Residue root = structure.getRoot();
+			if (root == null || !root.isAttachPoint() || root.getNoChildren() != 1) {
+				ret.add(structure);
+				continue;
+			}
+			ret.add(new Glycan(root.firstChild(), structure.getBracket(), true, structure.getMassOptions()));
+		}
+		return ret;
 	}
 
 	/**
@@ -1160,12 +1293,28 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	 * @see Glycan
 	 * @see Glycan#addAntenna
 	 */
+	/**
+	 * The residues of a selection in the order their structures hold them. A selection is a set, and
+	 * taken in its own order the antennae of uncertain parent were copied in an order that changed from
+	 * one copy to the next, and so was the WURCS of the copy (#370).
+	 */
+	private java.util.List<Residue> inStructureOrder(HashSet<Residue> nodes) {
+		java.util.List<Residue> ordered = new java.util.ArrayList<Residue>();
+		java.util.Set<Residue> placed = java.util.Collections.newSetFromMap(new java.util.IdentityHashMap<Residue, Boolean>());
+		for (Glycan structure : structures)
+			for (Residue residue : structure.getAllResidues())
+				if (nodes.contains(residue) && placed.add(residue)) ordered.add(residue);
+		for (Residue residue : nodes)
+			if (placed.add(residue)) ordered.add(residue);
+		return ordered;
+	}
+
 	public LinkedList<Glycan> extractView(HashSet<Residue> nodes) {
 
 		// search roots and antennae
 		LinkedList<Residue> roots = new LinkedList<Residue>();
 		LinkedList<Residue> antennae = new LinkedList<Residue>();
-		for (Iterator<Residue> i = nodes.iterator(); i.hasNext(); ) {
+		for (Iterator<Residue> i = inStructureOrder(nodes).iterator(); i.hasNext(); ) {
 			Residue cur = i.next();
 			Residue par = cur.getParent();
 			if (par == null || !nodes.contains(par) || par.isBracket()) {
@@ -1174,11 +1323,13 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 			}
 		}
 
-		// clone roots
+		// clone roots, recording what was copied so that the copies' references to one another - the
+		// ends of a repeat and of a cycle, an antenna's candidate parents - can be made (#340)
+		java.util.Map<Residue, Residue> copies = new java.util.IdentityHashMap<Residue, Residue>();
 		LinkedList<Residue> cloned_roots = new LinkedList<Residue>();
 		HashMap<Residue, Glycan> roots_map = new HashMap<Residue, Glycan>();
 		for (Residue root : roots) {
-			Residue cloned_root = cloneStructure(root, nodes, true);
+			Residue cloned_root = cloneStructure(root, nodes, true, copies);
 			if (!cloned_root.isReducingEnd() || cloned_root.hasChildren()) {
 				cloned_roots.addLast(cloned_root);
 				roots_map.put(cloned_root, findStructureWith(root));
@@ -1203,7 +1354,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 			for (Residue red_antenna : antennae) {
 				if (antennae_map.get(red_antenna) == orig_structure) {
 					assigned_antennae.addLast(red_antenna);
-					ret_structure.addAntenna(cloneStructure(red_antenna, nodes, true));
+					ret_structure.addAntenna(cloneStructure(red_antenna, nodes, true, copies));
 				}
 			}
 /*			for (Iterator<Residue> l = antennae.iterator(); l.hasNext();) {
@@ -1217,14 +1368,30 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 */
 		}
 
-		// create structures from unassigned antennae
+		// create structures from unassigned antennae. The members of a composition are copied as a
+		// composition of them, one for each composition they came from: copied each as a structure of
+		// its own, Hex2 was pasted as two separate Hex, and weighed a water more (#370)
+		HashMap<Glycan, Glycan> compositions = new HashMap<Glycan, Glycan>();
 		for (Residue antenna : antennae) {
 			if (!assigned_antennae.contains(antenna)) {
 				Glycan orig_structure = antennae_map.get(antenna);
+				if (orig_structure != null && orig_structure.isComposition()) {
+					Glycan composition = compositions.get(orig_structure);
+					if (composition == null) {
+						composition = Glycan.createComposition(orig_structure.getMassOptions());
+						compositions.put(orig_structure, composition);
+						ret_structures.add(composition);
+					}
+					composition.addAntenna(cloneStructure(antenna, nodes, false, copies),
+							antenna.getParentLinkage().getBonds());
+					continue;
+				}
 				ret_structures.add(new Glycan(cloneStructure(antenna, nodes,
-						true), false, orig_structure.getMassOptions()));
+						true, copies), false, orig_structure.getMassOptions()));
 			}
 		}
+
+		Residue.relink(copies);
 
 		// remove unmatched repetitions
 		for (Glycan s : ret_structures) {
@@ -1686,8 +1853,9 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 
 		LinkedList<Glycan> parsed = new LinkedList<Glycan>();
 		if (parser instanceof GWSParser) {
-			for (String t : TextUtils.tokenize(str, ";"))
-				parsed.addLast(parser.readGlycan(t,
+			java.util.List<String> each = TextUtils.tokenize(str, ";");
+			for (int i = 0; i < each.size(); i++)
+				parsed.addLast(GWSParser.readNumbered(each.get(i), i, each.size(),
 						theWorkspace.getDefaultMassOptions()));
 		} else
 			parsed.addLast(parser.readGlycan(str,
@@ -1704,10 +1872,10 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 	public LinkedList<Glycan> parseString(String str) throws Exception {
 		// parse structures
 		LinkedList<Glycan> parsed = new LinkedList<Glycan>();
-		for (String t : TextUtils.tokenize(str, ";")) {
-			parsed.addLast(GWSParser.fromString(t,
+		java.util.List<String> each = TextUtils.tokenize(str, ";");
+		for (int i = 0; i < each.size(); i++)
+			parsed.addLast(GWSParser.readNumbered(each.get(i), i, each.size(),
 					theWorkspace.getDefaultMassOptions()));
-		}
 		return parsed;
 	}
 
@@ -1721,8 +1889,9 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 			throws Exception {
 		// parse structures
 		LinkedList<Glycan> parsed = new LinkedList<Glycan>();
-		for (String t : TextUtils.tokenize(str, ";"))
-			parsed.addLast(GWSParser.fromString(t, opt));
+		java.util.List<String> each = TextUtils.tokenize(str, ";");
+		for (int i = 0; i < each.size(); i++)
+			parsed.addLast(GWSParser.readNumbered(each.get(i), i, each.size(), opt));
 		return parsed;
 	}
 
@@ -1739,9 +1908,9 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 
 		// read
 		LinkedList<Node> g_nodes = XMLUtils.findAllChildren(struct_node, "Glycan");
-		for (Node g_node : g_nodes)
-			structures.addLast(Glycan.fromXML(g_node,
-					theWorkspace.getDefaultMassOptions()));
+		for (int i = 0; i < g_nodes.size(); i++)
+			structures.addLast(GWSParser.readNumbered(XMLUtils.getAttribute(g_nodes.get(i), "structure"),
+					i, g_nodes.size(), theWorkspace.getDefaultMassOptions()));
 	}
 
 	/**
@@ -1769,6 +1938,8 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 
 		private GlycanDocument theDocument;
 		private boolean merge;
+		/** How many structures this file has given so far, to name one that cannot be read (#394). */
+		private int structuresRead = 0;
 
 		/**
 		 * Construct a new handler.
@@ -1797,7 +1968,7 @@ public class GlycanDocument extends BaseDocument implements SAXUtils.SAXWriter {
 		protected SAXUtils.ObjectTreeHandler getHandler(String namespaceURI,
 														String localName, String qName) {
 			if (qName.equals(Glycan.SAXHandler.getNodeElementName()))
-				return new Glycan.SAXHandler(new MassOptions());
+				return new Glycan.SAXHandler(new MassOptions(), structuresRead++);
 			return null;
 		}
 

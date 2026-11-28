@@ -66,7 +66,11 @@ public class LinkageTypeOptimizer {
                         && acceptorLinkage.getChildResidue().isSaccharide()
                         && acceptorLinkage.getParentResidue().isSaccharide()) {
                     try {
-                        acceptorLinkage.setParentLinkageType(LinkageType.H_AT_OH);
+                        // A bridge is a saccharide here too, so this is also the bond from a
+                        // monosaccharide to a bridge it carries: made through the hydroxyl, unless
+                        // the bridge takes the hydroxyl's place (#345)
+                        acceptorLinkage.setParentLinkageType(acceptorLinkage.getChildResidue().isBridge()
+                                ? sugarSideOf(acceptorLinkage.getChildResidue()) : LinkageType.H_AT_OH);
                         acceptorLinkage.setChildLinkageType(LinkageType.DEOXY);
                     } catch (Exception e) {
                         LogUtils.report(e);
@@ -85,6 +89,20 @@ public class LinkageTypeOptimizer {
 
         return _glycan;
     }
+
+	/**
+	 * How a monosaccharide is bonded to a bridge it carries, on the monosaccharide's side. A bridge with
+	 * an oxygen in its composition - a phosphate, a sulfate, an anhydro - is made through the
+	 * monosaccharide's hydroxyl, which keeps its oxygen (H_AT_OH). A bridge with none - an imino, *N*,
+	 * a thio, *S* - takes the hydroxyl's place (DEOXY): 1,5-dideoxy-1,5-imino-galactitol is galactitol
+	 * with its 1- and 5-hydroxyls replaced by one NH. Made through the hydroxyls, it was weighed with
+	 * both of their oxygens still there, 32 Da heavy (#345).
+	 */
+	static LinkageType sugarSideOf(Residue _bridge) {
+		String composition = (_bridge == null || _bridge.getType() == null) ? null : _bridge.getType().getComposition();
+		if (composition != null && !composition.isEmpty() && !composition.contains("O")) return LinkageType.DEOXY;
+		return LinkageType.H_AT_OH;
+	}
 
 	private LinkageType getSubstituentLinkageType(Residue res) {
 		// O-type and P/S-type substituents both attach through an oxygen (the

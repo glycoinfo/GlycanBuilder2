@@ -20,8 +20,61 @@ public class GlycanToWURCSGraph {
 	public WURCSGraph getGraph() {
 		return this.graph;
 	}
+
+	/**
+	 * Refuse a residue that continues the chain after an internal repeat at a carbon other than the one
+	 * the repeat closes on, saying so (#269).
+	 *
+	 * <p>WURCS writes the chain after an internal repeat as bonded to the repeat's last residue at the
+	 * carbon the repeat closes on - a4-b1_b4-c1_b1-b4~n - which in the last unit is free. Any other
+	 * bond to a residue of the repeat is part of every unit. So [Glc(b1-6)Glc]n with a Glc β1-3 on the
+	 * last unit's Glc was written c3-d1 beside b1-c6~n, and read back as a Glc on every unit: another
+	 * structure, without a word. WURCS has no way to say "on the last unit only"; it is not written.
+	 */
+	static void refuseAChainAfterARepeatElsewhere(Glycan _glycan) throws WURCSExchangeException {
+		for (Residue end : _glycan.getAllResidues()) {
+			if (!end.isEndRepetition() || end.getParentLinkage() == null) continue;
+			String closesOn = end.getParentLinkage().getParentPositionsString();
+			if (closesOn.contains("?")) continue;
+			for (Linkage after : end.getChildrenLinkages()) {
+				String at = after.getParentPositionsString();
+				if (at.contains("?") || at.equals(closesOn)) continue;
+				Residue last = end.getParent();
+				throw new WURCSExchangeException(after.getChildResidue().getTypeName() + " continues the chain after a repeat"
+						+ " at " + at + " of its last " + (last == null ? "residue" : last.getTypeName()) + ", where the repeat"
+						+ " closes on " + closesOn + ". WURCS can write the chain after a repeat only at the carbon the repeat"
+						+ " closes on; at any other it would be read as a residue on every unit, so it is not written");
+			}
+		}
+	}
 	
+	/**
+	 * Refuse a reduced ketose, saying why (#364): a structure GlycanBuilder2 does not support, as the
+	 * maintainer decided on 2026-11-29.
+	 *
+	 * <p>Reducing a ketose's carbonyl makes that carbon a stereocentre, and the reduction gives it both
+	 * ways round: D-fructose gives D-mannitol and D-glucitol. That pair is no residue GlycanBuilder2 has.
+	 * It was written as the ketose itself - reduced D-Fru as hO122h, reduced Kdo as AOd1122h - which is
+	 * the open-chain sugar, its carbonyl still a carbonyl, and read back as that, two hydrogens lighter
+	 * than what was drawn. With a residue on it, it failed with a NullPointerException.
+	 */
+	static void refuseAReducedKetose(Glycan _glycan) throws WURCSExchangeException {
+		for (Residue residue : _glycan.getAllResidues()) {
+			if (!residue.isSaccharide() || !residue.isAlditol() || residue.getType() == null) continue;
+			char carbonyl = residue.getType().getAnomericCarbon();
+			if (carbonyl == '1' || carbonyl < '1' || carbonyl > '9') continue;
+			String name = (residue.getChirality() == 'D' || residue.getChirality() == 'L')
+					? residue.getChirality() + "-" + residue.getTypeName() : residue.getTypeName();
+			throw new WURCSExchangeException(name + " is drawn reduced, and a reduced ketose is not one compound:"
+					+ " reducing its carbonyl at C" + carbonyl + " gives that carbon both configurations, a pair"
+					+ " GlycanBuilder2 has no residue for. It is not written; written as the ketose, it read back"
+					+ " as the open-chain sugar, two hydrogens lighter");
+		}
+	}
+
 	public void start(Glycan a_oGlycan) throws Exception {
+		refuseAReducedKetose(a_oGlycan);
+		refuseAChainAfterARepeatElsewhere(a_oGlycan);
 		GlycanVisitorAnalyzeForWURCSGraph a_uGVAWG = new GlycanVisitorAnalyzeForWURCSGraph();
 		
 		a_uGVAWG.start(a_oGlycan);

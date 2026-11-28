@@ -110,7 +110,7 @@ public class LinkageToWURCSEdge {
 		if(_linkage.getBonds().size() == 1) {
 			int mapPos = _isParent ? this.mapPos4Parent : this.mapPos4Child;
 			ArrayList<Integer> positions = _isParent ?
-				this.charToInteger(_linkage.getParentPositions()) : this.charToInteger(_linkage.getChildPositions());
+				this.charToInteger(onCarbons(_linkage.getParentResidue(), _linkage.getParentPositions())) : this.charToInteger(_linkage.getChildPositions());
 			WURCSEdge a_oEdge = this.makeWURCSEdge(positions, mapPos);
 			edges.add(a_oEdge);
 
@@ -118,7 +118,7 @@ public class LinkageToWURCSEdge {
 		}		
 		
 		// bridge substituent
-		ArrayList<Integer> parentPositions = charToInteger(_linkage.getBonds().get(0).getParentPositions());
+		ArrayList<Integer> parentPositions = charToInteger(onCarbons(_linkage.getParentResidue(), _linkage.getBonds().get(0).getParentPositions()));
 		ArrayList<Integer> childPositions = charToInteger(_linkage.getBonds().get(1).getParentPositions());
 		WURCSEdge parentEdge = this.makeWURCSEdge(parentPositions, this.mapPos4Parent);
 		WURCSEdge childEdge = this.makeWURCSEdge(childPositions, this.mapPos4Child);
@@ -182,6 +182,19 @@ public class LinkageToWURCSEdge {
 		this.childRes = this.childLinkage.getChildResidue();
 	}
 	
+	/** Positions on a residue as carbons: a group on the nitrogen, N, is on the amine's carbon (#222). */
+	private static ArrayList<Character> onCarbons(Residue _residue, Collection<Character> _positions) {
+		ArrayList<Character> carbons = new ArrayList<Character>();
+		for (Character position : _positions) carbons.add(AminePosition.orAsItIs(_residue, position));
+		return carbons;
+	}
+
+	private static char[] onCarbons(Residue _residue, char[] _positions) {
+		char[] carbons = new char[_positions.length];
+		for (int i = 0; i < _positions.length; i++) carbons[i] = AminePosition.orAsItIs(_residue, _positions[i]);
+		return carbons;
+	}
+
 	private ArrayList<Integer> charToInteger(Collection<Character> a_cPositions) {
 		ArrayList<Integer> a_aPositions = new ArrayList<Integer>();
 		for(Character a_cPos : a_cPositions) {

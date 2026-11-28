@@ -59,6 +59,9 @@ public enum CompositionResidue {
 	/** Pentose. */
 	PEN("Pen", Superclass.PEN, 1, 6),
 
+	/** 4-deoxy pentose, a pyranose: with no oxygen at carbon 4 it cannot close a furanose (#220). */
+	DPEN4("4dPen", Superclass.PEN, 1, 6, mods(deoxy(4)), substs()),
+
 	/** Hexose. */
 	HEX("Hex", Superclass.HEX, 1, 6),
 
@@ -70,6 +73,12 @@ public enum CompositionResidue {
 
 	/** Hexuronic acid. */
 	HEXA("HexA", Superclass.HEX, 1, 6, mods(acid(6)), substs()),
+
+	/**
+	 * Methyl hexose, with its methyl on oxygen 4 as glycompconverter has it - not on 3, as
+	 * GlycanBuilder2's own MeH row says - so that it writes the composition GlyTouCan holds (#220).
+	 */
+	MEHEX("4MeHex", Superclass.HEX, 1, 6, mods(), substs(oMethyl(4))),
 
 	/** 6-deoxy hexose. */
 	DHEX("dHex", Superclass.HEX, 1, 6, mods(deoxy(6)), substs()),
@@ -159,14 +168,18 @@ public enum CompositionResidue {
 	 * The translation belongs here, which is also where glycanbuilder2web has kept its own copy of it
 	 * and why that application was unaffected.
 	 *
-	 * <p>Only names that differ are listed. The other eleven residues the composition dialog offers are
-	 * spelled the same on both sides and are found by the loop above.
+	 * <p>Only names that differ are listed: the sialic acids, and MeH and dPen, which
+	 * glycompconverter calls 4MeHex and 4dPen (#220). The other residues the composition
+	 * dialog offers are spelled the same on both sides and are found by the loop above.
 	 */
 	private static final Map<String, CompositionResidue> BY_RESIDUE_TYPE_NAME;
 	static {
 		Map<String, CompositionResidue> translated = new HashMap<String, CompositionResidue>();
 		translated.put("neuac", NEU5AC);
 		translated.put("neugc", NEU5GC);
+		translated.put("meh", MEHEX);
+		translated.put("mehex", MEHEX);
+		translated.put("dpen", DPEN4);
 
 		BY_RESIDUE_TYPE_NAME = Collections.unmodifiableMap(translated);
 	}
@@ -272,6 +285,11 @@ public enum CompositionResidue {
 
 	private static CoreModification acid(int position) {
 		return new CoreModification(ModificationType.ACID, position);
+	}
+
+	/** An O-methyl ether, on the oxygen at that position. */
+	private static CoreSubstituent oMethyl(int position) {
+		return new CoreSubstituent(SubstituentType.METHYL, LinkageType.H_AT_OH, position);
 	}
 
 	/** An amino group replaces a hydrogen, so it is linked deoxy rather than through an oxygen. */

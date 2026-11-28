@@ -161,7 +161,11 @@ public class GlycanVisitorAnalyzeForWURCSGraph implements GlycanVisitor {
 			
 			if(a_oParent.isEndRepetition()) {
 				a_oParent = a_oParent.getParent();
-				this.a_aGlycosidicLinkages.add(new Linkage(a_oParent, a_oChild, a_oChild.getParentLinkage().getBonds()));
+				// a repeat after a repeat is bonded to the first residue of its unit, just below; bonded
+				// to its start marker as well, the residue had two bonds at one carbon and the WURCS was
+				// invalid (#269)
+				if(!a_oChild.isStartRepetition())
+					this.a_aGlycosidicLinkages.add(new Linkage(a_oParent, a_oChild, a_oChild.getParentLinkage().getBonds()));
 			}
 			
 			if(a_oChild.isStartRepetition()) {
@@ -229,7 +233,8 @@ public class GlycanVisitorAnalyzeForWURCSGraph implements GlycanVisitor {
 			String[] subNotations = unit.split("\\*");
 			for(Linkage linkage : _residue.getChildrenLinkages()) {
 				if(linkage.getChildResidue().isSubstituent()) {
-					if(linkage.getParentPositionsSingle() == subNotations[0].charAt(0)) {
+					// a group drawn on the nitrogen, position N, is on the amine's carbon (#222)
+					if(AminePosition.orAsItIs(_residue, linkage.getParentPositionsSingle()) == subNotations[0].charAt(0)) {
 						subNotations[1] = subNotations[1] + linkage.getChildResidue().getTypeName();
 						this.a_aArrangedSubstituent.add(linkage);
 					}

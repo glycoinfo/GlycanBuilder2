@@ -14,12 +14,17 @@
 
 package org.glycoinfo.application.glycanbuilder.composition;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 import org.eurocarbdb.MolecularFramework.sugar.GlycoEdge;
+import org.eurocarbdb.MolecularFramework.sugar.GlycoNode;
 import org.eurocarbdb.MolecularFramework.sugar.Monosaccharide;
 import org.eurocarbdb.MolecularFramework.sugar.Substituent;
 import org.eurocarbdb.MolecularFramework.sugar.Sugar;
+import org.eurocarbdb.MolecularFramework.sugar.UnderdeterminedSubTree;
 import org.glycoinfo.GlycanFormatconverter.util.exchange.SugarToWURCSGraph.SugarToWURCSGraph;
 import org.glycoinfo.WURCSFramework.util.WURCSFactory;
 
@@ -56,7 +61,20 @@ public final class CompositionToWURCS {
 	 * @throws Exception If the counts do not make a structure the encoder accepts.
 	 */
 	public static String encode(Map<CompositionResidue, Integer> counted) throws Exception {
-		Sugar composition = asSugar(counted);
+		return encode(counted, Collections.<CompositionSubstituent, Integer>emptyMap());
+	}
+
+	/**
+	 * @param counted How many of each residue, in any order. Zero and negative counts are ignored.
+	 * @param substituents How many of each substituent counted on its own, on residues and at
+	 *            positions the composition does not say (#220).
+	 * @return Returns composition WURCS, or null when no residue was counted.
+	 * @throws IllegalArgumentException If substituents are counted with no residue to sit on.
+	 * @throws Exception If the counts do not make a structure the encoder accepts.
+	 */
+	public static String encode(Map<CompositionResidue, Integer> counted,
+			Map<CompositionSubstituent, Integer> substituents) throws Exception {
+		Sugar composition = asSugar(counted, substituents);
 		if (composition.getNodes().isEmpty()) return null;
 
 		SugarToWURCSGraph toGraph = new SugarToWURCSGraph();
@@ -78,6 +96,21 @@ public final class CompositionToWURCS {
 	 * @throws Exception If the parts do not make one.
 	 */
 	static Sugar asSugar(Map<CompositionResidue, Integer> counted) throws Exception {
+		return asSugar(counted, Collections.<CompositionSubstituent, Integer>emptyMap());
+	}
+
+	/**
+	 * The composition with its substituents counted on their own, each joined to "one of these
+	 * residues, at a position not known", as glycompconverter builds them.
+	 *
+	 * @param counted How many of each residue.
+	 * @param substituents How many of each substituent.
+	 * @return Returns the structure.
+	 * @throws IllegalArgumentException If substituents are counted with no residue to sit on.
+	 * @throws Exception If the parts do not make one.
+	 */
+	static Sugar asSugar(Map<CompositionResidue, Integer> counted,
+			Map<CompositionSubstituent, Integer> substituents) throws Exception {
 		Sugar composition = new Sugar();
 
 		for (Map.Entry<CompositionResidue, Integer> each : counted.entrySet()) {
@@ -93,6 +126,24 @@ public final class CompositionToWURCS {
 					GlycoEdge edge = carried.asEdge();
 					composition.addNode(sugar, edge, substituent);
 				}
+			}
+		}
+
+		List<Monosaccharide> parents = new ArrayList<Monosaccharide>();
+		for (GlycoNode node : composition.getNodes())
+			if (node instanceof Monosaccharide) parents.add((Monosaccharide) node);
+
+		for (Map.Entry<CompositionSubstituent, Integer> each : substituents.entrySet()) {
+			int howMany = (each.getValue() == null) ? 0 : each.getValue();
+			if (howMany > 0 && parents.isEmpty())
+				throw new IllegalArgumentException(
+						each.getKey().substituentName() + " with no monosaccharide to sit on");
+
+			for (int made = 0; made < howMany; made++) {
+				UnderdeterminedSubTree subTree = each.getKey().asSubTree();
+				composition.addUndeterminedSubTree(subTree);
+				for (Monosaccharide parent : parents)
+					composition.addUndeterminedSubTreeParent(subTree, parent);
 			}
 		}
 

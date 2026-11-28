@@ -27,6 +27,11 @@ class RingBridge {
 			if(!bridge.getStartPositions().contains(anomericPosition)) continue;
 			if(bridge.getEndPositions().isEmpty()) continue;
 
+			// a closure to a carbon not known, 1-?, is the ring of a size not known: a bridge from the
+			// anomeric carbon with no MAP is nothing else. It was taken for a 1,? anhydro besides the
+			// ring, and written back as a second 1-? (#259).
+			if(bridge.getEndPositions().get(0) == null || bridge.getEndPositions().get(0) < 1) return bridge;
+
 			int span = span(bridge, anomericPosition);
 			if(span == 4 || span == 5) return bridge;
 		}

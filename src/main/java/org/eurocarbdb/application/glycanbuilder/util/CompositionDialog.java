@@ -51,9 +51,73 @@ public class CompositionDialog extends EscapeDialog implements ActionListener, C
 		setActions();
 		enableItems();
 		this.resetData();		
+		layOutWhatCanBeWritten();
 		
 		// set location
 		setLocationRelativeTo(parent);
+		pack();
+	}
+
+	/**
+	 * Lay out only the counts whose residue a composition can be written in, leaving out dPen, MeHex,
+	 * dHexA and the two lactonised sialic acids (#220, #315). A count that is set but cannot be
+	 * written gives a composition that cannot be saved; the maintainer had them withdrawn until they
+	 * can be (2026-11-11). EveryCompositionTheDialogOffersWritesTest holds the same list.
+	 *
+	 * <p>Laid out afresh rather than hidden: the generated layout shares its rows between the two
+	 * columns, and hiding a count left the columns out of step, a count with nothing beside it. The
+	 * counts left out are kept at nought, so one left in the settings by an earlier version is not
+	 * added unseen.
+	 */
+	private void layOutWhatCanBeWritten() {
+		JComponent[][] left = { { jLabel4, jLabel8, field_pen }, { jLabel9, jLabel10, field_hex },
+				{ jLabel11, jLabel13, field_hep }, { jLabel14, jLabel15, field_hexn }, { jLabel16, jLabel2, field_hexnac },
+				{ jLabel19, jLabel20, field_dhex }, { jLabel21, jLabel22, field_ddhex } };
+		JComponent[][] right = { { jLabel23, jLabel24, field_hexa }, { jLabel30, jLabel31, field_neu5gc },
+				{ jLabel32, jLabel33, field_neu5ac }, { jLabel40, jLabel41, field_kdo }, { jLabel42, jLabel43, field_kdn },
+				{ jLabel44, jLabel45, field_mur } };
+		for (JSpinner withheld : new JSpinner[] { field_dpen, field_mehex, field_dhexa, field_neu5gclac, field_neu5aclac })
+			withheld.setValue(0);
+
+		java.awt.Container pane = getContentPane();
+		pane.removeAll();
+		pane.setLayout(new java.awt.GridBagLayout());
+		java.awt.GridBagConstraints c = new java.awt.GridBagConstraints();
+		c.anchor = java.awt.GridBagConstraints.WEST;
+		c.insets = new java.awt.Insets(3, 10, 3, 4);
+		for (int column = 0; column < 2; column++) {
+			JComponent[][] rows = (column == 0) ? left : right;
+			for (int row = 0; row < rows.length; row++) {
+				for (int part = 0; part < 3; part++) {
+					c.gridx = column * 3 + part;
+					c.gridy = row;
+					c.weightx = (part == 0) ? 1 : 0;
+					pane.add(rows[row][part], c);
+				}
+			}
+		}
+
+		c.gridx = 0;
+		c.gridy = Math.max(left.length, right.length);
+		c.gridwidth = 6;
+		c.weightx = 1;
+		c.fill = java.awt.GridBagConstraints.HORIZONTAL;
+		c.insets = new java.awt.Insets(8, 10, 4, 10);
+		pane.add(jSeparator2, c);
+
+		JPanel buttons = new JPanel(new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 16, 0));
+		java.awt.Dimension size = new java.awt.Dimension(
+				Math.max(button_ok.getPreferredSize().width, button_cancel.getPreferredSize().width),
+				Math.max(button_ok.getPreferredSize().height, button_cancel.getPreferredSize().height));
+		button_ok.setPreferredSize(size);
+		button_cancel.setPreferredSize(size);
+		buttons.add(button_ok);
+		buttons.add(button_cancel);
+		c.gridy++;
+		c.insets = new java.awt.Insets(4, 10, 10, 10);
+		pane.add(buttons, c);
+		// moved into a panel of their own, OK is made the default button again
+		getRootPane().setDefaultButton(button_ok);
 		pack();
 	}
 
@@ -65,10 +129,8 @@ public class CompositionDialog extends EscapeDialog implements ActionListener, C
 		tp.addComponent(field_hep);
 		tp.addComponent(field_hexn);
 		tp.addComponent(field_hexnac);
-		tp.addComponent(field_dpen);
 		tp.addComponent(field_dhex);
 		tp.addComponent(field_ddhex);
-		tp.addComponent(field_mehex);
 
 		/*tp.addComponent(field_or1);
     tp.addComponent(field_or2);
@@ -82,11 +144,8 @@ public class CompositionDialog extends EscapeDialog implements ActionListener, C
 		 */
 
 		tp.addComponent(field_hexa);
-		tp.addComponent(field_dhexa);
 		tp.addComponent(field_neu5gc);
 		tp.addComponent(field_neu5ac);
-		tp.addComponent(field_neu5gclac);
-		tp.addComponent(field_neu5aclac);
 		tp.addComponent(field_kdo);
 		tp.addComponent(field_kdn);
 		tp.addComponent(field_mur);

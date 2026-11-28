@@ -55,6 +55,17 @@ public class GlycanSelection implements Transferable {
 	static public final DataFlavor jpegFlavor;
 	/** Clipboard format for images in SVG format */
 	static public final DataFlavor svgFlavor;
+
+	/**
+	 * The structures themselves, for a paste within this application (#370).
+	 *
+	 * <p>Copy and paste went through the GWS text, and GWS does not carry everything a structure
+	 * holds: stereo read as partly or relatively known, the candidate parents of an antenna, a
+	 * probability, a cycle. Pasted, they came back in their general form, or not at all. A paste in
+	 * the application that made the copy takes the structures as they were copied; anything else
+	 * still gets the text and the images.
+	 */
+	static public final DataFlavor structuresFlavor;
 	/*
 	 * static public final DataFlavor pdfFlavor; static public final DataFlavor
 	 * epsFlavor;
@@ -75,6 +86,9 @@ public class GlycanSelection implements Transferable {
 				"image/jpeg");
 		imageFlavors[5] = svgFlavor = new DataFlavor("image/svg+xml",
 				"image/svg+xml");
+
+		structuresFlavor = new DataFlavor(DataFlavor.javaJVMLocalObjectMimeType + ";class=java.util.List",
+				"GlycanBuilder2 structures");
 
 		dataFlavors = new DataFlavor[1];
 		dataFlavors[0] = stringFlavor = DataFlavor.stringFlavor;
@@ -123,7 +137,7 @@ public class GlycanSelection implements Transferable {
 	public GlycanSelection(GlycanRenderer _glycanRenderer,
 			Collection<Glycan> _structures) {
 		theGlycanRenderer = _glycanRenderer;
-		theStructures = _structures;
+		theStructures = asCopied(_structures);
 	}
 
 	/**
@@ -140,7 +154,46 @@ public class GlycanSelection implements Transferable {
 			Collection<Glycan> _structures) {
 		theData = _data;
 		theGlycanRenderer = _glycanRenderer;
-		theStructures = _structures;
+		theStructures = asCopied(_structures);
+	}
+
+	/**
+	 * The structures as they are now. The selection is what was copied, and what is in the document
+	 * can change after it: copying the document's structures themselves, the text and the pictures
+	 * were made only when asked for, from whatever the structures had become by then.
+	 */
+	private static Collection<Glycan> asCopied(Collection<Glycan> _structures) {
+		if (_structures == null) return null;
+		java.util.List<Glycan> copied = new java.util.ArrayList<Glycan>();
+		for (Glycan structure : _structures)
+			copied.add(structure == null ? null : structure.clone());
+		return copied;
+	}
+
+	/**
+	 * The structures a transfer holds as structures, each a new copy so that pasting twice gives two
+	 * structures, or null when it holds none - text from another application, or a picture.
+	 *
+	 * @param _transfer What the clipboard holds.
+	 * @return Returns new copies of the structures, or null.
+	 */
+	@SuppressWarnings("unchecked")
+	public static java.util.List<Glycan> structuresIn(Transferable _transfer) {
+		if (_transfer == null || structuresFlavor == null || !_transfer.isDataFlavorSupported(structuresFlavor))
+			return null;
+		try {
+			return (java.util.List<Glycan>) _transfer.getTransferData(structuresFlavor);
+		} catch (Exception notThere) {
+			return null;
+		}
+	}
+
+	/** New copies of the structures copied, for a paste. */
+	private java.util.List<Glycan> pastedCopies() {
+		java.util.List<Glycan> copies = new java.util.ArrayList<Glycan>();
+		for (Glycan structure : theStructures)
+			if (structure != null) copies.add(structure.clone());
+		return copies;
 	}
 
 	/**
@@ -155,6 +208,9 @@ public class GlycanSelection implements Transferable {
 			for (int i = 0; i < dataFlavors.length; i++)
 				supportedFlavors.add(dataFlavors[i]);
 		}
+
+		if (theStructures != null && structuresFlavor != null)
+			supportedFlavors.add(structuresFlavor);
 
 		if (theStructures != null && theGlycanRenderer != null) {
 			for (int i = 0; i < imageFlavors.length; i++)
@@ -179,6 +235,9 @@ public class GlycanSelection implements Transferable {
 			}
 		}
 
+		if (theStructures != null && parFlavor.equals(structuresFlavor))
+			return true;
+
 		if (theStructures != null && theGlycanRenderer != null) {
 			for (int i = 0; i < imageFlavors.length; i++) {
 				if (parFlavor.equals(imageFlavors[i]))
@@ -198,6 +257,9 @@ public class GlycanSelection implements Transferable {
 			if (parFlavor.equals(stringFlavor))
 				return theData.toString();
 		}
+
+		if (theStructures != null && parFlavor.equals(structuresFlavor))
+			return pastedCopies();
 
 		if (theStructures != null && theGlycanRenderer != null) {
 			// if( parFlavor.equals(stringFlavor) )
@@ -279,9 +341,12 @@ public class GlycanSelection implements Transferable {
 	 * stored in the object
 	 */
 	public String getSVG() {
+		// whether to show the masses, and then whether to show the reducing end: it was given the first
+		// twice, so the SVG on the clipboard showed the reducing end only when the masses were shown,
+		// unlike every bitmap it puts there (#231)
 		return SVGUtils.getVectorGraphics((GlycanRendererAWT) theGlycanRenderer, theStructures,
 				theGlycanRenderer.getGraphicOptions().SHOW_MASSES,
-				theGlycanRenderer.getGraphicOptions().SHOW_MASSES);
+				theGlycanRenderer.getGraphicOptions().SHOW_REDEND);
 	}
 
 	/*

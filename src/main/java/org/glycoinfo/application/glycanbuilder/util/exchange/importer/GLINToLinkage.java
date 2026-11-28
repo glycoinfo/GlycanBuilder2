@@ -137,7 +137,7 @@ public class GLINToLinkage {
 		this.analyzeDonorGLIN(_gres);
 	}
 
-	private void analyzeAcceptorGLIN(GRES _gres) {
+	private void analyzeAcceptorGLIN(GRES _gres) throws Exception {
 		for(GLIN acceptorGLIN : _gres.getAcceptorGLINs()) {
 			//if(acceptorGLIN.isRepeat()) this.analyzeStartSideRep(acceptorGLIN);
 			if(acceptorGLIN.isRepeat()) this.analyzeAcceptorSideRep(acceptorGLIN);
@@ -156,7 +156,7 @@ public class GLINToLinkage {
 		}
 	}
 
-	private void analyzeDonorGLIN(GRES _gres) {
+	private void analyzeDonorGLIN(GRES _gres) throws Exception {
 		for(GLIN donorGLIN : _gres.getDonorGLINs()) {
 			if(donorGLIN.getDonor().size() > 1) continue;
 			//if(donorGLIN.isRepeat()) this.analyzeEndSideRep(donorGLIN);
@@ -174,12 +174,12 @@ public class GLINToLinkage {
 		if(acceptorLinkages.size() == 2) checkDualLinkage(getParentLinkage(), _gres);
 	}
 
-	protected void analyzeGLINforChild(GLIN _acceptorGLIN) {
+	protected void analyzeGLINforChild(GLIN _acceptorGLIN) throws Exception {
 		char[] a_caPositions = this.makeLinkagePosiiton(_acceptorGLIN.getAcceptorPositions());
 		this.donorLinkages.add(new Linkage(this.acceptorRES, null, a_caPositions));
 	}
 
-	protected void analyzeGLINforParent(GLIN _donorGLIN) {
+	protected void analyzeGLINforParent(GLIN _donorGLIN) throws Exception {
 		char[] a_caPositions = this.makeLinkagePosiiton(_donorGLIN.getAcceptorPositions());
 		char[] a_cdPositions = this.makeLinkagePosiiton(_donorGLIN.getDonorPositions());
 		Linkage linkage = null;
@@ -190,19 +190,16 @@ public class GLINToLinkage {
 			this.acceptorLinkages.add(linkage);
 		}else {
 			SUBSTAnalyzer a_oSUBSTAnalyzer = new SUBSTAnalyzer();
-			try {
-				Residue a_oSUB = a_oSUBSTAnalyzer.MAPToBridge(_donorGLIN);
-				linkage = new Linkage(a_oSUB, this.acceptorRES, a_cdPositions);
-				linkage.setAnomericCarbon(a_cdPositions[0]);
-				//linkage.setSubstituent(a_oSUB);
+			
+			Residue a_oSUB = a_oSUBSTAnalyzer.MAPToBridge(_donorGLIN);
+			linkage = new Linkage(a_oSUB, this.acceptorRES, a_cdPositions);
+			linkage.setAnomericCarbon(a_cdPositions[0]);
+			//linkage.setSubstituent(a_oSUB);
 
-				this.a_oBridgeLinkage = linkage;
+			this.a_oBridgeLinkage = linkage;
 
-				linkage = new Linkage(null, a_oSUB, a_caPositions);
-				this.acceptorLinkages.add(linkage);
-			} catch (Exception e) {
-				LogUtils.report(e);
-			}
+			linkage = new Linkage(null, a_oSUB, a_caPositions);
+			this.acceptorLinkages.add(linkage);
 		}
 
 		// probability annotation
@@ -227,7 +224,7 @@ public class GLINToLinkage {
 	 * definite position where the sequence had said it was unknown. Here the sides are read for
 	 * what they are - the acceptor side names the antenna, the donor side its candidates.</p>
 	 */
-	private void analyzeReverseAntennaGLIN(GLIN _acceptorGLIN) {
+	private void analyzeReverseAntennaGLIN(GLIN _acceptorGLIN) throws Exception {
 		if(_acceptorGLIN.getDonor().size() < 2) {
 			// not an antenna after all: leave it to the reading that does not swap the sides
 			this.analyzeGLINforParent(_acceptorGLIN);
@@ -292,8 +289,17 @@ public class GLINToLinkage {
 		} else { // for start-side rep
 			this.startGRES = acceptorGRES;
 
-			// StartRep->sugar
-			this.startSideRepLinkage = new Linkage(null, this.acceptorRES, a_caPositions);
+			// StartRep->sugar. A repeat of one residue is bonded to what it hangs on by the bond into
+			// it, not by the repeat's own: G42488IE's [Rha]n hangs on b6, b6-c1, and repeats at 3,
+			// c1-c3~n. Given the 3, its start marker hung on the wrong carbon, outside the repeat
+			// before it, and it was written back b3-c1 (#269) - as analyzeDonorSideRep does for a
+			// repeat of more than one.
+			char[] hangsOn = a_caPositions;
+			if (acceptorGRES == donorGRES) {
+				GLIN into = this.getDonorSideGLIN();
+				if (into != null && !into.isRepeat()) hangsOn = this.makeLinkagePosiiton(into.getAcceptorPositions());
+			}
+			this.startSideRepLinkage = new Linkage(null, this.acceptorRES, hangsOn);
 			this.startSideRepLinkage.setAnomericCarbon(a_cdPositions[0]);
 		}
 	}
@@ -348,8 +354,12 @@ public class GLINToLinkage {
 
 			this.startGRES = acceptorGRES;
 
-			// sub->EndRep or sugar->EndRep
-			this.endSideRepLinkage = new Linkage(null, bridge, a_cdPositions);
+			// sub->EndRep or sugar->EndRep. The end marker hangs on the carbon the next unit is bonded
+			// to, which in a repeat of one residue, a1-a4~n, is the acceptor's 4 and not the donor's
+			// 1: placed at 1, the residue's own anomeric carbon, it was refused, and the repeat was
+			// read as one residue and written back as one, the ~n gone (#269)
+			char[] closesOn = (acceptorGRES == donorGRES) ? a_caPositions : a_cdPositions;
+			this.endSideRepLinkage = new Linkage(null, bridge, closesOn);
 			this.endSideRepLinkage.setAnomericCarbon(a_cdPositions[0]);
 		}
 	}
@@ -435,13 +445,20 @@ public class GLINToLinkage {
 	public void setGRESs(GRES _gres) {
 		this.donorGRES = _gres;
 
-		// for reverse antenna
-		if(!_gres.getAcceptorGLINs().isEmpty()) {
-			LinkedList<GLIN> a_aGLINs = _gres.getAcceptorGLINs();
-			if(a_aGLINs.getFirst().getDonor().contains(_gres)) {
-				this.acceptorGRESs.addAll(a_aGLINs.getFirst().getDonor());
+		// for reverse antenna. Not a repeat's bond: a repeat of one residue, b1-b4~n, has the residue as
+		// its own donor, and it was counted as its own parent besides its real one - two parents, so
+		// it was attached to neither and dropped (#264)
+		GLIN firstAccepted = null;
+		for(GLIN a_oAGLIN : _gres.getAcceptorGLINs()) {
+			if(a_oAGLIN.isRepeat()) continue;
+			firstAccepted = a_oAGLIN;
+			break;
+		}
+		if(firstAccepted != null) {
+			if(firstAccepted.getDonor().contains(_gres)) {
+				this.acceptorGRESs.addAll(firstAccepted.getDonor());
 			}else {
-				for(GRES a_oDGRES : a_aGLINs.getFirst().getDonor()) {
+				for(GRES a_oDGRES : firstAccepted.getDonor()) {
 					if(a_oDGRES.getID() - _gres.getID() == 1) continue;
 					this.acceptorGRESs.add(a_oDGRES);
 				}

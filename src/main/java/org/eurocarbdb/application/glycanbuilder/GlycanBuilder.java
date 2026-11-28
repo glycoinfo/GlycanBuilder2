@@ -20,6 +20,7 @@
 
 package org.eurocarbdb.application.glycanbuilder;
 
+import org.glycoinfo.application.glycanbuilder.dataset.OfferedTypes;
 import java.io.*;
 
 import javax.swing.*;
@@ -338,7 +339,7 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
 		new_menu.add(theActionManager.get("empty"));
 		for( String superclass : CoreDictionary.getSuperclasses() ) {
 			JMenu class_menu = new JMenu(superclass);        
-			for( CoreType core_type : CoreDictionary.getCores(superclass) ) 
+			for( CoreType core_type : OfferedTypes.cores(CoreDictionary.getCores(superclass)) ) 
 				class_menu.add(theActionManager.get("new=" + core_type.getName()));        
 
 			if( class_menu.getItemCount()>0 ) new_menu.add(class_menu);
@@ -667,7 +668,10 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
 		if( doc==null ) return false;
 
 		Boolean saved = saveToItsOwnFile(doc);
-		if( saved!=null ) return saved.booleanValue();
+		if( saved!=null ) {
+			if( saved.booleanValue() ) warnOfWhatGWSLost(doc);
+			return saved.booleanValue();
+		}
 
 		// non e' stato possibile salvare il file nella posizione da cui e' stato aperto. Richiedo il salvataggio con scelta file
 		if( ask_filename ) return onSaveAs(doc);
@@ -696,6 +700,27 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
 			return null;
 
 		return Boolean.valueOf(doc.save(cur.getAbsolutePath()));
+	}
+
+	/**
+	 * Say what the file just saved does not hold: a monosaccharide read from WURCS keeps the skeleton it
+	 * was read from - relative stereo the way round it was written (#286), the known centres among
+	 * unknown ones (#265) - only until the document is closed, as GWS has no place for it. Reopened
+	 * from the file, it is exported to WURCS otherwise.
+	 */
+	private void warnOfWhatGWSLost(BaseDocument doc) {
+		if( !(doc instanceof GlycanDocument) ) return;
+		java.util.List<String> lost = org.glycoinfo.application.glycanbuilder.converterWURCS2.SkeletonInGWS
+				.lostOnSave(((GlycanDocument) doc).getStructures());
+		if( lost.isEmpty() ) return;
+
+		StringBuilder message = new StringBuilder("Saved. The file does not hold the stereo of these monosaccharides\n"
+				+ "exactly as it was read from WURCS:\n\n");
+		for( String one : lost ) message.append("    ").append(one).append('\n');
+		message.append("\nReopened from this file, they will be exported to WURCS as shown on the right.\n"
+				+ "To keep them as read, export to WURCS before closing this document.");
+		JOptionPane.showMessageDialog(this, message.toString(), "Stereo not saved as read",
+				JOptionPane.WARNING_MESSAGE);
 	}
 
 	/**
@@ -733,6 +758,7 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
 
 			// salvo il documento su file
 			if( !doc.save(filename) ) return false;
+			warnOfWhatGWSLost(doc);
 
 			// update history
 			theWorkspace.getFileHistory().add(filename,doc.getName());     
@@ -822,6 +848,7 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
 
 				setLastExportedFile(filename);
 				warnAboutExportFailures(theDoc, format);
+				warnOfAglyconsLeftOut(theDoc, format);
 				return true;
 			}
 			else if( SVGUtils.export((GlycanRendererAWT) theWorkspace.getGlycanRenderer(),filename,theDoc.getStructures(),theWorkspace.getGraphicOptions().SHOW_MASSES,theWorkspace.getGraphicOptions().SHOW_REDEND,format) ) {
@@ -855,6 +882,14 @@ public class GlycanBuilder extends JFrame implements ActionListener, BaseDocumen
        compositions exported to a format that can't represent them yet), so a blank
        entry in the file doesn't go unnoticed.
 	 */
+	/** Say that WURCS has left an aglycon out, which nothing in the file shows (#305). */
+	private void warnOfAglyconsLeftOut(GlycanDocument doc, String format) {
+		String warning = org.glycoinfo.application.glycanbuilder.converterWURCS2.AglyconInWURCS
+				.warning(doc.getStructures(), doc.getLastExportFailures(), format);
+		if( warning!=null )
+			JOptionPane.showMessageDialog(this, warning, "Aglycon not exported", JOptionPane.WARNING_MESSAGE);
+	}
+
 	private void warnAboutExportFailures(GlycanDocument doc, String format) {
 		ArrayList<Glycan> failures = doc.getLastExportFailures();
 		if( failures.isEmpty() ) return;

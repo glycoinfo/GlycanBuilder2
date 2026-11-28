@@ -26,6 +26,8 @@ import java.util.Iterator;
 import java.util.TreeMap;
 import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -108,15 +110,34 @@ public class ResidueDictionary {
 		if( ret!=null ) return ret;
 		else ret = checkNoDefinedData(type_name);
 
-		if( type_name.indexOf('=')!=-1 ) {
-			String[] tokens = type_name.split("=");
-			String name = tokens[0];
-			double mass = Double.valueOf(tokens[1].substring(0,tokens[1].length()-1));
-			return ResidueType.createOtherReducingEnd(name,mass);
+		// "name=mass u", up to the last "=", since the name of an aglycon may hold one; and only when
+		// what follows is a mass - a name of someone else's with an "=" in it no longer throws (#305).
+		Matcher named = NAME_AND_MASS.matcher(type_name);
+		if( named.matches() ) {
+			// as stored: the name is escaped already, and NaN is a mass not known
+			return ResidueType.otherReducingEndFromStoredName(named.group(1), Double.valueOf(named.group(2)));
 		}
 
 		if(ret != null) return ret;
 		else return ResidueType.createUnknown(type_name);
+	}
+
+	/** An aglycon's name and its mass as a type's name carries them: "Ser/Thr=87.0320u", "Ser=NaNu". */
+	private static final Pattern NAME_AND_MASS = Pattern.compile("(.+)=(NaN|-?[0-9]+(?:\\.[0-9]+)?)u?");
+
+	/**
+       The reducing end a name stands for: a type of that name, or else the aglycon of that name
+       (#305). A root no dictionary has is an aglycon whose mass is not known, which is how GlycanCore
+       reads one, rather than an unknown residue that weighs nothing and says nothing about it.
+	 */
+	public static ResidueType findReducingEndType(String type_name) {
+		ResidueType ret = findResidueType(type_name);
+		// Only a name no dictionary has. "Unknown" is also the class of Kdo, Mur, Bac and the rest of
+		// SNFG's flat hexagons, which are residues and must stay what they are.
+		if( "Unknown".equals(ret.getSuperclass()) && !hasResidueType(type_name)
+				&& !NonSymbolicResidueDictionary.hasResidueType(type_name) )
+			return ResidueType.createUndefinedReducingEnd(type_name);
+		return ret;
 	}
 
 	/**
@@ -146,6 +167,26 @@ public class ResidueDictionary {
 	 */
 	public static Collection<String> getSuperclasses() {
 		return superclasses;
+	}
+
+	/**
+       The name a residue class is shown by in a menu (#182). "Unknown" is shown as "Others": the
+       class holds the residues SNFG draws as flat hexagons - Bac, Kdo, Dha, Mur, MurNAc, MurNGc, the
+       two manno-heptoses - and the Unknown placeholder. SNFG's "Unknown" is the white flat hexagon
+       alone, a monosaccharide of unknown structure; the coloured ones share its shape and nothing
+       else, and the menu called Kdo unknown. Only the label changes: "Unknown" is still the class's
+       name everywhere it is looked up.
+
+       <p>"Assigned" is shown as "Pentagon", the maintainer's choice (2026-11-11). The class is SNFG's
+       pentagon row - Api, Fru, Tag, Sor, Psi - and the white pentagon placeholder, whose type is
+       itself named "Assigned" (#252): a menu "Assigned" holding a residue "Assigned" read as the
+       placeholder's own heading. "Pentagon" is SNFG's name for the row's shape, and fits every
+       residue in it. Here too only the label changes.
+	 */
+	public static String displayNameOf(String superclass) {
+		if ("Unknown".equals(superclass)) return "Others";
+		if ("Assigned".equals(superclass)) return "Pentagon";
+		return superclass;
 	}
 
 	/**

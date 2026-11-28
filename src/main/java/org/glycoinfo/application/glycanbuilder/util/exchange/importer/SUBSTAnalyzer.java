@@ -23,6 +23,7 @@ import org.glycoinfo.application.glycanbuilder.util.exchange.WURCSToGlycanExcept
 
 import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.List;
 import org.eurocarbdb.application.glycanbuilder.ResidueType;
 import org.glycoinfo.application.glycanbuilder.dataset.SubstituentMAPDictionary;
 
@@ -86,8 +87,14 @@ public class SUBSTAnalyzer {
 		if(_glin.getMAP().equals("")) return null;
 
 		MAPAnalyzer mapAnalyzer = new MAPAnalyzer();
-		mapAnalyzer.start(_glin.getMAP());
+		try {
+			mapAnalyzer.start(_glin.getMAP());
+		} catch (NullPointerException ex) {
+			throw new WURCSToGlycanException("Failed to convert cross-linked substituent: " + _glin.getMAP(), ex);
+		}
 		BaseCrossLinkedTemplate crossTemp = mapAnalyzer.getCrossTemplate();
+		if (crossTemp == null)
+			throw new WURCSToGlycanException("Failed to convert cross-linked substituent: " + _glin.getMAP());
 
 		return new Residue(CrossLinkedSubstituentDictionary.getCrossLinkedSubstituent(crossTemp.getIUPACnotation()));
 	}
@@ -103,7 +110,7 @@ public class SUBSTAnalyzer {
 
 		ResidueType substituentType = SubstituentMAPDictionary.findResidueTypeByMAP(_glin.getMAP());
 		if(substituentType == null)
-			throw new Exception("This MAP is not support in the GlycanBuilder2:" + _glin.getMAP());
+			throw new WURCSToGlycanException(WURCSToGlycanException.badSubstituentMessage,_glin.getMAP());
 
 		return ResidueDictionary.newResidue(substituentType.getName());
 	}
@@ -120,9 +127,32 @@ public class SUBSTAnalyzer {
 		if(entry != null && entry.getOwnMAPs().contains(positions[0] + "*" + _subst.getMAP().substring(1)))
 			return;
 
+		// A bare star is a hydroxyl taken away and nothing put in its place: a deoxy, written as a MAP
+		// where its carbon is not known - "?*", as compositions of dHex have it. It is the residue's,
+		// as the deoxies of #258 are, not a substituent of no kind.
+		if(_subst.getMAP().equals("*")) {
+			_residue.addDeoxy(positions[0] + "*d");
+			return;
+		}
+
 		ResidueType substituentType = SubstituentMAPDictionary.findResidueTypeByMAP(_subst.getMAP());
 		if(substituentType == null)
-			throw new Exception("This MAP is not support in the GlycanBuilder2:" + _subst.getMAP());
+			throw new WURCSToGlycanException(WURCSToGlycanException.badSubstituentMessage,_subst.getMAP());
+
+		// A C-linked group, *C or *CO, here replaces the hydroxyl, as N-linked ones do. On a carbon
+		// whose descriptor has no hydrogen - 5 to 8, X - the hydroxyl stays and the group takes the
+		// hydrogen's place, a branch this builder has no way to hold: read as the other, it weighed
+		// an oxygen wrong and wrote a different skeleton back. Refused, saying so.
+		if("C-type".equals(substituentType.getCompositionClass()) && _subst.getPositions().size() == 1
+				&& _subst.getPositions().getFirst() > 0) {
+			String skeleton = _ms.getSkeletonCode();
+			int at = _subst.getPositions().getFirst();
+			char carbon = (at <= skeleton.length()) ? skeleton.charAt(at - 1) : '?';
+			if("5678X".indexOf(carbon) >= 0)
+				throw new WURCSToGlycanException(skeleton + " has a C-linked " + substituentType.getDescription()
+						+ " on carbon " + at + ", which keeps its hydroxyl (" + carbon + " in WURCS): a branch "
+						+ "GlycanBuilder2 cannot represent");
+		}
 
 		String subNotation = positions[0] + "*" + substituentType.getName();
 
@@ -137,13 +167,17 @@ public class SUBSTAnalyzer {
 			substituentType = SubstituentMAPDictionary.findResidueTypeByMAP(
 					_subst.getMAP().replaceFirst("N", "O"));
 			if(substituentType == null)
-				throw new Exception("This MAP is not support in the GlycanBuilder2:" + _subst.getMAP());
+				throw new WURCSToGlycanException(WURCSToGlycanException.badSubstituentMessage,_subst.getMAP());
 		}
 
 		linkage.setLinkagePositions(positions);
 
 		// set LinkageType
-		linkage.setParentLinkageType(checkLinkageTypeOfMAP(_subst, _ms));
+		try {
+			linkage.setParentLinkageType(checkLinkageTypeOfMAP(_subst, _ms, entry));
+		} catch (StringIndexOutOfBoundsException ex) {
+			throw new WURCSToGlycanException(WURCSToGlycanException.badSubstituentMessage,_subst.getMAP(),ex);			
+		}
 		linkage.setChildLinkageType(LinkageType.NONMONOSACCHARID);
 
 		// set probability annotation
@@ -152,17 +186,21 @@ public class SUBSTAnalyzer {
 		Residue substituent = ResidueDictionary.newResidue(substituentType.getName());
 		this.checkNode(substituent, substituentType.getName());
 		substituent.setParentLinkage(linkage);
-		_residue.addChild(substituent, substituent.getParentLinkage().getBonds());
+		attach(_residue, substituent, substituent.getParentLinkage().getBonds(), String.valueOf(positions));
 	}
 	
 	private void analyzeBRIDGE(BRIDGE _bridge, Residue _residue) throws Exception {
 		Linkage linkage = new Linkage();
 		MAPAnalyzer mapAnalyzer = new MAPAnalyzer();
-		mapAnalyzer.start(_bridge.getMAP().equals("") ? "*O*" : _bridge.getMAP());
+		try {
+			mapAnalyzer.start(_bridge.getMAP().equals("") ? "*O*" : _bridge.getMAP());
+		} catch (NullPointerException ex) {
+			throw new WURCSToGlycanException(WURCSToGlycanException.badSubstituentMessage,(_bridge.getMAP().equals("") ? "*O*" : _bridge.getMAP()),ex);
+		}
 		BaseCrossLinkedTemplate crossTemp = mapAnalyzer.getCrossTemplate();
 
 		if (crossTemp == null)
-			throw new Exception("This MAP is not support in the GlycanBuilder2:" + _bridge.getMAP());
+			throw new WURCSToGlycanException(WURCSToGlycanException.badSubstituentMessage,(_bridge.getMAP().equals("") ? "*O*" : _bridge.getMAP()));
 
 		char[] startPos = this.makePosition(_bridge.getStartPositions());
 		char[] endPos = this.makePosition(_bridge.getEndPositions());
@@ -171,9 +209,76 @@ public class SUBSTAnalyzer {
 		
 		Residue bridge = new Residue(CrossLinkedSubstituentDictionary.getCrossLinkedSubstituent(crossTemp.getIUPACnotation()));
 		this.checkNode(bridge, crossTemp.getIUPACnotation());
-		_residue.addChild(bridge, linkage.getBonds());
+		attach(_residue, bridge, linkage.getBonds(), new String(startPos) + "-" + new String(endPos));
 	}
 	
+	/**
+	 * The carbons of a double bond as the skeleton writes them: "4,5" in a21eEA is "4*e" and "5*E".
+	 * Null when the positions are not two carbons of the skeleton that are each a double-bond carbon of
+	 * known geometry - and when either is a terminal carbon or the anomeric one. A double bond there, a
+	 * glycal's C1=C2, changes what a carbon that is not a CHOH has, which the composition measured here
+	 * does not describe: kept, zZ122h_1-5 weighed a water light. It is read as it was before.
+	 */
+	static List<String> doubleBondCarbons(GRES _gres, String _positions) {
+		String skeleton = _gres.getMS().getCoreStructure().getSkeletonCode();
+		int anomeric = _gres.getMS().getCoreStructure().getAnomericPosition();
+		String[] positions = _positions.split(",");
+		if(positions.length != 2) return null;
+		List<String> carbons = new ArrayList<String>();
+		for(String position : positions) {
+			int carbon;
+			try { carbon = Integer.parseInt(position); } catch (NumberFormatException notACarbon) { return null; }
+			if(carbon <= 1 || carbon >= skeleton.length() || carbon == anomeric) return null;
+			char code = skeleton.charAt(carbon - 1);
+			if(!SkeletonModificationComposition.isDoubleBond(code)) return null;
+			carbons.add(carbon + "*" + code);
+		}
+		return carbons;
+	}
+
+	/**
+	 * Whether this modification is a carbon the skeleton has oxidised beyond what the residue's name says:
+	 * a carboxyl, A, at either end of an alditol's chain (#341); a ketone, O, at a carbon between the
+	 * ends that is not the residue's carbonyl - a hexos-2-ulose's C2, a 4-keto pyranose's C4 - and an
+	 * aldehyde, o, at the far end, a dialdose's (#342).
+	 */
+	static boolean oxidisesTheChain(GRES _gres, Residue _residue, String _mod) {
+		if(!SkeletonModificationComposition.isOxidation(_mod)) return false;
+		Character position = SkeletonModificationComposition.positionOf(_mod);
+		if(position == null || !Character.isDigit(position.charValue())) return false;
+		int carbon = position.charValue() - '0';
+		String skeleton = _gres.getMS().getCoreStructure().getSkeletonCode();
+		char code = SkeletonModificationComposition.codeOf(_mod);
+		if(carbon < 1 || carbon > skeleton.length() || skeleton.charAt(carbon - 1) != code) return false;
+		boolean terminal = carbon == 1 || carbon == skeleton.length();
+		if(code == 'A') return _residue.isAlditol() && terminal;
+		if(code == 'o') return carbon == skeleton.length() && carbon > 1;
+		// the residue's own carbonyl is its name's, never one more
+		char anomeric = _residue.getType().getAnomericCarbon();
+		return !terminal && !(Character.isDigit(anomeric) && anomeric - '0' == carbon);
+	}
+
+	/**
+	 * Attach a group the WURCS gives this residue, or refuse the structure saying why.
+	 *
+	 * <p>The answer of addChild was not looked at, so a group the residue would not take was left out
+	 * and the structure read without it: a Leg5,7Ac2 came back as a bare Leg, 84 Da light, because
+	 * Leg did not offer 5 and 7 (#323). A structure that cannot be read as written is refused, never
+	 * read as something else.
+	 */
+	private static void attach(Residue _residue, Residue _group, java.util.List<org.eurocarbdb.application.glycanbuilder.linkage.Bond> _bonds, String _where)
+			throws WURCSToGlycanException {
+		if(_residue.addChild(_group, _bonds)) return;
+		// at the anomeric carbon of a residue nothing is bonded to by it - a glycosylamine's amine (#238)
+		if(_residue.attachAtAnomericCarbon(_group, _bonds)) return;
+		// A row the writer has no entry for - Ole, Cym, whose composition already holds the 3-O-methyl
+		// the WURCS gives them - is left as it was: the group was dropped and the mass came out right,
+		// and what these rows should be is their own question (#312).
+		if(NativeMonosaccharideDictionary.forResidueName(_residue.getTypeName()) == null) return;
+		throw new WURCSToGlycanException(_group.getTypeName() + " at " + _where + " of " + _residue.getTypeName()
+				+ " cannot be attached, as " + _residue.getTypeName() + " takes no group there, so it is not read");
+	}
+
 	private char[] makePosition(LinkedList<Integer> _positions) {
 		char[] position = new char[_positions.size()];
 		
@@ -212,6 +317,26 @@ public class SUBSTAnalyzer {
 				continue;
 			}
 
+			// A carboxyl at an end of an alditol's chain, "1*A", or a ketone inside it, "2*O", stays
+			// on the residue as well (#341). Built as a child named "A" or "O", it weighed nothing, and
+			// an aldonic acid came back as its alditol's aldose, 16 Da light.
+			if(oxidisesTheChain(_gres, _residue, mod)) {
+				_residue.addOxidation(mod);
+				continue;
+			}
+
+			// A double bond, "4,5*en", stays on the residue too, carbon by carbon as the skeleton has
+			// it - "4*e" and "5*E" - since which of them keeps its oxygen is what the composition and
+			// the derivatization sites depend on, and "en" does not say (#292). It was neither kept
+			// nor built: the residue was the saturated acid, two hydrogens heavy.
+			if(subNotations.length == 2 && subNotations[1].equals("en")) {
+				List<String> carbons = doubleBondCarbons(_gres, subNotations[0]);
+				if(carbons != null) {
+					for(String carbon : carbons) _residue.addDoubleBond(carbon);
+					continue;
+				}
+			}
+
 			if(subNotations[0].contains(",")) {
 				char[] positions = new char[subNotations[0].length()];
 				for(int i = 0; i < subNotations[0].length(); i++) {
@@ -224,6 +349,8 @@ public class SUBSTAnalyzer {
 			
 			Residue substituent = ResidueDictionary.newResidue(subNotations[1]);
 			this.checkNode(substituent, subNotations[1]);
+			// a skeleton modification built as a child, "en": kept as it was - what to do with one is
+			// #292's, and refusing it here would refuse every structure with one
 			_residue.addChild(substituent, linkage.getBonds());
 		}
 
@@ -259,9 +386,19 @@ public class SUBSTAnalyzer {
 		try {
 			if(_residue.getType().getMolecule() == null) return _reported;
 
-			double described = org.glycoinfo.WURCSFramework.util.array.mass.WURCSMassCalculator.calcMassWURCS(
-					new org.glycoinfo.WURCSFramework.util.WURCSFactory(
-							"WURCS=2.0/1,1,0/[" + _gres.getMS().getString() + "]/1/").getArray()).doubleValue();
+			// WURCSMassCalculator.calcMassWURCS has a debug System.out.println that prints each
+			// mass to stdout. Suppress it here until that is removed upstream.
+			// See: WURCSFramework/src/main/java/org/glycoinfo/WURCSFramework/util/array/mass/WURCSMassCalculator.java:92
+			java.io.PrintStream savedOut = System.out;
+			System.setOut(new java.io.PrintStream(java.io.OutputStream.nullOutputStream()));
+			double described;
+			try {
+				described = org.glycoinfo.WURCSFramework.util.array.mass.WURCSMassCalculator.calcMassWURCS(
+						new org.glycoinfo.WURCSFramework.util.WURCSFactory(
+								"WURCS=2.0/1,1,0/[" + _gres.getMS().getString() + "]/1/").getArray()).doubleValue();
+			} finally {
+				System.setOut(savedOut);
+			}
 
 			Residue root = ResidueDictionary.createReducingEnd("freeEnd");
 			root.addChild(_residue.cloneSubtree());
@@ -307,36 +444,67 @@ public class SUBSTAnalyzer {
 			throw new WURCSToGlycanException(_map + " is not handled in GlycanBuilder");
 	}
 
+	/**
+	 * Whether an N-linked group at this position hangs off the residue's own amine - so that what the
+	 * MAP adds is the O-linked equivalent on that nitrogen - rather than bringing a nitrogen of its
+	 * own.
+	 *
+	 * <p>Asked of what the residue's name says it carries: GlcN has its amine at 2, Bac at 2 and 4, Neu
+	 * at 5, Leg at 5 and 7. It was a list of classes and positions - a hexosamine's 2 and 4, a
+	 * nonulosonate's 5 and 7 - which gave GlcN an amine at 4 and every nonulosonate one at 7, so a
+	 * 4-acetamido on a GlcN or a 7-acetamido on a NeuAc was read as an O-acetyl: the nitrogen lost,
+	 * 0.9840 heavy, written back as another molecule (#319).
+	 */
 	private boolean isNSubstituent(Residue _residue, String _map, int _pos) {
-		boolean isNType = false;
-		boolean isNSub = this.isNTypes(_map);
-		String superclass = _residue.getType().getSuperclass();
-		
-		if(superclass.equals("Hexuronic acid")) return false;
-		if(superclass.equals("N-Acetylhexosamine")) return false;
-		
-		if(_pos == 2 || _pos == 4) {
-			if(_residue.getTypeName().equals("Bac") && isNSub) isNType = true;
-			if(superclass.equals("Hexosamine") && isNSub) isNType = true;
-			if(_residue.getTypeName().equals("Mur") && isNSub) isNType = true;
-		}
-		if(_pos == 5) {
-			if(_residue.getTypeName().contains("Leg") && isNSub) isNType = true;
-			else if(_residue.getTypeName().equals("Neu") && isNSub) isNType = true;
-			else isNType = _residue.getType().getSuperclass().equals("Nonulosonate") && isNSub;
-		}
-		if(_pos == 7) {
-			if(_residue.getTypeName().contains("Leg") && isNSub) isNType = true;
-			else isNType = _residue.getType().getSuperclass().equals("Nonulosonate") && isNSub;
-		}
-		
-		return isNType;
+		if(!this.isNTypes(_map)) return false;
+
+		NativeMonosaccharideDictionary.Entry entry =
+				NativeMonosaccharideDictionary.forResidueName(_residue.getTypeName());
+		if(entry != null) return hasAmineAt(entry, _pos);
+
+		// A type the dictionary does not describe - 8eLeg and the other non-symbolic rows - keeps the
+		// rule it had: they are not the residues #319 found wrong, and changing it for them unmeasured
+		// gave 8eLeg5,7Ac2 two nitrogens at each amine.
+		return legacyAmineAt(_residue, _pos);
 	}
 
-	private LinkageType checkLinkageTypeOfMAP (SUBST _subst, MS _ms) {
+	/** The class-and-position rule this used for every residue before #319. */
+	private static boolean legacyAmineAt(Residue _residue, int _pos) {
+		String superclass = _residue.getType().getSuperclass();
+		if(superclass.equals("Hexuronic acid") || superclass.equals("N-Acetylhexosamine")) return false;
+		if(_pos == 2 || _pos == 4)
+			return _residue.getTypeName().equals("Bac") || superclass.equals("Hexosamine")
+					|| _residue.getTypeName().equals("Mur");
+		if(_pos == 5)
+			return _residue.getTypeName().contains("Leg") || _residue.getTypeName().equals("Neu")
+					|| superclass.equals("Nonulosonate");
+		if(_pos == 7)
+			return _residue.getTypeName().contains("Leg") || superclass.equals("Nonulosonate");
+		return false;
+	}
+
+	/** Whether the name owns a branch, a bare MAP such as apiose's "3*CO", at this position. */
+	private static boolean ownsABranchAt(NativeMonosaccharideDictionary.Entry _entry, int _pos) {
+		if(_entry == null || _entry.getOwnMAPs().isEmpty()) return false;
+		for(String unit : _entry.getOwnMAPs().split("_"))
+			if(unit.startsWith(_pos + "*")) return true;
+		return false;
+	}
+
+	/** Whether the name's own substituents include a bare amine at this position, "2*N". */
+	static boolean hasAmineAt(NativeMonosaccharideDictionary.Entry _entry, int _pos) {
+		for(String unit : _entry.getSubstituents().split("_"))
+			if(unit.equals(_pos + "*N")) return true;
+		return false;
+	}
+
+	private LinkageType checkLinkageTypeOfMAP (SUBST _subst, MS _ms, NativeMonosaccharideDictionary.Entry _entry) {
 		String skeletonCode = _ms.getSkeletonCode();
 		int position = _subst.getPositions().getFirst();
-		if(position != -1) {
+		// A carbon with no hydrogen - 5 to 8 - lost it to this group, unless the residue's own branch
+		// took it: apiose's C3 is a 5 or a 6 for its hydroxymethyl, and keeps its hydroxyl, so a methyl
+		// there is an ether. Read as taking the hydrogen, it wrote the other configuration back (#350).
+		if(position != -1 && !ownsABranchAt(_entry, position)) {
 			char carbondescriptor = skeletonCode.charAt(position - 1);
 			CarbonDescriptor cdDesc = CarbonDescriptor.forCharacter(carbondescriptor, (position == 1 || skeletonCode.length() == position));
 			if(cdDesc.equals(CarbonDescriptor.SS3_CHIRAL_S_U) || cdDesc.equals(CarbonDescriptor.SS3_CHIRAL_R_U) ||

@@ -313,6 +313,10 @@ public class DeoxyExhaustiveTest {
 		if (check.equals("does not read") && detail.contains("could not handled")
 				&& c.base.skeleton.indexOf('x') >= 0)
 			return "K1 #265 the reader refuses an unknown stereocentre";
+		// The same refusal for a skeleton the deoxies have left with no stereocentre at all - addh,
+		// a tetrose with both of its taken.
+		if (check.equals("does not read") && detail.contains("could not handled") && !hasStereocentre(c.skeleton))
+			return "K1 #265 the reader refuses an unknown stereocentre";
 
 		// The reader names the residue by a type with no stereo recorded - eryPen, lyxHex, Rho - and
 		// the writer cannot build its skeleton: #275, as #261 is for araHex.
@@ -326,20 +330,30 @@ public class DeoxyExhaustiveTest {
 		if (check.equals("not written to WURCS") && detail.contains("TreeMap.get") && c.base.anomericPosition == 2)
 			return "K5 #275 a deoxy ketose loses its carbonyl";
 
-		// The reader names the residue by a heptose the dictionaries do not have - galHep, altHep,
-		// xylHep, ribHep - so it is made by createUnknown: no composition, and not a saccharide.
+		// The reader names the residue by a monosaccharide the dictionaries do not have - galHep,
+		// altHep, xylHep, ribHep for a deoxy heptose, groTet for a tetrose with one stereocentre left -
+		// so it is made by createUnknown: no composition, and not a saccharide.
 		boolean weighing = check.startsWith("mass ") || check.startsWith(MassOptions.PERMETHYLATED)
 				|| check.startsWith(MassOptions.PERACETYLATED);
-		boolean writing = check.equals("not written to WURCS") && detail.contains("has neither a configuration nor a ring");
+		boolean writing = check.equals("not written to WURCS") && (detail.contains("has neither a configuration nor a ring")
+				|| detail.contains("is no residue this application knows"));
 		if ((weighing || writing) && c.readAs != null && readsAsATypeNoDictionaryHas(c.readAs))
-			return "K3 #282 the reader names a heptose no dictionary has";
+			return "K3 #282 the reader names a monosaccharide no dictionary has";
+		// and since #236, which refuses a structure that reads fewer monosaccharides than it has, the
+		// same is refused at reading, naming the residue
+		if (check.equals("does not read") && detail.contains("no residue this application knows"))
+			return "K3 #282 the reader names a monosaccharide no dictionary has";
 
-		// L-gro-D-manHep and D-gro-D-manHep record 5 methylation and 3 acetylation sites; a
-		// heptopyranose has six hydroxyls (1, 2, 3, 4, 6, 7). Derivatized, they are wrong with or
-		// without a deoxy.
-		boolean derivatized = check.startsWith(MassOptions.PERMETHYLATED) || check.startsWith(MassOptions.PERACETYLATED);
-		if (derivatized && (c.base.name.equals("L-gro-D-manHep") || c.base.name.equals("D-gro-D-manHep")))
-			return "K4 #283 the heptose rows record too few derivatization sites";
+		// The heptoses of unknown C6, gro-D-glcHep and gro-D-manHep, are written since #275 - a2122xh,
+		// a1122xh - and with a deoxy their manno or gluco block is no longer whole: ad122xh. The reader
+		// refuses such a skeleton on purpose, saying that only part of a prefix's block is known and no
+		// name says it. It is refused with that reason, not read as something else.
+		if (check.equals("does not read") && detail.contains("known only in part")
+				&& (c.base.name.equals("gro-D-glcHep") || c.base.name.equals("gro-D-manHep")))
+			return "K6 #275 the reader refuses stereo known only in part";
+
+		// K4, the heptose rows that recorded too few methylation and acetylation sites (#283), is gone:
+		// the rows count every free hydroxyl now, six for a heptopyranose, and all 744 cases weigh right.
 
 		return UNEXPLAINED;
 	}
@@ -350,11 +364,44 @@ public class DeoxyExhaustiveTest {
 	 */
 	private static final Map<String, Integer> KNOWN_COUNTS = new java.util.TreeMap<String, Integer>();
 	static {
-		KNOWN_COUNTS.put("K1 #265 the reader refuses an unknown stereocentre", 192);
-		KNOWN_COUNTS.put("K2 #275 the type has no stereo recorded", 1404);
-		KNOWN_COUNTS.put("K3 #282 the reader names a heptose no dictionary has", 5 * 96);
-		KNOWN_COUNTS.put("K4 #283 the heptose rows record too few derivatization sites", 2 * 24 + 2 * 24);
-		KNOWN_COUNTS.put("K5 #275 a deoxy ketose loses its carbonyl", 216);
+		// 216 until #265: a deoxy on a type of unknown stereo, adxxh, now reads. What is left is a
+		// tetrose with both its centres taken, addh, which has no stereocentre and no type to be.
+		KNOWN_COUNTS.put("K1 #265 the reader refuses an unknown stereocentre", 24);
+		// 1,404 before #261, when no configurational-prefix name could be written at all
+		// 150 until #313 made Dig follow its configuration: the 12 L-cymaroses, a 3-O-methyl on an L
+		// 2,6-dideoxy ribo-hexose, read as Cym and could not be written; they read as L-Dig now
+		// and 6 fewer since #313: a 3,6-dideoxy L-arabino-hexose, ascarylose, read as Asc, a row with no
+		// stereo, until Tyv followed its configuration; it reads as L-Tyv now, and is written
+		// and 12 fewer since #275: L-gro-D-manHep, drawn as the L its row says, was written as a22112h,
+		// and its 7-deoxy read as D-gro-L-manHep, which had no stereo; it is a11221h now
+		KNOWN_COUNTS.put("K2 #275 the type has no stereo recorded", 150 - 12 - 6 - 12);
+		// 480, all heptoses, until the tetrose rows were corrected (#285): the deoxy tetroses then read
+		// and fail the same way, as groTet - 90 cases on each of Thr, Ery, thrTet and eryTet. 840 until
+		// #265 made gulHep a base, whose deoxies read as xylHep and ribHep: 150 more.
+		// Since #236 each of these cases - 198 of them - is refused when it is read, as it reads fewer
+		// monosaccharides than it has, and so fails once and not at each of the five checks after: 990
+		// is 5 x 198.
+		// And 36 more since #310 made Sed a base, writable: its deoxies with relative stereo are named
+		// ribHep and the like, which no dictionary has.
+		// And 1,014 more since #275 made ten heptoses and two octuloses writable, and so bases: their
+		// deoxies are named galHep, altHep, galOct and the like, which no dictionary has.
+		KNOWN_COUNTS.put("K3 #282 the reader names a monosaccharide no dictionary has",
+				(5 * 96 + 4 * 90 + 150) / 5 + 36 + 1014);
+		// K4 #283, the heptose rows' derivatization sites: 744 until the rows were recounted, 0 since
+		// 216 until #310 made Sed a base, writable: 48 of its deoxies are named as an aldoheptose,
+		// araHep and the like, with the anomeric carbon at 2, and fail the same way
+		// and 108 more since #275 made the octuloses D-gro-D-galOct and D-gro-D-talOct bases, as Sed's
+		KNOWN_COUNTS.put("K5 #275 a deoxy ketose loses its carbonyl", 216 + 48 + 108);
+		// since #275 wrote the two heptoses of unknown C6: 24 cases on gro-D-glcHep, 84 on gro-D-manHep,
+		// whose own skeleton a1122xh the reader refuses as well
+		KNOWN_COUNTS.put("K6 #275 the reader refuses stereo known only in part", 24 + 84);
+
+	}
+
+	private static boolean hasStereocentre(String skeleton) {
+		for (char carbon : skeleton.toCharArray())
+			if ("1234x".indexOf(carbon) >= 0) return true;
+		return false;
 	}
 
 	/** Whether any residue but the reducing end was read as a type neither dictionary holds. */

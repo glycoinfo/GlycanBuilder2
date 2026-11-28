@@ -28,8 +28,9 @@ import org.junit.Test;
  * the structure for the lines that name them (#262, #251, #250).
  *
  * <p>The structure is G63532WE, the one all three were reported against (#247), read from GlyCosmos's
- * own WURCS. It has three residues with no symbol of their own: a β-D-Altp, a β-L-thrHexpA4(E)en and a
- * β-D-Altf - the last a furanose, which is what #251 needed.
+ * own WURCS. It has three residues with no symbol of their own: a sedoheptulopyranose, a
+ * β-L-thrHexpA4(E)en and a sedoheptulofuranose - the last a furanose, which is what #251 needed. The
+ * sedoheptuloses were "β-D-Altp" and "β-D-Altf", an altrose's abbreviation, until #307.
  *
  * <p>Asserted on what the renderer actually draws. Batik writes text as outlines, so an exported SVG
  * holds no strings to look for; instead the real renderer paints into a graphics context that records
@@ -46,7 +47,7 @@ public class SnfgFootnoteTest {
 			+ "_g3-h2_h4-i1_i3-j1_j3-k2_k4-l1_n6-o2";
 
 	private static final List<String> FOOTNOTE = Arrays.asList(
-			"A=β-D-Altp", "B=β-L-thrHexpA4(E)en", "C=β-D-Altf");
+			"A=β-D-Sedoheptulopyranose", "B=β-L-thrHexpA4(E)en", "C=β-D-Sedoheptulofuranose");
 
 	/** #262: the ordinal is a letter, and keeps going past Z rather than failing or repeating. */
 	@Test

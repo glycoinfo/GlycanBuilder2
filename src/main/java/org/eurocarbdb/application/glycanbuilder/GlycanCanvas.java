@@ -20,6 +20,7 @@
 
 package org.eurocarbdb.application.glycanbuilder;
 
+import org.glycoinfo.application.glycanbuilder.dataset.OfferedTypes;
 import org.eurocarbdb.application.glycanbuilder.dataset.CoreDictionary;
 import org.eurocarbdb.application.glycanbuilder.dataset.ResidueDictionary;
 import org.eurocarbdb.application.glycanbuilder.dataset.TerminalDictionary;
@@ -32,6 +33,7 @@ import org.glycoinfo.application.glycanbuilder.dataset.CrossLinkedSubstituentDic
 import org.glycoinfo.application.glycanbuilder.dataset.NonSymbolicResidueDictionary;
 import org.glycoinfo.application.glycanbuilder.dataset.TextSymbolDescriptor;
 import org.glycoinfo.application.glycanbuilder.dialog.ResidueDesignDialog;
+import org.glycoinfo.application.glycanbuilder.util.AnomericCarbons;
 import org.glycoinfo.application.glycanbuilder.util.GlycanUtils;
 import org.glycoinfo.application.glycanbuilder.util.canvas.CanvasActionDescriptor;
 import org.glycoinfo.application.glycanbuilder.util.canvas.CompositionUtility;
@@ -604,7 +606,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 			getTheActionManager().get("alternative").setEnabled((getCurrentStructure() != null));
 			if(altButton != null) altButton.setVisible(true);
 		}*/
-		//getTheActionManager().get("stringNotation").setEnabled(true);
+		getTheActionManager().get("stringNotation").setEnabled(true);
 		
 		getTheActionManager().get("properties").setEnabled(hasCurrentResidue());
 
@@ -778,8 +780,10 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		// 20211223, S.TSUCHIYA add
 		String par_pos_temp = String.valueOf(par_pos);
 
-		// select unavailable linkage position from par_pos
+		// select unavailable linkage position from par_pos. Not for a bracket: each residue on it sits on
+		// a parent not known, one of the antennae, so two of them at 6 are two different 6s (#230).
 		for (Linkage donorLinkage : parent.getChildrenLinkages()) {
+			if (parent.isBracket()) break;
 			if (this.current_residue == donorLinkage.getChildResidue()) continue;
 
 			for (Bond donorBond : donorLinkage.getBonds()) {
@@ -886,7 +890,10 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 			else
 				field_linkage_position.clearSelection();
 			field_anomeric_state.setSelectedItem("" + current.getAnomericState());
-			field_anomeric_carbon.setSelectedItem("" + current.getAnomericCarbon());
+			// ? only where it may stay unknown; a residue read with ? shows the carbon it is written with
+			field_anomeric_carbon.setModel(new DefaultComboBoxModel(
+					AnomericCarbons.choices(current, current.getRingSize())));
+			field_anomeric_carbon.setSelectedItem("" + AnomericCarbons.of(current, current.getRingSize()));
 			field_chirality.setSelectedItem("" + current.getChirality());
 			field_ring_size.setSelectedItem("" + current.getRingSize());
 			
@@ -976,6 +983,8 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		no_recent_residues_buttons = 0;
 		for (String typename : theWorkspace.getResidueHistory()
 				.getRecentResidues()) {
+			// a residue used before it was withdrawn from the menus is not offered here either
+			if (!OfferedTypes.residue(ResidueDictionary.findResidueType(typename))) continue;
 			JButton b = new JButton(getTheActionManager().get("add=" + typename));
 			b.setText(null);
 			tb.add(b, recent_residues_index + no_recent_residues_buttons++);
@@ -1430,7 +1439,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 			ICON_SIZE iconSize = ICON_SIZE.L6;
 			final List<StringValuePair<List<JCommandToggleButton>>> galleryButtons = new ArrayList<>();
 			for (String superclass : CoreDictionary.getSuperclasses()) {
-				Collection<CoreType> core_types = CoreDictionary.getCores(superclass);
+				Collection<CoreType> core_types = OfferedTypes.cores(CoreDictionary.getCores(superclass));
 				if (core_types.size() > 0) {
 					List<JCommandToggleButton> galleryButtonsList = new ArrayList<>();
 					
@@ -1465,7 +1474,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 						}
 					}
 					
-					galleryButtons.add(new StringValuePair<>(superclass, galleryButtonsList));
+					galleryButtons.add(new StringValuePair<>(ResidueDictionary.displayNameOf(superclass), galleryButtonsList));
 				}
 			}
 
@@ -1504,12 +1513,10 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 			ICON_SIZE iconSize = ICON_SIZE.L6;
 			final List<StringValuePair<List<JCommandToggleButton>>> galleryButtons = new ArrayList<StringValuePair<List<JCommandToggleButton>>>();
 			for (String superclass : ResidueDictionary.getSuperclasses()) {
-				Collection<ResidueType> core_types = ResidueDictionary
-						.getResidues(superclass);
+				Collection<ResidueType> core_types = OfferedTypes.residues(ResidueDictionary.getResidues(superclass));
 				if (core_types.size() > 0) {
 					List<JCommandToggleButton> galleryButtonsList = new ArrayList<JCommandToggleButton>();
-					for (ResidueType t : ResidueDictionary
-							.getResidues(superclass)) {
+					for (ResidueType t : core_types) {
 						if (t.canHaveParent() && t.canHaveChildren()) {
 							// && t.getMaxLinkages() >= 2
 							ResizableIcon icon = new ImageResizableIconReducedMem(this.getGlycanRenderer()
@@ -1528,7 +1535,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 					if(galleryButtonsList.size()>0){
 						galleryButtons
 						.add(new StringValuePair<List<JCommandToggleButton>>(
-								superclass, galleryButtonsList));
+								ResidueDictionary.displayNameOf(superclass), galleryButtonsList));
 						
 					}
 				}
@@ -1570,12 +1577,10 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 			ICON_SIZE iconSize = ICON_SIZE.L6;
 			final List<StringValuePair<List<JCommandToggleButton>>> galleryButtons = new ArrayList<StringValuePair<List<JCommandToggleButton>>>();
 			for (String superclass : ResidueDictionary.getSuperclasses()) {
-				Collection<ResidueType> core_types = ResidueDictionary
-						.getResidues(superclass);
+				Collection<ResidueType> core_types = OfferedTypes.residues(ResidueDictionary.getResidues(superclass));
 				if (core_types.size() > 0) {
 					List<JCommandToggleButton> galleryButtonsList = new ArrayList<JCommandToggleButton>();
-					for (ResidueType t : ResidueDictionary
-							.getResidues(superclass)) {
+					for (ResidueType t : core_types) {
 						// if (t.canHaveParent() && t.canHaveChildren()) {
 						// && t.getMaxLinkages() >= 2
 						ResizableIcon icon = new ImageResizableIconReducedMem(
@@ -1593,7 +1598,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 					if(galleryButtonsList.size()>0){
 						galleryButtons
 						.add(new StringValuePair<List<JCommandToggleButton>>(
-								superclass, galleryButtonsList));
+								ResidueDictionary.displayNameOf(superclass), galleryButtonsList));
 					}
 				}
 			}
@@ -1633,10 +1638,10 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 			ICON_SIZE iconSize = ICON_SIZE.L6;
 			final List<StringValuePair<List<JCommandToggleButton>>> galleryButtons = new ArrayList<StringValuePair<List<JCommandToggleButton>>>();
 			for (String superclass : ResidueDictionary.getSuperclasses()) {
-				Collection<ResidueType> core_types = ResidueDictionary.getResidues(superclass);
+				Collection<ResidueType> core_types = OfferedTypes.residues(ResidueDictionary.getResidues(superclass));
 				if (core_types.size() > 0) {
 					List<JCommandToggleButton> galleryButtonsList = new ArrayList<JCommandToggleButton>();
-					for (ResidueType t : ResidueDictionary.getResidues(superclass)) {
+					for (ResidueType t : core_types) {
 						if (t.canHaveParent()) {
 							// && t.getMaxLinkages() >= 2
 							ResizableIcon icon = new ImageResizableIconReducedMem(
@@ -1652,7 +1657,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 					
 					if(galleryButtonsList.size()>0){
 						galleryButtons.add(new StringValuePair<List<JCommandToggleButton>>(
-							superclass, galleryButtonsList));
+							ResidueDictionary.displayNameOf(superclass), galleryButtonsList));
 					}
 				}
 			}
@@ -1928,6 +1933,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		structure_menu.addSeparator();
 
 		structure_menu.add(createAddResidueMenu());
+		structure_menu.add(getTheActionManager().get("stringNotation"));
 		structure_menu.add(createAddTerminalMenu());
 		structure_menu.add(createInsertResidueMenu());
 		structure_menu.add(createChangeResidueTypeMenu());
@@ -1984,12 +1990,27 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		
 		if (hasCurrentSelection()) buf.append("1");
 		else buf.append("0");
+
+		// a placeholder's menu leads with naming it, so it is cached apart
+		boolean placeholder = GlycanDocument.isPlaceholder(getCurrentResidue());
+		buf.append(placeholder ? "1" : "0");
 		
 		String key=buf.toString();
 		if(cachedMenus.containsKey(key)) return cachedMenus.get(key);
 		
 		JPopupMenu menu = new JPopupMenu();
 		menu.setDoubleBuffered(true);
+
+		// A placed "Assigned" placeholder is there to be named (#252): saying which monosaccharide it
+		// is comes first, where the question is asked, rather than only on the toolbar.
+		if (placeholder) {
+			JMenuItem name = new JMenuItem("Set monosaccharide\u2026",
+					new ImageIcon(ResidueDesignDialog.chooserImage(16)));
+			name.setToolTipText("Choose which monosaccharide this placeholder is");
+			name.addActionListener(e -> onAddStringNotation());
+			menu.add(name);
+			menu.addSeparator();
+		}
 
 		// edit actions
 		menu.add(getTheActionManager().get("cut"));
@@ -2077,7 +2098,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		toolbar.setFloatable(false);
 		for (Iterator<ResidueType> i = ResidueDictionary.directResidues().iterator(); i.hasNext();) {
 			ResidueType t = i.next();
-			if (t.canHaveParent()) toolbar.add(getTheActionManager().get("add=" + t.getName()));
+			if (t.canHaveParent() && OfferedTypes.residue(t)) toolbar.add(getTheActionManager().get("add=" + t.getName()));
 		}
 
 		toolbar.addSeparator();
@@ -2093,7 +2114,7 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		//altButton = toolbar.add(getTheActionManager().get("alternative"));
 		toolbar.add(getTheActionManager().get("properties"));
 
-		//toolbar.add(getTheActionManager().get("stringNotation"));
+		toolbar.add(getTheActionManager().get("stringNotation"));
 		
 		toolbar.addSeparator();
 		toolbar.add(getTheActionManager().get("moveccw"));
@@ -2353,7 +2374,12 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 	public void paste() {
 		try {
 			Transferable t = ClipUtils.getContents();
-			if (t != null
+			// copied in this application: the structures as they were copied, which the text would
+			// not carry whole (#370)
+			java.util.List<Glycan> copied = GlycanSelection.structuresIn(t);
+			if (copied != null) {
+				theDoc.addStructures(current_residue, copied);
+			} else if (t != null
 					&& t.isDataFlavorSupported(GlycanSelection.glycoFlavor)) {
 				String content = TextUtils.consume((InputStream) t
 						.getTransferData(GlycanSelection.glycoFlavor));
@@ -2450,29 +2476,54 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 				.getGraphicOptions().SHOW_REDEND : getTheGlycanRenderer()
 				.getGraphicOptions().SHOW_REDEND_CANVAS;
 
-		all_structures_bbox = getTheGlycanRenderer().computeBoundingBoxes(theDoc
-				.getStructures(), show_masses, show_redend, thePosManager,
-				theBBoxManager);
-		for (Glycan s : theDoc.getStructures()) {
-			getTheGlycanRenderer().paint(new DefaultPaintable(g2d), s, selected_residues,
-					selected_linkages, show_masses, show_redend, thePosManager,
+		// A structure that cannot be drawn must not take the canvas with it. Thrown out of here, the
+		// failure left the scale at the canvas's and the graphics undisposed, and came again at every
+		// repaint: the window stopped refreshing and the menus were left drawn over it (#267, #96).
+		// What cannot be drawn is said on the canvas instead, and reported once.
+		try {
+			all_structures_bbox = getTheGlycanRenderer().computeBoundingBoxes(theDoc
+					.getStructures(), show_masses, show_redend, thePosManager,
 					theBBoxManager);
-		}
-		
-		if (!is_printing)
-			paintSelection(g2d, show_redend);
-		//
-		// if(theDoc.has_changed)
-		if (this.respondToDocumentChange) {
-			this.respondToDocumentChange = false;
-			revalidate();
-		}
+			for (Glycan s : theDoc.getStructures()) {
+				getTheGlycanRenderer().paint(new DefaultPaintable(g2d), s, selected_residues,
+						selected_linkages, show_masses, show_redend, thePosManager,
+						theBBoxManager);
+			}
 
-		// dispose graphic object
-		g2d.dispose();
+			if (!is_printing)
+				paintSelection(g2d, show_redend);
+			lastPaintFailure = null;
+		} catch (RuntimeException cannotBeDrawn) {
+			paintFailure(g2d, cannotBeDrawn);
+		} finally {
+			//
+			// if(theDoc.has_changed)
+			if (this.respondToDocumentChange) {
+				this.respondToDocumentChange = false;
+				revalidate();
+			}
 
-		getTheGlycanRenderer().getGraphicOptions().setScale(
-				getTheGlycanRenderer().getGraphicOptions().SCALE);
+			// dispose graphic object
+			g2d.dispose();
+
+			getTheGlycanRenderer().getGraphicOptions().setScale(
+					getTheGlycanRenderer().getGraphicOptions().SCALE);
+		}
+	}
+
+	/** The message of the last failure to draw, so that one that repeats at every repaint is reported once. */
+	private String lastPaintFailure = null;
+
+	/** Say on the canvas that the structures cannot be drawn, and why; report it the first time. */
+	private void paintFailure(Graphics2D g2d, RuntimeException _failure) {
+		String why = _failure.getClass().getSimpleName() + (_failure.getMessage() == null ? "" : ": " + _failure.getMessage());
+		g2d.setColor(Color.RED);
+		g2d.drawString("These structures cannot be drawn (" + why + ").", 10, 20);
+		g2d.drawString("Undo, or remove the structure last added.", 10, 36);
+		if (!why.equals(lastPaintFailure)) {
+			lastPaintFailure = why;
+			_failure.printStackTrace();
+		}
 	}
 
 	private void paintSelection(Graphics2D g2d, boolean show_redend) {
@@ -3313,48 +3364,51 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 	// ----------------------
 	// Edit actions
 
-	/**Original method*/
+	/**
+	 * Add a monosaccharide chosen from SNFG's table or from those with no symbol of their own, or -
+	 * when an "Assigned" placeholder has the focus - say which one the placeholder is (#252).
+	 */
 	public void onAddStringNotation() {
-		try {	
-			ResidueDesignDialog a_RDD = new ResidueDesignDialog(theParent);
+		try {
+			Residue current = getCurrentResidue();
+			ResidueDesignDialog a_RDD = new ResidueDesignDialog(theParent, GlycanDocument.isPlaceholder(current), getTheGlycanRenderer());
 			a_RDD.setVisible(true);
-			
-			Residue toadd = null;
-			String a_strStatus = a_RDD.getReturnStatus();
-			if(!a_strStatus.equals("Cancel") && !a_strStatus.equals("Accept")) {
-				toadd = new Residue(NonSymbolicResidueDictionary.getResidueType(a_RDD.getReturnStatus()));
-			}
-			
-			/*if(a_strStatus.equals("Accept")) {
-				if(a_RDD.getResidueCode().equals(""))
-					throw new Exception("Please input the ResidueCode in text box");
-				
-				ResidueCodetoTrivalName a_objRC2TN = new ResidueCodetoTrivalName();
-				a_objRC2TN.start(a_RDD.getResidueCode());
-				
-				/** ResidueCode to monosaccharide trival name*/
-			//	toadd = ResidueDictionary.newResidue(a_objRC2TN.getTrivalName());
-			//}
+			if (a_RDD.isCanceled()) return;
 
-			if(toadd == null && !a_strStatus.equals("Cancel"))
-				throw new Exception("This residue can not handle in GlycanBuilder");
-			
-			if (theDoc.addResidue(getCurrentResidue(), getLinkedResidues(), toadd) != null) {
-				setSelection(toadd);
-				theWorkspace.getResidueHistory().add(toadd);
+			ResidueType chosen = a_RDD.getChosenType();
+			// glycerol is Gro made an alditol (#282)
+			boolean alditol = a_RDD.isAlditolChosen();
+
+			if (GlycanDocument.isPlaceholder(current)) {
+				if (!theDoc.assignPlaceholder(current, getLinkedResidues(), chosen))
+					throw new Exception("The placeholder cannot be made " + chosen.getName() + " where it stands.");
+				if (alditol) {
+					current.setAnomericState('?');
+					current.setRingSize('o');
+				}
+				setSelection(current);
+				theWorkspace.getResidueHistory().add(current);
+			} else {
+				Residue toadd = new Residue(chosen);
+				if (alditol) {
+					toadd.setAnomericState('?');
+					toadd.setRingSize('o');
+				}
+				if (theDoc.addResidue(current, getLinkedResidues(), toadd) != null) {
+					setSelection(toadd);
+					theWorkspace.getResidueHistory().add(toadd);
+				}
 			}
-			
+
 			this.respondToDocumentChange = true;
 			repaint();
 		} catch(Exception e) {
 			JOptionPane.showMessageDialog(theParent, e.getMessage(),
-					"Error while convert ResidueCode",
+					"Error while adding a monosaccharide",
 					JOptionPane.ERROR_MESSAGE);
 		}
-		
-		return;
 	}
-		
+
 	public void hyperlinkUpdate(HyperlinkEvent e) {
 		if(e.getEventType() != HyperlinkEvent.EventType.ACTIVATED) return;
 		String url = e.getURL().toString();
@@ -3571,8 +3625,14 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 			if(!dig.isCanceled()) {
 				Collection<Glycan> exported = this.getSelectedStructures().isEmpty()
 						? this.theDoc.getStructures() : this.getSelectedStructures();
-				if( this.theDoc.exportFromStructure(exported, dig.getFormat()) )
+				if( this.theDoc.exportFromStructure(exported, dig.getFormat()) ) {
 					warnAboutExportFailures(exported, dig.getFormat());
+					// WURCS leaves an aglycon out, and nothing in the string shows it (#305)
+					String aglycons = org.glycoinfo.application.glycanbuilder.converterWURCS2.AglyconInWURCS
+							.warning(exported, theDoc.getLastExportFailures(), dig.getFormat());
+					if( aglycons!=null )
+						JOptionPane.showMessageDialog(theParent, aglycons, "Aglycon not exported", JOptionPane.WARNING_MESSAGE);
+				}
 			}
 
 			if(this.theDoc.getString().size() > 0)	{
@@ -3980,6 +4040,8 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 					current.setAldehyde(false);
 					current.setRingSize(current.getRingSize() == 'a' ? '?' : current.getRingSize());
 				}
+				// an alditol or an open chain closed into a ring again takes its anomeric carbon back
+				current.setAnomericCarbon(AnomericCarbons.of(current));
 			}
 			
 			theDoc.fireDocumentChanged();
@@ -4533,7 +4595,11 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		lastMouseButton = e.getButton();
 		Residue r = getResidueAtPoint(e.getPoint());
 		if (r != null) {
-			if (MouseUtils.isSelectTrigger(e)) {
+			if (isPlainDoubleClick(e) && GlycanDocument.isPlaceholder(r)) {
+				// a double click on a placeholder names it (#252); later, so the click finishes first
+				setSelection(r);
+				SwingUtilities.invokeLater(this::onAddStringNotation);
+			} else if (MouseUtils.isSelectTrigger(e)) {
 				setSelection(r);
 			} else if (MouseUtils.isAddSelectTrigger(e)) {
 				addSelection(r);
@@ -4549,6 +4615,12 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		}
 		lastMouseButton = null;
 
+	}
+
+	private static boolean isPlainDoubleClick(MouseEvent e) {
+		return e.getButton() == MouseEvent.BUTTON1 && e.getClickCount() == 2
+				&& (e.getModifiersEx() & (InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK
+						| InputEvent.META_DOWN_MASK | InputEvent.ALT_DOWN_MASK)) == 0;
 	}
 
 	private void dragAndScroll(MouseEvent e) {

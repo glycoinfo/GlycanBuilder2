@@ -106,12 +106,22 @@ public class GRESToFragment extends GLINToLinkage {
 	public void setGRESs(GRES _gres) {
 		this.gres = _gres;
 		
-		if(!_gres.getAcceptorGLINs().isEmpty()) {
-			LinkedList<GLIN> a_aGLINs = _gres.getAcceptorGLINs();
-			if(a_aGLINs.getFirst().getDonor().contains(_gres)) {
-				this.acceptorGRESs.addAll(a_aGLINs.getFirst().getDonor());
+		// The first bond this residue accepts that is not a repeat's. A repeat of one residue, b1-b4~n,
+		// has the residue as its own donor, which is what a composition's members look like, a?|b?}-{a?|b?:
+		// taken for one, the residue was made a composition's root, and the whole structure was read as a
+		// composition of its repeated residues - G67119YN as its two NeuAc and its Fuc, ten others gone
+		// (#264).
+		GLIN first = null;
+		for(GLIN a_oAGLIN : _gres.getAcceptorGLINs()) {
+			if(a_oAGLIN.isRepeat()) continue;
+			first = a_oAGLIN;
+			break;
+		}
+		if(first != null) {
+			if(first.getDonor().contains(_gres)) {
+				this.acceptorGRESs.addAll(first.getDonor());
 			}else {
-				for(GRES a_oDGRES : _gres.getAcceptorGLINs().getFirst().getDonor()) {
+				for(GRES a_oDGRES : first.getDonor()) {
 					if(a_oDGRES.getID() - _gres.getID() == 1) continue;
 					this.acceptorGRESs.add(a_oDGRES);
 				}				
