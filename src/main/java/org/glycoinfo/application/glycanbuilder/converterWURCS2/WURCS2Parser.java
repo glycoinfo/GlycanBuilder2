@@ -18,6 +18,11 @@ import org.glycoinfo.application.glycanbuilder.composition.GlycanComposition;
 import org.glycoinfo.application.glycanbuilder.util.AnomericCarbons;
 
 public class WURCS2Parser implements GlycanParser{
+
+	static {
+		// a warning WURCSFramework logs for structures it reads correctly, many times a read (#228)
+		QuietWURCSFrameworkLogs.quiet();
+	}
 	
 	public void setTolerateUnknown(boolean f) {}
 	
