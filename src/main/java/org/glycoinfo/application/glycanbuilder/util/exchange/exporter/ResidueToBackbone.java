@@ -172,7 +172,12 @@ public class ResidueToBackbone {
 		Residue substituent = (residue.isSubstituent()) ? residue : null;
 		boolean isSwap = false;
 		
-		Collection<Character> positions = _linkage.getParentPositions();
+		// The carbon of this residue the bond is made at. For its own parent linkage that is the child's
+		// position, its anomeric carbon for a glycosidic bond - not the parent's position, which is a
+		// carbon of the parent. Read as one of this residue's, a hexose on a heptose's C7, a pentose on
+		// a hexose's C6, was looked up at a carbon it does not have, and the structure could not be
+		// written at all: G63532WE, and 52 GlyTouCan structures (#249).
+		Collection<Character> positions = (_isParent) ? _linkage.getChildPositions() : _linkage.getParentPositions();
 		if(positions.size() > 1) return;
 		
 		isSwap = (this.compareConnectAtom(_linkage, substituent, _isParent) < 0);
@@ -181,10 +186,11 @@ public class ResidueToBackbone {
 		if(_linkage.getParentResidue().isRepetition())
 			parentLink = _linkage.getParentResidue().getParentLinkage();
 		
-		char position = AminePosition.of(_linkage.getParentResidue(), positions.iterator().next());
-		int pos = position == '?' ? -1 : Integer.parseInt(String.valueOf(position));
+		char position = (_isParent) ? positions.iterator().next()
+				: AminePosition.of(_linkage.getParentResidue(), positions.iterator().next());
+		int pos = (position == '?' || !Character.isDigit(position)) ? -1 : Integer.parseInt(String.valueOf(position));
 		
-		if(pos == -1) return;
+		if(pos == -1 || pos > _scNotation.length()) return;
 		char cd = _scNotation.charAt(pos - 1);
 		char newCD = cd;
 		
