@@ -14,7 +14,7 @@ Cym			Unknown	Hex		C7H14O4	-	Cym$	1	?	p	yes	yes	no	0	2	no	2	no	2	1,4	-	no	no	yes
 The			Unknown	Hep		C7H14O5	-	The$	1	?	p	yes	yes	no	0	3	no	3	no	3	1,2,4	-	no	no	yes	Thevetose
 Ole			Unknown	Hep		C7H14O4	-	Ole$	1	?	p	yes	yes	no	0	2	no	2	no	2	1,4	-	no	no	yes	Oleandrose
 2dPen		Pentose	dPen	C5H10O4	-	2-deoxy-Pen$	1	?	f	yes	yes	no	0	3	no	3	no	3	1,3,4,5	-	no	no	yes	2-Deoxypentose
-4dPen		Pentose	dPen	C5H10O4	dPen	4-deoxy-Pen$	1	?	f	yes	yes	no	0	3	no	3	no	3	1,2,3,5	-	no	no	yes	4-Deoxypentose
+4dPen		Pentose	dPen	C5H10O4	dPen	4-deoxy-Pen$	1	?	p	yes	yes	no	0	3	no	3	no	3	1,2,3,5	-	no	no	yes	4-Deoxypentose
 dRib		Pentose	dPen	C5H10O4	-	4-deoxy-Rib$	1	?	f	yes	yes	no	0	3	no	3	no	3	1,3,4,5	-	no	no	yes	Deoxyribose
 MeH			Hexose	MeHex	C7H14O6	MeHex	Hex$3Me	1	?	p	yes	yes	no	0	4	no	4	no	4	1,2,4,5,6	-	no	no	yes	3-Methyl-hexose
 4dPenN		Pentose	dPenN	C5H11N1O3	dPenN	4-deoxy-PenN$	1	?	f	yes	yes	no	0	4	no	3	no	3	1,3,4,5,N	-	no	no	yes	4-Deoxypentosamine
