@@ -9,9 +9,9 @@ PyrP	Bridge	Inter	H4P2O7		-	PyrP	1	?	?	yes	no	no	0	1	no	1	no	1	-	-	no	no	yes	Pyr
 Tri-P	Bridge	Inter	H5O10P3		-	Tri-P	1	?	?	yes	no	no	0	1	no	1	no	1	-	-	no	no	yes	Triphosphate	*OP^XOP^XOP^X*/7O/7=O/5O/5=O/3O/3=O
 PEtn	Bridge	Inter	C2H8NO4P	-	PEtn	1	?	?	yes	no	no	0	2	no	1	no	1	-	-	no	no	yes	Phosphoethanolamine	*1NCCOP^XO*2/6O/6=O
 PPEtn	Bridge	Inter	C2H9NO7P2	-	PPEtn	1	?	?	yes	no	no	0	2	no	1	no	1	-	-	no	no	yes	Diphosphoethanolamine	*NCCOP^XOP^X*/8O/8=O/6O/6=O
-Py		Bridge	Intra	C3H5O4		-	Pyr		2	?	?	yes	no	no	0	1	no	1	no	1	-	-	no	no	yes	Pyruvate	*OC^XO*/3CO/6=O/3C
-(S)Py	Bridge	Intra	C3H5O4		-	(S)Pyr	2	?	?	yes	no	no	0	1	no	1	no	1	-	-	no	no	yes	[S]Pyruvate	*OC^SO*/3CO/6=O/3C
-(R)Py	Bridge	Intra	C3H5O4		-	(R)Pyr	2	?	?	yes	no	no	0	1	no	1	no	1	-	-	no	no	yes	[R]Pyruvate	*OC^RO*/3CO/6=O/3C
+Py		Bridge	Intra	C3H6O4		-	Pyr		2	?	?	yes	no	no	0	1	no	1	no	1	-	-	no	no	yes	Pyruvate	*OC^XO*/3CO/6=O/3C
+(S)Py	Bridge	Intra	C3H6O4		-	(S)Pyr	2	?	?	yes	no	no	0	1	no	1	no	1	-	-	no	no	yes	[S]Pyruvate	*OC^SO*/3CO/6=O/3C
+(R)Py	Bridge	Intra	C3H6O4		-	(R)Pyr	2	?	?	yes	no	no	0	1	no	1	no	1	-	-	no	no	yes	[R]Pyruvate	*OC^RO*/3CO/6=O/3C
 Anhydro	Bridge	Intra	H2O1		-	Anhydro	?	?	?	yes	no	no	0	1	no	1	no	1	-	-	no	no	yes	Anhydro	*O*
 %ETHANOLAMINE_b
 %IMINO_b
