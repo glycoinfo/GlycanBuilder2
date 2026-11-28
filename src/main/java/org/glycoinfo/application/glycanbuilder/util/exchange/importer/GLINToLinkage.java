@@ -289,8 +289,17 @@ public class GLINToLinkage {
 		} else { // for start-side rep
 			this.startGRES = acceptorGRES;
 
-			// StartRep->sugar
-			this.startSideRepLinkage = new Linkage(null, this.acceptorRES, a_caPositions);
+			// StartRep->sugar. A repeat of one residue is bonded to what it hangs on by the bond into
+			// it, not by the repeat's own: G42488IE's [Rha]n hangs on b6, b6-c1, and repeats at 3,
+			// c1-c3~n. Given the 3, its start marker hung on the wrong carbon, outside the repeat
+			// before it, and it was written back b3-c1 (#269) - as analyzeDonorSideRep does for a
+			// repeat of more than one.
+			char[] hangsOn = a_caPositions;
+			if (acceptorGRES == donorGRES) {
+				GLIN into = this.getDonorSideGLIN();
+				if (into != null && !into.isRepeat()) hangsOn = this.makeLinkagePosiiton(into.getAcceptorPositions());
+			}
+			this.startSideRepLinkage = new Linkage(null, this.acceptorRES, hangsOn);
 			this.startSideRepLinkage.setAnomericCarbon(a_cdPositions[0]);
 		}
 	}
@@ -345,8 +354,12 @@ public class GLINToLinkage {
 
 			this.startGRES = acceptorGRES;
 
-			// sub->EndRep or sugar->EndRep
-			this.endSideRepLinkage = new Linkage(null, bridge, a_cdPositions);
+			// sub->EndRep or sugar->EndRep. The end marker hangs on the carbon the next unit is bonded
+			// to, which in a repeat of one residue, a1-a4~n, is the acceptor's 4 and not the donor's
+			// 1: placed at 1, the residue's own anomeric carbon, it was refused, and the repeat was
+			// read as one residue and written back as one, the ~n gone (#269)
+			char[] closesOn = (acceptorGRES == donorGRES) ? a_caPositions : a_cdPositions;
+			this.endSideRepLinkage = new Linkage(null, bridge, closesOn);
 			this.endSideRepLinkage.setAnomericCarbon(a_cdPositions[0]);
 		}
 	}

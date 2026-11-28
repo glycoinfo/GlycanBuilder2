@@ -2357,7 +2357,10 @@ public class Residue {
 		if(clone.isStartRepetition()){
 			startRep.res=clone;
 		}else if(clone.isEndRepetition()){
-			startRep.res.setEndRepitionResidue(clone);
+			// The repeats of one structure need not open and close in the order this walk meets them:
+			// with several on branches, a repeat's end can come when no start is pending, and the copy
+			// threw (#269). Glycan.clone relinks the pair from what was copied.
+			if(startRep.res!=null) startRep.res.setEndRepitionResidue(clone);
 			startRep.res=null;
 		}
 
@@ -2406,7 +2409,10 @@ public class Residue {
 		if(clone.isStartRepetition()){
 			startRep.res=clone;
 		}else if(clone.isEndRepetition()){
-			startRep.res.setEndRepitionResidue(clone);
+			// The repeats of one structure need not open and close in the order this walk meets them:
+			// with several on branches, a repeat's end can come when no start is pending, and the copy
+			// threw (#269). Glycan.clone relinks the pair from what was copied.
+			if(startRep.res!=null) startRep.res.setEndRepitionResidue(clone);
 			startRep.res=null;
 		}
 
