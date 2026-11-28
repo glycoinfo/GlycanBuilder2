@@ -1718,7 +1718,9 @@ public class Residue {
 			if( at>=0 ) available.deleteCharAt(at);
 		}
 
-		for( Linkage taken : children_linkages ) {
+		// A bracket's children do not share a parent: each sits on one of the antennae, not known which,
+		// so a position one of them names is not taken from the others (#230).
+		for( Linkage taken : isBracket() ? new ArrayList<Linkage>() : children_linkages ) {
 			for( Bond bond : taken.getBonds() ) {
 				char[] positions = bond.getParentPositions();
 				if( positions==null || positions.length!=1 || positions[0]=='?' )
@@ -1917,6 +1919,9 @@ public class Residue {
 	 * @return Returns whether some other child already holds it.
 	 */
 	private boolean positionHeldByAChild(char position, Residue except) {
+		// on a bracket, each child's position is on a parent of its own (#230)
+		if( isBracket() )
+			return false;
 		for( Linkage taken : children_linkages ) {
 			if( taken.getChildResidue()==except )
 				continue;

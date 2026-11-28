@@ -780,8 +780,10 @@ public class GlycanCanvas extends JComponent implements ActionListener,
 		// 20211223, S.TSUCHIYA add
 		String par_pos_temp = String.valueOf(par_pos);
 
-		// select unavailable linkage position from par_pos
+		// select unavailable linkage position from par_pos. Not for a bracket: each residue on it sits on
+		// a parent not known, one of the antennae, so two of them at 6 are two different 6s (#230).
 		for (Linkage donorLinkage : parent.getChildrenLinkages()) {
+			if (parent.isBracket()) break;
 			if (this.current_residue == donorLinkage.getChildResidue()) continue;
 
 			for (Bond donorBond : donorLinkage.getBonds()) {
